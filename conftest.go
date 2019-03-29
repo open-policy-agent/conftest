@@ -16,6 +16,7 @@ import (
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func main() {
@@ -35,7 +36,7 @@ var RootCmd = &cobra.Command{
 		}
 		cmd.SilenceUsage = true
 
-		compiler, err := buildCompiler("policy")
+		compiler, err := buildCompiler(viper.GetString("policy"))
 		if err != nil {
 			return fmt.Errorf("Unable to find policies directory: %s", err)
 		}
@@ -158,4 +159,13 @@ func buildCompiler(path string) (*ast.Compiler, error) {
 	}
 
 	return compiler, nil
+}
+
+func init() {
+	viper.SetEnvPrefix("CONFTEST")
+	viper.AutomaticEnv()
+
+	RootCmd.PersistentFlags().StringP("policy", "p", "policy", "directory for Rego policy files")
+	viper.BindPFlag("policy", RootCmd.PersistentFlags().Lookup("policy"))
+
 }
