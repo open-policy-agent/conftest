@@ -43,12 +43,16 @@ var RootCmd = &cobra.Command{
 
 		for _, fileName := range args {
 			fmt.Println("Processing", fileName)
-			err = processFile(fileName, compiler)
-			if err != nil {
+			failures, warnings := processFile(fileName, compiler)
+			if failures != nil {
 				fmt.Println("Policy violations found")
-				fmt.Println(err)
+				fmt.Println(failures)
 			} else {
 				fmt.Println("No policy violations found")
+			}
+			if warnings != nil {
+				fmt.Println("Policy warnings found")
+				fmt.Println(warnings)
 			}
 		}
 		return nil
@@ -64,35 +68,51 @@ func detectLineBreak(haystack []byte) string {
 	return "\n"
 }
 
-func processFile(fileName string, compiler *ast.Compiler) error {
+func processFile(fileName string, compiler *ast.Compiler) (error, error) {
 	filePath, _ := filepath.Abs(fileName)
 	data, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		return fmt.Errorf("Unable to open file %s: %s", fileName, err)
+		return fmt.Errorf("Unable to open file %s: %s", fileName, err), nil
 	}
 
 	linebreak := detectLineBreak(data)
 	bits := bytes.Split(data, []byte(linebreak+"---"+linebreak))
 
-	var errorsList *multierror.Error
+	var failuresList *multierror.Error
+	var warningsList *multierror.Error
 	for _, element := range bits {
 		var input interface{}
 		err = yaml.Unmarshal([]byte(element), &input)
 		if err != nil {
-			errorsList = multierror.Append(errorsList, fmt.Errorf("Unable to parse YAML from %s: %s", fileName, err))
+			return fmt.Errorf("Unable to parse YAML from %s: %s", fileName, err), nil
 		}
-		err = processData(input, compiler)
-		if err != nil {
-			errorsList = multierror.Append(errorsList, err)
+		failures, warnings := processData(input, compiler)
+		if failures != nil {
+			failuresList = multierror.Append(failuresList, failures)
+		}
+		if warnings != nil {
+			warningsList = multierror.Append(warningsList, warnings)
 		}
 	}
-	return errorsList.ErrorOrNil()
+	return failuresList.ErrorOrNil(), warningsList.ErrorOrNil()
 }
 
-func processData(input interface{}, compiler *ast.Compiler) error {
+func processData(input interface{}, compiler *ast.Compiler) (error, error) {
+	failures := makeQuery("data.main.fail", input, compiler)
+	warnings := makeQuery("data.main.warn", input, compiler)
+	return failures, warnings
+}
+
+func makeQuery(query string, input interface{}, compiler *ast.Compiler) error {
+	hasResults := func(expression interface{}) bool {
+		if v, ok := expression.([]interface{}); ok {
+			return len(v) > 0
+		}
+		return false
+	}
 
 	rego := rego.New(
-		rego.Query("data.main.deny"),
+		rego.Query(query),
 		rego.Compiler(compiler),
 		rego.Input(input))
 
@@ -100,13 +120,6 @@ func processData(input interface{}, compiler *ast.Compiler) error {
 	rs, err := rego.Eval(ctx)
 	if err != nil {
 		return fmt.Errorf("Problem evaluating rego policies: %s", err)
-	}
-
-	hasResults := func(expression interface{}) bool {
-		if v, ok := expression.([]interface{}); ok {
-			return len(v) > 0
-		}
-		return false
 	}
 
 	var errorsList *multierror.Error
@@ -123,7 +136,6 @@ func processData(input interface{}, compiler *ast.Compiler) error {
 	}
 
 	return errorsList.ErrorOrNil()
-
 }
 
 func buildCompiler(path string) (*ast.Compiler, error) {
@@ -166,6 +178,7 @@ func init() {
 	viper.AutomaticEnv()
 
 	RootCmd.PersistentFlags().StringP("policy", "p", "policy", "directory for Rego policy files")
+	RootCmd.PersistentFlags().BoolP("fail-on-warn", "", false, "return a non-zero exit code if only warnings are found")
 	viper.BindPFlag("policy", RootCmd.PersistentFlags().Lookup("policy"))
-
+	viper.BindPFlag("fail-on-warn", RootCmd.PersistentFlags().Lookup("fail-on-warn"))
 }
