@@ -20,42 +20,49 @@ import (
 )
 
 func main() {
-	if err := RootCmd.Execute(); err != nil {
-		os.Exit(1)
-	}
+	RootCmd.Execute()
 }
 
 var RootCmd = &cobra.Command{
 	Use:     "conftest <file> [file...]",
 	Short:   "Test your configuration files using Open Policy Agent",
 	Version: "0.1.0",
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {
 			cmd.SilenceErrors = true
-			return errors.New("The first argument should be a file")
+			fmt.Println("The first argument should be a file")
+			os.Exit(1)
 		}
 		cmd.SilenceUsage = true
 
 		compiler, err := buildCompiler(viper.GetString("policy"))
 		if err != nil {
-			return fmt.Errorf("Unable to find policies directory: %s", err)
+			fmt.Sprintf("Unable to find policies directory: %s", err)
+			os.Exit(1)
 		}
 
+		foundFailures := false
 		for _, fileName := range args {
 			fmt.Println("Processing", fileName)
 			failures, warnings := processFile(fileName, compiler)
 			if failures != nil {
+				foundFailures = true
 				fmt.Println("Policy violations found")
 				fmt.Println(failures)
 			} else {
 				fmt.Println("No policy violations found")
 			}
 			if warnings != nil {
+				if viper.GetBool("fail-on-warn") {
+					foundFailures = true
+				}
 				fmt.Println("Policy warnings found")
 				fmt.Println(warnings)
 			}
 		}
-		return nil
+		if foundFailures {
+			os.Exit(1)
+		}
 	},
 }
 
