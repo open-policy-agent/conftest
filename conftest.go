@@ -20,6 +20,12 @@ import (
 	"github.com/spf13/viper"
 )
 
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
+
 func main() {
 	RootCmd.Execute()
 }
@@ -27,7 +33,7 @@ func main() {
 var RootCmd = &cobra.Command{
 	Use:     "conftest <file> [file...]",
 	Short:   "Test your configuration files using Open Policy Agent",
-	Version: "0.1.0",
+	Version: fmt.Sprintf("Version: %s\nCommit: %s\nDate: %s\n", version, commit, date),
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {
 			cmd.SilenceErrors = true
@@ -193,6 +199,9 @@ func init() {
 
 	RootCmd.PersistentFlags().StringP("policy", "p", "policy", "directory for Rego policy files")
 	RootCmd.PersistentFlags().BoolP("fail-on-warn", "", false, "return a non-zero exit code if only warnings are found")
+
+	RootCmd.SetVersionTemplate(`{{.Version}}`)
+
 	viper.BindPFlag("policy", RootCmd.PersistentFlags().Lookup("policy"))
 	viper.BindPFlag("fail-on-warn", RootCmd.PersistentFlags().Lookup("fail-on-warn"))
 }
