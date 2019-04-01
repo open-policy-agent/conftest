@@ -1,4 +1,3 @@
-
 # Conftest
 
 `conftest` is very much still work-in-progress and could explode at any time.
@@ -16,11 +15,9 @@ in the Open Policy Agent documentation.
 
 ```console
 $ conftest deployment.yaml
-Processing deployment.yaml
-Policy violations found
-2 errors occurred:
-    * Containers must not run as root
-    * Deployments are not allowed
+testdata/deployment.yaml
+   Containers must not run as root
+   Deployments are not allowed
 ```
 
 ## Build

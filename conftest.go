@@ -13,6 +13,7 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/hashicorp/go-multierror"
+	"github.com/logrusorgru/aurora"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/spf13/cobra"
@@ -43,27 +44,33 @@ var RootCmd = &cobra.Command{
 
 		foundFailures := false
 		for _, fileName := range args {
-			fmt.Println("Processing", fileName)
+			fmt.Println(fileName)
 			failures, warnings := processFile(fileName, compiler)
 			if failures != nil {
 				foundFailures = true
-				fmt.Println("Policy violations found")
-				fmt.Println(failures)
-			} else {
-				fmt.Println("No policy violations found")
+				printErrors(failures, aurora.RedFg)
 			}
 			if warnings != nil {
 				if viper.GetBool("fail-on-warn") {
 					foundFailures = true
 				}
-				fmt.Println("Policy warnings found")
-				fmt.Println(warnings)
+				printErrors(warnings, aurora.BrownFg)
 			}
 		}
 		if foundFailures {
 			os.Exit(1)
 		}
 	},
+}
+
+func printErrors(err error, color aurora.Color) {
+	if merr, ok := err.(*multierror.Error); ok {
+		for i := range merr.Errors {
+			fmt.Println("  ", aurora.Colorize(merr.Errors[i], color))
+		}
+	} else {
+		fmt.Println(err)
+	}
 }
 
 // detectLineBreak returns the relevant platform specific line ending
