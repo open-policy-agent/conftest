@@ -14,6 +14,20 @@ in the Open Policy Agent documentation.
 ## Usage
 
 ```console
+$ conftest --help
+Test your configuration files using Open Policy Agent
+
+Usage:
+  conftest <file> [file...] [flags]
+
+Flags:
+      --fail-on-warn    return a non-zero exit code if only warnings are found
+  -h, --help            help for conftest
+  -p, --policy string   directory for Rego policy files (default "policy")
+      --version         version for conftest
+```
+
+```console
 $ conftest deployment.yaml
 testdata/deployment.yaml
    Containers must not run as root
