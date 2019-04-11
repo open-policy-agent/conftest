@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"errors"
@@ -35,22 +36,24 @@ var RootCmd = &cobra.Command{
 	Short:   "Test your configuration files using Open Policy Agent",
 	Version: fmt.Sprintf("Version: %s\nCommit: %s\nDate: %s\n", version, commit, date),
 	Run: func(cmd *cobra.Command, args []string) {
+
 		if len(args) < 1 {
 			cmd.SilenceErrors = true
 			fmt.Println("The first argument should be a file")
 			os.Exit(1)
 		}
-		cmd.SilenceUsage = true
 
 		compiler, err := buildCompiler(viper.GetString("policy"))
 		if err != nil {
-			fmt.Sprintf("Unable to find policies directory: %s", err)
+			fmt.Printf("Unable to find policy directory: %s", err)
 			os.Exit(1)
 		}
 
 		foundFailures := false
 		for _, fileName := range args {
-			fmt.Println(fileName)
+			if fileName != "-" {
+				fmt.Println(fileName)
+			}
 			failures, warnings := processFile(fileName, compiler)
 			if failures != nil {
 				foundFailures = true
@@ -89,8 +92,18 @@ func detectLineBreak(haystack []byte) string {
 }
 
 func processFile(fileName string, compiler *ast.Compiler) (error, error) {
-	filePath, _ := filepath.Abs(fileName)
-	data, err := ioutil.ReadFile(filePath)
+
+	var data []byte
+	var err error
+
+	if fileName == "-" {
+		reader := bufio.NewReader(os.Stdin)
+		data, err = ioutil.ReadAll(reader)
+	} else {
+		filePath, _ := filepath.Abs(fileName)
+		data, err = ioutil.ReadFile(filePath)
+	}
+
 	if err != nil {
 		return fmt.Errorf("Unable to open file %s: %s", fileName, err), nil
 	}
@@ -139,7 +152,7 @@ func makeQuery(query string, input interface{}, compiler *ast.Compiler) error {
 	ctx := context.Background()
 	rs, err := rego.Eval(ctx)
 	if err != nil {
-		return fmt.Errorf("Problem evaluating rego policies: %s", err)
+		return fmt.Errorf("Problem evaluating rego policy: %s", err)
 	}
 
 	var errorsList *multierror.Error

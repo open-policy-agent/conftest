@@ -34,6 +34,16 @@ testdata/deployment.yaml
    Deployments are not allowed
 ```
 
+`conftest` can also be used with stdin:
+
+```console
+$ cat deployment.yaml | conftest -
+testdata/deployment.yaml
+   Containers must not run as root
+   Deployments are not allowed
+```
+
+
 ## Build
 
 The only way of trying out `conftest` today is to build from source. For that you'll need
