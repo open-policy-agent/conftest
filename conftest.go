@@ -131,7 +131,7 @@ func processFile(fileName string, compiler *ast.Compiler) (error, error) {
 }
 
 func processData(input interface{}, compiler *ast.Compiler) (error, error) {
-	failures := makeQuery("data.main.fail", input, compiler)
+	failures := makeQuery("data.main.deny", input, compiler)
 	warnings := makeQuery("data.main.warn", input, compiler)
 	return failures, warnings
 }
