@@ -13,19 +13,30 @@ in the Open Policy Agent documentation.
 
 ## Usage
 
-```console
-$ conftest --help
-Test your configuration files using Open Policy Agent
+`conftest` allows you to write policies using Open Policy Agent/rego and apply them to one or
+more YAML or JSON configuration files. Policies by default should be placed in a directory
+called `policy` but this can be overridden.
 
-Usage:
-  conftest <file> [file...] [flags]
+For instance, save the following as `policy/deployment.rego`:
 
-Flags:
-      --fail-on-warn    return a non-zero exit code if only warnings are found
-  -h, --help            help for conftest
-  -p, --policy string   directory for Rego policy files (default "policy")
-      --version         version for conftest
+```rego
+package main
+
+
+fail[msg] {
+  input.kind = "Deployment"
+  not input.spec.template.spec.securityContext.runAsNonRoot = true
+  msg = "Containers must not run as root"
+}
+
+fail[msg] {
+  input.kind = "Deployment"
+  not input.spec.selector.matchLabels.app
+  msg = "Containers must provide app label for pod selectors"
+}
 ```
+
+Assuming you have a Kubernetes deployment in `deployment.yaml` you can run `conftest` like so:
 
 ```console
 $ conftest deployment.yaml
@@ -43,15 +54,37 @@ testdata/deployment.yaml
    Deployments are not allowed
 ```
 
-
-## Build
-
-The only way of trying out `conftest` today is to build from source. For that you'll need
-a Go toolchain installed. I'll provide binaries at a later date.
+Note that `conftest` isn't specific to Kubernetes. It will happily let you write tests for any
+configuration file using YAML or JSON.
 
 ```console
-$ go build .
+$ conftest --help
+Test your configuration files using Open Policy Agent
+
+Usage:
+  conftest <file> [file...] [flags]
+
+Flags:
+      --fail-on-warn    return a non-zero exit code if only warnings are found
+  -h, --help            help for conftest
+  -p, --policy string   directory for Rego policy files (default "policy")
+      --version         version for conftest
 ```
+
+
+
+## Installation
+
+`conftest` releases are available for Windows, macOS and Linux on the [releases page](https://github.com/instrumenta/conftest/releases).
+On Linux and macOS you can probably download as follows:
+
+```console
+$ wget https://github.com/instrumenta/conftest/releases/download/v0.4.0/conftest_0.4.0_Linux_x86_64.tar.gz
+$ tar xzf conftest_0.4.0_Linux_x86_64.tar.gz
+$ sudo mv conftest /usr/local/bin
+```
+
+More formal packages should be available in the future.
 
 
 ## Inspiration
