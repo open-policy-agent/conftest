@@ -29,3 +29,12 @@ changelog:
     exclude:
     - '^docs:'
     - '^test:'
+brew:
+  github:
+    owner: instrumenta
+    name: homebrew-instrumenta
+  folder: Formula
+  description: "Test your configuration using Open Policy Agent"
+  homepage: "https://github.com/instrumenta/conftest"
+  test: |
+    system "#{bin}/conftest --version"
