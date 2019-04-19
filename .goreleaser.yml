@@ -38,3 +38,9 @@ brew:
   homepage: "https://github.com/instrumenta/conftest"
   test: |
     system "#{bin}/conftest --version"
+scoop:
+  bucket:
+    owner: instrumenta
+    name: scoop-instrumenta
+  description: "Test your configuration using Open Policy Agent"
+  homepage: "https://github.com/instrumenta/conftest"
