@@ -18,8 +18,3 @@ warn[msg] {
   input.kind = "Service"
   msg = "Services are not allowed"
 }
-
-warn[msg] {
-  input.kind = "Deployment"
-  msg = "Deployments are not allowed"
-}
