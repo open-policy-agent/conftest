@@ -57,19 +57,14 @@ testdata/deployment.yaml
 Note that `conftest` isn't specific to Kubernetes. It will happily let you write tests for any
 configuration file using YAML or JSON.
 
-```console
-$ conftest --help
-Test your configuration files using Open Policy Agent
+## Examples
 
-Usage:
-  conftest <file> [file...] [flags]
+You can find examples using various other tools in the `examples ` directory, including:
 
-Flags:
-      --fail-on-warn    return a non-zero exit code if only warnings are found
-  -h, --help            help for conftest
-  -p, --policy string   directory for Rego policy files (default "policy")
-      --version         version for conftest
-```
+* [CUE](examples/cue)
+* [Kustomize](examples/kustomize)
+* [Terraform](examples/terraform)
+* [Serverless Framework](examples/serverless)
 
 
 
@@ -79,7 +74,7 @@ Flags:
 On Linux and macOS you can probably download as follows:
 
 ```console
-$ wget https://github.com/instrumenta/conftest/releases/download/v0.4.0/conftest_0.4.0_Linux_x86_64.tar.gz
+$ wget https://github.com/instrumenta/conftest/releases/download/v0.4.2/conftest_0.4.2_Linux_x86_64.tar.gz
 $ tar xzf conftest_0.4.0_Linux_x86_64.tar.gz
 $ sudo mv conftest /usr/local/bin
 ```
