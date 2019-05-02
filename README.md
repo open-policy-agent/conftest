@@ -67,6 +67,41 @@ You can find examples using various other tools in the `examples ` directory, in
 * [Serverless Framework](examples/serverless)
 
 
+## Configuration and external policies
+
+Policies are often reusable between different projects, and Conftest supports a mechanism
+to specify dependent policies and to download them. Create a `conftest.toml` configuration file like so:
+
+```toml
+# You can also override the directory in which to store and look for policies
+# policy = "tests"
+
+# An array of individual policies to download. Only the repository
+# key is required. If tag is omitted then latest will be used
+[[policies]]
+repository = "instrumenta.azurecr.io/test"
+tag = "latest"
+```
+
+This that in place you can use the following command to download all specified policies:
+
+```console
+conftest update
+```
+
+You can also download individual policies directly, without the need for the configuration
+file like so:
+
+```console
+conftest pull instrumenta.azurecr.io/test
+```
+
+Policies are stored in OCI-compatible registries. You can read more about this idea in
+[this post](https://stevelasker.blog/2019/01/25/cloud-native-artifact-stores-evolve-from-container-registries/) from
+@SteveLasker. Conftest does not currently provide a mechanism to upload those polices,
+for the moment you can use [oras](https://github.com/deislabs/oras/) directly. More
+examples coming soon once this code has had a bit more testing.
+
 
 ## Installation
 
@@ -88,3 +123,5 @@ More formal packages should be available in the future.
 * [Open Policy Agent](https://www.openpolicyagent.org/) and the Rego query language
 * The [helm-opa](https://github.com/eicnix/helm-opa) plugin from [@eicnix](https://github.com/eicnix/) helped with understanding the OPA Go packages
 * Tools from the wider instrastructure as code community, in particular rspec-puppet. Lots of my thoughts in [my talk from KubeCon 2017](https://speakerdeck.com/garethr/developer-tooling-for-kubernetes-configurations)
+* The code in `pkg/auth` is copied from Oras and will be removed once [this issue](https://github.com/deislabs/oras/issues/98) is resolved
+
