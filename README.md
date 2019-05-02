@@ -1,11 +1,12 @@
 # Conftest
 
-`conftest` is very much still work-in-progress and could explode at any time.
+`conftest` is very much still work-in-progress and could explode at any time. Please try it out and let me know what you think.
 
 ## What
 
 `conftest` is a utility to help you write tests against structured configuration data. For instance you could
-write tests for your Kubernetes configurations, or Tekton pipeline definitions or any other structured data.
+write tests for your Kubernetes configurations, or Tekton pipeline definitions, Terraform code, Serverless configs
+ or any other structured data.
 
 `conftest` relies on the Rego language from [Open Policy Agent](https://www.openpolicyagent.org/) for writing
 the assertions. You can read more about Rego in [How do I write policies](https://www.openpolicyagent.org/docs/how-do-i-write-policies.html)
@@ -40,7 +41,7 @@ Assuming you have a Kubernetes deployment in `deployment.yaml` you can run `conf
 
 ```console
 $ conftest test deployment.yaml
-testdata/deployment.yaml
+deployment.yaml
    Containers must not run as root
    Deployments are not allowed
 ```
@@ -49,7 +50,7 @@ testdata/deployment.yaml
 
 ```console
 $ cat deployment.yaml | conftest test -
-testdata/deployment.yaml
+deployment.yaml
    Containers must not run as root
    Deployments are not allowed
 ```
@@ -83,7 +84,7 @@ repository = "instrumenta.azurecr.io/test"
 tag = "latest"
 ```
 
-This that in place you can use the following command to download all specified policies:
+With that in place you can use the following command to download all specified policies:
 
 ```console
 conftest update
@@ -114,8 +115,23 @@ $ tar xzf conftest_0.4.0_Linux_x86_64.tar.gz
 $ sudo mv conftest /usr/local/bin
 ```
 
-More formal packages should be available in the future.
+### Brew
 
+If you're on a Mac and using Homebrew you can use:
+
+```console
+brew tap instrumenta/instrumenta
+brew install conftest
+```
+
+### Scoop
+
+You can also install using [Scoop](https://scoop.sh/) on Windows:
+
+```console
+scoop bucket add instrumenta https://github.com/instrumenta/bucket-instrumenta
+scoop install conftest
+```
 
 ## Inspiration
 
