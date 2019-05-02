@@ -5,7 +5,7 @@ import "encoding/yaml"
 command test: {
 	task conftest: {
 		kind:   "exec"
-		cmd:    "conftest -"
+		cmd:    "conftest test -"
 		stdin:  yaml.MarshalStream(objects)
 	}
 }

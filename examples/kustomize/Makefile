@@ -1,7 +1,7 @@
 all: test
 
 test:
-	kustomize build | conftest -
+	kustomize build | conftest test -
 
 show:
 	kustomize build

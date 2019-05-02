@@ -39,7 +39,7 @@ fail[msg] {
 Assuming you have a Kubernetes deployment in `deployment.yaml` you can run `conftest` like so:
 
 ```console
-$ conftest deployment.yaml
+$ conftest test deployment.yaml
 testdata/deployment.yaml
    Containers must not run as root
    Deployments are not allowed
@@ -48,7 +48,7 @@ testdata/deployment.yaml
 `conftest` can also be used with stdin:
 
 ```console
-$ cat deployment.yaml | conftest -
+$ cat deployment.yaml | conftest test -
 testdata/deployment.yaml
    Containers must not run as root
    Deployments are not allowed

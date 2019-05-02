@@ -19,7 +19,7 @@ $(SHOW): plan
 	$(COMMAND) show -json $(PLAN) > $(SHOW)
 
 test: show
-	cat $(SHOW) | conftest -
+	cat $(SHOW) | conftest test -
 
 clean:
 	@rm -f $(PLAN) $(SHOW)

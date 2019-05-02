@@ -12,6 +12,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/containerd/containerd/log"
 	"github.com/containerd/containerd/remotes/docker"
 	"github.com/deislabs/oras/pkg/content"
 	"github.com/deislabs/oras/pkg/oras"
@@ -48,21 +49,26 @@ func main() {
 }
 
 var RootCmd = &cobra.Command{
-	Use:     "conftest <file> [file...]",
+	Use:     "conftest <subcommand>OA",
+	Short:   "Test your configuration files using Open Policy Agent",
+	Version: fmt.Sprintf("Version: %s\nCommit: %s\nDate: %s\n", version, commit, date),
+}
+
+var testCmd = &cobra.Command{
+	Use:     "test <file> [file...]",
 	Short:   "Test your configuration files using Open Policy Agent",
 	Version: fmt.Sprintf("Version: %s\nCommit: %s\nDate: %s\n", version, commit, date),
 	Run: func(cmd *cobra.Command, args []string) {
+		ctx := context.Background()
 
 		if len(args) < 1 {
 			cmd.SilenceErrors = true
-			fmt.Println("The first argument should be a file")
-			os.Exit(1)
+			log.G(ctx).Fatal("The first argument should be a file")
 		}
 
 		compiler, err := buildCompiler(viper.GetString("policy"))
 		if err != nil {
-			fmt.Printf("Unable to find policy directory: %s", err)
-			os.Exit(1)
+			log.G(ctx).Fatalf("Unable to find policy directory: %s", err)
 		}
 
 		foundFailures := false
@@ -228,13 +234,10 @@ var updateCmd = &cobra.Command{
 	Long:  `Download latest policy files according to configuration file`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var config Config
-
 		if err := viper.Unmarshal(&config); err != nil {
 			panic(err)
 		}
-
 		downloadPolicy(config.Policies)
-
 	},
 }
 
@@ -259,12 +262,11 @@ func downloadPolicy(policies []Policy) {
 	ctx := context.Background()
 	cli, err := auth.NewClient()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "WARNING: Error loading auth file: %v\n", err)
-
+		log.G(ctx).Warnf("Error loading auth file: %v\n", err)
 	}
 	resolver, err := cli.Resolver(ctx)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "WARNING: Error loading resolver: %v\n", err)
+		log.G(ctx).Warnf("Error loading resolver: %v\n", err)
 		resolver = docker.NewResolver(docker.ResolverOptions{})
 	}
 
@@ -283,7 +285,7 @@ func downloadPolicy(policies []Policy) {
 		fmt.Println(ref)
 		_, _, err = oras.Pull(ctx, resolver, ref, fileStore)
 		if err != nil {
-			panic(err)
+			log.G(ctx).Fatalf("Downloading policy failed: %v\n", err)
 		}
 	}
 }
@@ -293,18 +295,18 @@ func init() {
 
 	RootCmd.AddCommand(updateCmd)
 	RootCmd.AddCommand(pullCmd)
+	RootCmd.AddCommand(testCmd)
 
 	RootCmd.PersistentFlags().StringP("policy", "p", "policy", "directory for Rego policy files")
 	RootCmd.PersistentFlags().BoolP("debug", "", false, "enable more verbose log output")
 
-	RootCmd.Flags().BoolP("fail-on-warn", "", false, "return a non-zero exit code if only warnings are found")
+	testCmd.Flags().BoolP("fail-on-warn", "", false, "return a non-zero exit code if only warnings are found")
 
 	RootCmd.SetVersionTemplate(`{{.Version}}`)
 
 	viper.BindPFlag("policy", RootCmd.PersistentFlags().Lookup("policy"))
-	viper.BindPFlag("fail-on-warn", RootCmd.Flags().Lookup("fail-on-warn"))
+	viper.BindPFlag("fail-on-warn", testCmd.Flags().Lookup("fail-on-warn"))
 	viper.BindPFlag("debug", RootCmd.PersistentFlags().Lookup("debug"))
-
 }
 
 func initConfig() {
