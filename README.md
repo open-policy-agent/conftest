@@ -90,6 +90,12 @@ With that in place you can use the following command to download all specified p
 conftest update
 ```
 
+If you want to download the latest policies and run the tests in one go you can do so with:
+
+```console
+conftest test --update <file-to-test>
+```
+
 You can also download individual policies directly, without the need for the configuration
 file like so:
 

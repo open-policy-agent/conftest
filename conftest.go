@@ -66,6 +66,10 @@ var testCmd = &cobra.Command{
 			log.G(ctx).Fatal("The first argument should be a file")
 		}
 
+		if viper.GetBool("update") {
+			updateCmd.Run(cmd, args)
+		}
+
 		compiler, err := buildCompiler(viper.GetString("policy"))
 		if err != nil {
 			log.G(ctx).Fatalf("Unable to find policy directory: %s", err)
@@ -301,12 +305,15 @@ func init() {
 	RootCmd.PersistentFlags().BoolP("debug", "", false, "enable more verbose log output")
 
 	testCmd.Flags().BoolP("fail-on-warn", "", false, "return a non-zero exit code if only warnings are found")
+	testCmd.Flags().BoolP("update", "", false, "update any policies before running the tests")
 
 	RootCmd.SetVersionTemplate(`{{.Version}}`)
 
 	viper.BindPFlag("policy", RootCmd.PersistentFlags().Lookup("policy"))
-	viper.BindPFlag("fail-on-warn", testCmd.Flags().Lookup("fail-on-warn"))
 	viper.BindPFlag("debug", RootCmd.PersistentFlags().Lookup("debug"))
+
+	viper.BindPFlag("fail-on-warn", testCmd.Flags().Lookup("fail-on-warn"))
+	viper.BindPFlag("update", testCmd.Flags().Lookup("update"))
 }
 
 func initConfig() {
