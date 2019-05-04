@@ -50,7 +50,7 @@ func main() {
 }
 
 var RootCmd = &cobra.Command{
-	Use:     "conftest <subcommand>OA",
+	Use:     "conftest <subcommand>",
 	Short:   "Test your configuration files using Open Policy Agent",
 	Version: fmt.Sprintf("Version: %s\nCommit: %s\nDate: %s\n", version, commit, date),
 }
