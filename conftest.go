@@ -73,7 +73,7 @@ var testCmd = &cobra.Command{
 
 		compiler, err := buildCompiler(viper.GetString("policy"))
 		if err != nil {
-			log.G(ctx).Fatalf("Unable to find policy directory: %s", err)
+			log.G(ctx).Fatalf("Problem building rego compiler: %s", err)
 		}
 
 		foundFailures := false
@@ -81,7 +81,7 @@ var testCmd = &cobra.Command{
 			if fileName != "-" {
 				fmt.Println(fileName)
 			}
-			failures, warnings := processFile(fileName, compiler)
+			failures, warnings := processFile(ctx, fileName, compiler)
 			if failures != nil {
 				foundFailures = true
 				printErrors(failures, aurora.RedFg)
@@ -118,7 +118,7 @@ func detectLineBreak(haystack []byte) string {
 	return "\n"
 }
 
-func processFile(fileName string, compiler *ast.Compiler) (error, error) {
+func processFile(ctx context.Context, fileName string, compiler *ast.Compiler) (error, error) {
 
 	var data []byte
 	var err error
@@ -146,7 +146,7 @@ func processFile(fileName string, compiler *ast.Compiler) (error, error) {
 		if err != nil {
 			return fmt.Errorf("Unable to parse YAML from %s: %s", fileName, err), nil
 		}
-		failures, warnings := processData(input, compiler)
+		failures, warnings := processData(ctx, input, compiler)
 		if failures != nil {
 			failuresList = multierror.Append(failuresList, failures)
 		}
@@ -157,17 +157,17 @@ func processFile(fileName string, compiler *ast.Compiler) (error, error) {
 	return failuresList.ErrorOrNil(), warningsList.ErrorOrNil()
 }
 
-func processData(input interface{}, compiler *ast.Compiler) (error, error) {
+func processData(ctx context.Context, input interface{}, compiler *ast.Compiler) (error, error) {
 	namespace := viper.GetString("namespace")
 	deny := fmt.Sprintf("data.%s.deny", namespace)
 	warn := fmt.Sprintf("data.%s.warn", namespace)
 
-	failures := makeQuery(deny, input, compiler)
-	warnings := makeQuery(warn, input, compiler)
+	failures := makeQuery(ctx, deny, input, compiler)
+	warnings := makeQuery(ctx, warn, input, compiler)
 	return failures, warnings
 }
 
-func makeQuery(query string, input interface{}, compiler *ast.Compiler) error {
+func makeQuery(ctx context.Context, query string, input interface{}, compiler *ast.Compiler) error {
 	hasResults := func(expression interface{}) bool {
 		if v, ok := expression.([]interface{}); ok {
 			return len(v) > 0
@@ -180,7 +180,6 @@ func makeQuery(query string, input interface{}, compiler *ast.Compiler) error {
 		rego.Compiler(compiler),
 		rego.Input(input))
 
-	ctx := context.Background()
 	rs, err := rego.Eval(ctx)
 	if err != nil {
 		return fmt.Errorf("Problem evaluating rego policy: %s", err)
@@ -231,7 +230,7 @@ func buildCompiler(path string) (*ast.Compiler, error) {
 	compiler.Compile(modules)
 
 	if compiler.Failed() {
-		panic(compiler.Errors)
+		return nil, compiler.Errors
 	}
 
 	return compiler, nil
@@ -242,11 +241,12 @@ var updateCmd = &cobra.Command{
 	Short: "Download policy from registry",
 	Long:  `Download latest policy files according to configuration file`,
 	Run: func(cmd *cobra.Command, args []string) {
+		ctx := context.Background()
 		var config Config
 		if err := viper.Unmarshal(&config); err != nil {
-			panic(err)
+			log.G(ctx).Fatal(err)
 		}
-		downloadPolicy(config.Policies)
+		downloadPolicy(ctx, config.Policies)
 	},
 }
 
@@ -256,19 +256,19 @@ var pullCmd = &cobra.Command{
 	Long:  `Download individual policies from a registry`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		ctx := context.Background()
 		policies := []Policy{}
 		for _, ref := range args {
 			policies = append(policies, Policy{Repository: ref})
 		}
-		downloadPolicy(policies)
+		downloadPolicy(ctx, policies)
 	},
 }
 
-func downloadPolicy(policies []Policy) {
+func downloadPolicy(ctx context.Context, policies []Policy) {
 	policyDir := filepath.Join(".", viper.GetString("policy"))
 	os.MkdirAll(policyDir, os.ModePerm)
 
-	ctx := context.Background()
 	cli, err := auth.NewClient()
 	if err != nil {
 		log.G(ctx).Warnf("Error loading auth file: %v\n", err)
@@ -291,7 +291,7 @@ func downloadPolicy(policies []Policy) {
 		} else {
 			ref = policy.Repository + ":" + policy.Tag
 		}
-		fmt.Println(ref)
+		log.G(ctx).Infof("Downloading: %s\n", ref)
 		_, _, err = oras.Pull(ctx, resolver, ref, fileStore)
 		if err != nil {
 			log.G(ctx).Fatalf("Downloading policy failed: %v\n", err)
