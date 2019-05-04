@@ -24,18 +24,22 @@ For instance, save the following as `policy/deployment.rego`:
 package main
 
 
-fail[msg] {
+deny[msg] {
   input.kind = "Deployment"
   not input.spec.template.spec.securityContext.runAsNonRoot = true
   msg = "Containers must not run as root"
 }
 
-fail[msg] {
+deny[msg] {
   input.kind = "Deployment"
   not input.spec.selector.matchLabels.app
   msg = "Containers must provide app label for pod selectors"
 }
 ```
+
+
+By default Conftest looks for `deny` and `warn` rules in the `main` namespace. This can be
+altered by running `--namespace` or provided on the configuration file.
 
 Assuming you have a Kubernetes deployment in `deployment.yaml` you can run `conftest` like so:
 
@@ -74,8 +78,11 @@ Policies are often reusable between different projects, and Conftest supports a 
 to specify dependent policies and to download them. Create a `conftest.toml` configuration file like so:
 
 ```toml
-# You can also override the directory in which to store and look for policies
-# policy = "tests"
+# You can override the directory in which to store and look for policies
+policy = "tests"
+
+# You can overide the namespace which to search for rules
+namespace = "conftest"
 
 # An array of individual policies to download. Only the repository
 # key is required. If tag is omitted then latest will be used

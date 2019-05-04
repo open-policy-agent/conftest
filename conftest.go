@@ -35,8 +35,9 @@ var (
 )
 
 type Config struct {
-	Policy   string
-	Policies []Policy
+	Policy    string
+	Namespace string
+	Policies  []Policy
 }
 
 type Policy struct {
@@ -157,8 +158,12 @@ func processFile(fileName string, compiler *ast.Compiler) (error, error) {
 }
 
 func processData(input interface{}, compiler *ast.Compiler) (error, error) {
-	failures := makeQuery("data.main.deny", input, compiler)
-	warnings := makeQuery("data.main.warn", input, compiler)
+	namespace := viper.GetString("namespace")
+	deny := fmt.Sprintf("data.%s.deny", namespace)
+	warn := fmt.Sprintf("data.%s.warn", namespace)
+
+	failures := makeQuery(deny, input, compiler)
+	warnings := makeQuery(warn, input, compiler)
 	return failures, warnings
 }
 
@@ -306,6 +311,7 @@ func init() {
 
 	testCmd.Flags().BoolP("fail-on-warn", "", false, "return a non-zero exit code if only warnings are found")
 	testCmd.Flags().BoolP("update", "", false, "update any policies before running the tests")
+	RootCmd.PersistentFlags().StringP("namespace", "", "main", "namespace in which to find deny and warn rules")
 
 	RootCmd.SetVersionTemplate(`{{.Version}}`)
 
@@ -314,6 +320,7 @@ func init() {
 
 	viper.BindPFlag("fail-on-warn", testCmd.Flags().Lookup("fail-on-warn"))
 	viper.BindPFlag("update", testCmd.Flags().Lookup("update"))
+	viper.BindPFlag("namespace", RootCmd.PersistentFlags().Lookup("namespace"))
 }
 
 func initConfig() {
