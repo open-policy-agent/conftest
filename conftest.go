@@ -25,7 +25,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	auth "github.com/instrumenta/conftest/pkg/auth/docker"
+	auth "github.com/deislabs/oras/pkg/auth/docker"
 )
 
 var (
