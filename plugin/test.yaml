@@ -12,9 +12,9 @@ spec:
     head: https://github.com/instrumenta/conftest/archive/master.zip
     sha256: "7866ec28fc62d5cb6952a2d66712875776b8d3da8a8da8d3793fdbde73dffbb9"
     files:
-    - from: "/plugin/*.sh"
+    - from: "/*/plugin/*.sh"
       to: "."
-    bin: "./kubectl-test.sh"
+    bin: "kubectl-test.sh"
   shortDescription: Test your Kubernetes objects using Open Policy Agent
   homepage: https://github.com/instrumenta/conftest
   caveats: |
