@@ -1,7 +1,7 @@
 apiVersion: krew.googlecontainertools.github.com/v1alpha2
 kind: Plugin
 metadata:
-  name: test
+  name: conftest
 spec:
   version: "v0.5.1"
   platforms:
@@ -14,7 +14,7 @@ spec:
     files:
     - from: "/*/plugin/*.sh"
       to: "."
-    bin: "kubectl-test.sh"
+    bin: "kubectl-conftest.sh"
   shortDescription: Test your Kubernetes objects using Open Policy Agent
   homepage: https://github.com/instrumenta/conftest
   caveats: |
