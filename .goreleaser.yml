@@ -22,7 +22,6 @@ archive:
   files:
       - LICENSE
       - README.md
-      - plugin/*.sh
 checksum:
   name_template: 'checksums.txt'
 snapshot:

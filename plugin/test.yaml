@@ -3,14 +3,14 @@ kind: Plugin
 metadata:
   name: test
 spec:
-  version: "0.5.0"
+  version: "v0.5.1"
   platforms:
   - selector:
       matchExpressions:
       - {key: os, operator: In, values: [darwin, linux]}
-    uri: https://github.com/instrumenta/conftest/releases/download/v0.5.0/conftest_0.5.0_Linux_x86_64.tar.gz
+    uri: https://github.com/instrumenta/conftest/archive/v0.5.1.zip
     head: https://github.com/instrumenta/conftest/archive/master.zip
-    sha256: "7866ec28fc62d5cb6952a2d66712875776b8d3da8a8da8d3793fdbde73dffbb9"
+    sha256: "1b6c65fef99c730f6c79408946956d6273e2e5e7818c8105210bdc9a71a6a374"
     files:
     - from: "/*/plugin/*.sh"
       to: "."
