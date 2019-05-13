@@ -1,0 +1,23 @@
+apiVersion: krew.googlecontainertools.github.com/v1alpha2
+kind: Plugin
+metadata:
+  name: test
+spec:
+  version: "0.5.0"
+  platforms:
+  - selector:
+      matchExpressions:
+      - {key: os, operator: In, values: [darwin, linux]}
+    uri: https://github.com/instrumenta/conftest/releases/download/v0.5.0/conftest_0.5.0_Linux_x86_64.tar.gz
+    head: https://github.com/instrumenta/conftest/archive/master.zip
+    sha256: "7866ec28fc62d5cb6952a2d66712875776b8d3da8a8da8d3793fdbde73dffbb9"
+    files:
+    - from: "/plugin/*.sh"
+      to: "."
+    bin: "./kubectl-test.sh"
+  shortDescription: Test your Kubernetes objects using Open Policy Agent
+  homepage: https://github.com/instrumenta/conftest
+  caveats: |
+    This plugin needs the following programs:
+    * conftest
+    * jq
