@@ -22,7 +22,7 @@ function usage () {
     echo "   kubectl test (TYPE[.VERSION][.GROUP] [NAME] | TYPE[.VERSION][.GROUP]/NAME)"
 }
 
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}"  )" && pwd  )"
+SCRIPT_DIR="$( cd "$( dirname "$(readlink -f "$0")")" && pwd )"
 conftest="${SCRIPT_DIR}/conftest"
 
 # Check the required commands are available on the PATH
