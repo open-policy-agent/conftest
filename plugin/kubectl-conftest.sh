@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# kubectl test allows for testing resources in your cluster using Open Policy Agent
+# kubectl-conftest allows for testing resources in your cluster using Open Policy Agent
 # It uses the conftest utility and expects to find associated policy files in
 # a directory called policy
 
@@ -22,8 +22,10 @@ function usage () {
     echo "   kubectl test (TYPE[.VERSION][.GROUP] [NAME] | TYPE[.VERSION][.GROUP]/NAME)"
 }
 
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}"  )" && pwd  )"
+conftest="${SCRIPT_DIR}/conftest"
+
 # Check the required commands are available on the PATH
-check_command "conftest"
 check_command "kubectl"
 
 
@@ -35,20 +37,20 @@ elif [[ ($# -eq 1) && $1 =~ ^[a-z\.]+$ ]]; then
     # parse our the individual items and then pass those one by one into conftest
     check_command "jq"
     if output=$(kubectl get $1 $2 -o json); then
-        echo $output | jq -cj '.items[] | tostring+"\u0000"' | xargs -n1 -0 -I@ bash -c "echo '@' | conftest test -"
+        echo $output | jq -cj '.items[] | tostring+"\u0000"' | xargs -n1 -0 -I@ bash -c "echo '@' | ${conftest} test -"
     fi
 elif [[ ($# -eq 1 ) ]]; then
     # Support the / variant for getting an individual resource
     if output=$(kubectl get $1 -o json); then
-        echo $output | conftest test -
+        echo $output | ${conftest} test -
     fi
 elif [[ ($# -eq 2 ) && $1 =~ ^[a-z]+$ ]]; then
     # if we have two arguments then we assume the first is the type and the second the resource name
     if output=$(kubectl get $1 $2 -o json); then
-        echo $output | conftest test -
+        echo $output | ${conftest} test -
     fi
 else
-    echo "Please check the arguments to kubectl test"
+    echo "Please check the arguments to kubectl conftest"
     echo
     usage
     exit 1

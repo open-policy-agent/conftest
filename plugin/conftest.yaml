@@ -3,21 +3,30 @@ kind: Plugin
 metadata:
   name: conftest
 spec:
-  version: "v0.5.2"
-  platforms:
-  - selector:
-      matchExpressions:
-      - {key: os, operator: In, values: [darwin, linux]}
-    uri: https://github.com/instrumenta/conftest/archive/v0.5.2.zip
-    head: https://github.com/instrumenta/conftest/archive/master.zip
-    sha256: "5b587c11e4b1de8679c39e07a514c68e54de57987fc3eb32dc7946e78994359a"
-    files:
-    - from: "/*/plugin/*.sh"
-      to: "."
-    bin: "kubectl-conftest.sh"
+  version: "v0.5.3"
   shortDescription: Test your Kubernetes objects using Open Policy Agent
   homepage: https://github.com/instrumenta/conftest
   caveats: |
     This plugin needs the following programs:
-    * conftest
     * jq
+  platforms:
+    - uri: https://github.com/instrumenta/conftest/releases/download/v0.5.3/conftest_0.5.3_Linux_x86_64.tar.gz
+      sha256: "6cd42c549a516043bca95a1def20ea37bc4fce11acda1a1c598e08d3c62e1482"
+      bin: kubectl-conftest.sh
+      files:
+      - from: "/plugin/*.sh"
+        to: "."
+      selector:
+        matchLabels:
+          os: linux
+          arch: amd64
+    - uri: https://github.com/instrumenta/conftest/releases/download/v0.5.3/conftest_0.5.3_Darwin_x86_64.tar.gz
+      sha256: "3ef8999504007b4bba93c69b548b83fa44f2151078ead8242be6a6fcdc7b916b"
+      bin: kubectl-conftest.sh
+      files:
+        - from: "/plugin/*.sh"
+          to: "."
+      selector:
+        matchLabels:
+          os: darwin
+          arch: amd64
