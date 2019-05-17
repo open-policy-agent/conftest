@@ -20,7 +20,7 @@ conftest:
 	$(BUILD) -t $(IMAGE):$(TAG) .
 	$(COMMAND) tag $(IMAGE):$(TAG) $(IMAGE):latest
 
-push: example conftest
+push: examples conftest
 	$(PUSH) $(IMAGE):$(TAG)
 	$(PUSH) $(IMAGE):latest
 	$(PUSH) $(IMAGE):examples
