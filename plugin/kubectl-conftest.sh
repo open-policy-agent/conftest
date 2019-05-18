@@ -19,7 +19,7 @@ function usage () {
     echo "See https://github.com/instrumenta/conftest for more information"
     echo
     echo "Usage:"
-    echo "   kubectl test (TYPE[.VERSION][.GROUP] [NAME] | TYPE[.VERSION][.GROUP]/NAME)"
+    echo "   kubectl conftest (TYPE[.VERSION][.GROUP] [NAME] | TYPE[.VERSION][.GROUP]/NAME)"
 }
 
 SCRIPT_DIR="$( cd "$( dirname "$(readlink -f "$0")")" && pwd )"
@@ -29,7 +29,7 @@ conftest="${SCRIPT_DIR}/conftest"
 check_command "kubectl"
 
 
-if [[ ($# -eq 0) || ($1 == "--help") ]]; then
+if [[ ($# -eq 0) || ($1 == "--help") || ($1 == "-h") ]]; then
     # No commands or the --help flag passed and we'll show the usage instructions
     usage
 elif [[ ($# -eq 1) && $1 =~ ^[a-z\.]+$ ]]; then
