@@ -146,6 +146,18 @@ scoop bucket add instrumenta https://github.com/instrumenta/bucket-instrumenta
 scoop install conftest
 ```
 
+
+### Docker
+
+Conftest is also able to be used via Docker. Simply mount your configuration and policy at `/project`
+and specify the relevant command like so:
+
+``console
+$ docker run --rm -v (pwd):/project instrumenta/conftest test deployment.yaml
+deployment.yaml
+   Containers must not run as root in Deployment hello-kubernetes
+```
+
 ## Inspiration
 
 * [kubtest](https://github.com/garethr/kubetest) was a similar project of mine, using [Starlark](https://docs.bazel.build/versions/master/skylark/language.html)

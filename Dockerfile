@@ -2,7 +2,7 @@ FROM golang:1.12-alpine as builder
 RUN apk --no-cache add git
 WORKDIR /
 COPY . /
-RUN go build .
+RUN GOOS=linux GOARCH=amd64 go build -ldflags="-w -s"
 
 
 FROM bats/bats:v1.1.0 as acceptance
@@ -33,7 +33,9 @@ RUN go get -u cuelang.org/go/cmd/cue
 WORKDIR /examples
 
 
-FROM scratch
+FROM alpine:latest
 COPY --from=builder /conftest /
+RUN ln -s /conftest /usr/local/bin/conftest
+WORKDIR /project
 ENTRYPOINT ["/conftest"]
 CMD ["--help"]
