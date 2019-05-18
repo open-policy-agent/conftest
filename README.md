@@ -152,7 +152,7 @@ scoop install conftest
 Conftest is also able to be used via Docker. Simply mount your configuration and policy at `/project`
 and specify the relevant command like so:
 
-``console
+```console
 $ docker run --rm -v (pwd):/project instrumenta/conftest test deployment.yaml
 deployment.yaml
    Containers must not run as root in Deployment hello-kubernetes
