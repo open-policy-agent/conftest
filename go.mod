@@ -23,6 +23,7 @@ require (
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/logrusorgru/aurora v0.0.0-20190417130405-e50442bb4cb5
 	github.com/open-policy-agent/opa v0.10.6
+	github.com/opencontainers/image-spec v1.0.1
 	github.com/pelletier/go-toml v1.3.0 // indirect
 	github.com/phayes/freeport v0.0.0-20180830031419-95f893ade6f2 // indirect
 	github.com/prometheus/common v0.4.0 // indirect

@@ -25,7 +25,16 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
+
 	auth "github.com/deislabs/oras/pkg/auth/docker"
+)
+
+const (
+	OpenPolicyAgentConfigMediaType        = "application/vnd.cncf.openpolicyagent.config.v1+json"
+	OpenPolicyAgentManifestLayerMediaType = "application/vnd.cncf.openpolicyagent.manifest.layer.v1+json"
+	OpenPolicyAgentPolicyLayerMediaType   = "application/vnd.cncf.openpolicyagent.policy.layer.v1+rego"
+	OpenPolicyAgentDataLayerMediaType     = "application/vnd.cncf.openpolicyagent.data.layer.v1+json"
 )
 
 var (
@@ -119,7 +128,6 @@ func detectLineBreak(haystack []byte) string {
 }
 
 func processFile(ctx context.Context, fileName string, compiler *ast.Compiler) (error, error) {
-
 	var data []byte
 	var err error
 
@@ -251,7 +259,7 @@ var updateCmd = &cobra.Command{
 }
 
 var pullCmd = &cobra.Command{
-	Use:   "pull",
+	Use:   "pull <repository>",
 	Short: "Download individual policies",
 	Long:  `Download individual policies from a registry`,
 	Args:  cobra.MinimumNArgs(1),
@@ -299,11 +307,125 @@ func downloadPolicy(ctx context.Context, policies []Policy) {
 	}
 }
 
+var pushCmd = &cobra.Command{
+	Use:   "push <repository> [filepath]",
+	Short: "Upload OPA bundles to an OCI registry",
+	Long:  `Upload Open Policy Agent bundles to an OCI registry`,
+	Args:  cobra.RangeArgs(1, 2),
+	Run: func(cmd *cobra.Command, args []string) {
+		ctx := context.Background()
+		var path string
+		var err error
+		if len(args) == 2 {
+			path = args[1]
+		} else {
+			path, err = os.Getwd()
+			if err != nil {
+				log.G(ctx).Fatal(err)
+			}
+		}
+		uploadBundle(ctx, args[0], path)
+	},
+}
+
+func buildLayer(ctx context.Context, paths []string, root string, memoryStore *content.Memorystore, mediaType string) []ocispec.Descriptor {
+	var layer ocispec.Descriptor
+	var layers []ocispec.Descriptor
+	for _, file := range paths {
+		contents, err := ioutil.ReadFile(file)
+		if err != nil {
+			log.G(ctx).Fatal(err)
+		}
+		relative, err := filepath.Rel(root, file)
+		if err != nil {
+			log.G(ctx).Fatal(err)
+		}
+		layer = memoryStore.Add(relative, OpenPolicyAgentPolicyLayerMediaType, contents)
+		layers = append(layers, layer)
+	}
+	return layers
+}
+
+func buildLayers(ctx context.Context, root string) ([]ocispec.Descriptor, *content.Memorystore) {
+	var data []string
+	var policy []string
+	var layers []ocispec.Descriptor
+	var err error
+
+	root, err = filepath.Abs(root)
+	if err != nil {
+		log.G(ctx).Fatal(err)
+	}
+
+	info, err := os.Stat(root)
+	if err != nil {
+		log.G(ctx).Fatal(err)
+	}
+	if !info.IsDir() {
+		log.G(ctx).Fatalf("%s isn't a directory", root)
+	}
+
+	memoryStore := content.NewMemoryStore()
+
+	err = filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if info.IsDir() {
+			return nil
+		}
+		if filepath.Ext(path) == ".rego" {
+			policy = append(policy, path)
+		}
+		if filepath.Ext(path) == ".json" {
+			data = append(data, path)
+		}
+		return nil
+	})
+	if err != nil {
+		log.G(ctx).Fatal(err)
+	}
+
+	policyLayers := buildLayer(ctx, policy, root, memoryStore, OpenPolicyAgentPolicyLayerMediaType)
+	dataLayers := buildLayer(ctx, data, root, memoryStore, OpenPolicyAgentDataLayerMediaType)
+	layers = append(policyLayers, dataLayers...)
+
+	return layers, memoryStore
+}
+
+func uploadBundle(ctx context.Context, repository string, root string) {
+
+	cli, err := auth.NewClient()
+	if err != nil {
+		log.G(ctx).Warnf("Error loading auth file: %v\n", err)
+	}
+	resolver, err := cli.Resolver(ctx)
+	if err != nil {
+		log.G(ctx).Warnf("Error loading resolver: %v\n", err)
+		resolver = docker.NewResolver(docker.ResolverOptions{})
+	}
+
+	var ref string
+	if strings.Contains(repository, ":") {
+		ref = repository
+	} else {
+		ref = repository + ":latest"
+	}
+
+	layers, memoryStore := buildLayers(ctx, root)
+
+	log.G(ctx).Infof("Pushing bundle to %s\n", ref)
+	extraOpts := []oras.PushOpt{oras.WithConfigMediaType(OpenPolicyAgentConfigMediaType)}
+	manifest, err := oras.Push(ctx, resolver, ref, memoryStore, layers, extraOpts...)
+	if err != nil {
+		log.G(ctx).Fatal(err)
+	}
+	log.G(ctx).Infof("Pushed bundle to %s with digest %s\n", ref, manifest.Digest)
+}
+
 func init() {
 	cobra.OnInitialize(initConfig)
 
 	RootCmd.AddCommand(updateCmd)
 	RootCmd.AddCommand(pullCmd)
+	RootCmd.AddCommand(pushCmd)
 	RootCmd.AddCommand(testCmd)
 
 	RootCmd.PersistentFlags().StringP("policy", "p", "policy", "directory for Rego policy files")

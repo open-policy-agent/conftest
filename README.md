@@ -1,7 +1,5 @@
 # Conftest
 
-`conftest` is very much still work-in-progress and could explode at any time. Please try it out and let me know what you think.
-
 ## What
 
 `conftest` is a utility to help you write tests against structured configuration data. For instance you could
@@ -75,7 +73,27 @@ You can find examples using various other tools in the `examples ` directory, in
 ## Configuration and external policies
 
 Policies are often reusable between different projects, and Conftest supports a mechanism
-to specify dependent policies and to download them. Create a `conftest.toml` configuration file like so:
+to specify dependent policies and to download them. The format reuses the [Bundle defined
+by Open Policy Agent](https://www.openpolicyagent.org/docs/latest/bundles).
+
+You can download individual policies directly:
+
+```console
+conftest pull instrumenta.azurecr.io/test
+```
+
+Policies are stored in OCI-compatible registries. You can read more about this idea in
+[this post](https://stevelasker.blog/2019/01/25/cloud-native-artifact-stores-evolve-from-container-registries/).
+
+If you have a compatible OCI registry you can also push new policy bundles like so:
+
+```console
+conftest push instrumenta.azurecr.io/test
+```
+
+Conftest also supports a simple configuration file which can be used to store the
+list of dependent bundles and download them in one go. Create a `conftest.toml`
+configuration file like the following:
 
 ```toml
 # You can override the directory in which to store and look for policies
@@ -102,19 +120,6 @@ If you want to download the latest policies and run the tests in one go you can 
 ```console
 conftest test --update <file-to-test>
 ```
-
-You can also download individual policies directly, without the need for the configuration
-file like so:
-
-```console
-conftest pull instrumenta.azurecr.io/test
-```
-
-Policies are stored in OCI-compatible registries. You can read more about this idea in
-[this post](https://stevelasker.blog/2019/01/25/cloud-native-artifact-stores-evolve-from-container-registries/) from
-@SteveLasker. Conftest does not currently provide a mechanism to upload those polices,
-for the moment you can use [oras](https://github.com/deislabs/oras/) directly. More
-examples coming soon once this code has had a bit more testing.
 
 
 ## Installation
