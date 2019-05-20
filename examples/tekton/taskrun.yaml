@@ -1,0 +1,41 @@
+apiVersion: tekton.dev/v1alpha1
+kind: TaskRun
+metadata:
+  name: conftest
+spec:
+  taskSpec:
+    inputs:
+      resources:
+      - name: workspace
+        type: git
+        targetPath: config
+      params:
+      - name: input
+        default: "/workspace/config/*.yaml"
+      - name: policy
+        default: "/workspace/config/policy"
+    steps:
+    - name: test
+      image: instrumenta/conftest:latest
+      command:
+        - conftest
+      args:
+        - "test"
+        - "-p"
+        - ${inputs.params.policy}
+        - ${inputs.params.input}
+  inputs:
+    resources:
+    - name: workspace
+      resourceSpec:
+        type: git
+        params:
+        - name: revision
+          value: master
+        - name: url
+          value: https://github.com/instrumenta/conftest.git
+    params:
+    - name: input
+      value: "/workspace/config/examples/kubernetes/deployment.yaml"
+    - name: policy
+      value: "/workspace/config/examples/kubernetes/policy"
