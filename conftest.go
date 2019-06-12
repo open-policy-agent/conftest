@@ -21,6 +21,7 @@ import (
 	"github.com/logrusorgru/aurora"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
+	"github.com/open-policy-agent/opa/topdown"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -183,15 +184,14 @@ func makeQuery(ctx context.Context, query string, input interface{}, compiler *a
 		return false
 	}
 
-	rego := rego.New(
-		rego.Query(query),
-		rego.Compiler(compiler),
-		rego.Input(input))
-
+	rego, stdout := buildRego(viper.GetBool("trace-query"), query, input, compiler)
 	rs, err := rego.Eval(ctx)
+
 	if err != nil {
 		return fmt.Errorf("Problem evaluating rego policy: %s", err)
 	}
+
+	topdown.PrettyTrace(os.Stdout, *stdout)
 
 	var errorsList *multierror.Error
 
@@ -207,6 +207,20 @@ func makeQuery(ctx context.Context, query string, input interface{}, compiler *a
 	}
 
 	return errorsList.ErrorOrNil()
+}
+
+func buildRego(trace bool, query string, input interface{}, compiler *ast.Compiler) (*rego.Rego, *topdown.BufferTracer) {
+	var regoObj *rego.Rego
+	var regoFunc []func(r *rego.Rego)
+	buf := topdown.NewBufferTracer()
+
+	regoFunc = append(regoFunc, rego.Query(query), rego.Compiler(compiler), rego.Input(input))
+	if trace {
+		regoFunc = append(regoFunc, rego.Tracer(buf))
+	}
+	regoObj = rego.New(regoFunc...)
+
+	return regoObj, buf
 }
 
 func buildCompiler(path string) (*ast.Compiler, error) {
@@ -430,6 +444,7 @@ func init() {
 
 	RootCmd.PersistentFlags().StringP("policy", "p", "policy", "directory for Rego policy files")
 	RootCmd.PersistentFlags().BoolP("debug", "", false, "enable more verbose log output")
+	RootCmd.PersistentFlags().BoolP("trace-query", "", false, "enable more verbose trace output for rego queries")
 
 	testCmd.Flags().BoolP("fail-on-warn", "", false, "return a non-zero exit code if only warnings are found")
 	testCmd.Flags().BoolP("update", "", false, "update any policies before running the tests")
@@ -439,6 +454,7 @@ func init() {
 
 	viper.BindPFlag("policy", RootCmd.PersistentFlags().Lookup("policy"))
 	viper.BindPFlag("debug", RootCmd.PersistentFlags().Lookup("debug"))
+	viper.BindPFlag("trace-query", RootCmd.PersistentFlags().Lookup("trace-query"))
 
 	viper.BindPFlag("fail-on-warn", testCmd.Flags().Lookup("fail-on-warn"))
 	viper.BindPFlag("update", testCmd.Flags().Lookup("update"))
