@@ -32,6 +32,12 @@
   [ "$status" -eq 0 ]
 }
 
+@test "Has trace-query flag" {
+  run conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml --trace-query
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "Enter warn[msg] { data.kubernetes.is_service;" ]]
+}
+
 @test "Has help flag" {
   run conftest --help
   [ "$status" -eq 0 ]
