@@ -1,5 +1,7 @@
 # Conftest
 
+[![CircleCI](https://circleci.com/gh/instrumenta/conftest.svg?style=svg)](https://circleci.com/gh/instrumenta/conftest)
+
 ## What
 
 `conftest` is a utility to help you write tests against structured configuration data. For instance you could
