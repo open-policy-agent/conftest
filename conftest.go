@@ -184,7 +184,7 @@ func makeQuery(ctx context.Context, query string, input interface{}, compiler *a
 		return false
 	}
 
-	rego, stdout := buildRego(viper.GetBool("trace-query"), query, input, compiler)
+	rego, stdout := buildRego(viper.GetBool("trace"), query, input, compiler)
 	rs, err := rego.Eval(ctx)
 
 	if err != nil {
@@ -444,7 +444,7 @@ func init() {
 
 	RootCmd.PersistentFlags().StringP("policy", "p", "policy", "directory for Rego policy files")
 	RootCmd.PersistentFlags().BoolP("debug", "", false, "enable more verbose log output")
-	RootCmd.PersistentFlags().BoolP("trace-query", "", false, "enable more verbose trace output for rego queries")
+	RootCmd.PersistentFlags().BoolP("trace", "", false, "enable more verbose trace output for rego queries")
 
 	testCmd.Flags().BoolP("fail-on-warn", "", false, "return a non-zero exit code if only warnings are found")
 	testCmd.Flags().BoolP("update", "", false, "update any policies before running the tests")
@@ -454,7 +454,7 @@ func init() {
 
 	viper.BindPFlag("policy", RootCmd.PersistentFlags().Lookup("policy"))
 	viper.BindPFlag("debug", RootCmd.PersistentFlags().Lookup("debug"))
-	viper.BindPFlag("trace-query", RootCmd.PersistentFlags().Lookup("trace-query"))
+	viper.BindPFlag("trace", RootCmd.PersistentFlags().Lookup("trace"))
 
 	viper.BindPFlag("fail-on-warn", testCmd.Flags().Lookup("fail-on-warn"))
 	viper.BindPFlag("update", testCmd.Flags().Lookup("update"))

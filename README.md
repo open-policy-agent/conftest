@@ -122,6 +122,99 @@ conftest test --update <file-to-test>
 ```
 
 
+## Debugging queries
+
+When working on more complex queries, or when learning rego, it's useful to see exactly how the policy is
+applied. For this purpose you can use the `--trace` flag. This will output a large trace from Open Policy Agent
+like the following:
+
+
+<details>
+<summary>Example of trace</summary>
+
+```console
+$ conftest test --trace deployment.yaml
+deployment.yaml
+Enter data.main.deny = _
+| Eval data.main.deny = _
+| Index data.main.deny = _ (matched 2 rules)
+| Enter deny[msg] { data.kubernetes.is_deployment; not input.spec.template.spec.securityContext.runAsNonRoot = true; __local3__ = data.main.name; sprintf("Containers must not run as root in Deployment %s", [__local3__], __local0__); msg = __local0__ }
+| | Eval data.kubernetes.is_deployment
+| | Index data.kubernetes.is_deployment (matched 1 rule)
+| | Enter is_deployment = true { input.kind = "Deployment" }
+| | | Eval input.kind = "Deployment"
+| | | Exit is_deployment = true { input.kind = "Deployment" }
+| | Eval not input.spec.template.spec.securityContext.runAsNonRoot = true
+| | | Eval input.spec.template.spec.securityContext.runAsNonRoot = true
+| | | Fail input.spec.template.spec.securityContext.runAsNonRoot = true
+| | Eval __local3__ = data.main.name
+| | Index __local3__ = data.main.name (matched 2 rules)
+| | Enter name = __local1__ { true; __local1__ = input.metadata.name }
+| | | Eval true
+| | | Eval __local1__ = input.metadata.name
+| | | Exit name = __local1__ { true; __local1__ = input.metadata.name }
+| | Eval sprintf("Containers must not run as root in Deployment %s", [__local3__], __local0__)
+| | Eval msg = __local0__
+| | Exit deny[msg] { data.kubernetes.is_deployment; not input.spec.template.spec.securityContext.runAsNonRoot = true; __local3__ = data.main.name; sprintf("Containers must not run as root in Deployment %s", [__local3__], __local0__); msg = __local0__ }
+| Redo deny[msg] { data.kubernetes.is_deployment; not input.spec.template.spec.securityContext.runAsNonRoot = true; __local3__ = data.main.name; sprintf("Containers must not run as root in Deployment %s", [__local3__], __local0__); msg = __local0__ }
+| | Redo msg = __local0__
+| | Redo sprintf("Containers must not run as root in Deployment %s", [__local3__], __local0__)
+| | Redo __local3__ = data.main.name
+| | Redo name = __local1__ { true; __local1__ = input.metadata.name }
+| | | Redo __local1__ = input.metadata.name
+| | | Redo true
+| | Enter name = __local2__ { true; __local2__ = input.metadata.name }
+| | | Eval true
+| | | Eval __local2__ = input.metadata.name
+| | | Exit name = __local2__ { true; __local2__ = input.metadata.name }
+| | Redo name = __local2__ { true; __local2__ = input.metadata.name }
+| | | Redo __local2__ = input.metadata.name
+| | | Redo true
+| | Redo data.kubernetes.is_deployment
+| | Redo is_deployment = true { input.kind = "Deployment" }
+| | | Redo input.kind = "Deployment"
+| Enter deny[msg] { data.kubernetes.is_deployment; not data.main.labels; __local4__ = data.main.name; sprintf("Deployment %s must provide app/release labels for pod selectors", [__local4__], __local1__); msg = __local1__ }
+| | Eval data.kubernetes.is_deployment
+| | Index data.kubernetes.is_deployment (matched 1 rule)
+| | Eval not data.main.labels
+| | | Eval data.main.labels
+| | | Index data.main.labels (matched 1 rule)
+| | | Enter labels = true { input.spec.selector.matchLabels.app; input.spec.selector.matchLabels.release }
+| | | | Eval input.spec.selector.matchLabels.app
+| | | | Eval input.spec.selector.matchLabels.release
+| | | | Fail input.spec.selector.matchLabels.release
+| | | | Redo input.spec.selector.matchLabels.app
+| | | Fail data.main.labels
+| | Eval __local4__ = data.main.name
+| | Index __local4__ = data.main.name (matched 2 rules)
+| | Eval sprintf("Deployment %s must provide app/release labels for pod selectors", [__local4__], __local1__)
+| | Eval msg = __local1__
+| | Exit deny[msg] { data.kubernetes.is_deployment; not data.main.labels; __local4__ = data.main.name; sprintf("Deployment %s must provide app/release labels for pod selectors", [__local4__], __local1__); msg = __local1__ }
+| Redo deny[msg] { data.kubernetes.is_deployment; not data.main.labels; __local4__ = data.main.name; sprintf("Deployment %s must provide app/release labels for pod selectors", [__local4__], __local1__); msg = __local1__ }
+| | Redo msg = __local1__
+| | Redo sprintf("Deployment %s must provide app/release labels for pod selectors", [__local4__], __local1__)
+| | Redo __local4__ = data.main.name
+| | Redo data.kubernetes.is_deployment
+| Exit data.main.deny = _
+Redo data.main.deny = _
+| Redo data.main.deny = _
+Enter data.main.warn = _
+| Eval data.main.warn = _
+| Index data.main.warn = _ (matched 1 rule)
+| Enter warn[msg] { data.kubernetes.is_service; __local2__ = data.main.name; sprintf("Found service %s but services are not allowed", [__local2__], __local0__); msg = __local0__ }
+| | Eval data.kubernetes.is_service
+| | Index data.kubernetes.is_service (matched 0 rules)
+| | Fail data.kubernetes.is_service
+| Exit data.main.warn = _
+Redo data.main.warn = _
+| Redo data.main.warn = _
+   Containers must not run as root in Deployment hello-kubernetes
+   Deployment hello-kubernetes must provide app/release labels for pod selectors
+```
+
+</details>
+
+
 ## Installation
 
 `conftest` releases are available for Windows, macOS and Linux on the [releases page](https://github.com/instrumenta/conftest/releases).
