@@ -2,10 +2,37 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.12-node
 
     steps: 
       - checkout 
+      - restore_cache:
+          keys:
+            - go-mod-{{ checksum "go.sum" }}
       - run: go test ./... 
+      - run:
+          name: Build binary
+          command: go build -o conftest
+      - save_cache:
+          key: go-mod-{{ checksum "go.sum" }}
+          paths:
+            - "/go/pkg/mod"
+      - run:
+          name: Install Bats
+          command: | 
+            cd /tmp
+            curl -L https://github.com/sstephenson/bats/archive/v0.4.0.tar.gz | tar -xz
+            sudo ./bats-0.4.0/install.sh /usr/local
+      - run:
+          name: Run acceptance tests
+          command: |
+            sudo npm install tap-xunit -g
+            mkdir -p ~/reports
+            bats acceptance.bats --tap | tap-xunit > ~/reports/conftest.xml
+      - store_test_results:
+          path: ~/reports
+      - store_artifacts:
+          path: ~/reports
+
 
 
