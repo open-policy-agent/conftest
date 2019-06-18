@@ -223,8 +223,8 @@ Redo data.main.warn = _
 On Linux and macOS you can probably download as follows:
 
 ```console
-$ wget https://github.com/instrumenta/conftest/releases/download/v0.4.2/conftest_0.4.2_Linux_x86_64.tar.gz
-$ tar xzf conftest_0.4.2_Linux_x86_64.tar.gz
+$ wget https://github.com/instrumenta/conftest/releases/download/v0.7.0/conftest_0.7.0_Linux_x86_64.tar.gz
+$ tar xzf conftest_0.7.0_Linux_x86_64.tar.gz
 $ sudo mv conftest /usr/local/bin
 ```
 
