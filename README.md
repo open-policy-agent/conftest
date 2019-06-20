@@ -223,8 +223,8 @@ Redo data.main.warn = _
 On Linux and macOS you can probably download as follows:
 
 ```console
-$ wget https://github.com/instrumenta/conftest/releases/download/v0.4.2/conftest_0.4.2_Linux_x86_64.tar.gz
-$ tar xzf conftest_0.4.2_Linux_x86_64.tar.gz
+$ wget https://github.com/instrumenta/conftest/releases/download/v0.7.0/conftest_0.7.0_Linux_x86_64.tar.gz
+$ tar xzf conftest_0.7.0_Linux_x86_64.tar.gz
 $ sudo mv conftest /usr/local/bin
 ```
 
@@ -260,7 +260,7 @@ deployment.yaml
 
 ## Inspiration
 
-* [kubtest](https://github.com/garethr/kubetest) was a similar project of mine, using [Starlark](https://docs.bazel.build/versions/master/skylark/language.html)
+* [kubetest](https://github.com/garethr/kubetest) was a similar project of mine, using [Skylark](https://docs.bazel.build/versions/master/skylark/language.html)
 * [Open Policy Agent](https://www.openpolicyagent.org/) and the Rego query language
 * The [helm-opa](https://github.com/eicnix/helm-opa) plugin from [@eicnix](https://github.com/eicnix/) helped with understanding the OPA Go packages
 * Tools from the wider instrastructure as code community, in particular rspec-puppet. Lots of my thoughts in [my talk from KubeCon 2017](https://speakerdeck.com/garethr/developer-tooling-for-kubernetes-configurations)
