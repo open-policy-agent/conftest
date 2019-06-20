@@ -35,7 +35,7 @@
 @test "Has trace flag" {
   run ./conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml --trace
   [ "$status" -eq 0 ]
-  [[ "$output" =~ "Enter warn[msg] { data.kubernetes.is_service;" ]]
+  [[ "$output" =~ "data.kubernetes.is_service" ]]
 }
 
 @test "Has help flag" {
