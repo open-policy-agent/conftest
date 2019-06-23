@@ -42,3 +42,9 @@
   run ./conftest --help
   [ "$status" -eq 0 ]
 }
+
+@test "Allow .rego files in the policy flag" {
+  run ./conftest test -p examples/terraform/policy/base.rego examples/terraform/gke-show.json
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "Terraform plan will change prohibited resources in the following namespaces: google_iam, google_container" ]]
+}

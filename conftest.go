@@ -224,9 +224,18 @@ func buildRego(trace bool, query string, input interface{}, compiler *ast.Compil
 }
 
 func buildCompiler(path string) (*ast.Compiler, error) {
-	files, err := ioutil.ReadDir(path)
+	info, err := os.Stat(path)
 	if err != nil {
 		return nil, err
+	}
+	var files []os.FileInfo
+	var dirPath string
+	if info.IsDir() {
+		files, err = ioutil.ReadDir(path)
+		dirPath = path
+	} else {
+		files = []os.FileInfo{info}
+		dirPath = filepath.Dir(path)
 	}
 
 	modules := map[string]*ast.Module{}
@@ -236,7 +245,7 @@ func buildCompiler(path string) (*ast.Compiler, error) {
 			continue
 		}
 
-		out, err := ioutil.ReadFile(path + "/" + file.Name())
+		out, err := ioutil.ReadFile(dirPath + "/" + file.Name())
 		if err != nil {
 			return nil, err
 		}
@@ -442,7 +451,7 @@ func init() {
 	RootCmd.AddCommand(pushCmd)
 	RootCmd.AddCommand(testCmd)
 
-	RootCmd.PersistentFlags().StringP("policy", "p", "policy", "directory for Rego policy files")
+	RootCmd.PersistentFlags().StringP("policy", "p", "policy", "path to the Rego policy files directory. For the test command, specifying a specific .rego file is allowed.")
 	RootCmd.PersistentFlags().BoolP("debug", "", false, "enable more verbose log output")
 	RootCmd.PersistentFlags().BoolP("trace", "", false, "enable more verbose trace output for rego queries")
 
