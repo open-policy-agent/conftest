@@ -16,8 +16,8 @@ import (
 	"github.com/containerd/containerd/remotes/docker"
 	"github.com/deislabs/oras/pkg/content"
 	"github.com/deislabs/oras/pkg/oras"
-	"github.com/ghodss/yaml"
 	"github.com/hashicorp/go-multierror"
+	"github.com/instrumenta/conftest/util"
 	"github.com/logrusorgru/aurora"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
@@ -147,13 +147,18 @@ func processFile(ctx context.Context, fileName string, compiler *ast.Compiler) (
 	linebreak := detectLineBreak(data)
 	bits := bytes.Split(data, []byte(linebreak+"---"+linebreak))
 
+	parser, err := util.GetParser(fileName)
+	if err != nil {
+		return err, nil
+	}
+
 	var failuresList *multierror.Error
 	var warningsList *multierror.Error
 	for _, element := range bits {
 		var input interface{}
-		err = yaml.Unmarshal([]byte(element), &input)
+		err = parser.Unmarshal([]byte(element), &input)
 		if err != nil {
-			return fmt.Errorf("Unable to parse YAML from %s: %s", fileName, err), nil
+			return err, nil
 		}
 		failures, warnings := processData(ctx, input, compiler)
 		if failures != nil {
