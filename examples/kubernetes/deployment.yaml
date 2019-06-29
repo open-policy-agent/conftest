@@ -2,6 +2,12 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: hello-kubernetes
+  labels:
+    app.kubernetes.io/name: mysql
+    app.kubernetes.io/version: "5.7.21"
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: wordpress
+    app.kubernetes.io/managed-by: helm
 spec:
   replicas: 3
   selector:
