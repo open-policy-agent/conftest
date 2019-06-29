@@ -42,3 +42,8 @@
   run ./conftest --help
   [ "$status" -eq 0 ]
 }
+
+@test "Can parse toml files" {
+  run ./conftest test -p examples/traefik/policy examples/traefik/traefik.toml
+  [ "$status" -eq 1 ]
+}

@@ -6,7 +6,7 @@ RUN GOOS=linux GOARCH=amd64 go build -ldflags="-w -s"
 
 
 FROM bats/bats:v1.1.0 as acceptance
-COPY --from=builder /conftest /usr/local/bin
+COPY --from=builder /conftest /
 COPY acceptance.bats /acceptance.bats
 COPY examples /examples
 RUN ./acceptance.bats
