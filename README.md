@@ -242,7 +242,7 @@ brew install conftest
 You can also install using [Scoop](https://scoop.sh/) on Windows:
 
 ```console
-scoop bucket add instrumenta https://github.com/instrumenta/bucket-instrumenta
+scoop bucket add instrumenta https://github.com/instrumenta/scoop-instrumenta
 scoop install conftest
 ```
 
