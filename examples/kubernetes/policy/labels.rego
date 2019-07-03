@@ -14,7 +14,7 @@ labels {
 }
 
 deny[msg] {
-  kubernetes.is_deploymen
+  kubernetes.is_deployment
   not labels
   msg = sprintf("%s must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels ", [name])
 }
