@@ -20,6 +20,11 @@
   [ "$status" -eq 0 ]
 }
 
+@test "Pass when testing a YAML document via stdin" {
+  run ./conftest test -p examples/kubernetes/policy - < examples/kubernetes/service.yaml
+  [ "$status" -eq 0 ]
+}
+
 @test "Fail due to picking up settings from configuration file" {
   cd examples/configfile
   run ../../conftest test deployment.yaml

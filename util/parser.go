@@ -14,22 +14,19 @@ type Parser interface {
 	Unmarshal(p []byte, v interface{}) error
 }
 
-// GetParser returns a Parser for the given file type. If no supported parser is found, it returns an error.
-func GetParser(fileName string) (Parser, error) {
+// GetParser returns a Parser for the given file type. Defaults to returning the YAML parser.
+func GetParser(fileName string) (Parser) {
 	suffix := filepath.Ext(fileName)
 	switch suffix {
-	case ".yaml",".yml", ".json":
-		return &yamlParser{
-			fileName: fileName,
-		}, nil
 	case ".toml":
 		return &tomlParser{
 			fileName: fileName,
-		}, nil
+		}
 	default:
-		return nil, fmt.Errorf("Unable to find available parser for extension %s", suffix)
+		return &yamlParser{
+			fileName: fileName,
+		}
 	}
-
 }
 
 type yamlParser struct {
