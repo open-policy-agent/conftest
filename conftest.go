@@ -320,7 +320,7 @@ func downloadPolicy(ctx context.Context, policies []Policy) {
 
 	for _, policy := range policies {
 		var ref string
-		if strings.Contains(policy.Repository, ":") {
+		if util.RepositoryNameContainsTag(policy.Repository) {
 			ref = policy.Repository
 		} else if policy.Tag == "" {
 			ref = policy.Repository + ":latest"
