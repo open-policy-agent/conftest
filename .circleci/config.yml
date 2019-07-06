@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-  snyk: garethr/snyk@0.1.0
+  snyk: garethr/snyk@0.3.0
 jobs:
   build:
     docker:
@@ -62,4 +62,3 @@ workflows:
     jobs:
       - build
       - image
-
