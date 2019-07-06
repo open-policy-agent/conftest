@@ -1,18 +1,6 @@
 version: 2.1
-commands:
-  install_snyk:
-    description: "Install Snyk"
-    steps:
-      - run:
-          name: Install Snyk
-          command: |
-            if [[ ! -x "/usr/local/bin/snyk" ]]; then
-              curl -s https://api.github.com/repos/snyk/snyk/releases/latest | grep "browser_download_url" | grep linux | cut -d '"' -f 4 | wget -qi -
-              sha256sum -c snyk-linux.sha256
-              sudo mv snyk-linux /usr/local/bin/snyk
-              sudo chmod +x /usr/local/bin/snyk
-            fi
-
+orbs:
+  snyk: garethr/snyk@0.3.0
 jobs:
   build:
     docker:
@@ -37,16 +25,14 @@ jobs:
             cd /tmp
             curl -L https://github.com/sstephenson/bats/archive/v0.4.0.tar.gz | tar -xz
             sudo ./bats-0.4.0/install.sh /usr/local
-      - install_snyk
+      - snyk/install_snyk
       - run:
           name: Run acceptance tests
           command: |
             sudo npm install tap-xunit -g
             mkdir -p ~/reports
             bats acceptance.bats --tap | tap-xunit > ~/reports/conftest.xml
-      - run:
-          name: Run security tests on Go dependencies 
-          command: snyk monitor
+      - snyk/check_code_with_snyk
       - store_test_results:
           path: ~/reports
       - store_artifacts:
@@ -60,15 +46,15 @@ jobs:
       - setup_remote_docker:
           docker_layer_caching: true
           version: 18.09.3
-      - install_snyk
+      - snyk/install_snyk
       - run:
           name: Build image
           command: docker build -t instrumenta/conftest .
           environment:
             DOCKER_BUILDKIT: 1
-      - run:
-          name: Run security tests on Docker image
-          command: snyk monitor --docker instrumenta/conftest --file=Dockerfile --project-name=docker.io/instrumenta/conftest
+      - snyk/check_docker_with_snyk:
+          image: instrumenta/conftest
+          project: docker.io/instrumenta/conftest
 
 workflows:
   version: 2
@@ -76,4 +62,3 @@ workflows:
     jobs:
       - build
       - image
-
