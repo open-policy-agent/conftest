@@ -12,6 +12,49 @@ commands:
               sudo mv snyk-linux /usr/local/bin/snyk
               sudo chmod +x /usr/local/bin/snyk
             fi
+  check_code_with_snyk:
+    description: "Monitor dependencies with Snyk"
+    parameters:
+      project:
+        type: string
+        default: ""
+      args:
+        type: string
+        default: ""
+      type:
+        type: enum
+        default: "monitor"
+        enum: ["monitor", "test"]
+    steps:
+      - run:
+          name: Run Snyk to check dependencies 
+          command: snyk << parameters.type >> --file=<< parameters.project >> << parameters.args >>
+  check_docker_with_snyk:
+    description: "Monitor Docker images with Snyk"
+    parameters:
+      image:
+        type: string
+      dockerfile:
+        type: string
+        default: Dockerfile
+      tag:
+        type: string
+        default: latest
+      project:
+        type: string
+        default: ""
+      args:
+        type: string
+        default: ""
+      type:
+        type: enum
+        default: "monitor"
+        enum: ["monitor", "test"]
+    steps:
+      - run:
+          name: Run Snyk to check dependencies 
+          command: snyk << parameters.type >> --docker << parameters.image >>:<< parameters.tag >> --file=<< parameters.dockerfile >> --project-name=<< parameters.project >> << parameters.args >>
+
 
 jobs:
   build:
@@ -44,9 +87,7 @@ jobs:
             sudo npm install tap-xunit -g
             mkdir -p ~/reports
             bats acceptance.bats --tap | tap-xunit > ~/reports/conftest.xml
-      - run:
-          name: Run security tests on Go dependencies 
-          command: snyk monitor
+      - check_code_with_snyk
       - store_test_results:
           path: ~/reports
       - store_artifacts:
@@ -66,9 +107,9 @@ jobs:
           command: docker build -t instrumenta/conftest .
           environment:
             DOCKER_BUILDKIT: 1
-      - run:
-          name: Run security tests on Docker image
-          command: snyk monitor --docker instrumenta/conftest --file=Dockerfile --project-name=docker.io/instrumenta/conftest
+      - check_docker_with_snyk:
+          image: instrumenta/conftest
+          project: docker.io/instrumenta/conftest
 
 workflows:
   version: 2
