@@ -25,18 +25,21 @@ func NewPushCommand() *cobra.Command {
 		Short: "Upload OPA bundles to an OCI registry",
 		Long:  `Upload Open Policy Agent bundles to an OCI registry`,
 		Args:  cobra.RangeArgs(1, 2),
+
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx := context.Background()
+
 			var path string
-			var err error
 			if len(args) == 2 {
 				path = args[1]
 			} else {
+				var err error
 				path, err = os.Getwd()
 				if err != nil {
 					log.G(ctx).Fatal(err)
 				}
 			}
+
 			uploadBundle(ctx, args[0], path)
 		},
 	}
@@ -50,6 +53,7 @@ func uploadBundle(ctx context.Context, repository string, root string) {
 	if err != nil {
 		log.G(ctx).Warnf("Error loading auth file: %v\n", err)
 	}
+
 	resolver, err := cli.Resolver(ctx)
 	if err != nil {
 		log.G(ctx).Warnf("Error loading resolver: %v\n", err)
@@ -67,10 +71,12 @@ func uploadBundle(ctx context.Context, repository string, root string) {
 
 	log.G(ctx).Infof("Pushing bundle to %s\n", ref)
 	extraOpts := []oras.PushOpt{oras.WithConfigMediaType(constants.OpenPolicyAgentConfigMediaType)}
+
 	manifest, err := oras.Push(ctx, resolver, ref, memoryStore, layers, extraOpts...)
 	if err != nil {
 		log.G(ctx).Fatal(err)
 	}
+
 	log.G(ctx).Infof("Pushed bundle to %s with digest %s\n", ref, manifest.Digest)
 }
 
@@ -89,6 +95,7 @@ func buildLayers(ctx context.Context, root string) ([]ocispec.Descriptor, *conte
 	if err != nil {
 		log.G(ctx).Fatal(err)
 	}
+
 	if !info.IsDir() {
 		log.G(ctx).Fatalf("%s isn't a directory", root)
 	}

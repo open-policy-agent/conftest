@@ -15,12 +15,14 @@ func NewPullCommand() *cobra.Command {
 		Short: "Download individual policies",
 		Long:  `Download individual policies from a registry`,
 		Args:  cobra.MinimumNArgs(1),
+
 		Run: func(cmd *cobra.Command, args []string) {
-			ctx := context.Background()
 			policies := []policy.Policy{}
 			for _, ref := range args {
 				policies = append(policies, policy.Policy{Repository: ref})
 			}
+
+			ctx := context.Background()
 			policy.DownloadPolicy(ctx, policies)
 		},
 	}
