@@ -109,10 +109,16 @@ var testCmd = &cobra.Command{
 	},
 }
 
+func getAurora() aurora.Aurora {
+	enableColors := viper.GetBool("no-color")
+	return aurora.NewAurora(enableColors)
+}
+
 func printErrors(err error, color aurora.Color) {
+	aur := getAurora()
 	if merr, ok := err.(*multierror.Error); ok {
 		for i := range merr.Errors {
-			fmt.Println("  ", aurora.Colorize(merr.Errors[i], color))
+			fmt.Println("  ", aur.Colorize(merr.Errors[i], color))
 		}
 	} else {
 		fmt.Println(err)
@@ -460,6 +466,7 @@ func init() {
 	testCmd.Flags().BoolP("fail-on-warn", "", false, "return a non-zero exit code if only warnings are found")
 	testCmd.Flags().BoolP("update", "", false, "update any policies before running the tests")
 	RootCmd.PersistentFlags().StringP("namespace", "", "main", "namespace in which to find deny and warn rules")
+	RootCmd.PersistentFlags().BoolP("no-color", "", true, " Disable color when printing;")
 
 	RootCmd.SetVersionTemplate(`{{.Version}}`)
 
@@ -470,6 +477,7 @@ func init() {
 	viper.BindPFlag("fail-on-warn", testCmd.Flags().Lookup("fail-on-warn"))
 	viper.BindPFlag("update", testCmd.Flags().Lookup("update"))
 	viper.BindPFlag("namespace", RootCmd.PersistentFlags().Lookup("namespace"))
+	viper.BindPFlag("color", RootCmd.PersistentFlags().Lookup("color"))
 }
 
 func initConfig() {
