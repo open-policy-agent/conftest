@@ -32,6 +32,7 @@ func NewDefaultCommand() *cobra.Command {
 	cmd.PersistentFlags().BoolP("debug", "", false, "enable more verbose log output")
 	cmd.PersistentFlags().BoolP("trace", "", false, "enable more verbose trace output for rego queries")
 	cmd.PersistentFlags().StringP("namespace", "", "main", "namespace in which to find deny and warn rules")
+    cmd.PersistentFlags().BoolP("no-color", "", false, "Disable color when printing")
 
 	cmd.SetVersionTemplate(`{{.Version}}`)
 
@@ -39,6 +40,7 @@ func NewDefaultCommand() *cobra.Command {
 	viper.BindPFlag("debug", cmd.PersistentFlags().Lookup("debug"))
 	viper.BindPFlag("trace", cmd.PersistentFlags().Lookup("trace"))
 	viper.BindPFlag("namespace", cmd.PersistentFlags().Lookup("namespace"))
+    viper.BindPFlag("no-color", cmd.PersistentFlags().Lookup("no-color"))
 
 	viper.SetEnvPrefix("CONFTEST")
 	viper.SetConfigName("conftest")

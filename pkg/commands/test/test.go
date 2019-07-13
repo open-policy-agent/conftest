@@ -188,10 +188,16 @@ func makeQuery(ctx context.Context, query string, input interface{}, compiler *a
 	return errorsList.ErrorOrNil()
 }
 
+func getAurora() aurora.Aurora {
+	enableColors := !viper.GetBool("no-color")
+	return aurora.NewAurora(enableColors)
+}
+
 func printErrors(err error, color aurora.Color) {
+    aur := getAurora()
 	if merr, ok := err.(*multierror.Error); ok {
 		for i := range merr.Errors {
-			fmt.Println("  ", aurora.Colorize(merr.Errors[i], color))
+			fmt.Println("  ", aur.Colorize(merr.Errors[i], color))
 		}
 	} else {
 		fmt.Println(err)

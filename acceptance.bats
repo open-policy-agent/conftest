@@ -58,3 +58,9 @@
   run ./conftest test -p examples/traefik/policy examples/traefik/traefik.toml
   [ "$status" -eq 1 ]
 }
+
+@test "Can disable color" {
+  run ./conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml --no-color
+  [ "$status" -eq 0 ]
+  [[ "$output" != *"[33m"* ]]
+}
