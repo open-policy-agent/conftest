@@ -14,7 +14,7 @@ jobs:
       - run: go test ./... 
       - run:
           name: Build binary
-          command: go build -o conftest
+          command: go build -o conftest cmd/main.go
       - save_cache:
           key: go-mod-{{ checksum "go.sum" }}
           paths:
@@ -49,7 +49,7 @@ jobs:
       - snyk/install_snyk
       - run:
           name: Build image
-          command: docker build -t instrumenta/conftest .
+          command: docker build --progress plain -t instrumenta/conftest .
           environment:
             DOCKER_BUILDKIT: 1
       - snyk/check_docker_with_snyk:
