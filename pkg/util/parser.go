@@ -1,8 +1,8 @@
 package util
 
 import (
-	"fmt"
 	"encoding/json"
+	"fmt"
 	"path/filepath"
 
 	"github.com/BurntSushi/toml"
@@ -17,7 +17,7 @@ type Parser interface {
 }
 
 // GetParser returns a Parser for the given file type. Defaults to returning the YAML parser.
-func GetParser(fileName string) (Parser) {
+func GetParser(fileName string) Parser {
 	suffix := filepath.Ext(fileName)
 	switch suffix {
 	case ".toml":
