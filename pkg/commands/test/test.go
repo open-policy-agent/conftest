@@ -177,13 +177,13 @@ func processData(ctx context.Context, input interface{}, compiler *ast.Compiler)
 
 	// collect warnings
 	var warnings error
-	for _, r := range getRules(ctx, nil, compiler) {
+	for _, r := range getRules(ctx, warnQ, compiler) {
 		warnings = multierror.Append(warnings, runQuery(ctx, makeQuery(r), input, compiler))
 	}
 
 	// collect failures
 	var failures error
-	for _, r := range getRules(ctx, nil, compiler) {
+	for _, r := range getRules(ctx, denyQ, compiler) {
 		failures = multierror.Append(failures, runQuery(ctx, makeQuery(r), input, compiler))
 	}
 
