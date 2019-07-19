@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 
@@ -24,6 +25,12 @@ import (
 	"github.com/open-policy-agent/opa/topdown"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+)
+
+
+var (
+	denyQ = regexp.MustCompile("^deny(_[a-zA-Z]+)*$")
+	warnQ = regexp.MustCompile("^warn(_[a-zA-Z]+)*$")
 )
 
 // NewTestCommand creates a new test command
@@ -145,17 +152,45 @@ func processFile(ctx context.Context, fileName string, compiler *ast.Compiler) (
 	return failuresList.ErrorOrNil(), warningsList.ErrorOrNil()
 }
 
-func processData(ctx context.Context, input interface{}, compiler *ast.Compiler) (error, error) {
-	namespace := viper.GetString("namespace")
-	deny := fmt.Sprintf("data.%s.deny", namespace)
-	warn := fmt.Sprintf("data.%s.warn", namespace)
+// finds all queries in the compiler supported by the
+func getRules(ctx context.Context, re *regexp.Regexp, compiler *ast.Compiler) ([]string) {
 
-	failures := makeQuery(ctx, deny, input, compiler)
-	warnings := makeQuery(ctx, warn, input, compiler)
+	var res []string
+
+	for _, m := range compiler.Modules {
+		for _, r := range m.Rules {
+			n := r.Head.Name.String()
+			if re.MatchString(n) {
+				res = append(res, n)
+			}
+		}
+	}
+
+	return res
+}
+
+func makeQuery(rule string) string {
+	return fmt.Sprintf("data.%s.%s", viper.GetString("namespace"), rule)
+}
+
+func processData(ctx context.Context, input interface{}, compiler *ast.Compiler) (error, error) {
+
+	// collect warnings
+	var warnings error
+	for _, r := range getRules(ctx, warnQ, compiler) {
+		warnings = multierror.Append(warnings, runQuery(ctx, makeQuery(r), input, compiler))
+	}
+
+	// collect failures
+	var failures error
+	for _, r := range getRules(ctx, denyQ, compiler) {
+		failures = multierror.Append(failures, runQuery(ctx, makeQuery(r), input, compiler))
+	}
+
 	return failures, warnings
 }
 
-func makeQuery(ctx context.Context, query string, input interface{}, compiler *ast.Compiler) error {
+func runQuery(ctx context.Context, query string, input interface{}, compiler *ast.Compiler) error {
 	hasResults := func(expression interface{}) bool {
 		if v, ok := expression.([]interface{}); ok {
 			return len(v) > 0
