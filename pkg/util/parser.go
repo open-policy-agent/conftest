@@ -1,11 +1,13 @@
 package util
 
 import (
+	"encoding/json"
 	"fmt"
 	"path/filepath"
 
 	"github.com/BurntSushi/toml"
 	"github.com/ghodss/yaml"
+	"github.com/hashicorp/terraform/config"
 )
 
 // Parser is the interface implemented by objects that can unmarshal
@@ -15,11 +17,15 @@ type Parser interface {
 }
 
 // GetParser returns a Parser for the given file type. Defaults to returning the YAML parser.
-func GetParser(fileName string) (Parser) {
+func GetParser(fileName string) Parser {
 	suffix := filepath.Ext(fileName)
 	switch suffix {
 	case ".toml":
 		return &tomlParser{
+			fileName: fileName,
+		}
+	case ".tf":
+		return &tfParser{
 			fileName: fileName,
 		}
 	default:
@@ -27,6 +33,30 @@ func GetParser(fileName string) (Parser) {
 			fileName: fileName,
 		}
 	}
+}
+
+type tfParser struct {
+	fileName string
+}
+
+func (s *tfParser) Unmarshal(p []byte, v interface{}) error {
+	filePath, _ := filepath.Abs(s.fileName)
+	cfg, err := config.LoadFile(filePath)
+	if err != nil {
+		return fmt.Errorf("load terraform config failed: %v", err)
+	}
+
+	j, err := json.Marshal(cfg)
+	if err != nil {
+		return fmt.Errorf("Unable to marshal config %s: %s", s.fileName, err)
+	}
+
+	err = yaml.Unmarshal(j, v)
+	if err != nil {
+		return fmt.Errorf("Unable to parse YAML from HCL-json %s: %s", s.fileName, err)
+	}
+
+	return nil
 }
 
 type yamlParser struct {

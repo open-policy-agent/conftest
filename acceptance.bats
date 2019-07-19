@@ -54,6 +54,11 @@
   [[ "$output" =~ "Terraform plan will change prohibited resources in the following namespaces: google_iam, google_container" ]]
 }
 
+@test "Can parse tf files" {
+  run ./conftest test -p examples/terraform/policy/gke.rego examples/terraform/gke.tf
+  [ "$status" -eq 0 ]
+}
+
 @test "Can parse toml files" {
   run ./conftest test -p examples/traefik/policy examples/traefik/traefik.toml
   [ "$status" -eq 1 ]
