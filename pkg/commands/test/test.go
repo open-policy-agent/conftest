@@ -15,7 +15,7 @@ import (
 
 	"github.com/instrumenta/conftest/pkg/commands/update"
 	"github.com/instrumenta/conftest/pkg/constants"
-	"github.com/instrumenta/conftest/pkg/util"
+	"github.com/instrumenta/conftest/pkg/util/parser"
 
 	"github.com/containerd/containerd/log"
 	"github.com/hashicorp/go-multierror"
@@ -26,7 +26,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
-
 
 var (
 	denyQ = regexp.MustCompile("^deny(_[a-zA-Z]+)*$")
@@ -131,7 +130,7 @@ func processFile(ctx context.Context, fileName string, compiler *ast.Compiler) (
 	linebreak := detectLineBreak(data)
 	bits := bytes.Split(data, []byte(linebreak+"---"+linebreak))
 
-	parser := util.GetParser(fileName)
+	parser := parser.GetParser(fileName)
 
 	var failuresList *multierror.Error
 	var warningsList *multierror.Error
@@ -153,7 +152,7 @@ func processFile(ctx context.Context, fileName string, compiler *ast.Compiler) (
 }
 
 // finds all queries in the compiler supported by the
-func getRules(ctx context.Context, re *regexp.Regexp, compiler *ast.Compiler) ([]string) {
+func getRules(ctx context.Context, re *regexp.Regexp, compiler *ast.Compiler) []string {
 
 	var res []string
 
@@ -229,7 +228,7 @@ func getAurora() aurora.Aurora {
 }
 
 func printErrors(err error, color aurora.Color) {
-    aur := getAurora()
+	aur := getAurora()
 	if merr, ok := err.(*multierror.Error); ok {
 		for i := range merr.Errors {
 			fmt.Println("  ", aur.Colorize(merr.Errors[i], color))
