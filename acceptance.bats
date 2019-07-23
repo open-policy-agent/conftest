@@ -69,3 +69,8 @@
   [ "$status" -eq 0 ]
   [[ "$output" != *"[33m"* ]]
 }
+
+@test "Combine YAML results in successful run" {
+  run ./conftest test -p testdata/policy_with_rules testdata/weather-multi-doc.yaml --combine-yaml-docs --no-color
+  [ "$status" -eq 0 ]
+}

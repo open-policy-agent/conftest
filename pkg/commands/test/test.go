@@ -40,53 +40,61 @@ func NewTestCommand() *cobra.Command {
 		Short:   "Test your configuration files using Open Policy Agent",
 		Version: fmt.Sprintf("Version: %s\nCommit: %s\nDate: %s\n", constants.Version, constants.Commit, constants.Date),
 
-		Run: func(cmd *cobra.Command, args []string) {
-			ctx := context.Background()
+		Run: TestFunction}
 
-			if len(args) < 1 {
-				cmd.SilenceErrors = true
-				log.G(ctx).Fatal("The first argument should be a file")
-			}
-
-			if viper.GetBool("update") {
-				update.NewUpdateCommand().Run(cmd, args)
-			}
-
-			compiler, err := buildCompiler(viper.GetString("policy"))
-			if err != nil {
-				log.G(ctx).Fatalf("Problem building rego compiler: %s", err)
-			}
-
-			foundFailures := false
-			for _, fileName := range args {
-				if fileName != "-" {
-					fmt.Println(fileName)
-				}
-				failures, warnings := processFile(ctx, fileName, compiler)
-				if failures != nil {
-					foundFailures = true
-					printErrors(failures, aurora.RedFg)
-				}
-				if warnings != nil {
-					if viper.GetBool("fail-on-warn") {
-						foundFailures = true
-					}
-					printErrors(warnings, aurora.BrownFg)
-				}
-			}
-			if foundFailures {
-				os.Exit(1)
-			}
-		},
-	}
-
+	cmd.Flags().BoolP("combine-yaml-docs", "c", false, "combine YAML documents in order to cross-reference keys")
 	cmd.Flags().BoolP("fail-on-warn", "", false, "return a non-zero exit code if only warnings are found")
 	cmd.Flags().BoolP("update", "", false, "update any policies before running the tests")
 
+	viper.BindPFlag("combine-yaml-docs", cmd.Flags().Lookup("combine-yaml-docs"))
 	viper.BindPFlag("fail-on-warn", cmd.Flags().Lookup("fail-on-warn"))
 	viper.BindPFlag("update", cmd.Flags().Lookup("update"))
 
 	return cmd
+}
+
+func TestFunction(cmd *cobra.Command, args []string) {
+	ctx := context.Background()
+
+	if len(args) < 1 {
+		cmd.SilenceErrors = true
+		log.G(ctx).Fatal("The first argument should be a file")
+	}
+
+	if viper.GetBool("update") {
+		update.NewUpdateCommand().Run(cmd, args)
+	}
+
+	compiler, err := buildCompiler(viper.GetString("policy"))
+	if err != nil {
+		log.G(ctx).Fatalf("Problem building rego compiler: %s", err)
+	}
+
+	if loopOverFiles(ctx, args, compiler) {
+		os.Exit(1)
+	}
+}
+
+func loopOverFiles(ctx context.Context, args []string, compiler *ast.Compiler) bool {
+	foundFailures := false
+	for _, fileName := range args {
+		if fileName != "-" {
+			fmt.Println(fileName)
+		}
+		failures, warnings := processFile(ctx, fileName, compiler)
+		if failures != nil {
+			foundFailures = true
+			printErrors(failures, aurora.RedFg)
+		}
+		if warnings != nil {
+			if viper.GetBool("fail-on-warn") {
+				foundFailures = true
+			}
+			printErrors(warnings, aurora.BrownFg)
+		}
+	}
+
+	return foundFailures
 }
 
 func buildRego(trace bool, query string, input interface{}, compiler *ast.Compiler) (*rego.Rego, *topdown.BufferTracer) {
@@ -134,12 +142,22 @@ func processFile(ctx context.Context, fileName string, compiler *ast.Compiler) (
 
 	var failuresList *multierror.Error
 	var warningsList *multierror.Error
+	var inputs []interface{}
+
 	for _, element := range bits {
 		var input interface{}
 		err = parser.Unmarshal([]byte(element), &input)
+		inputs = append(inputs, input)
 		if err != nil {
 			return err, nil
 		}
+	}
+
+	if viper.GetBool("combine-yaml-docs") {
+		inputs = combineDocumentIntoNamespaces(inputs)
+	}
+
+	for _, input := range inputs {
 		failures, warnings := processData(ctx, input, compiler)
 		if failures != nil {
 			failuresList = multierror.Append(failuresList, failures)
@@ -149,6 +167,11 @@ func processFile(ctx context.Context, fileName string, compiler *ast.Compiler) (
 		}
 	}
 	return failuresList.ErrorOrNil(), warningsList.ErrorOrNil()
+}
+
+func combineDocumentIntoNamespaces(inputs []interface{}) []interface{} {
+	var fileData []interface{}
+	return append(fileData, inputs)
 }
 
 // finds all queries in the compiler supported by the

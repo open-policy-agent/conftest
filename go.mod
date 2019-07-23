@@ -14,7 +14,13 @@ require (
 	github.com/docker/cli v0.0.0-20190511004558-53fc257292ad // indirect
 	github.com/docker/docker-credential-helpers v0.6.2 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
-	github.com/ghodss/yaml v1.0.0
+	github.com/elazarl/goproxy v0.0.0-20190421051319-9d40249d3c2f // indirect
+	github.com/elazarl/goproxy/ext v0.0.0-20190421051319-9d40249d3c2f // indirect
+	github.com/emicklei/go-restful v2.9.5+incompatible // indirect
+	github.com/evanphx/json-patch v4.2.0+incompatible // indirect
+	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
+	github.com/go-openapi/spec v0.19.0 // indirect
+	github.com/go-openapi/swag v0.19.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gorilla/mux v1.7.1 // indirect
 	github.com/hashicorp/go-multierror v1.0.0
