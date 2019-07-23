@@ -3,9 +3,9 @@ package parser
 import (
 	"path/filepath"
 
-	"github.com/instrumenta/conftest/pkg/util/parser/terraform"
-	"github.com/instrumenta/conftest/pkg/util/parser/toml"
-	"github.com/instrumenta/conftest/pkg/util/parser/yaml"
+	"github.com/instrumenta/conftest/pkg/parser/terraform"
+	"github.com/instrumenta/conftest/pkg/parser/toml"
+	"github.com/instrumenta/conftest/pkg/parser/yaml"
 )
 
 // Parser is the interface implemented by objects that can unmarshal

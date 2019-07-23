@@ -15,7 +15,7 @@ import (
 
 	"github.com/instrumenta/conftest/pkg/commands/update"
 	"github.com/instrumenta/conftest/pkg/constants"
-	"github.com/instrumenta/conftest/pkg/util/parser"
+	"github.com/instrumenta/conftest/pkg/parser"
 
 	"github.com/containerd/containerd/log"
 	"github.com/hashicorp/go-multierror"
