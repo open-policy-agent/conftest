@@ -1,10 +1,14 @@
 package test
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/spf13/viper"
+)
 
 func TestWarnQuerry(t *testing.T) {
 
-	tests := []struct{
+	tests := []struct {
 		in  string
 		exp bool
 	}{
@@ -27,9 +31,51 @@ func TestWarnQuerry(t *testing.T) {
 	}
 }
 
+func TestMultiFile(t *testing.T) {
+	t.Run("given multiple files and a policy which is met across files", func(t *testing.T) {
+
+		fileList := []string{
+			"../../../testdata/multi_file_part_1.tf",
+			"../../../testdata/multi_file_part_2.tf",
+		}
+		viper.Set("policy", "../../../testdata/policy")
+		viper.Set("no-color", true)
+		viper.Set("namespace", "main")
+		t.Run("when a combine-files flag is true", func(t *testing.T) {
+			exitSpyCalled := 0
+			cmd := NewTestCommand(func(exitCode int) {
+				exitSpyCalled += exitCode
+			})
+			t.Run("then we should be able to check across files with a single policy", func(t *testing.T) {
+				t.Skip("not yet implemented")
+				cmd.Run(cmd, fileList)
+				if exitSpyCalled != 0 {
+					t.Errorf("we failed out of the policy run with exitcode: %v", exitSpyCalled)
+				}
+			})
+		})
+		t.Run("when a combine-files flag is false", func(t *testing.T) {
+			exitSpyCalled := 0
+			cmd := NewTestCommand(func(exitCode int) {
+				exitSpyCalled += exitCode
+			})
+			t.Run("then we should not be able to check across files with a single policy", func(t *testing.T) {
+				cmd.Run(cmd, fileList)
+				if exitSpyCalled == 0 {
+					t.Errorf("we should not have passed here, but we did")
+				}
+			})
+		})
+	})
+}
+
+func noopOsExit(i int) {
+
+}
+
 func TestFailQuery(t *testing.T) {
 
-	tests := []struct{
+	tests := []struct {
 		in  string
 		exp bool
 	}{

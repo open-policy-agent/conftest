@@ -33,7 +33,7 @@ var (
 )
 
 // NewTestCommand creates a new test command
-func NewTestCommand() *cobra.Command {
+func NewTestCommand(osExit func(int)) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "test <file> [file...]",
@@ -75,16 +75,18 @@ func NewTestCommand() *cobra.Command {
 				}
 			}
 			if foundFailures {
-				os.Exit(1)
+				osExit(1)
 			}
 		},
 	}
 
 	cmd.Flags().BoolP("fail-on-warn", "", false, "return a non-zero exit code if only warnings are found")
 	cmd.Flags().BoolP("update", "", false, "update any policies before running the tests")
+	cmd.Flags().BoolP("combine-files", "", false, "treat files as a single file object")
 
 	viper.BindPFlag("fail-on-warn", cmd.Flags().Lookup("fail-on-warn"))
 	viper.BindPFlag("update", cmd.Flags().Lookup("update"))
+	viper.BindPFlag("combine-files", cmd.Flags().Lookup("combine-files"))
 
 	return cmd
 }
