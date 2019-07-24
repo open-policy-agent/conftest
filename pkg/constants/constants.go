@@ -1,6 +1,6 @@
 package constants
 
-const (
+var (
 	Version = "dev"
 	Commit  = "none"
 	Date    = "unknown"
