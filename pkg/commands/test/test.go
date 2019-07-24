@@ -151,7 +151,7 @@ func processFile(ctx context.Context, fileName string, compiler *ast.Compiler) (
 	return failuresList.ErrorOrNil(), warningsList.ErrorOrNil()
 }
 
-// finds all queries in the compiler supported by the
+// finds all queries in the compiler
 func getRules(ctx context.Context, re *regexp.Regexp, compiler *ast.Compiler) []string {
 
 	var res []string
@@ -160,12 +160,25 @@ func getRules(ctx context.Context, re *regexp.Regexp, compiler *ast.Compiler) []
 		for _, r := range m.Rules {
 			n := r.Head.Name.String()
 			if re.MatchString(n) {
-				res = append(res, n)
+				// the same rule names can be used multiple times, but
+				// we only want to run the query and report results once
+				if !stringInSlice(n, res) {
+					res = append(res, n)
+				}
 			}
 		}
 	}
 
 	return res
+}
+
+func stringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
 }
 
 func makeQuery(rule string) string {
