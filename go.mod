@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	cloud.google.com/go v0.39.0 // indirect
+	cuelang.org/go v0.0.4
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Microsoft/go-winio v0.4.12 // indirect
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
@@ -35,6 +36,7 @@ require (
 	github.com/spf13/cobra v0.0.4
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/viper v1.4.0
+	github.com/vchimishuk/chub v0.0.0-20190501162134-36f1f5f7c9ef
 	github.com/xenolf/lego v2.5.0+incompatible // indirect
 	github.com/yashtewari/glob-intersection v0.0.0-20180916065949-5c77d914dd0b // indirect
 	github.com/yvasiyarov/newrelic_platform_go v0.0.0-20160601141957-9c099fbc30e9 // indirect

@@ -64,6 +64,12 @@
   [ "$status" -eq 1 ]
 }
 
+@test "Can parse cue files" {
+  run ./conftest test -p examples/cue/policy examples/cue/deployment.cue
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "The image port should be 8080 in deployment.cue. you got : 8081" ]]
+}
+
 @test "Can disable color" {
   run ./conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml --no-color
   [ "$status" -eq 0 ]
