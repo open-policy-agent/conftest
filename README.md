@@ -2,6 +2,8 @@
 
 [![CircleCI](https://circleci.com/gh/instrumenta/conftest.svg?style=svg)](https://circleci.com/gh/instrumenta/conftest)
 
+- Join us on [the Open Policy Agent Slack](https://slack.openpolicyagent.org/) #conftest
+
 ## What
 
 `conftest` is a utility to help you write tests against structured configuration data. For instance you could
@@ -265,4 +267,3 @@ deployment.yaml
 * The [helm-opa](https://github.com/eicnix/helm-opa) plugin from [@eicnix](https://github.com/eicnix/) helped with understanding the OPA Go packages
 * Tools from the wider instrastructure as code community, in particular rspec-puppet. Lots of my thoughts in [my talk from KubeCon 2017](https://speakerdeck.com/garethr/developer-tooling-for-kubernetes-configurations)
 * The code in `pkg/auth` is copied from Oras and will be removed once [this issue](https://github.com/deislabs/oras/issues/98) is resolved
-
