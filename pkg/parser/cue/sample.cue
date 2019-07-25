@@ -8,7 +8,7 @@ deployment "hello-kubernetes": {
 		template spec containers: [{
 			image: "paulbouwer/hello-kubernetes:1.5"
 			ports: [{
-				containerPort: 8081
+				containerPort: 8080
 			}]
 		}]
 	}

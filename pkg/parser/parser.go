@@ -3,6 +3,7 @@ package parser
 import (
 	"path/filepath"
 
+	"github.com/instrumenta/conftest/pkg/parser/cue"
 	"github.com/instrumenta/conftest/pkg/parser/terraform"
 	"github.com/instrumenta/conftest/pkg/parser/toml"
 	"github.com/instrumenta/conftest/pkg/parser/yaml"
@@ -25,6 +26,10 @@ func GetParser(fileName string) Parser {
 		}
 	case ".tf":
 		return &terraform.Parser{
+			FileName: fileName,
+		}
+	case ".cue":
+		return &cue.Parser{
 			FileName: fileName,
 		}
 	default:
