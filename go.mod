@@ -19,6 +19,7 @@ require (
 	github.com/gopherjs/gopherjs v0.0.0-20190430165422-3e4dfb77656c // indirect
 	github.com/gorilla/mux v1.7.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.1 // indirect
+	github.com/hashicorp/hcl v1.0.0
 	github.com/hashicorp/terraform v0.12.3
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/logrusorgru/aurora v0.0.0-20190417130405-e50442bb4cb5
