@@ -70,6 +70,12 @@
   [[ "$output" =~ "The image port should be 8080 in deployment.cue. you got : 8081" ]]
 }
 
+@test "Can parse ini files" {
+  run ./conftest test -p examples/ini/policy examples/ini/grafana.ini
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "Users should verify their e-mail address" ]]
+}
+
 @test "Can disable color" {
   run ./conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml --no-color
   [ "$status" -eq 0 ]
