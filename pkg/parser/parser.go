@@ -14,7 +14,6 @@ type Parser interface {
 	Unmarshal(p []byte, v interface{}) error
 }
 
-// GetParser returns a Parser for the given file type. Defaults to returning the YAML parser.
 func GetParser(fileName string) Parser {
 	suffix := filepath.Ext(fileName)
 
