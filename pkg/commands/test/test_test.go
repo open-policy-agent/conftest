@@ -1,10 +1,12 @@
 package test
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestWarnQuerry(t *testing.T) {
 
-	tests := []struct{
+	tests := []struct {
 		in  string
 		exp bool
 	}{
@@ -29,7 +31,7 @@ func TestWarnQuerry(t *testing.T) {
 
 func TestFailQuery(t *testing.T) {
 
-	tests := []struct{
+	tests := []struct {
 		in  string
 		exp bool
 	}{

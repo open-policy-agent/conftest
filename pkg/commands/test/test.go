@@ -18,7 +18,6 @@ import (
 	"github.com/instrumenta/conftest/pkg/parser"
 
 	"github.com/containerd/containerd/log"
-	"github.com/logrusorgru/aurora"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/topdown"
@@ -64,28 +63,31 @@ func NewTestCommand() *cobra.Command {
 				log.G(ctx).Fatalf("Problem building rego compiler: %s", err)
 			}
 
+			out := newDefaultStdOutputManager(!viper.GetBool("no-color"))
+
 			foundFailures := false
 			for _, fileName := range args {
-				if fileName != "-" {
-					fmt.Println(fileName)
-				}
 
+				// run query engine on file
 				res, err := processFile(ctx, fileName, compiler)
 				if err != nil {
 					log.G(ctx).Fatalf("Problem running evaluation: %s", err)
 				}
 
-				if res.failures != nil {
-					foundFailures = true
-					printErrors(res.failures, aurora.RedFg)
+				// record results
+				err = out.put(fileName, checkResult{
+					warnings: res.warnings,
+					failures: res.failures,
+				})
+				if err != nil {
+					log.G(ctx).Fatalf("Problem compiling results: %s", err)
 				}
-				if res.warnings != nil {
-					if viper.GetBool("fail-on-warn") {
-						foundFailures = true
-					}
-					printErrors(res.warnings, aurora.BrownFg)
+
+				if len(res.failures) > 0 || (len(res.warnings) > 0 && viper.GetBool("fail-on-warn") ) {
+					foundFailures = true
 				}
 			}
+
 			if foundFailures {
 				os.Exit(1)
 			}
@@ -266,19 +268,6 @@ func runQuery(ctx context.Context, query string, input interface{}, compiler *as
 	}
 
 	return errs, nil
-}
-
-func getAurora() aurora.Aurora {
-	enableColors := !viper.GetBool("no-color")
-	return aurora.NewAurora(enableColors)
-}
-
-func printErrors(errs []error, color aurora.Color) {
-	aur := getAurora()
-
-	for _, e := range errs {
-		fmt.Println("  ", aur.Colorize(e, color))
-	}
 }
 
 func buildCompiler(path string) (*ast.Compiler, error) {

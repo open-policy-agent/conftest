@@ -8,6 +8,7 @@ require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Microsoft/go-winio v0.4.12 // indirect
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
+	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
 	github.com/bugsnag/bugsnag-go v1.5.1 // indirect
 	github.com/containerd/containerd v1.2.6
 	github.com/containerd/continuity v0.0.0-20190426062206-aaeac12a7ffc // indirect
