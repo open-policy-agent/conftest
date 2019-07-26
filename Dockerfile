@@ -4,13 +4,15 @@ WORKDIR /
 COPY . /
 RUN GOOS=linux GOARCH=amd64 go build -o conftest -ldflags="-w -s" cmd/main.go
 
+FROM golang:1.12-alpine as test
+COPY --from=builder /conftest /
+RUN go test /conftest/...
 
 FROM bats/bats:v1.1.0 as acceptance
 COPY --from=builder /conftest /
 COPY acceptance.bats /acceptance.bats
 COPY examples /examples
 RUN ./acceptance.bats
-
 
 FROM golang:1.12-alpine as examples
 
