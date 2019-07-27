@@ -2,7 +2,7 @@
 
 [![CircleCI](https://circleci.com/gh/instrumenta/conftest.svg?style=svg)](https://circleci.com/gh/instrumenta/conftest)
 
-- Join us on [the Open Policy Agent Slack](https://slack.openpolicyagent.org/) #conftest
+- Join us on [the Open Policy Agent Slack](https://slack.openpolicyagent.org/) in the #conftest channel
 
 ## What
 
@@ -17,7 +17,18 @@ in the Open Policy Agent documentation.
 ## Usage
 
 `conftest` allows you to write policies using Open Policy Agent/rego and apply them to one or
-more YAML or JSON configuration files. Policies by default should be placed in a directory
+more configuration files.
+
+As of today `conftest` supports:
+
+* YAML
+* JSON
+* INI
+* TOML
+* HCL
+* CUE
+
+Policies by default should be placed in a directory
 called `policy` but this can be overridden.
 
 For instance, save the following as `policy/deployment.rego`:
@@ -62,7 +73,7 @@ deployment.yaml
 ```
 
 Note that `conftest` isn't specific to Kubernetes. It will happily let you write tests for any
-configuration file using YAML or JSON.
+configuration files.
 
 ## Examples
 
