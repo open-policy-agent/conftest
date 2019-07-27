@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 
 	"github.com/instrumenta/conftest/pkg/parser/cue"
+	"github.com/instrumenta/conftest/pkg/parser/ini"
 	"github.com/instrumenta/conftest/pkg/parser/terraform"
 	"github.com/instrumenta/conftest/pkg/parser/toml"
 	"github.com/instrumenta/conftest/pkg/parser/yaml"
@@ -30,6 +31,10 @@ func GetParser(fileName string) Parser {
 		}
 	case ".cue":
 		return &cue.Parser{
+			FileName: fileName,
+		}
+	case ".ini":
+		return &ini.Parser{
 			FileName: fileName,
 		}
 	default:

@@ -16,6 +16,7 @@ require (
 	github.com/docker/docker-credential-helpers v0.6.2 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/ghodss/yaml v1.0.0
+	github.com/go-ini/ini v1.44.0
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gorilla/mux v1.7.1 // indirect
 	github.com/hashicorp/go-multierror v1.0.0
