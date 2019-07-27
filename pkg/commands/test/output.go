@@ -19,7 +19,8 @@ type stdOutputManager struct {
 	color  aurora.Aurora
 }
 
-// newDefaultStdOutputManager instantiates a new instance of 
+// newDefaultStdOutputManager instantiates a new instance of stdOutputManager
+// using the default logger.
 func newDefaultStdOutputManager(color bool) *stdOutputManager {
 	return newStdOutputManager(log.New(os.Stdout, "", 0), color)
 }
