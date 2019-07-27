@@ -11,11 +11,23 @@ jobs:
       - restore_cache:
           keys:
             - go-mod-{{ checksum "go.sum" }}
-      - run: go test ./... 
+      - run:
+          name: "Run unit tests"
+          environment:
+            TEST_RESULTS: /tmp/test-results
+          command: |
+            mkdir -p $TEST_RESULTS
+            PACKAGE_NAMES=$(go list ./... | circleci tests split --split-by=timings --timings-type=classname)
+            gotestsum --junitfile ${TEST_RESULTS}/gotestsum-report.xml -- $PACKAGE_NAMES
       - save_cache:
           key: go-mod-{{ checksum "go.sum" }}
           paths:
             - "/go/pkg/mod"
+      - store_artifacts:
+          path: /tmp/test-results
+          destination: raw-test-output
+      - store_test_results:
+          path: /tmp/test-results
   
   acceptance:
     docker:
