@@ -5,7 +5,7 @@ NAME=conftest
 IMAGE=instrumenta/$(NAME)
 
 COMMAND=docker
-BUILD=DOCKER_BUILDKIT=1 $(COMMAND) build
+BUILD=DOCKER_BUILDKIT=1 $(COMMAND) build --pull
 PUSH=$(COMMAND) push
 
 all: push
