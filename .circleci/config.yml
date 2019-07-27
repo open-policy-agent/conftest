@@ -2,7 +2,7 @@ version: 2.1
 orbs:
   snyk: garethr/snyk@0.3.0
 jobs:
-  build:
+  test:
     docker:
       - image: circleci/golang:1.12-node
 
@@ -12,6 +12,20 @@ jobs:
           keys:
             - go-mod-{{ checksum "go.sum" }}
       - run: go test ./... 
+      - save_cache:
+          key: go-mod-{{ checksum "go.sum" }}
+          paths:
+            - "/go/pkg/mod"
+  
+  acceptance:
+    docker:
+      - image: circleci/golang:1.12-node
+
+    steps: 
+      - checkout 
+      - restore_cache:
+          keys:
+            - go-mod-{{ checksum "go.sum" }}
       - run:
           name: Build binary
           command: go build -o conftest cmd/main.go
@@ -25,18 +39,33 @@ jobs:
             cd /tmp
             curl -L https://github.com/sstephenson/bats/archive/v0.4.0.tar.gz | tar -xz
             sudo ./bats-0.4.0/install.sh /usr/local
-      - snyk/install_snyk
       - run:
           name: Run acceptance tests
           command: |
             sudo npm install tap-xunit -g
             mkdir -p ~/reports
             bats acceptance.bats --tap | tap-xunit > ~/reports/conftest.xml
-      - snyk/check_code_with_snyk
       - store_test_results:
           path: ~/reports
       - store_artifacts:
           path: ~/reports
+
+  security:
+    docker:
+      - image: circleci/golang:1.12-node
+
+    steps: 
+      - checkout 
+      - restore_cache:
+          keys:
+            - go-mod-{{ checksum "go.sum" }}
+      - save_cache:
+          key: go-mod-{{ checksum "go.sum" }}
+          paths:
+            - "/go/pkg/mod"
+      - snyk/install_snyk
+      - snyk/check_code_with_snyk
+  
   image:
     docker:
       - image: circleci/buildpack-deps:stretch 
@@ -60,5 +89,13 @@ workflows:
   version: 2
   build:
     jobs:
-      - build
-      - image
+      - test
+      - acceptance
+      - security:
+          filters:
+            branches:
+              only: master
+      - image:
+          filters:
+            branches:
+              only: master
