@@ -18,7 +18,6 @@ import (
 	"github.com/instrumenta/conftest/pkg/parser"
 
 	"github.com/containerd/containerd/log"
-	"github.com/hashicorp/go-multierror"
 	"github.com/logrusorgru/aurora"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
@@ -31,6 +30,14 @@ var (
 	denyQ = regexp.MustCompile("^deny(_[a-zA-Z]+)*$")
 	warnQ = regexp.MustCompile("^warn(_[a-zA-Z]+)*$")
 )
+
+// checkResult describes the result of a conftest evaluation.
+// warning and failure "errors" produced by rego should be considered separate
+// from other classes of exceptions.
+type checkResult struct {
+	warnings []error
+	failures []error
+}
 
 // NewTestCommand creates a new test command
 func NewTestCommand() *cobra.Command {
@@ -62,16 +69,21 @@ func NewTestCommand() *cobra.Command {
 				if fileName != "-" {
 					fmt.Println(fileName)
 				}
-				failures, warnings := processFile(ctx, fileName, compiler)
-				if failures != nil {
-					foundFailures = true
-					printErrors(failures, aurora.RedFg)
+
+				res, err := processFile(ctx, fileName, compiler)
+				if err != nil {
+					log.G(ctx).Fatalf("Problem running evaluation: %s", err)
 				}
-				if warnings != nil {
+
+				if res.failures != nil {
+					foundFailures = true
+					printErrors(res.failures, aurora.RedFg)
+				}
+				if res.warnings != nil {
 					if viper.GetBool("fail-on-warn") {
 						foundFailures = true
 					}
-					printErrors(warnings, aurora.BrownFg)
+					printErrors(res.warnings, aurora.BrownFg)
 				}
 			}
 			if foundFailures {
@@ -111,7 +123,7 @@ func detectLineBreak(haystack []byte) string {
 	return "\n"
 }
 
-func processFile(ctx context.Context, fileName string, compiler *ast.Compiler) (error, error) {
+func processFile(ctx context.Context, fileName string, compiler *ast.Compiler) (checkResult, error) {
 	var data []byte
 	var err error
 
@@ -124,31 +136,41 @@ func processFile(ctx context.Context, fileName string, compiler *ast.Compiler) (
 	}
 
 	if err != nil {
-		return fmt.Errorf("Unable to open file %s: %s", fileName, err), nil
+		return checkResult{}, fmt.Errorf("Unable to open file %s: %s", fileName, err)
 	}
 
 	linebreak := detectLineBreak(data)
 	bits := bytes.Split(data, []byte(linebreak+"---"+linebreak))
 
-	parser := parser.GetParser(fileName)
+	p := parser.GetParser(fileName)
 
-	var failuresList *multierror.Error
-	var warningsList *multierror.Error
+	var failures []error
+	var warnings []error
+
 	for _, element := range bits {
 		var input interface{}
-		err = parser.Unmarshal([]byte(element), &input)
+
+		// load individual data segments
+		err = p.Unmarshal([]byte(element), &input)
 		if err != nil {
-			return err, nil
+			return checkResult{}, err
 		}
-		failures, warnings := processData(ctx, input, compiler)
-		if failures != nil {
-			failuresList = multierror.Append(failuresList, failures)
+
+		// run rules over each data segment
+		res, err := processData(ctx, input, compiler)
+		if err != nil {
+			return checkResult{}, err
 		}
-		if warnings != nil {
-			warningsList = multierror.Append(warningsList, warnings)
-		}
+
+		// aggregate errors
+		failures = append(failures, res.failures...)
+		warnings = append(warnings, res.warnings...)
 	}
-	return failuresList.ErrorOrNil(), warningsList.ErrorOrNil()
+
+	return checkResult{
+		failures: failures,
+		warnings: warnings,
+	}, nil
 }
 
 // finds all queries in the compiler
@@ -185,24 +207,35 @@ func makeQuery(rule string) string {
 	return fmt.Sprintf("data.%s.%s", viper.GetString("namespace"), rule)
 }
 
-func processData(ctx context.Context, input interface{}, compiler *ast.Compiler) (error, error) {
-
+func processData(ctx context.Context, input interface{}, compiler *ast.Compiler) (checkResult, error) {
 	// collect warnings
-	var warnings error
+	var warnings []error
 	for _, r := range getRules(ctx, warnQ, compiler) {
-		warnings = multierror.Append(warnings, runQuery(ctx, makeQuery(r), input, compiler))
+		ws, err := runQuery(ctx, makeQuery(r), input, compiler)
+		if err != nil {
+			return checkResult{}, err
+		}
+
+		warnings = append(warnings, ws...)
 	}
 
 	// collect failures
-	var failures error
+	var failures []error
 	for _, r := range getRules(ctx, denyQ, compiler) {
-		failures = multierror.Append(failures, runQuery(ctx, makeQuery(r), input, compiler))
+		fs, err := runQuery(ctx, makeQuery(r), input, compiler)
+		if err != nil {
+			return checkResult{}, err
+		}
+		failures = append(failures, fs...)
 	}
 
-	return failures, warnings
+	return checkResult{
+		failures: failures,
+		warnings: warnings,
+	}, nil
 }
 
-func runQuery(ctx context.Context, query string, input interface{}, compiler *ast.Compiler) error {
+func runQuery(ctx context.Context, query string, input interface{}, compiler *ast.Compiler) ([]error, error) {
 	hasResults := func(expression interface{}) bool {
 		if v, ok := expression.([]interface{}); ok {
 			return len(v) > 0
@@ -210,29 +243,29 @@ func runQuery(ctx context.Context, query string, input interface{}, compiler *as
 		return false
 	}
 
-	rego, stdout := buildRego(viper.GetBool("trace"), query, input, compiler)
-	rs, err := rego.Eval(ctx)
+	r, stdout := buildRego(viper.GetBool("trace"), query, input, compiler)
+	rs, err := r.Eval(ctx)
 
 	if err != nil {
-		return fmt.Errorf("Problem evaluating rego policy: %s", err)
+		return nil, fmt.Errorf("Problem evaluating r policy: %s", err)
 	}
 
 	topdown.PrettyTrace(os.Stdout, *stdout)
 
-	var errorsList *multierror.Error
+	var errs []error
 
 	for _, r := range rs {
 		for _, e := range r.Expressions {
 			value := e.Value
 			if hasResults(value) {
 				for _, v := range value.([]interface{}) {
-					errorsList = multierror.Append(errorsList, errors.New(v.(string)))
+					errs = append(errs, errors.New(v.(string)))
 				}
 			}
 		}
 	}
 
-	return errorsList.ErrorOrNil()
+	return errs, nil
 }
 
 func getAurora() aurora.Aurora {
@@ -240,14 +273,11 @@ func getAurora() aurora.Aurora {
 	return aurora.NewAurora(enableColors)
 }
 
-func printErrors(err error, color aurora.Color) {
+func printErrors(errs []error, color aurora.Color) {
 	aur := getAurora()
-	if merr, ok := err.(*multierror.Error); ok {
-		for i := range merr.Errors {
-			fmt.Println("  ", aur.Colorize(merr.Errors[i], color))
-		}
-	} else {
-		fmt.Println(err)
+
+	for _, e := range errs {
+		fmt.Println("  ", aur.Colorize(e, color))
 	}
 }
 
