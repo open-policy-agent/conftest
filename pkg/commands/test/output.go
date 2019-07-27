@@ -1,10 +1,13 @@
 package test
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
-	"github.com/logrusorgru/aurora"
 	"log"
 	"os"
+
+	"github.com/logrusorgru/aurora"
 )
 
 // outputManager controls how results of the `ccheck` evaluation will be recorded
@@ -58,5 +61,64 @@ func (s *stdOutputManager) put(fileName string, cr checkResult) error {
 
 func (s *stdOutputManager) flush() error {
 	// no op
+	return nil
+}
+
+type jsonCheckResult struct {
+	Filename string   `json:"filename"`
+	Warnings []string `json:"warnings"`
+	Failures []string `json:"failures"`
+}
+
+// jsonOutputManager reports `ccheck` results to `stdout` as a json array..
+type jsonOutputManager struct {
+	logger *log.Logger
+
+	data []jsonCheckResult
+}
+
+func newDefaultJSONOutputManager() *jsonOutputManager {
+	return newJSONOutputManager(log.New(os.Stdout, "", 0))
+}
+
+func newJSONOutputManager(l *log.Logger) *jsonOutputManager {
+	return &jsonOutputManager{
+		logger: l,
+	}
+}
+
+func errsToStrings(errs []error) []string {
+	var res []string
+	for _, err := range errs {
+		res = append(res, err.Error())
+	}
+
+	return res
+}
+
+func (j *jsonOutputManager) put(fileName string, cr checkResult) error {
+
+	j.data = append(j.data, jsonCheckResult{
+		Filename: fileName,
+		Warnings: errsToStrings(cr.warnings),
+		Failures: errsToStrings(cr.failures),
+	})
+
+	return nil
+}
+
+func (j *jsonOutputManager) flush() error {
+	b, err := json.Marshal(j.data)
+	if err != nil {
+		return err
+	}
+
+	var out bytes.Buffer
+	err = json.Indent(&out, b, "", "\t")
+	if err != nil {
+		return err
+	}
+
+	j.logger.Print(out.String())
 	return nil
 }

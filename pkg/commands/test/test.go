@@ -83,9 +83,14 @@ func NewTestCommand() *cobra.Command {
 					log.G(ctx).Fatalf("Problem compiling results: %s", err)
 				}
 
-				if len(res.failures) > 0 || (len(res.warnings) > 0 && viper.GetBool("fail-on-warn") ) {
+				if len(res.failures) > 0 || (len(res.warnings) > 0 && viper.GetBool("fail-on-warn")) {
 					foundFailures = true
 				}
+			}
+
+			err = out.flush()
+			if err != nil {
+				log.G(ctx).Fatal(err)
 			}
 
 			if foundFailures {
