@@ -1,6 +1,7 @@
 package test
 
 import (
+	"fmt"
 	"github.com/logrusorgru/aurora"
 	"log"
 	"os"
@@ -36,17 +37,20 @@ func newStdOutputManager(l *log.Logger, color bool) *stdOutputManager {
 }
 
 func (s *stdOutputManager) put(fileName string, cr checkResult) error {
-	if fileName != "-" {
-		s.logger.Println(fileName)
+	var indicator string
+	if fileName == "-" {
+		indicator = " - "
+	} else {
+		indicator = fmt.Sprintf(" - %s - ", fileName)
 	}
 
 	// print warnings and then print errors
 	for _, r := range cr.warnings {
-		s.logger.Print("\t", s.color.Colorize(r, aurora.YellowFg))
+		s.logger.Print(s.color.Colorize("WARN", aurora.YellowFg), indicator, r)
 	}
 
 	for _, r := range cr.failures {
-		s.logger.Print("\t", s.color.Colorize(r, aurora.RedFg))
+		s.logger.Print(s.color.Colorize("FAIL", aurora.RedFg), indicator, r)
 	}
 
 	return nil

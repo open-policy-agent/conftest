@@ -58,18 +58,16 @@ Assuming you have a Kubernetes deployment in `deployment.yaml` you can run `conf
 
 ```console
 $ conftest test deployment.yaml
-deployment.yaml
-   Containers must not run as root
-   Deployments are not allowed
+FAIL - deployment.yaml - Containers must not run as root
+FAIL - deployment.yaml - Deployments are not allowed
 ```
 
 `conftest` can also be used with stdin:
 
 ```console
 $ cat deployment.yaml | conftest test -
-deployment.yaml
-   Containers must not run as root
-   Deployments are not allowed
+FAIL - Containers must not run as root
+FAIL - Deployments are not allowed
 ```
 
 Note that `conftest` isn't specific to Kubernetes. It will happily let you write tests for any
@@ -149,7 +147,6 @@ like the following:
 
 ```console
 $ conftest test --trace deployment.yaml
-deployment.yaml
 Enter data.main.deny = _
 | Eval data.main.deny = _
 | Index data.main.deny = _ (matched 2 rules)
@@ -223,8 +220,8 @@ Enter data.main.warn = _
 | Exit data.main.warn = _
 Redo data.main.warn = _
 | Redo data.main.warn = _
-   Containers must not run as root in Deployment hello-kubernetes
-   Deployment hello-kubernetes must provide app/release labels for pod selectors
+FAIL - deployment.yaml - Containers must not run as root in Deployment hello-kubernetes
+FAIL - deployment.yaml - Deployment hello-kubernetes must provide app/release labels for pod selectors
 ```
 
 </details>
@@ -262,13 +259,11 @@ scoop install conftest
 
 ### Docker
 
-Conftest is also able to be used via Docker. Simply mount your configuration and policy at `/project`
-and specify the relevant command like so:
+Conftest is also able to be used via Docker. Simply mount your configuration and policy at `/project` and specify the relevant command like so:
 
 ```console
 $ docker run --rm -v $(pwd):/project instrumenta/conftest test deployment.yaml
-deployment.yaml
-   Containers must not run as root in Deployment hello-kubernetes
+FAIL - deployment.yaml - Containers must not run as root in Deployment hello-kubernetes
 ```
 
 ## Inspiration
