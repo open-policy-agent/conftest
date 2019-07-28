@@ -85,5 +85,5 @@
 @test "Output results only once" {
   run ./conftest test -p examples/kubernetes/policy examples/kubernetes/deployment.yaml
   count="${#lines[@]}"
-  [ "$count" -eq 4 ]
+  [ "$count" -eq 3 ]
 }
