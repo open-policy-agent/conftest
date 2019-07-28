@@ -98,6 +98,10 @@ func errsToStrings(errs []error) []string {
 
 func (j *jsonOutputManager) put(fileName string, cr checkResult) error {
 
+	if fileName == "-" {
+		fileName = ""
+	}
+
 	j.data = append(j.data, jsonCheckResult{
 		Filename: fileName,
 		Warnings: errsToStrings(cr.warnings),

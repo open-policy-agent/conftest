@@ -130,6 +130,25 @@ func Test_jsonOutputManager_put(t *testing.T) {
 ]
 `,
 		},
+		{
+			msg: "handles stdin input",
+			args: args{
+				fileName: "-",
+				cr: checkResult{
+					failures: []error{errors.New("first failure")},
+				},
+			},
+			exp: `[
+	{
+		"filename": "",
+		"warnings": null,
+		"failures": [
+			"first failure"
+		]
+	}
+]
+`,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.msg, func(t *testing.T) {
