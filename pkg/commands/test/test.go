@@ -45,7 +45,6 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 	cmd := &cobra.Command{
 		Use:     "test <file> [file...]",
 		Short:   "Test your configuration files using Open Policy Agent",
-		Version: fmt.Sprintf("Version: %s\nCommit: %s\nDate: %s\n", constants.Version, constants.Commit, constants.Date),
 
 		Run: func(cmd *cobra.Command, fileList []string) {
 			out := getOutputManager()
