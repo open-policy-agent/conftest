@@ -3,7 +3,6 @@ package ini
 import (
 	"encoding/json"
 	"fmt"
-	"path/filepath"
 
 	"github.com/ghodss/yaml"
 	"github.com/go-ini/ini"
@@ -14,9 +13,8 @@ type Parser struct {
 }
 
 func (i *Parser) Unmarshal(p []byte, v interface{}) error {
-	filePath, _ := filepath.Abs(i.FileName)
 	result := map[string]map[string]string{}
-	cfg, err := ini.Load(filePath)
+	cfg, err := ini.Load(p)
 	if err != nil {
 		return fmt.Errorf("Fail to read ini file: %v", err)
 	}

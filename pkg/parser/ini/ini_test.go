@@ -8,9 +8,19 @@ func TestIniParser(t *testing.T) {
 	parser := &Parser{
 		FileName: "sample.ini",
 	}
+	sample := `[Local Varaibles] 
+	Name=name 
+	Title=title 
+	Visisbility=show/hide
+	
+	[Navigation Controls] 
+	OnNext=node path 
+	Help=help file
+	
+	# Test comment`
 
 	var input interface{}
-	err := parser.Unmarshal(nil, &input)
+	err := parser.Unmarshal([]byte(sample), &input)
 	if err != nil {
 		t.Fatalf("parser should not have thrown an error: %v", err)
 	}
