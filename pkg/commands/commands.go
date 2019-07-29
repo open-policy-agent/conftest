@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"github.com/instrumenta/conftest/pkg/commands/execute"
 	"github.com/instrumenta/conftest/pkg/commands/pull"
 	"github.com/instrumenta/conftest/pkg/commands/push"
 	"github.com/instrumenta/conftest/pkg/commands/test"
