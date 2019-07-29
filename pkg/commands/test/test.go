@@ -327,3 +327,4 @@ func buildCompiler(path string) (*ast.Compiler, error) {
 
 	return compiler, nil
 }
+
