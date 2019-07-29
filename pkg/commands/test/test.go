@@ -58,22 +58,35 @@ func NewTestCommand(osExit func(int)) *cobra.Command {
 			}
 
 			foundFailures := false
+			var concatedElementList [][]byte
+			var unMarshaller parser.Parser
 			for _, fileName := range args {
 				if fileName != "-" {
 					fmt.Println(fileName)
 				}
-				failures, warnings := processFile(ctx, fileName, compiler)
-				if failures != nil {
+				var elementList [][]byte
+				var err error
+				elementList, unMarshaller, err = processFile(fileName)
+				if err != nil {
 					foundFailures = true
-					printErrors(failures, aurora.RedFg)
+					fmt.Printf("%v", err)
+					continue
 				}
-				if warnings != nil {
-					if viper.GetBool("fail-on-warn") {
-						foundFailures = true
-					}
-					printErrors(warnings, aurora.BrownFg)
-				}
+				concatedElementList = append(concatedElementList, elementList...)
 			}
+
+			failures, warnings := checkPolicyOnElements(ctx, concatedElementList, unMarshaller, compiler)
+			if failures != nil {
+				foundFailures = true
+				printErrors(failures, aurora.RedFg)
+			}
+			if warnings != nil {
+				if viper.GetBool("fail-on-warn") {
+					foundFailures = true
+				}
+				printErrors(warnings, aurora.BrownFg)
+			}
+
 			if foundFailures {
 				osExit(1)
 			}
@@ -113,7 +126,7 @@ func detectLineBreak(haystack []byte) string {
 	return "\n"
 }
 
-func processFile(ctx context.Context, fileName string, compiler *ast.Compiler) (error, error) {
+func readDataFromFile(fileName string) ([]byte, error) {
 	var data []byte
 	var err error
 
@@ -126,30 +139,62 @@ func processFile(ctx context.Context, fileName string, compiler *ast.Compiler) (
 	}
 
 	if err != nil {
-		return fmt.Errorf("Unable to open file %s: %s", fileName, err), nil
+		return nil, fmt.Errorf("Unable to open file %s: %s", fileName, err)
+	}
+
+	return data, err
+}
+
+func processFile(fileName string) ([][]byte, parser.Parser, error) {
+	data, err := readDataFromFile(fileName)
+	if err != nil {
+		return nil, nil, fmt.Errorf("unable to read data from file %s: %s", fileName, err)
 	}
 
 	linebreak := detectLineBreak(data)
-	bits := bytes.Split(data, []byte(linebreak+"---"+linebreak))
-
+	elementList := bytes.Split(data, []byte(linebreak+"---"+linebreak))
 	parser := parser.GetParser(fileName)
+	return elementList, parser, nil
+}
 
+func checkPolicyOnElements(ctx context.Context, elementList [][]byte, unmarshaller parser.Parser, compiler *ast.Compiler) (error, error) {
 	var failuresList *multierror.Error
 	var warningsList *multierror.Error
-	for _, element := range bits {
-		var input interface{}
-		err = parser.Unmarshal([]byte(element), &input)
+	var failures, warnings error
+	var input []interface{}
+	for _, element := range elementList {
+		var unmarshalledFile interface{}
+		err := unmarshaller.Unmarshal([]byte(element), &unmarshalledFile)
 		if err != nil {
 			return err, nil
 		}
-		failures, warnings := processData(ctx, input, compiler)
+		input = append(input, unmarshalledFile)
+	}
+
+	if viper.GetBool("combine-files") {
+		failures, warnings = processData(ctx, input, compiler)
+		fmt.Println("we are combining files", input)
 		if failures != nil {
 			failuresList = multierror.Append(failuresList, failures)
 		}
+
 		if warnings != nil {
 			warningsList = multierror.Append(warningsList, warnings)
 		}
+
+	} else {
+		for _, fileElement := range input {
+			failures, warnings = processData(ctx, fileElement, compiler)
+			if failures != nil {
+				failuresList = multierror.Append(failuresList, failures)
+			}
+
+			if warnings != nil {
+				warningsList = multierror.Append(warningsList, warnings)
+			}
+		}
 	}
+
 	return failuresList.ErrorOrNil(), warningsList.ErrorOrNil()
 }
 

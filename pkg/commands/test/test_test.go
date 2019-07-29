@@ -31,6 +31,28 @@ func TestWarnQuerry(t *testing.T) {
 	}
 }
 
+func TestSingleFileTF(t *testing.T) {
+	t.Run("given a single terraform file and a valid policy", func(t *testing.T) {
+		fileList := []string{"../../../testdata/tf_single_file.tf"}
+		viper.Set("policy", "../../../testdata/policy")
+		viper.Set("no-color", true)
+		viper.Set("namespace", "main")
+		t.Run("when a combine-files flag is false", func(t *testing.T) {
+			viper.Set("combine-files", false)
+			exitSpyCalled := 0
+			cmd := NewTestCommand(func(exitCode int) {
+				exitSpyCalled += exitCode
+			})
+			t.Run("then we should be able to check a file with a single policy", func(t *testing.T) {
+				cmd.Run(cmd, fileList)
+				if exitSpyCalled != 0 {
+					t.Errorf("we failed out of the policy run with exitcode: %v", exitSpyCalled)
+				}
+			})
+		})
+	})
+}
+
 func TestMultiFile(t *testing.T) {
 	t.Run("given multiple files and a policy which is met across files", func(t *testing.T) {
 
@@ -42,24 +64,27 @@ func TestMultiFile(t *testing.T) {
 		viper.Set("no-color", true)
 		viper.Set("namespace", "main")
 		t.Run("when a combine-files flag is true", func(t *testing.T) {
+			viper.Set("combine-files", true)
+			viper.Set("namespace", "combine")
 			exitSpyCalled := 0
 			cmd := NewTestCommand(func(exitCode int) {
 				exitSpyCalled += exitCode
 			})
 			t.Run("then we should be able to check across files with a single policy", func(t *testing.T) {
-				t.Skip("not yet implemented")
 				cmd.Run(cmd, fileList)
 				if exitSpyCalled != 0 {
 					t.Errorf("we failed out of the policy run with exitcode: %v", exitSpyCalled)
 				}
 			})
 		})
+
 		t.Run("when a combine-files flag is false", func(t *testing.T) {
+			viper.Set("combine-files", false)
 			exitSpyCalled := 0
 			cmd := NewTestCommand(func(exitCode int) {
 				exitSpyCalled += exitCode
 			})
-			t.Run("then we should not be able to check across files with a single policy", func(t *testing.T) {
+			t.Run("then we should NOT be able to check across files with a single policy", func(t *testing.T) {
 				cmd.Run(cmd, fileList)
 				if exitSpyCalled == 0 {
 					t.Errorf("we should not have passed here, but we did")
@@ -67,10 +92,6 @@ func TestMultiFile(t *testing.T) {
 			})
 		})
 	})
-}
-
-func noopOsExit(i int) {
-
 }
 
 func TestFailQuery(t *testing.T) {
