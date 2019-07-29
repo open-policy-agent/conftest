@@ -173,7 +173,6 @@ func checkPolicyOnElements(ctx context.Context, elementList [][]byte, unmarshall
 
 	if viper.GetBool("combine-files") {
 		failures, warnings = processData(ctx, input, compiler)
-		fmt.Println("we are combining files", input)
 		if failures != nil {
 			failuresList = multierror.Append(failuresList, failures)
 		}
