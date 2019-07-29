@@ -13,8 +13,9 @@ import (
 	"strings"
 
 	"github.com/instrumenta/conftest/pkg/commands/update"
-	"github.com/instrumenta/conftest/pkg/constants"
 	"github.com/instrumenta/conftest/pkg/parser"
+	"github.com/instrumenta/conftest/pkg/policy"
+	"github.com/instrumenta/conftest/pkg/report"
 
 	"github.com/containerd/containerd/log"
 	"github.com/open-policy-agent/opa/ast"
@@ -43,8 +44,8 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 
 	ctx := context.Background()
 	cmd := &cobra.Command{
-		Use:     "test <file> [file...]",
-		Short:   "Test your configuration files using Open Policy Agent",
+		Use:   "test <file> [file...]",
+		Short: "Test your configuration files using Open Policy Agent",
 
 		Run: func(cmd *cobra.Command, fileList []string) {
 			out := getOutputManager()
