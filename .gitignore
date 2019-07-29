@@ -1,2 +1,5 @@
 conftest
 dist
+
+# IDEs
+.vscode

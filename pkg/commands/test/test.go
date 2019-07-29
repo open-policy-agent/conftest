@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/instrumenta/conftest/pkg/commands/update"
+	"github.com/instrumenta/conftest/pkg/compiler"
 	"github.com/instrumenta/conftest/pkg/constants"
 	"github.com/instrumenta/conftest/pkg/parser"
 
@@ -58,7 +59,7 @@ func NewTestCommand() *cobra.Command {
 				update.NewUpdateCommand().Run(cmd, args)
 			}
 
-			compiler, err := buildCompiler(viper.GetString("policy"))
+			compiler, err := compiler.BuildCompiler(viper.GetString("policy"))
 			if err != nil {
 				log.G(ctx).Fatalf("Problem building rego compiler: %s", err)
 			}
