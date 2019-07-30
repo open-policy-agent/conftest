@@ -154,7 +154,7 @@ func processFile(ctx context.Context, fileName string, compiler *ast.Compiler) (
 
 	linebreak := detectLineBreak(data)
 	bits := bytes.Split(data, []byte(linebreak+"---"+linebreak))
-	p := parser.GetParser(parser.GetInput(fileName, viper.GetString("input")))
+	p := parser.GetParser(fileName)
 
 	var failures []error
 	var warnings []error
