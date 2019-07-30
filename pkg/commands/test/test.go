@@ -286,6 +286,9 @@ func buildCompiler(path string) (*ast.Compiler, error) {
 	var dirPath string
 	if info.IsDir() {
 		files, err = ioutil.ReadDir(path)
+		if err != nil {
+			return nil, err
+		}
 		dirPath = path
 	} else {
 		files = []os.FileInfo{info}
