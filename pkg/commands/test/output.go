@@ -88,7 +88,9 @@ func newJSONOutputManager(l *log.Logger) *jsonOutputManager {
 }
 
 func errsToStrings(errs []error) []string {
-	var res []string
+	// we explicitly use an empty slice here to ensure that this field will not be
+	// null in json
+	res := []string{}
 	for _, err := range errs {
 		res = append(res, err.Error())
 	}
