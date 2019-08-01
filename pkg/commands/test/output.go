@@ -10,6 +10,26 @@ import (
 	"github.com/logrusorgru/aurora"
 )
 
+const (
+	outputSTD = "stdout"
+)
+
+func validOutputs() []string {
+	return []string{
+		outputSTD,
+	}
+}
+
+func getOutputManager(outFmt string, color bool) outputManager {
+	switch outFmt {
+	case outputSTD:
+		return newDefaultStdOutputManager(color)
+		// TOOD (brendanjryan) add more output managers here
+	default:
+		return newDefaultStdOutputManager(color)
+	}
+}
+
 // outputManager controls how results of the `ccheck` evaluation will be recorded
 // and reported to the end user.
 type outputManager interface {

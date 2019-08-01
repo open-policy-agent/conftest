@@ -63,7 +63,7 @@ func NewTestCommand() *cobra.Command {
 				log.G(ctx).Fatalf("Problem building rego compiler: %s", err)
 			}
 
-			out := newDefaultStdOutputManager(!viper.GetBool("no-color"))
+			out := getOutputManager(viper.GetString("output"), !viper.GetBool("no-color"))
 
 			foundFailures := false
 			for _, fileName := range args {
@@ -101,9 +101,11 @@ func NewTestCommand() *cobra.Command {
 
 	cmd.Flags().BoolP("fail-on-warn", "", false, "return a non-zero exit code if only warnings are found")
 	cmd.Flags().BoolP("update", "", false, "update any policies before running the tests")
+	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", validOutputs()))
 
 	viper.BindPFlag("fail-on-warn", cmd.Flags().Lookup("fail-on-warn"))
 	viper.BindPFlag("update", cmd.Flags().Lookup("update"))
+	viper.BindPFlag("output", cmd.Flags().Lookup("output"))
 
 	return cmd
 }
