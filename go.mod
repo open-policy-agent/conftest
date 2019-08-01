@@ -8,7 +8,6 @@ require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Microsoft/go-winio v0.4.12 // indirect
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
-	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
 	github.com/bugsnag/bugsnag-go v1.5.1 // indirect
 	github.com/containerd/containerd v1.2.6
 	github.com/containerd/continuity v0.0.0-20190426062206-aaeac12a7ffc // indirect
@@ -19,8 +18,8 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-ini/ini v1.44.0
 	github.com/gobwas/glob v0.2.3 // indirect
+	github.com/gopherjs/gopherjs v0.0.0-20190430165422-3e4dfb77656c // indirect
 	github.com/gorilla/mux v1.7.1 // indirect
-	github.com/hashicorp/go-multierror v1.0.0
 	github.com/hashicorp/golang-lru v0.5.1 // indirect
 	github.com/hashicorp/terraform v0.12.3
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
@@ -38,7 +37,7 @@ require (
 	github.com/spf13/cobra v0.0.4
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/viper v1.4.0
-	github.com/vchimishuk/chub v0.0.0-20190501162134-36f1f5f7c9ef
+	github.com/stretchr/testify v1.3.0
 	github.com/xenolf/lego v2.5.0+incompatible // indirect
 	github.com/yashtewari/glob-intersection v0.0.0-20180916065949-5c77d914dd0b // indirect
 	github.com/yvasiyarov/newrelic_platform_go v0.0.0-20160601141957-9c099fbc30e9 // indirect
