@@ -3,7 +3,6 @@ package terraform
 import (
 	"encoding/json"
 	"fmt"
-	"path/filepath"
 
 	"github.com/ghodss/yaml"
 	"github.com/hashicorp/terraform/config"
@@ -14,8 +13,7 @@ type Parser struct {
 }
 
 func (s *Parser) Unmarshal(p []byte, v interface{}) error {
-	filePath, _ := filepath.Abs(s.FileName)
-	cfg, err := config.LoadFile(filePath)
+	cfg, err := config.LoadJSON(json.RawMessage(p))
 	if err != nil {
 		return fmt.Errorf("load terraform config failed: %v", err)
 	}
