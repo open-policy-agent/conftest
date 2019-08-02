@@ -14,7 +14,7 @@ import (
 
 func NewExecuteCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "execute <file> [file...]",
+		Use:   "execute",
 		Short: "Execute Rego unit tests",
 
 		Run: func(cmd *cobra.Command, args []string) {
