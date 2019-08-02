@@ -73,7 +73,6 @@ FAIL - Deployments are not allowed
 Note that `conftest` isn't specific to Kubernetes. It will happily let you write tests for any
 configuration files.
 
-
 ### Configuring Output
 
 The output of `conftest` can be configured using the `--output` flag (`-o`). 
@@ -83,9 +82,7 @@ As of today `conftest` supports the following output types:
 - Plaintext `--output=stdout`
 - JSON: `--output=json`
 
-
 #### Example Output
-
 
 ##### Plaintext
 
