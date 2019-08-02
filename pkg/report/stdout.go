@@ -1,7 +1,6 @@
 package report
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -33,18 +32,14 @@ func NewStdOutReporter(logger *log.Logger, color bool) *StdOutReporter {
 
 // Report messages in the following format
 // WARN/ERROR - FILENAME - MSG
-func (r *StdOutReporter) Report(level Level, fileName string, msg string) {
-	indicator := getIndicatorForFile(fileName)
+func (r *StdOutReporter) Report(results <-chan Result) error {
+	for result := range results {
+		indicator := getIndicatorForFile(result.FileName)
 
-	r.logger.Print(printColorizedLevel(level, r.color), indicator, msg)
-}
-
-func getIndicatorForFile(fileName string) string {
-	if fileName == "-" {
-		return " - "
+		r.logger.Print(printColorizedLevel(result.Level, r.color), indicator, result.Msg)
 	}
-	
-	return fmt.Sprintf(" - %s - ", fileName)
+
+	return nil
 }
 
 func printColorizedLevel(level Level, color aurora.Aurora) aurora.Value {

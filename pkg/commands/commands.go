@@ -14,6 +14,7 @@ import (
 	"github.com/instrumenta/conftest/pkg/commands/test"
 	"github.com/instrumenta/conftest/pkg/commands/update"
 	"github.com/instrumenta/conftest/pkg/constants"
+	"github.com/instrumenta/conftest/pkg/report"
 )
 
 // NewDefaultCommand creates the default command
@@ -30,6 +31,7 @@ func NewDefaultCommand() *cobra.Command {
 	cmd.PersistentFlags().BoolP("trace", "", false, "enable more verbose trace output for rego queries")
 	cmd.PersistentFlags().StringP("namespace", "", "main", "namespace in which to find deny and warn rules")
 	cmd.PersistentFlags().BoolP("no-color", "", false, "disable color when printing")
+	cmd.PersistentFlags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", report.ValidOutputs()))
 
 	cmd.SetVersionTemplate(`{{.Version}}`)
 
@@ -38,6 +40,7 @@ func NewDefaultCommand() *cobra.Command {
 	viper.BindPFlag("trace", cmd.PersistentFlags().Lookup("trace"))
 	viper.BindPFlag("namespace", cmd.PersistentFlags().Lookup("namespace"))
 	viper.BindPFlag("no-color", cmd.PersistentFlags().Lookup("no-color"))
+	viper.BindPFlag("output", cmd.PersistentFlags().Lookup("output"))
 
 	viper.SetEnvPrefix("CONFTEST")
 	viper.SetConfigName("conftest")

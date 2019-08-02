@@ -7,6 +7,7 @@ require (
 	cuelang.org/go v0.0.4
 	github.com/BurntSushi/toml v0.3.1
 	github.com/OneOfOne/xxhash v1.2.5 // indirect
+	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
 	github.com/bugsnag/bugsnag-go v1.5.1 // indirect
 	github.com/containerd/containerd v1.3.0-0.20190426060238-3a3f0aac8819
 	github.com/deislabs/oras v0.5.1-0.20190510174428-2836a4314d4a
@@ -48,6 +49,7 @@ require (
 	golang.org/x/oauth2 v0.0.0-20190523182746-aaccbc9213b0 // indirect
 	google.golang.org/appengine v1.6.0 // indirect
 	google.golang.org/genproto v0.0.0-20190620144150-6af8c5fc6601 // indirect
+	gotest.tools v2.2.0+incompatible
 )
 
 replace (

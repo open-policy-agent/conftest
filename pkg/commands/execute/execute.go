@@ -28,18 +28,17 @@ func NewExecuteCommand() *cobra.Command {
 			runner := tester.NewRunner().
 				SetCompiler(compiler)
 
-			reporter := report.GetReporter(!viper.GetBool("color"))
+			reporter := report.GetReporter(viper.GetString("output"), !viper.GetBool("color"))
 
 			ch, err := runner.Run(ctx, compiler.Modules)
 			if err != nil {
 				log.G(ctx).Fatalf("Problem running rego tests: %s", err)
 			}
 
-			for result := range ch {
-				if result.Error != nil {
-					log.G(ctx).Fatalf("Test failed to execute: %s", err)
-				}
-				reportResult(reporter, result)
+			results := getResults(ctx, ch)
+			err = reporter.Report(results)
+			if err != nil {
+				log.G(ctx).Fatalf("Problem writing to output: %s", err)
 			}
 
 			os.Exit(0)
@@ -49,6 +48,16 @@ func NewExecuteCommand() *cobra.Command {
 	return cmd
 }
 
-func reportResult(reporter report.Reporter, result *tester.Result) {
-	reporter.Report(report.Error, result.Location.File, result.Name)
+func getResults(ctx context.Context, in <-chan *tester.Result) <-chan report.Result {
+	results := make(chan report.Result)
+	go func() {
+		for result := range in {
+			if result.Error != nil {
+				log.G(ctx).Fatalf("Test failed to execute: %s", result.Error)
+			}
+			results <- report.Result{report.Error, result.Location.File, result.Name}
+		}
+	}()
+
+	return results
 }
