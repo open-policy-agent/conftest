@@ -36,6 +36,7 @@ func NewExecuteCommand() *cobra.Command {
 			}
 
 			results := getResults(ctx, ch)
+
 			err = reporter.Report(results)
 			if err != nil {
 				log.G(ctx).Fatalf("Problem writing to output: %s", err)
@@ -51,6 +52,7 @@ func NewExecuteCommand() *cobra.Command {
 func getResults(ctx context.Context, in <-chan *tester.Result) <-chan report.Result {
 	results := make(chan report.Result)
 	go func() {
+		defer close(results)
 		for result := range in {
 			if result.Error != nil {
 				log.G(ctx).Fatalf("Test failed to execute: %s", result.Error)
