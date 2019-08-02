@@ -11,12 +11,14 @@ import (
 )
 
 const (
-	outputSTD = "stdout"
+	outputSTD  = "stdout"
+	outputJSON = "json"
 )
 
 func validOutputs() []string {
 	return []string{
 		outputSTD,
+		outputJSON,
 	}
 }
 
@@ -24,7 +26,8 @@ func getOutputManager(outFmt string, color bool) outputManager {
 	switch outFmt {
 	case outputSTD:
 		return newDefaultStdOutputManager(color)
-		// TOOD (brendanjryan) add more output managers here
+	case outputJSON:
+		return newDefaultJSONOutputManager()
 	default:
 		return newDefaultStdOutputManager(color)
 	}

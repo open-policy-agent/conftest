@@ -73,6 +73,43 @@ FAIL - Deployments are not allowed
 Note that `conftest` isn't specific to Kubernetes. It will happily let you write tests for any
 configuration files.
 
+### Configuring Output
+
+The output of `conftest` can be configured using the `--output` flag (`-o`). 
+
+As of today `conftest` supports the following output types:
+
+- Plaintext `--output=stdout`
+- JSON: `--output=json`
+
+#### Example Output
+
+##### Plaintext
+
+```bash 
+./conftest test -p examples/kubernetes/policy examples/kubernetes/deployment.yaml 
+FAIL - examples/kubernetes/deployment.yaml - Containers must not run as root in Deployment hello-kubernetes
+FAIL - examples/kubernetes/deployment.yaml - Deployment hello-kubernetes must provide app/release labels for pod selectors
+FAIL - examples/kubernetes/deployment.yaml - hello-kubernetes must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels 
+```
+
+##### JSON
+
+```bash
+ ./conftest test -o json -p examples/kubernetes/policy examples/kubernetes/deployment.yaml
+[
+        {
+                "filename": "examples/kubernetes/deployment.yaml",
+                "warnings": [],
+                "failures": [
+                        "hello-kubernetes must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels ",
+                        "Containers must not run as root in Deployment hello-kubernetes",
+                        "Deployment hello-kubernetes must provide app/release labels for pod selectors"
+                ]
+        }
+]
+```
+
 ## Examples
 
 You can find examples using various other tools in the `examples ` directory, including:
