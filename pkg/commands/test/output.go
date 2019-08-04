@@ -100,10 +100,6 @@ type jsonOutputManager struct {
 	data []jsonCheckResult
 }
 
-func newDefaultJSONOutputManager() *jsonOutputManager {
-	return newJSONOutputManager(log.New(os.Stdout, "", 0))
-}
-
 func newJSONOutputManager(l *log.Logger) *jsonOutputManager {
 	return &jsonOutputManager{
 		logger: l,

@@ -24,7 +24,10 @@ type Policy struct {
 // DownloadPolicy downloads the given policies
 func DownloadPolicy(ctx context.Context, policies []Policy) {
 	policyDir := filepath.Join(".", viper.GetString("policy"))
-	os.MkdirAll(policyDir, os.ModePerm)
+	err := os.MkdirAll(policyDir, os.ModePerm)
+	if err != nil {
+		log.G(ctx).Warnf("Error creating policy directory %q: %v\n", policyDir, err)
+	}
 
 	cli, err := auth.NewClient()
 	if err != nil {
