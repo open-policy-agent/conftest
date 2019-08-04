@@ -270,8 +270,8 @@ FAIL - deployment.yaml - Deployment hello-kubernetes must provide app/release la
 On Linux and macOS you can probably download as follows:
 
 ```console
-$ wget https://github.com/instrumenta/conftest/releases/download/v0.7.0/conftest_0.7.0_Linux_x86_64.tar.gz
-$ tar xzf conftest_0.7.0_Linux_x86_64.tar.gz
+$ wget https://github.com/instrumenta/conftest/releases/download/v0.10.0/conftest_0.10.0_Linux_x86_64.tar.gz
+$ tar xzf conftest_0.10.0_Linux_x86_64.tar.gz
 $ sudo mv conftest /usr/local/bin
 ```
 
