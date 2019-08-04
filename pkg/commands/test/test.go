@@ -41,13 +41,13 @@ type checkResult struct {
 // NewTestCommand creates a new test command
 func NewTestCommand() *cobra.Command {
 
+	ctx := context.Background()
 	cmd := &cobra.Command{
 		Use:     "test <file> [file...]",
 		Short:   "Test your configuration files using Open Policy Agent",
 		Version: fmt.Sprintf("Version: %s\nCommit: %s\nDate: %s\n", constants.Version, constants.Commit, constants.Date),
 
 		Run: func(cmd *cobra.Command, args []string) {
-			ctx := context.Background()
 
 			if len(args) < 1 {
 				cmd.SilenceErrors = true
@@ -102,10 +102,14 @@ func NewTestCommand() *cobra.Command {
 	cmd.Flags().BoolP("fail-on-warn", "", false, "return a non-zero exit code if only warnings are found")
 	cmd.Flags().BoolP("update", "", false, "update any policies before running the tests")
 	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", validOutputs()))
+	cmd.Flags().StringP("input", "i", "", fmt.Sprintf("input type for given source, especially useful when using conftest with stdin, valid options are: %s", parser.ValidInputs()))
 
 	viper.BindPFlag("fail-on-warn", cmd.Flags().Lookup("fail-on-warn"))
 	viper.BindPFlag("update", cmd.Flags().Lookup("update"))
 	viper.BindPFlag("output", cmd.Flags().Lookup("output"))
+	if err := viper.BindPFlag("input", cmd.Flags().Lookup("input")); err != nil {
+		log.G(ctx).Fatal("Failed to bind input argument:", err)
+	}
 
 	return cmd
 }
@@ -150,8 +154,7 @@ func processFile(ctx context.Context, fileName string, compiler *ast.Compiler) (
 
 	linebreak := detectLineBreak(data)
 	bits := bytes.Split(data, []byte(linebreak+"---"+linebreak))
-
-	p := parser.GetParser(fileName)
+	p := parser.GetParser(parser.GetInput(fileName, viper.GetString("input")))
 
 	var failures []error
 	var warnings []error

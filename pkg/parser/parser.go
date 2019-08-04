@@ -1,8 +1,6 @@
 package parser
 
 import (
-	"path/filepath"
-
 	"github.com/instrumenta/conftest/pkg/parser/cue"
 	"github.com/instrumenta/conftest/pkg/parser/ini"
 	"github.com/instrumenta/conftest/pkg/parser/terraform"
@@ -16,30 +14,29 @@ type Parser interface {
 	Unmarshal(p []byte, v interface{}) error
 }
 
-// GetParser returns a Parser for the given file type. Defaults to returning the YAML parser.
-func GetParser(fileName string) Parser {
-	suffix := filepath.Ext(fileName)
+// GetParser returns a Parser for the given input type. Defaults to returning the YAML parser.
+func GetParser(i *Input) Parser {
 
-	switch suffix {
-	case ".toml":
+	switch i.input {
+	case "toml":
 		return &toml.Parser{
-			FileName: fileName,
+			FileName: i.fName,
 		}
-	case ".tf":
+	case "tf", "hcl":
 		return &terraform.Parser{
-			FileName: fileName,
+			FileName: i.fName,
 		}
-	case ".cue":
+	case "cue":
 		return &cue.Parser{
-			FileName: fileName,
+			FileName: i.fName,
 		}
-	case ".ini":
+	case "ini":
 		return &ini.Parser{
-			FileName: fileName,
+			FileName: i.fName,
 		}
 	default:
 		return &yaml.Parser{
-			FileName: fileName,
+			FileName: i.fName,
 		}
 	}
 }
