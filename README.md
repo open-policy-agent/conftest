@@ -81,13 +81,14 @@ As of today `conftest` supports the following output types:
 
 - Plaintext `--output=stdout`
 - JSON: `--output=json`
+- [TAP](https://testanything.org/): `--output=tap`
 
 #### Example Output
 
 ##### Plaintext
 
-```bash 
-./conftest test -p examples/kubernetes/policy examples/kubernetes/deployment.yaml 
+```console
+$ conftest test -p examples/kubernetes/policy examples/kubernetes/deployment.yaml 
 FAIL - examples/kubernetes/deployment.yaml - Containers must not run as root in Deployment hello-kubernetes
 FAIL - examples/kubernetes/deployment.yaml - Deployment hello-kubernetes must provide app/release labels for pod selectors
 FAIL - examples/kubernetes/deployment.yaml - hello-kubernetes must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels 
@@ -95,8 +96,8 @@ FAIL - examples/kubernetes/deployment.yaml - hello-kubernetes must include Kuber
 
 ##### JSON
 
-```bash
- ./conftest test -o json -p examples/kubernetes/policy examples/kubernetes/deployment.yaml
+```console
+$ conftest test -o json -p examples/kubernetes/policy examples/kubernetes/deployment.yaml
 [
         {
                 "filename": "examples/kubernetes/deployment.yaml",
@@ -108,6 +109,16 @@ FAIL - examples/kubernetes/deployment.yaml - hello-kubernetes must include Kuber
                 ]
         }
 ]
+```
+
+##### TAP
+
+```console
+$ conftest test -o tap -p examples/kubernetes/policy examples/kubernetes/deployment.yaml 
+1..3
+not ok 1 - examples/kubernetes/deployment.yaml - Containers must not run as root in Deployment hello-kubernetes
+not ok 2 - examples/kubernetes/deployment.yaml - Deployment hello-kubernetes must provide app/release labels for pod selectors
+not ok 3 - examples/kubernetes/deployment.yaml - hello-kubernetes must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels 
 ```
 
 ## Examples

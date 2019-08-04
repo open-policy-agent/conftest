@@ -171,3 +171,85 @@ func Test_jsonOutputManager_put(t *testing.T) {
 		})
 	}
 }
+
+func Test_tapOutputManager_put(t *testing.T) {
+	type args struct {
+		fileName string
+		cr       checkResult
+	}
+
+	tests := []struct {
+		msg    string
+		args   args
+		exp    string
+		expErr error
+	}{
+		{
+			msg: "no warnings or errors",
+			args: args{
+				fileName: "examples/kubernetes/service.yaml",
+				cr:       checkResult{},
+			},
+			exp: "",
+		},
+		{
+			msg: "records failure and warnings",
+			args: args{
+				fileName: "examples/kubernetes/service.yaml",
+				cr: checkResult{
+					warnings: []error{errors.New("first warning")},
+					failures: []error{errors.New("first failure")},
+				},
+			},
+			exp: `1..2
+not ok 1 - examples/kubernetes/service.yaml - first failure
+# Warnings
+not ok 2 - examples/kubernetes/service.yaml - first warning
+`,
+		},
+		{
+			msg: "mixed failure and warnings",
+			args: args{
+				fileName: "examples/kubernetes/service.yaml",
+				cr: checkResult{
+					failures: []error{errors.New("first failure")},
+				},
+			},
+			exp: `1..1
+not ok 1 - examples/kubernetes/service.yaml - first failure
+`,
+		},
+		{
+			msg: "handles stdin input",
+			args: args{
+				fileName: "-",
+				cr: checkResult{
+					failures: []error{errors.New("first failure")},
+				},
+			},
+			exp: `1..1
+not ok 1 - first failure
+`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.msg, func(t *testing.T) {
+			buf := new(bytes.Buffer)
+			s := newTAPOutputManager(log.New(buf, "", 0))
+
+			// record results
+			err := s.put(tt.args.fileName, tt.args.cr)
+			if err != nil {
+				assert.Equal(t, tt.expErr, err)
+			}
+
+			// flush final buffer
+			err = s.flush()
+			if err != nil {
+				assert.Equal(t, tt.expErr, err)
+			}
+
+			assert.Equal(t, tt.exp, buf.String())
+		})
+	}
+}

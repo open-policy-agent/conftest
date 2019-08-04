@@ -13,12 +13,14 @@ import (
 const (
 	outputSTD  = "stdout"
 	outputJSON = "json"
+	outputTAP  = "tap"
 )
 
 func validOutputs() []string {
 	return []string{
 		outputSTD,
 		outputJSON,
+		outputTAP,
 	}
 }
 
@@ -28,6 +30,8 @@ func getOutputManager(outFmt string, color bool) outputManager {
 		return newDefaultStdOutputManager(color)
 	case outputJSON:
 		return newDefaultJSONOutputManager()
+	case outputTAP:
+		return newDefaultTAPOutputManager()
 	default:
 		return newDefaultStdOutputManager(color)
 	}
@@ -93,7 +97,7 @@ type jsonCheckResult struct {
 	Failures []string `json:"failures"`
 }
 
-// jsonOutputManager reports `ccheck` results to `stdout` as a json array..
+// jsonOutputManager reports `conftest` results to `stdout` as a json array..
 type jsonOutputManager struct {
 	logger *log.Logger
 
@@ -149,5 +153,55 @@ func (j *jsonOutputManager) flush() error {
 	}
 
 	j.logger.Print(out.String())
+	return nil
+}
+
+// tapOutputManager reports `conftest` results to stdout.
+type tapOutputManager struct {
+	logger *log.Logger
+}
+
+// newDefaultTapOutManager instantiates a new instance of tapOutputManager
+// using the default logger.
+func newDefaultTAPOutputManager() *tapOutputManager {
+	return newTAPOutputManager(log.New(os.Stdout, "", 0))
+}
+
+// newTapOutputManager constructs an instance of stdOutputManager given a
+// logger instance.
+func newTAPOutputManager(l *log.Logger) *tapOutputManager {
+	return &tapOutputManager{
+		logger: l,
+	}
+}
+
+func (s *tapOutputManager) put(fileName string, cr checkResult) error {
+	var indicator string
+	if fileName == "-" {
+		indicator = " - "
+	} else {
+		indicator = fmt.Sprintf(" - %s - ", fileName)
+	}
+
+	issues := len(cr.failures) + len(cr.warnings)
+	if issues > 0 {
+		s.logger.Print(fmt.Sprintf("1..%d", issues))
+		for i, r := range cr.failures {
+			s.logger.Print("not ok ", i+1, indicator, r)
+		}
+		if len(cr.warnings) > 0 {
+			s.logger.Print("# Warnings")
+			for i, r := range cr.warnings {
+				counter := i + 1 + len(cr.failures)
+				s.logger.Print("not ok ", counter, indicator, r)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (s *tapOutputManager) flush() error {
+	// no op
 	return nil
 }
