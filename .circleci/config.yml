@@ -97,6 +97,13 @@ jobs:
           image: instrumenta/conftest
           project: docker.io/instrumenta/conftest
 
+  release:
+    docker:
+      - image: circleci/golang:1.10
+    steps:
+      - checkout
+      - run: curl -sL https://git.io/goreleaser | bash
+
 workflows:
   version: 2
   build:
@@ -111,3 +118,9 @@ workflows:
           filters:
             branches:
               only: master
+      - release:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*(-.*)*/
