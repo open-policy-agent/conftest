@@ -23,8 +23,7 @@ type Parser interface {
 // ReadUnmarshaller is an interface that allows for bulk unmarshalling
 // and setting of io.Readers to be unmarshalled.
 type ReadUnmarshaller interface {
-	BulkUnmarshal() (interface{}, error)
-	SetReaders(fileList []io.Reader) error
+	BulkUnmarshal(readerList []io.Reader) (interface{}, error)
 }
 
 // ConfigManager the implementation of ReadUnmarshaller and io.Reader
@@ -36,7 +35,11 @@ type ConfigManager struct {
 
 // BulkUnmarshal iterates through the given cached io.Readers and
 // runs the requested parser on the data.
-func (s *ConfigManager) BulkUnmarshal() (interface{}, error) {
+func (s *ConfigManager) BulkUnmarshal(readerList []io.Reader) (interface{}, error) {
+	err := s.setReaders(readerList)
+	if err != nil {
+		return nil, fmt.Errorf("we should not have any errors on setting our readers: %v", err)
+	}
 	var allContents []interface{}
 	for _, config := range s.configContents {
 		var singleContent interface{}
@@ -49,8 +52,7 @@ func (s *ConfigManager) BulkUnmarshal() (interface{}, error) {
 	return allContents, nil
 }
 
-// SetReaders stores the io.Readers for use in later functions.
-func (s *ConfigManager) SetReaders(readerList []io.Reader) error {
+func (s *ConfigManager) setReaders(readerList []io.Reader) error {
 	s.configContents = make([][]byte, 0)
 	for _, reader := range readerList {
 		if reader == nil {
