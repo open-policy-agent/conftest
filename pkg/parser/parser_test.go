@@ -9,6 +9,9 @@ import (
 	"github.com/instrumenta/conftest/pkg/parser"
 )
 
+// array should be:
+// a map [k,v] where k is the filename and v is the document
+
 func TestUnmarshaller(t *testing.T) {
 	t.Run("we should be able to construct a unmarshaller for a type of file", func(t *testing.T) {
 		configManager := parser.NewConfigManager("yml")
@@ -16,20 +19,24 @@ func TestUnmarshaller(t *testing.T) {
 
 			testTable := []struct {
 				name           string
-				controlReaders []io.Reader
-				expectedResult []interface{}
+				controlReaders []parser.ConfigDoc
+				expectedResult map[string]interface{}
 				shouldError    bool
 			}{
 				{
 					name: "a single reader",
-					controlReaders: []io.Reader{
-						strings.NewReader("sample: true"),
-					},
-					expectedResult: []interface{}{[]interface{}{
-						map[string]interface{}{
-							"sample": true,
+					controlReaders: []parser.ConfigDoc{
+						parser.ConfigDoc{
+							Reader:   strings.NewReader("sample: true"),
+							Filepath: "test.yml",
 						},
 					},
+					expectedResult: map[string]interface{}{
+						"test.yml": []interface{}{
+							map[string]interface{}{
+								"sample": true,
+							},
+						},
 					},
 					shouldError: false,
 				},

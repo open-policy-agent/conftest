@@ -20,6 +20,12 @@ type Parser interface {
 	Unmarshal(p []byte, v interface{}) error
 }
 
+// ConfigDoc stores file contents and it's original filename
+type ConfigDoc struct {
+	Reader   io.Reader
+	Filepath string
+}
+
 // ReadUnmarshaller is an interface that allows for bulk unmarshalling
 // and setting of io.Readers to be unmarshalled.
 type ReadUnmarshaller interface {
