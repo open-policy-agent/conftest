@@ -1,7 +1,6 @@
 package parser_test
 
 import (
-	"io"
 	"reflect"
 	"strings"
 	"testing"
@@ -28,11 +27,11 @@ func TestUnmarshaller(t *testing.T) {
 					controlReaders: []parser.ConfigDoc{
 						parser.ConfigDoc{
 							Reader:   strings.NewReader("sample: true"),
-							Filepath: "test.yml",
+							Filepath: "sample.yml",
 						},
 					},
 					expectedResult: map[string]interface{}{
-						"test.yml": []interface{}{
+						"sample.yml": []interface{}{
 							map[string]interface{}{
 								"sample": true,
 							},
@@ -42,23 +41,32 @@ func TestUnmarshaller(t *testing.T) {
 				},
 				{
 					name: "multiple readers",
-					controlReaders: []io.Reader{
-						strings.NewReader("sample: true"),
-						strings.NewReader("hello: true"),
-						strings.NewReader("nice: true"),
+					controlReaders: []parser.ConfigDoc{
+						parser.ConfigDoc{
+							Reader:   strings.NewReader("sample: true"),
+							Filepath: "sample.yml",
+						},
+						parser.ConfigDoc{
+							Reader:   strings.NewReader("hello: true"),
+							Filepath: "hello.yml",
+						},
+						parser.ConfigDoc{
+							Reader:   strings.NewReader("nice: true"),
+							Filepath: "nice.yml",
+						},
 					},
-					expectedResult: []interface{}{
-						[]interface{}{
+					expectedResult: map[string]interface{}{
+						"sample.yml": []interface{}{
 							map[string]interface{}{
 								"sample": true,
 							},
 						},
-						[]interface{}{
+						"hello.yml": []interface{}{
 							map[string]interface{}{
 								"hello": true,
 							},
 						},
-						[]interface{}{
+						"nice.yml": []interface{}{
 							map[string]interface{}{
 								"nice": true,
 							},
@@ -68,16 +76,19 @@ func TestUnmarshaller(t *testing.T) {
 				},
 				{
 					name: "a single reader with multiple yaml subdocs",
-					controlReaders: []io.Reader{
-						strings.NewReader(`---
+					controlReaders: []parser.ConfigDoc{
+						parser.ConfigDoc{
+							Reader: strings.NewReader(`---
 sample: true
 ---
 hello: true
 ---
 nice: true`),
+							Filepath: "sample.yml",
+						},
 					},
-					expectedResult: []interface{}{
-						[]interface{}{
+					expectedResult: map[string]interface{}{
+						"sample.yml": []interface{}{
 							map[string]interface{}{
 								"sample": true,
 							},
@@ -93,22 +104,32 @@ nice: true`),
 				},
 				{
 					name: "multiple readers with multiple subdocs",
-					controlReaders: []io.Reader{
-						strings.NewReader(`---
+					controlReaders: []parser.ConfigDoc{
+						parser.ConfigDoc{
+							Reader: strings.NewReader(`---
 sample: true
 ---
 hello: true
 ---
 nice: true`),
-						strings.NewReader(`sunny: true`),
-						strings.NewReader(`fun: true
+							Filepath: "sample.yml",
+						},
+						parser.ConfigDoc{
+							Reader: strings.NewReader(`---
+sample: true
 ---
-date: false
+hello: true
 ---
-ilk: true`),
+nice: true`),
+							Filepath: "hello.yml",
+						},
+						parser.ConfigDoc{
+							Reader:   strings.NewReader("nice: true"),
+							Filepath: "nice.yml",
+						},
 					},
-					expectedResult: []interface{}{
-						[]interface{}{
+					expectedResult: map[string]interface{}{
+						"sample.yml": []interface{}{
 							map[string]interface{}{
 								"sample": true,
 							},
@@ -119,20 +140,20 @@ ilk: true`),
 								"nice": true,
 							},
 						},
-						[]interface{}{
+						"hello.yml": []interface{}{
 							map[string]interface{}{
-								"sunny": true,
+								"sample": true,
+							},
+							map[string]interface{}{
+								"hello": true,
+							},
+							map[string]interface{}{
+								"nice": true,
 							},
 						},
-						[]interface{}{
+						"nice.yml": []interface{}{
 							map[string]interface{}{
-								"fun": true,
-							},
-							map[string]interface{}{
-								"date": false,
-							},
-							map[string]interface{}{
-								"ilk": true,
+								"nice": true,
 							},
 						},
 					},
@@ -153,13 +174,13 @@ ilk: true`),
 					}
 
 					switch v := unmarshalledConfigs.(type) {
-					case []interface{}:
+					case map[string]interface{}:
 					default:
-						t.Errorf("Expected []map[string]interface{} but instead got %T\n%v", v, unmarshalledConfigs)
+						t.Errorf("Expected %T but instead got %T", test.expectedResult, v)
 					}
 
 					if !reflect.DeepEqual(test.expectedResult, unmarshalledConfigs) {
-						t.Errorf("Result\n%v\n and type %T\n Expected\n%v\n and type %T\n", unmarshalledConfigs, unmarshalledConfigs, test.expectedResult, test.expectedResult)
+						t.Errorf("\nResult\n%v\n and type %T\n Expected\n%v\n and type %T\n", unmarshalledConfigs, unmarshalledConfigs, test.expectedResult, test.expectedResult)
 					}
 				})
 			}

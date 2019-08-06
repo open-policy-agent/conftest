@@ -29,46 +29,46 @@ type ConfigDoc struct {
 // ReadUnmarshaller is an interface that allows for bulk unmarshalling
 // and setting of io.Readers to be unmarshalled.
 type ReadUnmarshaller interface {
-	BulkUnmarshal(readerList []io.Reader) (interface{}, error)
+	BulkUnmarshal(readerList []ConfigDoc) (map[string]interface{}, error)
 }
 
 // ConfigManager the implementation of ReadUnmarshaller and io.Reader
 // byte storage.
 type ConfigManager struct {
 	parser         Parser
-	configContents [][]byte
+	configContents map[string][]byte
 }
 
 // BulkUnmarshal iterates through the given cached io.Readers and
 // runs the requested parser on the data.
-func (s *ConfigManager) BulkUnmarshal(readerList []io.Reader) (interface{}, error) {
-	err := s.setReaders(readerList)
+func (s *ConfigManager) BulkUnmarshal(configList []ConfigDoc) (map[string]interface{}, error) {
+	err := s.setConfigs(configList)
 	if err != nil {
 		return nil, fmt.Errorf("we should not have any errors on setting our readers: %v", err)
 	}
-	var allContents []interface{}
-	for _, config := range s.configContents {
+	var allContents = make(map[string]interface{})
+	for filepath, config := range s.configContents {
 		var singleContent interface{}
 		err := s.parser.Unmarshal(config, &singleContent)
 		if err != nil {
 			return nil, fmt.Errorf("we should not have any errors on unmarshalling: %v", err)
 		}
-		allContents = append(allContents, singleContent)
+		allContents[filepath] = singleContent
 	}
 	return allContents, nil
 }
 
-func (s *ConfigManager) setReaders(readerList []io.Reader) error {
-	s.configContents = make([][]byte, 0)
-	for _, reader := range readerList {
-		if reader == nil {
+func (s *ConfigManager) setConfigs(configList []ConfigDoc) error {
+	s.configContents = make(map[string][]byte, 0)
+	for _, config := range configList {
+		if config.Reader == nil {
 			return fmt.Errorf("we recieved a nil reader, which should not happen")
 		}
-		contents, err := ioutil.ReadAll(reader)
+		contents, err := ioutil.ReadAll(config.Reader)
 		if err != nil {
 			return fmt.Errorf("Error while reading Reader contents; err is: %s", err)
 		}
-		s.configContents = append(s.configContents, contents)
+		s.configContents[config.Filepath] = contents
 	}
 	return nil
 }
