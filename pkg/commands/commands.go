@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -23,7 +24,7 @@ func NewDefaultCommand() *cobra.Command {
 		Version: fmt.Sprintf("Version: %s\nCommit: %s\nDate: %s\n", constants.Version, constants.Commit, constants.Date),
 	}
 
-	cmd.AddCommand(test.NewTestCommand())
+	cmd.AddCommand(test.NewTestCommand(os.Exit))
 	cmd.AddCommand(update.NewUpdateCommand())
 	cmd.AddCommand(push.NewPushCommand())
 	cmd.AddCommand(pull.NewPullCommand())

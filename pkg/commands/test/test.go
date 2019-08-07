@@ -36,7 +36,7 @@ type checkResult struct {
 }
 
 // NewTestCommand creates a new test command
-func NewTestCommand() *cobra.Command {
+func NewTestCommand(osExit func(int)) *cobra.Command {
 
 	ctx := context.Background()
 	cmd := &cobra.Command{
@@ -91,7 +91,7 @@ func NewTestCommand() *cobra.Command {
 			}
 
 			if foundFailures {
-				os.Exit(1)
+				osExit(1)
 			}
 		},
 	}
@@ -100,9 +100,11 @@ func NewTestCommand() *cobra.Command {
 	cmd.Flags().BoolP("update", "", false, "update any policies before running the tests")
 	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", validOutputs()))
 	cmd.Flags().StringP("input", "i", "", fmt.Sprintf("input type for given source, especially useful when using conftest with stdin, valid options are: %s", parser.ValidInputs()))
+	cmd.Flags().BoolP("combine-config", "", false, "combine all given config files to be evaluated together")
 
 	viper.BindPFlag("fail-on-warn", cmd.Flags().Lookup("fail-on-warn"))
 	viper.BindPFlag("update", cmd.Flags().Lookup("update"))
+	viper.BindPFlag("combine-config", cmd.Flags().Lookup("combine-config"))
 	viper.BindPFlag("output", cmd.Flags().Lookup("output"))
 	if err := viper.BindPFlag("input", cmd.Flags().Lookup("input")); err != nil {
 		log.G(ctx).Fatal("Failed to bind input argument:", err)
