@@ -36,7 +36,7 @@ type checkResult struct {
 }
 
 // NewTestCommand creates a new test command
-func NewTestCommand(osExit func(int)) *cobra.Command {
+func NewTestCommand() *cobra.Command {
 
 	ctx := context.Background()
 	cmd := &cobra.Command{
@@ -60,7 +60,7 @@ func NewTestCommand(osExit func(int)) *cobra.Command {
 				log.G(ctx).Fatalf("Problem building rego compiler: %s", err)
 			}
 
-			out := newDefaultStdOutputManager(!viper.GetBool("no-color"))
+			out := getOutputManager(viper.GetString("output"), !viper.GetBool("no-color"))
 
 			foundFailures := false
 			for _, fileName := range args {
@@ -85,8 +85,13 @@ func NewTestCommand(osExit func(int)) *cobra.Command {
 				}
 			}
 
+			err = out.flush()
+			if err != nil {
+				log.G(ctx).Fatal(err)
+			}
+
 			if foundFailures {
-				osExit(1)
+				os.Exit(1)
 			}
 		},
 	}
@@ -224,6 +229,9 @@ func buildCompiler(path string) (*ast.Compiler, error) {
 	var dirPath string
 	if info.IsDir() {
 		files, err = ioutil.ReadDir(path)
+		if err != nil {
+			return nil, err
+		}
 		dirPath = path
 	} else {
 		files = []os.FileInfo{info}
