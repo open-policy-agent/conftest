@@ -1,5 +1,9 @@
 conftest
 dist
+<<<<<<< HEAD
 
 # IDEs
 .vscode
+=======
+.DS*
+>>>>>>> updated git ignore to ignore dot .DS files
