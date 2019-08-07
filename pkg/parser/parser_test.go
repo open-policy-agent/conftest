@@ -1,6 +1,7 @@
 package parser_test
 
 import (
+	"io/ioutil"
 	"reflect"
 	"strings"
 	"testing"
@@ -26,8 +27,8 @@ func TestUnmarshaller(t *testing.T) {
 					name: "a single reader",
 					controlReaders: []parser.ConfigDoc{
 						parser.ConfigDoc{
-							Reader:   strings.NewReader("sample: true"),
-							Filepath: "sample.yml",
+							ReadCloser: ioutil.NopCloser(strings.NewReader("sample: true")),
+							Filepath:   "sample.yml",
 						},
 					},
 					expectedResult: map[string]interface{}{
@@ -43,16 +44,16 @@ func TestUnmarshaller(t *testing.T) {
 					name: "multiple readers",
 					controlReaders: []parser.ConfigDoc{
 						parser.ConfigDoc{
-							Reader:   strings.NewReader("sample: true"),
-							Filepath: "sample.yml",
+							ReadCloser: ioutil.NopCloser(strings.NewReader("sample: true")),
+							Filepath:   "sample.yml",
 						},
 						parser.ConfigDoc{
-							Reader:   strings.NewReader("hello: true"),
-							Filepath: "hello.yml",
+							ReadCloser: ioutil.NopCloser(strings.NewReader("hello: true")),
+							Filepath:   "hello.yml",
 						},
 						parser.ConfigDoc{
-							Reader:   strings.NewReader("nice: true"),
-							Filepath: "nice.yml",
+							ReadCloser: ioutil.NopCloser(strings.NewReader("nice: true")),
+							Filepath:   "nice.yml",
 						},
 					},
 					expectedResult: map[string]interface{}{
@@ -78,12 +79,12 @@ func TestUnmarshaller(t *testing.T) {
 					name: "a single reader with multiple yaml subdocs",
 					controlReaders: []parser.ConfigDoc{
 						parser.ConfigDoc{
-							Reader: strings.NewReader(`---
+							ReadCloser: ioutil.NopCloser(strings.NewReader(`---
 sample: true
 ---
 hello: true
 ---
-nice: true`),
+nice: true`)),
 							Filepath: "sample.yml",
 						},
 					},
@@ -106,26 +107,26 @@ nice: true`),
 					name: "multiple readers with multiple subdocs",
 					controlReaders: []parser.ConfigDoc{
 						parser.ConfigDoc{
-							Reader: strings.NewReader(`---
+							ReadCloser: ioutil.NopCloser(strings.NewReader(`---
 sample: true
 ---
 hello: true
 ---
-nice: true`),
+nice: true`)),
 							Filepath: "sample.yml",
 						},
 						parser.ConfigDoc{
-							Reader: strings.NewReader(`---
+							ReadCloser: ioutil.NopCloser(strings.NewReader(`---
 sample: true
 ---
 hello: true
 ---
-nice: true`),
+nice: true`)),
 							Filepath: "hello.yml",
 						},
 						parser.ConfigDoc{
-							Reader:   strings.NewReader("nice: true"),
-							Filepath: "nice.yml",
+							ReadCloser: ioutil.NopCloser(strings.NewReader("nice: true")),
+							Filepath:   "nice.yml",
 						},
 					},
 					expectedResult: map[string]interface{}{

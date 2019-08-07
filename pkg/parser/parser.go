@@ -22,8 +22,8 @@ type Parser interface {
 
 // ConfigDoc stores file contents and it's original filename
 type ConfigDoc struct {
-	Reader   io.Reader
-	Filepath string
+	ReadCloser io.ReadCloser
+	Filepath   string
 }
 
 // ReadUnmarshaller is an interface that allows for bulk unmarshalling
@@ -61,10 +61,11 @@ func (s *ConfigManager) BulkUnmarshal(configList []ConfigDoc) (map[string]interf
 func (s *ConfigManager) setConfigs(configList []ConfigDoc) error {
 	s.configContents = make(map[string][]byte, 0)
 	for _, config := range configList {
-		if config.Reader == nil {
+		if config.ReadCloser == nil {
 			return fmt.Errorf("we recieved a nil reader, which should not happen")
 		}
-		contents, err := ioutil.ReadAll(config.Reader)
+		contents, err := ioutil.ReadAll(config.ReadCloser)
+		defer config.ReadCloser.Close()
 		if err != nil {
 			return fmt.Errorf("Error while reading Reader contents; err is: %s", err)
 		}
