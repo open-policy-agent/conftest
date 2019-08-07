@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func TestWarnQuerry(t *testing.T) {
+func TestWarnQuery(t *testing.T) {
 
 	tests := []struct {
 		in  string
