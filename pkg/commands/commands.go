@@ -24,7 +24,10 @@ func NewDefaultCommand() *cobra.Command {
 		Version: fmt.Sprintf("Version: %s\nCommit: %s\nDate: %s\n", constants.Version, constants.Commit, constants.Date),
 	}
 
-	cmd.AddCommand(test.NewTestCommand(os.Exit))
+	cmd.AddCommand(test.NewTestCommand(
+		os.Exit,
+		test.GetOutputManager,
+	))
 	cmd.AddCommand(update.NewUpdateCommand())
 	cmd.AddCommand(push.NewPushCommand())
 	cmd.AddCommand(pull.NewPullCommand())

@@ -1,9 +1,11 @@
 package test
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -23,20 +25,21 @@ import (
 )
 
 var (
-	denyQ = regexp.MustCompile("^deny(_[a-zA-Z]+)*$")
-	warnQ = regexp.MustCompile("^warn(_[a-zA-Z]+)*$")
+	DenyQ                 = regexp.MustCompile("^deny(_[a-zA-Z]+)*$")
+	WarnQ                 = regexp.MustCompile("^warn(_[a-zA-Z]+)*$")
+	CombineConfigFlagName = "combine-config"
 )
 
-// checkResult describes the result of a conftest evaluation.
+// CheckResult describes the result of a conftest evaluation.
 // warning and failure "errors" produced by rego should be considered separate
 // from other classes of exceptions.
-type checkResult struct {
-	warnings []error
-	failures []error
+type CheckResult struct {
+	Warnings []error
+	Failures []error
 }
 
 // NewTestCommand creates a new test command
-func NewTestCommand(osExit func(int)) *cobra.Command {
+func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *cobra.Command {
 
 	ctx := context.Background()
 	cmd := &cobra.Command{
@@ -44,50 +47,80 @@ func NewTestCommand(osExit func(int)) *cobra.Command {
 		Short:   "Test your configuration files using Open Policy Agent",
 		Version: fmt.Sprintf("Version: %s\nCommit: %s\nDate: %s\n", constants.Version, constants.Commit, constants.Date),
 
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(cmd *cobra.Command, fileList []string) {
+			out := getOutputManager()
+			context := context.Background()
 
-			if len(args) < 1 {
+			if len(fileList) < 1 {
 				cmd.SilenceErrors = true
-				log.G(ctx).Fatal("The first argument should be a file")
+				log.G(context).Fatal("The first argument should be a file")
 			}
 
 			if viper.GetBool("update") {
-				update.NewUpdateCommand().Run(cmd, args)
+				update.NewUpdateCommand().Run(cmd, fileList)
 			}
 
 			compiler, err := buildCompiler(viper.GetString("policy"))
 			if err != nil {
-				log.G(ctx).Fatalf("Problem building rego compiler: %s", err)
+				log.G(context).Fatalf("Problem building rego compiler: %s", err)
 			}
-
-			out := getOutputManager(viper.GetString("output"), !viper.GetBool("no-color"))
-
 			foundFailures := false
-			for _, fileName := range args {
+			var configFiles []parser.ConfigDoc
+			var fileType string
+			for _, fileName := range fileList {
+				var err error
+				var config io.ReadCloser
 
-				// run query engine on file
-				res, err := processFile(ctx, fileName, compiler)
-				if err != nil {
-					log.G(ctx).Fatalf("Problem running evaluation: %s", err)
+				if fileName == "-" {
+					config = ioutil.NopCloser(bufio.NewReader(os.Stdin))
+				} else {
+					filePath, _ := filepath.Abs(fileName)
+					fileType = strings.TrimPrefix(filepath.Ext(fileName), ".")
+					config, err = os.Open(filePath)
+					if err != nil {
+						log.G(context).Fatalf("Unable to open file %s: %s", fileName, err)
+					}
 				}
-
-				// record results
-				err = out.put(fileName, checkResult{
-					warnings: res.warnings,
-					failures: res.failures,
+				configFiles = append(configFiles, parser.ConfigDoc{
+					ReadCloser: config,
+					Filepath:   fileName,
 				})
-				if err != nil {
-					log.G(ctx).Fatalf("Problem compiling results: %s", err)
-				}
-
-				if len(res.failures) > 0 || (len(res.warnings) > 0 && viper.GetBool("fail-on-warn")) {
-					foundFailures = true
-				}
+			}
+			configManager := parser.NewConfigManager(fileType)
+			configurations, err := configManager.BulkUnmarshal(configFiles)
+			if err != nil {
+				log.G(context).Fatalf("Unable to BulkUnmarshal your config files: %v", err)
 			}
 
-			err = out.flush()
+			var res CheckResult
+			if viper.GetBool(CombineConfigFlagName) {
+				res, err = processData(context, configurations, compiler)
+				if err != nil {
+					log.G(context).Fatalf("Problem processing Data: %s", err)
+				}
+				err = out.Put("Combined-configs (multi-file)", res)
+				if err != nil {
+					log.G(context).Fatalf("Problem generating output: %s", err)
+				}
+			} else {
+				for fileName, config := range configurations {
+					res, err = processData(context, config, compiler)
+					if err != nil {
+						log.G(context).Fatalf("Problem processing Data: %s", err)
+					}
+					err = out.Put(fileName, res)
+					if err != nil {
+						log.G(context).Fatalf("Problem generating output: %s", err)
+					}
+				}
+			}
+			if len(res.Failures) > 0 || (len(res.Warnings) > 0 && viper.GetBool("fail-on-warn")) {
+				foundFailures = true
+			}
+
+			err = out.Flush()
 			if err != nil {
-				log.G(ctx).Fatal(err)
+				log.G(context).Fatal(err)
 			}
 
 			if foundFailures {
@@ -161,13 +194,13 @@ func makeQuery(rule string) string {
 	return fmt.Sprintf("data.%s.%s", viper.GetString("namespace"), rule)
 }
 
-func processData(ctx context.Context, input interface{}, compiler *ast.Compiler) (checkResult, error) {
+func processData(ctx context.Context, input interface{}, compiler *ast.Compiler) (CheckResult, error) {
 	// collect warnings
 	var warnings []error
-	for _, r := range getRules(ctx, warnQ, compiler) {
+	for _, r := range getRules(ctx, WarnQ, compiler) {
 		ws, err := runQuery(ctx, makeQuery(r), input, compiler)
 		if err != nil {
-			return checkResult{}, err
+			return CheckResult{}, err
 		}
 
 		warnings = append(warnings, ws...)
@@ -175,17 +208,17 @@ func processData(ctx context.Context, input interface{}, compiler *ast.Compiler)
 
 	// collect failures
 	var failures []error
-	for _, r := range getRules(ctx, denyQ, compiler) {
+	for _, r := range getRules(ctx, DenyQ, compiler) {
 		fs, err := runQuery(ctx, makeQuery(r), input, compiler)
 		if err != nil {
-			return checkResult{}, err
+			return CheckResult{}, err
 		}
 		failures = append(failures, fs...)
 	}
 
-	return checkResult{
-		failures: failures,
-		warnings: warnings,
+	return CheckResult{
+		Failures: failures,
+		Warnings: warnings,
 	}, nil
 }
 
