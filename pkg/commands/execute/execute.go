@@ -57,7 +57,7 @@ func getResults(ctx context.Context, in <-chan *tester.Result) <-chan report.Res
 			if result.Error != nil {
 				log.G(ctx).Fatalf("Test failed to execute: %s", result.Error)
 			}
-			results <- report.Result{report.Error, result.Location.File, result.Name}
+			results <- report.Result{Level: report.Error, FileName: result.Location.File, Msg: result.Name}
 		}
 	}()
 

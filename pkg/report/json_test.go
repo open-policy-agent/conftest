@@ -61,7 +61,7 @@ func TestJSONReporter_Report(t *testing.T) {
 			}
 
 			var results []Result
-			json.Unmarshal(buf.Bytes(), &results)
+			err = json.Unmarshal(buf.Bytes(), &results)
 			if err != nil {
 				t.Errorf("Unexpected error unmarshaling json output: %s", err)
 			}

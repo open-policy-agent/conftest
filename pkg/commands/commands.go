@@ -1,9 +1,11 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"os"
 
+	"github.com/containerd/containerd/log"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -40,8 +42,10 @@ func NewDefaultCommand() *cobra.Command {
 	viper.BindPFlag("trace", cmd.PersistentFlags().Lookup("trace"))
 	viper.BindPFlag("namespace", cmd.PersistentFlags().Lookup("namespace"))
 	viper.BindPFlag("no-color", cmd.PersistentFlags().Lookup("no-color"))
-	viper.BindPFlag("output", cmd.PersistentFlags().Lookup("output"))
-
+	if err := viper.BindPFlag("output", cmd.PersistentFlags().Lookup("output")); err != nil {
+		log.G(ctx).Fatal("Failed to bind input argument:", err)
+	}
+	
 	viper.SetEnvPrefix("CONFTEST")
 	viper.SetConfigName("conftest")
 	viper.AddConfigPath(".")
