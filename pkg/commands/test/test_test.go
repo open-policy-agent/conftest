@@ -40,11 +40,15 @@ func TestCombineConfig(t *testing.T) {
 		combineConfigFlag bool
 		policyPath        string
 		fileList          []string
-		shouldFail        bool
-		skipTest          bool
 	}{
 		{
-			name:              "combine-config flag exists",
+			name:              "given a valid policy and single config and combine-config set to true",
+			combineConfigFlag: true,
+			policyPath:        "testdata/policy",
+			fileList:          []string{"testdata/deployment.yaml"},
+		},
+		{
+			name:              "given a valid policy and single config",
 			combineConfigFlag: false,
 			policyPath:        "testdata/policy",
 			fileList:          []string{"testdata/deployment.yaml"},
@@ -56,27 +60,16 @@ func TestCombineConfig(t *testing.T) {
 			fileList:          []string{"testdata/deployment+service.yaml", "testdata/deployment.yaml"},
 		},
 		{
-			name:              "given a valid policy multiple configs and `combine-config` flag set to false",
-			combineConfigFlag: false,
-			policyPath:        "testdata/policy",
-			fileList:          []string{"testdata/failing_alone.yaml", "testdata/deployment.yaml"},
-			shouldFail:        true,
-		},
-		{
 			name:              "given a valid policy multiple configs and `combine-config` flag set to true",
 			combineConfigFlag: true,
 			policyPath:        "testdata/policy",
-			fileList:          []string{"testdata/failing_alone.yaml", "testdata/deployment.yaml"},
-			skipTest:          true,
+			fileList:          []string{"testdata/deployment+service.yaml", "testdata/deployment.yaml"},
 		},
 	}
 
 	for _, testunit := range testTable {
 		t.Run(testunit.name, func(t *testing.T) {
-			if testunit.skipTest {
-				t.Skip("not yet implemented")
-			}
-			viper.Set("combine-config", testunit.combineConfigFlag)
+			viper.Set(test.CombineConfigFlagName, testunit.combineConfigFlag)
 			viper.Set("policy", testunit.policyPath)
 			callCount := 0
 			outputPrinter := new(testfakes.FakeOutputManager)
@@ -88,13 +81,7 @@ func TestCombineConfig(t *testing.T) {
 				t.Errorf("Output manager should print output for each file but it printed %v", outputPrinter.PutCallCount())
 			}
 			if outputPrinter.PutCallCount() != 1 && testunit.combineConfigFlag {
-				t.Errorf("Output manager should have print once but it printed %v", outputPrinter.PutCallCount())
-			}
-			if testunit.shouldFail && callCount == 0 {
-				t.Errorf("should have failed but we did not")
-			}
-			if !testunit.shouldFail && callCount > 0 {
-				t.Errorf("we exited with a failure: %v", callCount)
+				t.Errorf("Output manager should have printed once but it printed %v", outputPrinter.PutCallCount())
 			}
 		})
 	}

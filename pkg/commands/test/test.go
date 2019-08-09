@@ -132,12 +132,10 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 	cmd.Flags().BoolP("fail-on-warn", "", false, "return a non-zero exit code if only warnings are found")
 	cmd.Flags().BoolP("update", "", false, "update any policies before running the tests")
 	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", validOutputs()))
-	cmd.Flags().StringP("input", "i", "", fmt.Sprintf("input type for given source, especially useful when using conftest with stdin, valid options are: %s", parser.ValidInputs()))
-	cmd.Flags().BoolP("combine-config", "", false, "combine all given config files to be evaluated together")
-
+	cmd.Flags().BoolP(CombineConfigFlagName, "", false, "combine all given config files to be evaluated together")
 	viper.BindPFlag("fail-on-warn", cmd.Flags().Lookup("fail-on-warn"))
 	viper.BindPFlag("update", cmd.Flags().Lookup("update"))
-	viper.BindPFlag("combine-config", cmd.Flags().Lookup("combine-config"))
+	viper.BindPFlag(CombineConfigFlagName, cmd.Flags().Lookup(CombineConfigFlagName))
 	viper.BindPFlag("output", cmd.Flags().Lookup("output"))
 	if err := viper.BindPFlag("input", cmd.Flags().Lookup("input")); err != nil {
 		log.G(ctx).Fatal("Failed to bind input argument:", err)
@@ -177,7 +175,6 @@ func getRules(ctx context.Context, re *regexp.Regexp, compiler *ast.Compiler) []
 			}
 		}
 	}
-
 	return res
 }
 
@@ -194,26 +191,26 @@ func makeQuery(rule string) string {
 	return fmt.Sprintf("data.%s.%s", viper.GetString("namespace"), rule)
 }
 
-func processData(ctx context.Context, input interface{}, compiler *ast.Compiler) (CheckResult, error) {
+func processData(context context.Context, input interface{}, compiler *ast.Compiler) (CheckResult, error) {
 	// collect warnings
 	var warnings []error
-	for _, r := range getRules(ctx, WarnQ, compiler) {
-		ws, err := runQuery(ctx, makeQuery(r), input, compiler)
+	for _, rule := range getRules(context, WarnQ, compiler) {
+		warns, err := runQuery(context, makeQuery(rule), input, compiler)
 		if err != nil {
 			return CheckResult{}, err
 		}
 
-		warnings = append(warnings, ws...)
+		warnings = append(warnings, warns...)
 	}
 
 	// collect failures
 	var failures []error
-	for _, r := range getRules(ctx, DenyQ, compiler) {
-		fs, err := runQuery(ctx, makeQuery(r), input, compiler)
+	for _, r := range getRules(context, DenyQ, compiler) {
+		fails, err := runQuery(context, makeQuery(r), input, compiler)
 		if err != nil {
 			return CheckResult{}, err
 		}
-		failures = append(failures, fs...)
+		failures = append(failures, fails...)
 	}
 
 	return CheckResult{
@@ -222,7 +219,7 @@ func processData(ctx context.Context, input interface{}, compiler *ast.Compiler)
 	}, nil
 }
 
-func runQuery(ctx context.Context, query string, input interface{}, compiler *ast.Compiler) ([]error, error) {
+func runQuery(context context.Context, query string, input interface{}, compiler *ast.Compiler) ([]error, error) {
 	hasResults := func(expression interface{}) bool {
 		if v, ok := expression.([]interface{}); ok {
 			return len(v) > 0
@@ -231,7 +228,7 @@ func runQuery(ctx context.Context, query string, input interface{}, compiler *as
 	}
 
 	r, stdout := buildRego(viper.GetBool("trace"), query, input, compiler)
-	rs, err := r.Eval(ctx)
+	rs, err := r.Eval(context)
 
 	if err != nil {
 		return nil, fmt.Errorf("Problem evaluating r policy: %s", err)
