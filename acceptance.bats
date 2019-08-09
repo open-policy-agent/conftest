@@ -76,6 +76,13 @@
   [[ "$output" =~ "Users should verify their e-mail address" ]]
 }
 
+@test "Can parse stdin with input flag" {
+  run bash -c "cat examples/ini/grafana.ini | ./conftest test -p examples/ini/policy --input ini -"
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "Users should verify their e-mail address" ]]
+  [[ "$output" != *"Basic auth should be enabled"* ]]
+}
+
 @test "Can disable color" {
   run ./conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml --no-color
   [ "$status" -eq 0 ]
