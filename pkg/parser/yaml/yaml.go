@@ -45,5 +45,13 @@ func (yp *Parser) unmarshalMultipleDocuments(subDocuments [][]byte, v interface{
 
 func (yp *Parser) Unmarshal(p []byte, v interface{}) error {
 	subDocuments := yp.separateSubDocuments(p)
-	return yp.unmarshalMultipleDocuments(subDocuments, v)
+	if len(subDocuments) > 1 {
+		return yp.unmarshalMultipleDocuments(subDocuments, v)
+	}
+
+	err := yaml.Unmarshal(p, v)
+	if err != nil {
+		return fmt.Errorf("Unable to Unmarshal yamlConfigBytes %s: %s", string(p), err)
+	}
+	return nil
 }

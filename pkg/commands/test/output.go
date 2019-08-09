@@ -29,7 +29,6 @@ func validOutputs() []string {
 func GetOutputManager() OutputManager {
 	outFmt := viper.GetString("output")
 	color := !viper.GetBool("no-color")
-
 	switch outFmt {
 	case outputSTD:
 		return newDefaultStdOutputManager(color)

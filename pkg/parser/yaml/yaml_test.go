@@ -19,8 +19,8 @@ func TestYAMLParser(t *testing.T) {
 			{
 				name:           "a single config",
 				controlConfigs: []byte(`sample: true`),
-				expectedResult: []map[string]interface{}{
-					{"sample": true},
+				expectedResult: map[string]interface{}{
+					"sample": true,
 				},
 				shouldError: false,
 			},
@@ -32,7 +32,7 @@ sample: true
 hello: true
 ---
 nice: true`),
-				expectedResult: []map[string]interface{}{
+				expectedResult: []interface{}{
 					map[string]interface{}{
 						"sample": true,
 					},
@@ -49,7 +49,7 @@ nice: true`),
 
 		for _, test := range testTable {
 			t.Run(test.name, func(t *testing.T) {
-				var unmarshalledConfigs []map[string]interface{}
+				var unmarshalledConfigs interface{}
 				yamlParser := new(yaml.Parser)
 
 				err := yamlParser.Unmarshal(test.controlConfigs, &unmarshalledConfigs)
@@ -63,7 +63,7 @@ nice: true`),
 				}
 
 				if !reflect.DeepEqual(test.expectedResult, unmarshalledConfigs) {
-					t.Errorf("Expected\n%T\n to equal\n%T\n", unmarshalledConfigs, test.expectedResult)
+					t.Errorf("Expected\n%T : %v\n to equal\n%T : %v\n", unmarshalledConfigs, unmarshalledConfigs, test.expectedResult, test.expectedResult)
 				}
 			})
 		}

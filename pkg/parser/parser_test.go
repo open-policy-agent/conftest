@@ -32,10 +32,8 @@ func TestUnmarshaller(t *testing.T) {
 						},
 					},
 					expectedResult: map[string]interface{}{
-						"sample.yml": []interface{}{
-							map[string]interface{}{
-								"sample": true,
-							},
+						"sample.yml": map[string]interface{}{
+							"sample": true,
 						},
 					},
 					shouldError: false,
@@ -57,20 +55,14 @@ func TestUnmarshaller(t *testing.T) {
 						},
 					},
 					expectedResult: map[string]interface{}{
-						"sample.yml": []interface{}{
-							map[string]interface{}{
-								"sample": true,
-							},
+						"sample.yml": map[string]interface{}{
+							"sample": true,
 						},
-						"hello.yml": []interface{}{
-							map[string]interface{}{
-								"hello": true,
-							},
+						"hello.yml": map[string]interface{}{
+							"hello": true,
 						},
-						"nice.yml": []interface{}{
-							map[string]interface{}{
-								"nice": true,
-							},
+						"nice.yml": map[string]interface{}{
+							"nice": true,
 						},
 					},
 					shouldError: false,
@@ -152,10 +144,8 @@ nice: true`)),
 								"nice": true,
 							},
 						},
-						"nice.yml": []interface{}{
-							map[string]interface{}{
-								"nice": true,
-							},
+						"nice.yml": map[string]interface{}{
+							"nice": true,
 						},
 					},
 					shouldError: false,
