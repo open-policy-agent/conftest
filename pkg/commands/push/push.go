@@ -137,7 +137,10 @@ func buildLayer(ctx context.Context, paths []string, root string, memoryStore *c
 		if err != nil {
 			log.G(ctx).Fatal(err)
 		}
-		layer = memoryStore.Add(relative, constants.OpenPolicyAgentPolicyLayerMediaType, contents)
+
+		path := filepath.ToSlash(relative)
+
+		layer = memoryStore.Add(path, constants.OpenPolicyAgentPolicyLayerMediaType, contents)
 		layers = append(layers, layer)
 	}
 	return layers
