@@ -10,7 +10,7 @@ builds:
   - linux
   - darwin 
   ldflags:
-  - -s -w -X github.com/instrumenta/conftest/pkg/constants.Version={{.Version}} -X github.com/instrumenta/conftest/pkg/constant.Commit={{.ShortCommit}} -X github.com/instrumenta/conftest/pkg/constant.Date={{.Date}}
+  - -s -w -X github.com/instrumenta/conftest/pkg/constants.Version={{.Version}} -X github.com/instrumenta/conftest/pkg/constants.Commit={{.ShortCommit}} -X github.com/instrumenta/conftest/pkg/constants.Date={{.Date}}
 archive:
   replacements:
     darwin: Darwin
