@@ -72,16 +72,20 @@ func TestCombineConfig(t *testing.T) {
 			viper.Set(test.CombineConfigFlagName, testunit.combineConfigFlag)
 			viper.Set("policy", testunit.policyPath)
 			callCount := 0
-			outputPrinter := new(testfakes.FakeOutputManager)
+			var outputPrinter test.OutputManager
 			cmd := test.NewTestCommand(func(int) {
 				callCount += 1
-			}, outputPrinter)
+			}, func() test.OutputManager {
+				outputPrinter = new(testfakes.FakeOutputManager)
+				callCount += 1
+				return outputPrinter
+			})
 			cmd.Run(cmd, testunit.fileList)
-			if outputPrinter.PutCallCount() != len(testunit.fileList) && !testunit.combineConfigFlag {
-				t.Errorf("Output manager should print output for each file but it printed %v", outputPrinter.PutCallCount())
+			if callCount != len(testunit.fileList) && !testunit.combineConfigFlag {
+				t.Errorf("Output manager should print output for each file but it printed %v", callCount)
 			}
-			if outputPrinter.PutCallCount() != 1 && testunit.combineConfigFlag {
-				t.Errorf("Output manager should have printed once but it printed %v", outputPrinter.PutCallCount())
+			if callCount != 1 && testunit.combineConfigFlag {
+				t.Errorf("Output manager should have printed once but it printed %v", callCount)
 			}
 		})
 	}
@@ -90,7 +94,9 @@ func TestCombineConfig(t *testing.T) {
 		callCount := 0
 		cmd := test.NewTestCommand(func(int) {
 			callCount += 1
-		}, new(testfakes.FakeOutputManager))
+		}, func() test.OutputManager {
+			return new(testfakes.FakeOutputManager)
+		})
 		if cmd.Flag("combine-config") == nil {
 			t.Errorf("combine-config flag should exist")
 		}

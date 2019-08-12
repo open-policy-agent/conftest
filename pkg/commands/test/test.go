@@ -94,6 +94,7 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 
 			var res CheckResult
 			if viper.GetBool(CombineConfigFlagName) {
+				fmt.Println(viper.GetBool(CombineConfigFlagName))
 				res, err = processData(context, configurations, compiler)
 				if err != nil {
 					log.G(context).Fatalf("Problem processing Data: %s", err)
