@@ -2,7 +2,7 @@ FROM golang:1.12-alpine as builder
 RUN apk --no-cache add git
 WORKDIR /
 COPY . /
-RUN GOOS=linux GOARCH=amd64 go build -o conftest -ldflags="-w -s" cmd/main.go
+RUN GOOS=linux GOARCH=amd64 go build -v -o conftest -ldflags="-w -s" cmd/main.go
 
 FROM golang:1.12-alpine as test
 COPY --from=builder /conftest /
