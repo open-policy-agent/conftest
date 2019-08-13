@@ -154,7 +154,7 @@ nice: true`)),
 
 			for _, test := range testTable {
 				t.Run(test.name, func(t *testing.T) {
-					var unmarshalledConfigs interface{}
+					var unmarshalledConfigs map[string]interface{}
 					unmarshalledConfigs, err := configManager.BulkUnmarshal(test.controlReaders)
 					if err != nil {
 						t.Errorf("we should not have any errors on unmarshalling: %v", err)
@@ -162,12 +162,6 @@ nice: true`)),
 
 					if unmarshalledConfigs == nil {
 						t.Error("we should see an actual value in our object, but we are nil")
-					}
-
-					switch v := unmarshalledConfigs.(type) {
-					case map[string]interface{}:
-					default:
-						t.Errorf("Expected %T but instead got %T", test.expectedResult, v)
 					}
 
 					if !reflect.DeepEqual(test.expectedResult, unmarshalledConfigs) {

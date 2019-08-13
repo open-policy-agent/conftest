@@ -36,7 +36,7 @@ func (yp *Parser) unmarshalMultipleDocuments(subDocuments [][]byte, v interface{
 	if err != nil {
 		return fmt.Errorf("Unable to marshal documentStore %v: %s", documentStore, err)
 	}
-	yaml.Unmarshal(yamlConfigBytes, v)
+	err = yaml.Unmarshal(yamlConfigBytes, v)
 	if err != nil {
 		return fmt.Errorf("Unable to Unmarshal yamlConfigBytes %s: %s", string(yamlConfigBytes), err)
 	}

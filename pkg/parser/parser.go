@@ -59,7 +59,7 @@ func (s *ConfigManager) BulkUnmarshal(configList []ConfigDoc) (map[string]interf
 }
 
 func (s *ConfigManager) setConfigs(configList []ConfigDoc) error {
-	s.configContents = make(map[string][]byte, 0)
+	s.configContents = make(map[string][]byte)
 	for _, config := range configList {
 		if config.ReadCloser == nil {
 			return fmt.Errorf("we recieved a nil reader, which should not happen")
