@@ -49,11 +49,9 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 
 		Run: func(cmd *cobra.Command, fileList []string) {
 			out := getOutputManager()
-			context := context.Background()
-
 			if len(fileList) < 1 {
 				cmd.SilenceErrors = true
-				log.G(context).Fatal("The first argument should be a file")
+				log.G(ctx).Fatal("The first argument should be a file")
 			}
 
 			if viper.GetBool("update") {
@@ -62,7 +60,7 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 
 			compiler, err := buildCompiler(viper.GetString("policy"))
 			if err != nil {
-				log.G(context).Fatalf("Problem building rego compiler: %s", err)
+				log.G(ctx).Fatalf("Problem building rego compiler: %s", err)
 			}
 			foundFailures := false
 			var configFiles []parser.ConfigDoc
@@ -73,12 +71,13 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 
 				if fileName == "-" {
 					config = ioutil.NopCloser(bufio.NewReader(os.Stdin))
+					fileType = viper.GetString("input")
 				} else {
 					filePath, _ := filepath.Abs(fileName)
 					fileType = strings.TrimPrefix(filepath.Ext(fileName), ".")
 					config, err = os.Open(filePath)
 					if err != nil {
-						log.G(context).Fatalf("Unable to open file %s: %s", fileName, err)
+						log.G(ctx).Fatalf("Unable to open file %s: %s", fileName, err)
 					}
 				}
 				configFiles = append(configFiles, parser.ConfigDoc{
@@ -89,29 +88,29 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 			configManager := parser.NewConfigManager(fileType)
 			configurations, err := configManager.BulkUnmarshal(configFiles)
 			if err != nil {
-				log.G(context).Fatalf("Unable to BulkUnmarshal your config files: %v", err)
+				log.G(ctx).Fatalf("Unable to BulkUnmarshal your config files: %v", err)
 			}
 
 			var res CheckResult
 			if viper.GetBool(CombineConfigFlagName) {
 				fmt.Println(viper.GetBool(CombineConfigFlagName))
-				res, err = processData(context, configurations, compiler)
+				res, err = processData(ctx, configurations, compiler)
 				if err != nil {
-					log.G(context).Fatalf("Problem processing Data: %s", err)
+					log.G(ctx).Fatalf("Problem processing Data: %s", err)
 				}
 				err = out.Put("Combined-configs (multi-file)", res)
 				if err != nil {
-					log.G(context).Fatalf("Problem generating output: %s", err)
+					log.G(ctx).Fatalf("Problem generating output: %s", err)
 				}
 			} else {
 				for fileName, config := range configurations {
-					res, err = processData(context, config, compiler)
+					res, err = processData(ctx, config, compiler)
 					if err != nil {
-						log.G(context).Fatalf("Problem processing Data: %s", err)
+						log.G(ctx).Fatalf("Problem processing Data: %s", err)
 					}
 					err = out.Put(fileName, res)
 					if err != nil {
-						log.G(context).Fatalf("Problem generating output: %s", err)
+						log.G(ctx).Fatalf("Problem generating output: %s", err)
 					}
 				}
 			}
@@ -121,7 +120,7 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 
 			err = out.Flush()
 			if err != nil {
-				log.G(context).Fatal(err)
+				log.G(ctx).Fatal(err)
 			}
 
 			if foundFailures {
@@ -134,6 +133,8 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 	cmd.Flags().BoolP("update", "", false, "update any policies before running the tests")
 	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", validOutputs()))
 	cmd.Flags().BoolP(CombineConfigFlagName, "", false, "combine all given config files to be evaluated together")
+	cmd.Flags().StringP("input", "i", "", fmt.Sprintf("input type for given source, especially useful when using conftest with stdin, valid options are: %s", parser.ValidInputs()))
+
 	viper.BindPFlag("fail-on-warn", cmd.Flags().Lookup("fail-on-warn"))
 	viper.BindPFlag("update", cmd.Flags().Lookup("update"))
 	viper.BindPFlag(CombineConfigFlagName, cmd.Flags().Lookup(CombineConfigFlagName))

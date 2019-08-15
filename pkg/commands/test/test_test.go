@@ -71,21 +71,27 @@ func TestCombineConfig(t *testing.T) {
 		t.Run(testunit.name, func(t *testing.T) {
 			viper.Set(test.CombineConfigFlagName, testunit.combineConfigFlag)
 			viper.Set("policy", testunit.policyPath)
-			callCount := 0
-			var outputPrinter test.OutputManager
+			errorExitCodeFromCall := 0
+			var outputPrinter *testfakes.FakeOutputManager
 			cmd := test.NewTestCommand(func(int) {
-				callCount += 1
+				errorExitCodeFromCall += 1
 			}, func() test.OutputManager {
 				outputPrinter = new(testfakes.FakeOutputManager)
-				callCount += 1
 				return outputPrinter
 			})
 			cmd.Run(cmd, testunit.fileList)
-			if callCount != len(testunit.fileList) && !testunit.combineConfigFlag {
-				t.Errorf("Output manager should print output for each file but it printed %v", callCount)
+			if outputPrinter.PutCallCount() != len(testunit.fileList) && !testunit.combineConfigFlag {
+				t.Errorf(
+					"Output manager when combine-config is false should print output for each file: expected %v calls but got %v",
+					len(testunit.fileList),
+					outputPrinter.PutCallCount(),
+				)
 			}
-			if callCount != 1 && testunit.combineConfigFlag {
-				t.Errorf("Output manager should have printed once but it printed %v", callCount)
+			if errorExitCodeFromCall == 0 && testunit.combineConfigFlag {
+				t.Errorf(
+					"Output manager when combine-config is true should have failed but it exited with a zero code: %v",
+					errorExitCodeFromCall,
+				)
 			}
 		})
 	}

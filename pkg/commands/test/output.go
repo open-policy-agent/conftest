@@ -13,16 +13,16 @@ import (
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 const (
-	outputSTD  = "stdout"
-	outputJSON = "json"
-	outputTAP  = "tap"
+	OutputSTD  = "stdout"
+	OutputJSON = "json"
+	OutputTAP  = "tap"
 )
 
 func validOutputs() []string {
 	return []string{
-		outputSTD,
-		outputJSON,
-		outputTAP,
+		OutputSTD,
+		OutputJSON,
+		OutputTAP,
 	}
 }
 
@@ -30,12 +30,14 @@ func GetOutputManager() OutputManager {
 	outFmt := viper.GetString("output")
 	color := !viper.GetBool("no-color")
 	switch outFmt {
-	case outputSTD:
-		return newDefaultStdOutputManager(color)
-	case outputJSON:
-		return newDefaultJSONOutputManager()
+	case OutputSTD:
+		return NewDefaultStdOutputManager(color)
+	case OutputJSON:
+		return NewDefaultJSONOutputManager()
+	case OutputTAP:
+		return NewDefaultTAPOutputManager()
 	default:
-		return newDefaultStdOutputManager(color)
+		return NewDefaultStdOutputManager(color)
 	}
 }
 
@@ -55,7 +57,7 @@ type stdOutputManager struct {
 
 // newDefaultStdOutputManager instantiates a new instance of stdOutputManager
 // using the default logger.
-func newDefaultStdOutputManager(color bool) *stdOutputManager {
+func NewDefaultStdOutputManager(color bool) *stdOutputManager {
 	return NewStdOutputManager(log.New(os.Stdout, "", 0), color)
 }
 
@@ -96,8 +98,8 @@ func (s *stdOutputManager) Flush() error {
 
 type jsonCheckResult struct {
 	Filename string   `json:"filename"`
-	Warnings []string `json:"warnings"`
-	Failures []string `json:"failures"`
+	Warnings []string `json:"Warnings"`
+	Failures []string `json:"Failures"`
 }
 
 // jsonOutputManager reports `conftest` results to `stdout` as a json array..
@@ -107,7 +109,7 @@ type jsonOutputManager struct {
 	data []jsonCheckResult
 }
 
-func newDefaultJSONOutputManager() *jsonOutputManager {
+func NewDefaultJSONOutputManager() *jsonOutputManager {
 	return NewJSONOutputManager(log.New(os.Stdout, "", 0))
 }
 
@@ -164,21 +166,21 @@ type tapOutputManager struct {
 	logger *log.Logger
 }
 
-// newDefaultTapOutManager instantiates a new instance of tapOutputManager
+// NewDefaultTapOutManager instantiates a new instance of tapOutputManager
 // using the default logger.
-func newDefaultTAPOutputManager() *tapOutputManager {
-	return newTAPOutputManager(log.New(os.Stdout, "", 0))
+func NewDefaultTAPOutputManager() *tapOutputManager {
+	return NewTAPOutputManager(log.New(os.Stdout, "", 0))
 }
 
-// newTapOutputManager constructs an instance of stdOutputManager given a
+// NewTapOutputManager constructs an instance of stdOutputManager given a
 // logger instance.
-func newTAPOutputManager(l *log.Logger) *tapOutputManager {
+func NewTAPOutputManager(l *log.Logger) *tapOutputManager {
 	return &tapOutputManager{
 		logger: l,
 	}
 }
 
-func (s *tapOutputManager) put(fileName string, cr CheckResult) error {
+func (s *tapOutputManager) Put(fileName string, cr CheckResult) error {
 	var indicator string
 	if fileName == "-" {
 		indicator = " - "
@@ -204,7 +206,7 @@ func (s *tapOutputManager) put(fileName string, cr CheckResult) error {
 	return nil
 }
 
-func (s *tapOutputManager) flush() error {
+func (s *tapOutputManager) Flush() error {
 	// no op
 	return nil
 }

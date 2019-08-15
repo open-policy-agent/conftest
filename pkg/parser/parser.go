@@ -14,6 +14,17 @@ import (
 	"github.com/instrumenta/conftest/pkg/parser/docker"
 )
 
+// ValidInputs returns string array in order to passing valid input types to viper
+func ValidInputs() []string {
+	return []string{
+		"toml",
+		"tf|hcl",
+		"cue",
+		"ini",
+		"yaml",
+	}
+}
+
 // Parser is the interface implemented by objects that can unmarshal
 // bytes into a golang interface
 type Parser interface {
