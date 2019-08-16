@@ -193,11 +193,11 @@ func makeQuery(rule string) string {
 	return fmt.Sprintf("data.%s.%s", viper.GetString("namespace"), rule)
 }
 
-func processData(context context.Context, input interface{}, compiler *ast.Compiler) (CheckResult, error) {
+func processData(ctx context.Context, input interface{}, compiler *ast.Compiler) (CheckResult, error) {
 	// collect warnings
 	var warnings []error
-	for _, rule := range getRules(context, WarnQ, compiler) {
-		warns, err := runQuery(context, makeQuery(rule), input, compiler)
+	for _, rule := range getRules(ctx, WarnQ, compiler) {
+		warns, err := runQuery(ctx, makeQuery(rule), input, compiler)
 		if err != nil {
 			return CheckResult{}, err
 		}
@@ -207,8 +207,8 @@ func processData(context context.Context, input interface{}, compiler *ast.Compi
 
 	// collect failures
 	var failures []error
-	for _, r := range getRules(context, DenyQ, compiler) {
-		fails, err := runQuery(context, makeQuery(r), input, compiler)
+	for _, r := range getRules(ctx, DenyQ, compiler) {
+		fails, err := runQuery(ctx, makeQuery(r), input, compiler)
 		if err != nil {
 			return CheckResult{}, err
 		}
@@ -221,7 +221,7 @@ func processData(context context.Context, input interface{}, compiler *ast.Compi
 	}, nil
 }
 
-func runQuery(context context.Context, query string, input interface{}, compiler *ast.Compiler) ([]error, error) {
+func runQuery(ctx context.Context, query string, input interface{}, compiler *ast.Compiler) ([]error, error) {
 	hasResults := func(expression interface{}) bool {
 		if v, ok := expression.([]interface{}); ok {
 			return len(v) > 0
@@ -230,7 +230,7 @@ func runQuery(context context.Context, query string, input interface{}, compiler
 	}
 
 	r, stdout := buildRego(viper.GetBool("trace"), query, input, compiler)
-	rs, err := r.Eval(context)
+	rs, err := r.Eval(ctx)
 
 	if err != nil {
 		return nil, fmt.Errorf("Problem evaluating r policy: %s", err)

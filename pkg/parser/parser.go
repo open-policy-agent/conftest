@@ -102,7 +102,7 @@ func GetParser(fileName string) Parser {
 		return &toml.Parser{
 			FileName: fileName,
 		}
-	case ".tf":
+	case ".tf", ".hcl":
 		return &terraform.Parser{
 			FileName: fileName,
 		}
