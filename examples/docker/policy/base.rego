@@ -1,5 +1,12 @@
 package main
 
+blacklist = [
+  "openjdk"
+]
+
 deny[msg] {
-  msg = sprintf("Terraform plan will change prohibited resources in the following namespaces: %v", [input])
+  input[i].Cmd = "from"
+  val := input[i].Value
+  contains(val[i], blacklist[_])
+  msg = sprintf("blacklisted image found %s", [val])
 }

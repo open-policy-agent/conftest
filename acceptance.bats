@@ -83,6 +83,12 @@
   [[ "$output" != *"Basic auth should be enabled"* ]]
 }
 
+@test "Can parse docker files" {
+  run ./conftest test -p examples/docker/policy examples/docker/Dockerfile
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "blacklisted image found [\"openjdk:8-jdk-alpine\"]" ]]
+}
+
 @test "Can disable color" {
   run ./conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml --no-color
   [ "$status" -eq 0 ]

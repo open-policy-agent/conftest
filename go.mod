@@ -48,7 +48,7 @@ require (
 )
 
 replace (
-	github.com/golang/lint => golang.org/x/lint v0.0.0-20190409202823-959b441ac422
 	github.com/containerd/containerd => github.com/containerd/containerd v1.2.6
 	github.com/docker/docker => github.com/docker/docker v0.0.0-20190131205458-8a43b7bb99cd
+	github.com/golang/lint => golang.org/x/lint v0.0.0-20190409202823-959b441ac422
 )

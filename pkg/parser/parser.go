@@ -6,6 +6,7 @@ import (
 	"github.com/instrumenta/conftest/pkg/parser/terraform"
 	"github.com/instrumenta/conftest/pkg/parser/toml"
 	"github.com/instrumenta/conftest/pkg/parser/yaml"
+	"github.com/instrumenta/conftest/pkg/parser/docker"
 )
 
 // Parser is the interface implemented by objects that can unmarshal
@@ -32,6 +33,10 @@ func GetParser(i *Input) Parser {
 		}
 	case "ini":
 		return &ini.Parser{
+			FileName: i.fName,
+		}
+	case "Dockerfile":
+		return &docker.Parser{
 			FileName: i.fName,
 		}
 	default:
