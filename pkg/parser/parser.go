@@ -29,6 +29,7 @@ func ValidInputs() []string {
 // bytes into a golang interface
 type Parser interface {
 	Unmarshal(p []byte, v interface{}) error
+	Format() string
 }
 
 // ConfigDoc stores file contents and it's original filename

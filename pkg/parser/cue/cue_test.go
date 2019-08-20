@@ -5,9 +5,7 @@ import (
 )
 
 func TestCueParser(t *testing.T) {
-	parser := &Parser{
-		FileName: "sample.cue",
-	}
+	parser := &Parser{}
 	p := `package kubernetes
 
 

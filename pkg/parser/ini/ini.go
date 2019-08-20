@@ -8,7 +8,11 @@ import (
 	"github.com/go-ini/ini"
 )
 
-type Parser struct {
+type Parser struct{}
+
+//Format returns the expected format of the input to be parsed
+func (i *Parser) Format() string {
+	return "ini"
 }
 
 func (i *Parser) Unmarshal(p []byte, v interface{}) error {

@@ -173,18 +173,56 @@ nice: true`)),
 	})
 }
 
-func testGetParser(t *testing.T) {
-	testTable := []struct{
-		name string
-		fileType string
-		expected type Parser interface{}
+func TestGetParser(t *testing.T) {
+	testTable := []struct {
+		name           string
+		fileType       string
+		expectedFormat string
 	}{
 		{
-			name: "Yaml Test",
-			fileType: "yaml",
-			
-
+			name:           "Test getting Terraform parser from HCL input",
+			fileType:       "hcl",
+			expectedFormat: "terraform",
+		},
+		{
+			name:           "Test getting Terraform parser from .tf input",
+			fileType:       "tf",
+			expectedFormat: "terraform",
+		},
+		{
+			name:           "Test getting TOML parser",
+			fileType:       "toml",
+			expectedFormat: "toml",
+		},
+		{
+			name:           "Test getting Cue parser",
+			fileType:       "cue",
+			expectedFormat: "cue",
+		},
+		{
+			name:           "Test getting INI parser",
+			fileType:       "ini",
+			expectedFormat: "ini",
+		},
+		{
+			name:           "Test getting YAML parser from JSON input",
+			fileType:       "json",
+			expectedFormat: "yaml",
+		},
+		{
+			name:           "Test getting YAML parser from YAML input",
+			fileType:       "yaml",
+			expectedFormat: "yaml",
 		},
 	}
-	t.Run("it should receive a file path", )
+
+	for _, test := range testTable {
+		t.Run(test.name, func(t *testing.T) {
+			receivedParser := parser.GetParser(test.fileType)
+
+			if receivedParser.Format() != test.expectedFormat {
+				t.Errorf("expected: %v \n got this: %v", test.expectedFormat, receivedParser.Format())
+			}
+		})
+	}
 }

@@ -8,8 +8,11 @@ import (
 	"github.com/ghodss/yaml"
 )
 
-type Parser struct {
-	FileName string
+type Parser struct{}
+
+//Format returns the expected format of the input to be parsed
+func (c *Parser) Format() string {
+	return "cue"
 }
 
 func (c *Parser) Unmarshal(p []byte, v interface{}) error {
@@ -28,7 +31,7 @@ func (c *Parser) Unmarshal(p []byte, v interface{}) error {
 	}
 	err = yaml.Unmarshal(j, v)
 	if err != nil {
-		return fmt.Errorf("Unable to parse YAML from cue-json: %s", err)
+		return fmt.Errorf("Unable to parse YAML cue-json: %s", err)
 	}
 	return nil
 }

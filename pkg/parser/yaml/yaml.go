@@ -10,6 +10,11 @@ import (
 
 type Parser struct{}
 
+//Format returns the expected format of the input to be parsed
+func (yp *Parser) Format() string {
+	return "yaml"
+}
+
 func (yp *Parser) separateSubDocuments(data []byte) [][]byte {
 	linebreak := "\n"
 	windowsLineEnding := bytes.Contains(data, []byte("\r\n"))
@@ -25,7 +30,7 @@ func (yp *Parser) unmarshalMultipleDocuments(subDocuments [][]byte, v interface{
 		var documentObject interface{}
 		err := yaml.Unmarshal(subDocument, &documentObject)
 		if err != nil {
-			return fmt.Errorf("Unable to parse YAML from: %s", err)
+			return fmt.Errorf("Unable to parse YAML: %s", err)
 		}
 		documentStore = append(documentStore, documentObject)
 	}
