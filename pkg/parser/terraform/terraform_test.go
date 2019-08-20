@@ -6,9 +6,7 @@ import (
 )
 
 func TestTerraformParser(t *testing.T) {
-	parser := &Parser{
-		FileName: "sample.tf",
-	}
+	parser := &Parser{}
 
 	var input interface{}
 	sampleFileBytes, err := ioutil.ReadFile("testdata/sample.tf")

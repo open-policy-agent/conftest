@@ -1,15 +1,14 @@
-package docker
+package docker_test
 
 import (
 	"strings"
 	"testing"
+
+	"github.com/instrumenta/conftest/pkg/parser/docker"
 )
 
 func TestParser_Unmarshal(t *testing.T) {
-	fileName := "Dockerfile"
-	parser := &Parser{
-		FileName: fileName,
-	}
+	parser := new(docker.Parser)
 
 	sample := `FROM golang:1.12-alpine as builder
 	COPY . /

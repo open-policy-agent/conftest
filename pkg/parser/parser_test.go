@@ -172,3 +172,19 @@ nice: true`)),
 		})
 	})
 }
+
+func testGetParser(t *testing.T) {
+	testTable := []struct{
+		name string
+		fileType string
+		expected type Parser interface{}
+	}{
+		{
+			name: "Yaml Test",
+			fileType: "yaml",
+			
+
+		},
+	}
+	t.Run("it should receive a file path", )
+}

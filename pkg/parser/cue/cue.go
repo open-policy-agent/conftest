@@ -24,11 +24,11 @@ func (c *Parser) Unmarshal(p []byte, v interface{}) error {
 	}
 	j, err := instance.Value().MarshalJSON()
 	if err != nil {
-		return fmt.Errorf("Unable to marshal cue config %s: %s", c.FileName, err)
+		return fmt.Errorf("Unable to marshal cue config: %s", err)
 	}
 	err = yaml.Unmarshal(j, v)
 	if err != nil {
-		return fmt.Errorf("Unable to parse YAML from cue-json %s: %s", c.FileName, err)
+		return fmt.Errorf("Unable to parse YAML from cue-json: %s", err)
 	}
 	return nil
 }

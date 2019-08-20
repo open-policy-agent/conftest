@@ -93,10 +93,9 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 
 			var res CheckResult
 			if viper.GetBool(CombineConfigFlagName) {
-				fmt.Println(viper.GetBool(CombineConfigFlagName))
 				res, err = processData(ctx, configurations, compiler)
 				if err != nil {
-					log.G(ctx).Fatalf("Problem processing Data: %s", err)
+					log.G(ctx).Fatalf("Problem processing data: %s", err)
 				}
 				err = out.Put("Combined-configs (multi-file)", res)
 				if err != nil {
@@ -106,7 +105,7 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 				for fileName, config := range configurations {
 					res, err = processData(ctx, config, compiler)
 					if err != nil {
-						log.G(ctx).Fatalf("Problem processing Data: %s", err)
+						log.G(ctx).Fatalf("Problem processing data: %s", err)
 					}
 					err = out.Put(fileName, res)
 					if err != nil {

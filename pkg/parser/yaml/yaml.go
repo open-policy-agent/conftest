@@ -8,9 +8,7 @@ import (
 	"github.com/ghodss/yaml"
 )
 
-type Parser struct {
-	FileName string
-}
+type Parser struct{}
 
 func (yp *Parser) separateSubDocuments(data []byte) [][]byte {
 	linebreak := "\n"
@@ -27,7 +25,7 @@ func (yp *Parser) unmarshalMultipleDocuments(subDocuments [][]byte, v interface{
 		var documentObject interface{}
 		err := yaml.Unmarshal(subDocument, &documentObject)
 		if err != nil {
-			return fmt.Errorf("Unable to parse YAML from %s: %s", yp.FileName, err)
+			return fmt.Errorf("Unable to parse YAML from: %s", err)
 		}
 		documentStore = append(documentStore, documentObject)
 	}

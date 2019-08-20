@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"path/filepath"
 
 	"github.com/instrumenta/conftest/pkg/parser/cue"
+	"github.com/instrumenta/conftest/pkg/parser/docker"
 	"github.com/instrumenta/conftest/pkg/parser/ini"
 	"github.com/instrumenta/conftest/pkg/parser/terraform"
 	"github.com/instrumenta/conftest/pkg/parser/toml"
 	"github.com/instrumenta/conftest/pkg/parser/yaml"
-	"github.com/instrumenta/conftest/pkg/parser/docker"
 )
 
 // ValidInputs returns string array in order to passing valid input types to viper
@@ -22,6 +21,7 @@ func ValidInputs() []string {
 		"cue",
 		"ini",
 		"yaml",
+		"json",
 	}
 }
 
@@ -55,14 +55,14 @@ type ConfigManager struct {
 func (s *ConfigManager) BulkUnmarshal(configList []ConfigDoc) (map[string]interface{}, error) {
 	err := s.setConfigs(configList)
 	if err != nil {
-		return nil, fmt.Errorf("we should not have any errors on setting our readers: %v", err)
+		return nil, fmt.Errorf("Should not have any errors on setting our readers: %v", err)
 	}
 	var allContents = make(map[string]interface{})
 	for filepath, config := range s.configContents {
 		var singleContent interface{}
 		err := s.parser.Unmarshal(config, &singleContent)
 		if err != nil {
-			return nil, fmt.Errorf("we should not have any errors on unmarshalling: %v", err)
+			return nil, fmt.Errorf("Should not have any errors on unmarshalling: %v", err)
 		}
 		allContents[filepath] = singleContent
 	}
@@ -89,38 +89,24 @@ func (s *ConfigManager) setConfigs(configList []ConfigDoc) error {
 func NewConfigManager(fileType string) ReadUnmarshaller {
 
 	return &ConfigManager{
-		parser: GetParser(fmt.Sprintf("file.%s", fileType)),
+		parser: GetParser(fileType),
 	}
 }
 
 // GetParser gets a parser that works on a given filename
-func GetParser(fileName string) Parser {
-	suffix := filepath.Ext(fileName)
-
-	switch suffix {
-	case ".toml":
-		return &toml.Parser{
-			FileName: fileName,
-		}
-	case ".tf", ".hcl":
-		return &terraform.Parser{
-			FileName: fileName,
-		}
-	case ".cue":
-		return &cue.Parser{
-			FileName: fileName,
-		}
-	case ".ini":
-		return &ini.Parser{
-			FileName: fileName,
-		}
+func GetParser(fileType string) Parser {
+	switch fileType {
+	case "toml":
+		return &toml.Parser{}
+	case "tf", "hcl":
+		return &terraform.Parser{}
+	case "cue":
+		return &cue.Parser{}
+	case "ini":
+		return &ini.Parser{}
 	case "Dockerfile":
-		return &docker.Parser{
-			FileName: i.fName,
-		}
+		return &docker.Parser{}
 	default:
-		return &yaml.Parser{
-			FileName: fileName,
-		}
+		return &yaml.Parser{}
 	}
 }

@@ -9,7 +9,6 @@ import (
 )
 
 type Parser struct {
-	FileName string
 }
 
 func (i *Parser) Unmarshal(p []byte, v interface{}) error {
@@ -34,7 +33,7 @@ func (i *Parser) Unmarshal(p []byte, v interface{}) error {
 	}
 	err = yaml.Unmarshal(j, v)
 	if err != nil {
-		return fmt.Errorf("Unable to parse YAML from ini-json %s: %s", i.FileName, err)
+		return fmt.Errorf("Unable to parse YAML from ini-json: %s", err)
 	}
 	return nil
 }
