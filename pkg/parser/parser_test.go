@@ -7,6 +7,11 @@ import (
 	"testing"
 
 	"github.com/instrumenta/conftest/pkg/parser"
+	"github.com/instrumenta/conftest/pkg/parser/cue"
+	"github.com/instrumenta/conftest/pkg/parser/ini"
+	"github.com/instrumenta/conftest/pkg/parser/terraform"
+	"github.com/instrumenta/conftest/pkg/parser/toml"
+	"github.com/instrumenta/conftest/pkg/parser/yaml"
 )
 
 // array should be:
@@ -175,53 +180,53 @@ nice: true`)),
 
 func TestGetParser(t *testing.T) {
 	testTable := []struct {
-		name           string
-		fileType       string
-		expectedFormat string
+		name     string
+		fileType string
+		expected parser.Parser
 	}{
 		{
-			name:           "Test getting Terraform parser from HCL input",
-			fileType:       "hcl",
-			expectedFormat: "terraform",
+			name:     "Test getting Terraform parser from HCL input",
+			fileType: "hcl",
+			expected: new(terraform.Parser),
 		},
 		{
-			name:           "Test getting Terraform parser from .tf input",
-			fileType:       "tf",
-			expectedFormat: "terraform",
+			name:     "Test getting Terraform parser from .tf input",
+			fileType: "tf",
+			expected: new(terraform.Parser),
 		},
 		{
-			name:           "Test getting TOML parser",
-			fileType:       "toml",
-			expectedFormat: "toml",
+			name:     "Test getting TOML parser",
+			fileType: "toml",
+			expected: new(toml.Parser),
 		},
 		{
-			name:           "Test getting Cue parser",
-			fileType:       "cue",
-			expectedFormat: "cue",
+			name:     "Test getting Cue parser",
+			fileType: "cue",
+			expected: new(cue.Parser),
 		},
 		{
-			name:           "Test getting INI parser",
-			fileType:       "ini",
-			expectedFormat: "ini",
+			name:     "Test getting INI parser",
+			fileType: "ini",
+			expected: new(ini.Parser),
 		},
 		{
-			name:           "Test getting YAML parser from JSON input",
-			fileType:       "json",
-			expectedFormat: "yaml",
+			name:     "Test getting YAML parser from JSON input",
+			fileType: "json",
+			expected: new(yaml.Parser),
 		},
 		{
-			name:           "Test getting YAML parser from YAML input",
-			fileType:       "yaml",
-			expectedFormat: "yaml",
+			name:     "Test getting YAML parser from YAML input",
+			fileType: "yaml",
+			expected: new(yaml.Parser),
 		},
 	}
 
-	for _, test := range testTable {
-		t.Run(test.name, func(t *testing.T) {
-			receivedParser := parser.GetParser(test.fileType)
+	for _, testUnit := range testTable {
+		t.Run(testUnit.name, func(t *testing.T) {
+			received := parser.GetParser(testUnit.fileType)
 
-			if receivedParser.Format() != test.expectedFormat {
-				t.Errorf("expected: %v \n got this: %v", test.expectedFormat, receivedParser.Format())
+			if !reflect.DeepEqual(received, testUnit.expected) {
+				t.Errorf("expected: %T \n got this: %T", testUnit.expected, received)
 			}
 		})
 	}

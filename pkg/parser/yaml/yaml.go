@@ -10,11 +10,6 @@ import (
 
 type Parser struct{}
 
-//Format returns the expected format of the input to be parsed
-func (yp *Parser) Format() string {
-	return "yaml"
-}
-
 func (yp *Parser) separateSubDocuments(data []byte) [][]byte {
 	linebreak := "\n"
 	windowsLineEnding := bytes.Contains(data, []byte("\r\n"))

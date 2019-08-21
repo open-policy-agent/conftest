@@ -10,11 +10,6 @@ import (
 
 type Parser struct{}
 
-//Format returns the expected format of the input to be parsed
-func (c *Parser) Format() string {
-	return "cue"
-}
-
 func (c *Parser) Unmarshal(p []byte, v interface{}) error {
 	var r cue.Runtime
 	out, err := cFormat.Source(p)

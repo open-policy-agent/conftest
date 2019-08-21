@@ -10,11 +10,6 @@ import (
 
 type Parser struct{}
 
-//Format returns the expected format of the input to be parsed
-func (i *Parser) Format() string {
-	return "ini"
-}
-
 func (i *Parser) Unmarshal(p []byte, v interface{}) error {
 	result := map[string]map[string]string{}
 	cfg, err := ini.Load(p)
