@@ -20,8 +20,13 @@
   [ "$status" -eq 0 ]
 }
 
-@test "Pass when testing a YAML document via stdin" {
+@test "Pass when testing a YAML document via stdin filetype is required" {
   run ./conftest test -p examples/kubernetes/policy - < examples/kubernetes/service.yaml
+  [ "$status" -eq 1 ]
+}
+
+@test "Pass when testing a YAML document via stdin" {
+  run ./conftest test -i yaml -p examples/kubernetes/policy - < examples/kubernetes/service.yaml
   [ "$status" -eq 0 ]
 }
 
@@ -83,8 +88,8 @@
   [[ "$output" != *"Basic auth should be enabled"* ]]
 }
 
-@test "Can parse file based on input flag value" {
-  run ./conftest test -p examples/terraform/policy/gke.rego examples/terraform/gke.tf -i yaml
+@test "Using -i/--input should force the chosen parser and fail the rego policy" {
+  run ./conftest test -p examples/terraform/policy/gke.rego examples/terraform/gke.tf -i ini
   [ "$status" -eq 1 ]
 }
   

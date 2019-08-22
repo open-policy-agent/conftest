@@ -70,16 +70,13 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 				var config io.ReadCloser
 				fileType, err = getFileType(viper.GetString("input"), fileName)
 				if err != nil {
-					log.G(ctx).Fatalf("Unable to get file type: %v", err)
+					log.G(ctx).Printf("Unable to get file type: %v", err)
+					osExit(1)
 				}
-				if fileName == "-" {
-					config = ioutil.NopCloser(bufio.NewReader(os.Stdin))
-				} else {
-					filePath, _ := filepath.Abs(fileName)
-					config, err = os.Open(filePath)
-					if err != nil {
-						log.G(ctx).Fatalf("Unable to open file %s: %s", fileName, err)
-					}
+				config, err = getConfig(fileName)
+				if err != nil {
+					log.G(ctx).Printf("Unable to open file or read from stdin %s", err)
+					osExit(1)
 				}
 				configFiles = append(configFiles, parser.ConfigDoc{
 					ReadCloser: config,
@@ -147,6 +144,20 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 	}
 
 	return cmd
+}
+
+func getConfig(fileName string) (io.ReadCloser, error) {
+	if fileName == "-" {
+		config := ioutil.NopCloser(bufio.NewReader(os.Stdin))
+		return config, nil
+	}
+
+	filePath, _ := filepath.Abs(fileName)
+	config, err := os.Open(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to open file %s: %s", filePath, err)
+	}
+	return config, nil
 }
 
 func buildRego(trace bool, query string, input interface{}, compiler *ast.Compiler) (*rego.Rego, *topdown.BufferTracer) {
