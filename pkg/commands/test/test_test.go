@@ -42,27 +42,27 @@ func TestCombineConfig(t *testing.T) {
 		fileList          []string
 	}{
 		{
-			name:              "given a valid policy and single config and combine-config set to true",
+			name:              "valid policy with combine-config=true should namespace the configs into a map (single file)",
 			combineConfigFlag: true,
-			policyPath:        "testdata/policy",
+			policyPath:        "testdata/policy/test_policy_multifile.rego",
 			fileList:          []string{"testdata/deployment.yaml"},
 		},
 		{
-			name:              "given a valid policy and single config",
+			name:              "config combine-config=false no namespacing, individual evaluation (single file)",
 			combineConfigFlag: false,
-			policyPath:        "testdata/policy",
+			policyPath:        "testdata/policy/test_policy.rego",
 			fileList:          []string{"testdata/deployment.yaml"},
 		},
 		{
-			name:              "given a valid policy and multiple configs",
+			name:              "config combine-config=false no namespacing, individual evaluation (multi-file)",
 			combineConfigFlag: false,
-			policyPath:        "testdata/policy",
+			policyPath:        "testdata/policy/test_policy.rego",
 			fileList:          []string{"testdata/deployment+service.yaml", "testdata/deployment.yaml"},
 		},
 		{
-			name:              "given a valid policy multiple configs and `combine-config` flag set to true",
+			name:              "valid policy with combine-config=true should namespace the configs into a map (multi-file)",
 			combineConfigFlag: true,
-			policyPath:        "testdata/policy",
+			policyPath:        "testdata/policy/test_policy_multifile.rego",
 			fileList:          []string{"testdata/deployment+service.yaml", "testdata/deployment.yaml"},
 		},
 	}
@@ -107,6 +107,50 @@ func TestCombineConfig(t *testing.T) {
 			t.Errorf("combine-config flag should exist")
 		}
 	})
+}
+
+func TestInputFlag(t *testing.T) {
+	testTable := []struct {
+		name       string
+		fileList   []string
+		input      string
+		shouldFail bool
+	}{
+		{
+			name:       "when flag exists it should use the flag value",
+			input:      "tf",
+			fileList:   []string{"testdata/deployment.yaml"},
+			shouldFail: true,
+		},
+		{
+			name:       "when flag doesnt exist it should use the file extension",
+			input:      "",
+			fileList:   []string{"testdata/deployment.yaml"},
+			shouldFail: false,
+		},
+	}
+
+	for _, testUnit := range testTable {
+		t.Run(testUnit.name, func(t *testing.T) {
+			viper.Set("policy", "testdata/policy/test_policy.rego")
+			viper.Set("input", testUnit.input)
+			exitCallCount := 0
+			cmd := test.NewTestCommand(func(int) {
+				exitCallCount += 1
+			}, func() test.OutputManager {
+				return new(testfakes.FakeOutputManager)
+			})
+			cmd.Run(cmd, testUnit.fileList)
+
+			if testUnit.shouldFail && exitCallCount == 0 {
+				t.Error("we expected to fail but did not")
+			}
+
+			if testUnit.shouldFail == false && exitCallCount >= 1 {
+				t.Error("we did not expect to fail here, yet we did")
+			}
+		})
+	}
 }
 func TestFailQuery(t *testing.T) {
 

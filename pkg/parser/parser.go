@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 
 	"github.com/instrumenta/conftest/pkg/parser/cue"
 	"github.com/instrumenta/conftest/pkg/parser/docker"
@@ -87,26 +88,32 @@ func (s *ConfigManager) setConfigs(configList []ConfigDoc) error {
 
 // NewConfigManager is the instatiation function for ConfigManager
 func NewConfigManager(fileType string) ReadUnmarshaller {
+	parser, err := GetParser(fileType)
+	if err != nil {
+		log.Fatalf("we failed to create the parser: %v", err)
+	}
 
 	return &ConfigManager{
-		parser: GetParser(fileType),
+		parser: parser,
 	}
 }
 
 // GetParser gets a parser that works on a given fileType
-func GetParser(fileType string) Parser {
+func GetParser(fileType string) (Parser, error) {
 	switch fileType {
 	case "toml":
-		return &toml.Parser{}
+		return &toml.Parser{}, nil
 	case "tf", "hcl":
-		return &terraform.Parser{}
+		return &terraform.Parser{}, nil
 	case "cue":
-		return &cue.Parser{}
+		return &cue.Parser{}, nil
 	case "ini":
-		return &ini.Parser{}
+		return &ini.Parser{}, nil
 	case "Dockerfile":
-		return &docker.Parser{}
+		return &docker.Parser{}, nil
+	case "yml", "yaml", "json":
+		return &yaml.Parser{}, nil
 	default:
-		return &yaml.Parser{}
+		return nil, fmt.Errorf("unknown filetype given: %v", fileType)
 	}
 }

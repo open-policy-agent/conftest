@@ -68,13 +68,14 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 			for _, fileName := range fileList {
 				var err error
 				var config io.ReadCloser
-
+				fileType, err = getFileType(viper.GetString("input"), fileName)
+				if err != nil {
+					log.G(ctx).Fatalf("Unable to get file type: %v", err)
+				}
 				if fileName == "-" {
 					config = ioutil.NopCloser(bufio.NewReader(os.Stdin))
-					fileType = viper.GetString("input")
 				} else {
 					filePath, _ := filepath.Abs(fileName)
-					fileType = strings.TrimPrefix(filepath.Ext(fileName), ".")
 					config, err = os.Open(filePath)
 					if err != nil {
 						log.G(ctx).Fatalf("Unable to open file %s: %s", fileName, err)
@@ -88,7 +89,8 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 			configManager := parser.NewConfigManager(fileType)
 			configurations, err := configManager.BulkUnmarshal(configFiles)
 			if err != nil {
-				log.G(ctx).Fatalf("Unable to BulkUnmarshal your config files: %v", err)
+				log.G(ctx).Printf("Unable to BulkUnmarshal your config files: %v", err)
+				osExit(1)
 			}
 
 			var res CheckResult
@@ -140,7 +142,7 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 	for _, name := range flagNames {
 		err = viper.BindPFlag(name, cmd.Flags().Lookup(name))
 		if err != nil {
-			log.G(ctx).Fatal("Failed to bind input argument:", err)
+			log.G(ctx).Fatal("Failed to bind argument:", err)
 		}
 	}
 
@@ -159,6 +161,20 @@ func buildRego(trace bool, query string, input interface{}, compiler *ast.Compil
 	regoObj = rego.New(regoFunc...)
 
 	return regoObj, buf
+}
+
+func getFileType(inputFileType, fileName string) (string, error) {
+	if inputFileType != "" {
+		return inputFileType, nil
+	}
+	if fileName != "-" {
+		fileType := strings.TrimPrefix(filepath.Ext(fileName), ".")
+		return fileType, nil
+	}
+	if fileName == "-" && inputFileType == "" {
+		return "", fmt.Errorf("You must define an input type to read from stdin")
+	}
+	return "", fmt.Errorf("not supported filetype")
 }
 
 // finds all queries in the compiler

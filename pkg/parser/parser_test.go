@@ -180,53 +180,73 @@ nice: true`)),
 
 func TestGetParser(t *testing.T) {
 	testTable := []struct {
-		name     string
-		fileType string
-		expected parser.Parser
+		name        string
+		fileType    string
+		expected    parser.Parser
+		expectError bool
 	}{
 		{
-			name:     "Test getting Terraform parser from HCL input",
-			fileType: "hcl",
-			expected: new(terraform.Parser),
+			name:        "Test getting Terraform parser from HCL input",
+			fileType:    "hcl",
+			expected:    new(terraform.Parser),
+			expectError: false,
 		},
 		{
-			name:     "Test getting Terraform parser from .tf input",
-			fileType: "tf",
-			expected: new(terraform.Parser),
+			name:        "Test getting Terraform parser from .tf input",
+			fileType:    "tf",
+			expected:    new(terraform.Parser),
+			expectError: false,
 		},
 		{
-			name:     "Test getting TOML parser",
-			fileType: "toml",
-			expected: new(toml.Parser),
+			name:        "Test getting TOML parser",
+			fileType:    "toml",
+			expected:    new(toml.Parser),
+			expectError: false,
 		},
 		{
-			name:     "Test getting Cue parser",
-			fileType: "cue",
-			expected: new(cue.Parser),
+			name:        "Test getting Cue parser",
+			fileType:    "cue",
+			expected:    new(cue.Parser),
+			expectError: false,
 		},
 		{
-			name:     "Test getting INI parser",
-			fileType: "ini",
-			expected: new(ini.Parser),
+			name:        "Test getting INI parser",
+			fileType:    "ini",
+			expected:    new(ini.Parser),
+			expectError: false,
 		},
 		{
-			name:     "Test getting YAML parser from JSON input",
-			fileType: "json",
-			expected: new(yaml.Parser),
+			name:        "Test getting YAML parser from JSON input",
+			fileType:    "json",
+			expected:    new(yaml.Parser),
+			expectError: false,
 		},
 		{
-			name:     "Test getting YAML parser from YAML input",
-			fileType: "yaml",
-			expected: new(yaml.Parser),
+			name:        "Test getting YAML parser from YAML input",
+			fileType:    "yaml",
+			expected:    new(yaml.Parser),
+			expectError: false,
+		},
+		{
+			name:        "Test getting invalid filetype",
+			fileType:    "epicfailure",
+			expected:    nil,
+			expectError: true,
 		},
 	}
 
 	for _, testUnit := range testTable {
 		t.Run(testUnit.name, func(t *testing.T) {
-			received := parser.GetParser(testUnit.fileType)
+			received, err := parser.GetParser(testUnit.fileType)
 
 			if !reflect.DeepEqual(received, testUnit.expected) {
 				t.Errorf("expected: %T \n got this: %T", testUnit.expected, received)
+			}
+			if !testUnit.expectError && err != nil {
+				t.Errorf("we did not expect to see an error here: %v", err)
+			}
+			if testUnit.expectError && err == nil {
+				t.Error("we did not see an error even though one was expected")
 			}
 		})
 	}

@@ -82,6 +82,11 @@
   [[ "$output" =~ "Users should verify their e-mail address" ]]
   [[ "$output" != *"Basic auth should be enabled"* ]]
 }
+
+@test "Can parse file based on input flag value" {
+  run ./conftest test -p examples/terraform/policy/gke.rego examples/terraform/gke.tf -i yaml
+  [ "$status" -eq 1 ]
+}
   
 @test "Can combine configs and reference by file" {
   run ./conftest test -p examples/terraform/policy/gke_combine.rego examples/terraform/gke.tf --combine-config
