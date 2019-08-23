@@ -95,7 +95,7 @@
   
 @test "Can combine configs and reference by file" {
   run ./conftest test -p examples/terraform/policy/gke_combine.rego examples/terraform/gke.tf --combine-config
-  [ "$status" -eq 1 ]
+  [ "$status" -eq 0 ]
 }
 
 @test "Can parse docker files" {
