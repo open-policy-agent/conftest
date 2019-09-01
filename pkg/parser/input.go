@@ -30,7 +30,14 @@ func GetInput(fileName string, inputType string) *Input {
 			fName: fileName,
 		}
 	}
-	suffix := strings.Replace(filepath.Ext(fileName), ".", "", -1)
+
+	var suffix string
+	if filepath.Base(fileName) == "Dockerfile" {
+		suffix = "Dockerfile"
+	} else {
+		suffix = strings.Replace(filepath.Ext(fileName), ".", "", -1)
+	}
+	
 	return &Input{
 		input: suffix,
 		fName: fileName,
