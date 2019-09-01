@@ -27,6 +27,7 @@ As of today `conftest` supports:
 * TOML
 * HCL
 * CUE
+* Dockerfile
 
 Policies by default should be placed in a directory
 called `policy` but this can be overridden.
@@ -130,6 +131,7 @@ You can find examples using various other tools in the `examples ` directory, in
 * [Terraform](examples/terraform)
 * [Serverless Framework](examples/serverless)
 * [INI](examples/ini)
+* [Dockerfile](examples/docker)
 
 ## Configuration and external policies
 
