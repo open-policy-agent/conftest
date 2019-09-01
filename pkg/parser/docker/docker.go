@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-
 	"github.com/ghodss/yaml"
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
 )
@@ -15,11 +14,11 @@ type Parser struct {
 }
 
 type Command struct {
-	Cmd       string   // lowercased command name (ex: `from`)
-	SubCmd    string   // for ONBUILD only this holds the sub-command
-	JSON      bool     // whether the value is written in json form
-	Flags     []string // Any flags such as `--from=...` for `COPY`.
-	Value     []string // The contents of the command (ex: `ubuntu:xenial`)
+	Cmd    string   // lowercased command name (ex: `from`)
+	SubCmd string   // for ONBUILD only this holds the sub-command
+	JSON   bool     // whether the value is written in json form
+	Flags  []string // Any flags such as `--from=...` for `COPY`.
+	Value  []string // The contents of the command (ex: `ubuntu:xenial`)
 }
 
 func (dp *Parser) Unmarshal(p []byte, v interface{}) error {
@@ -33,8 +32,8 @@ func (dp *Parser) Unmarshal(p []byte, v interface{}) error {
 	var ret []Command
 	for _, child := range res.AST.Children {
 		cmd := Command{
-			Cmd:       child.Value,
-			Flags:     child.Flags,
+			Cmd:   child.Value,
+			Flags: child.Flags,
 		}
 
 		// Only happens for ONBUILD

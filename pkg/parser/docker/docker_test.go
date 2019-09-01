@@ -2,7 +2,6 @@ package docker
 
 import (
 	"strings"
-	"io/ioutil"
 	"testing"
 )
 
@@ -12,10 +11,13 @@ func TestParser_Unmarshal(t *testing.T) {
 		FileName: fileName,
 	}
 
-	bytes, _ := ioutil.ReadFile(fileName)
-	
+	sample := `FROM golang:1.12-alpine as builder
+	COPY . /
+	RUN go build cmd/main.go
+	`
+
 	var input interface{}
-	err := parser.Unmarshal(bytes, &input)
+	err := parser.Unmarshal([]byte(sample), &input)
 	if err != nil {
 		t.Fatalf("parser should not have thrown an error: %v", err)
 	}
