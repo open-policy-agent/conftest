@@ -179,7 +179,14 @@ func getFileType(inputFileType, fileName string) (string, error) {
 		return inputFileType, nil
 	}
 	if fileName != "-" {
-		fileType := strings.TrimPrefix(filepath.Ext(fileName), ".")
+		fileType := ""
+		if strings.Contains(fileName, ".") {
+			fileType = strings.TrimPrefix(filepath.Ext(fileName), ".")
+		} else {
+			ss := strings.SplitAfter(fileName, "/")
+			fileType = ss[len(ss)-1]
+		}
+
 		return fileType, nil
 	}
 	if fileName == "-" && inputFileType == "" {
