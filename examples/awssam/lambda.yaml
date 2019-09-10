@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion : '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: proccess loadnewpackages events send to logLocationFinder.
+Parameters:
+  DatadogLambda:
+    Type: String
+    Default: arn:aws:lambda:us-east-1:12312312312312:function:datadog-log-forwarder
+Resources:
+  LambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: main.handler
+      Runtime: python2.7
+      Environment:
+        Variables:
+          - dbhost:mydb
+          - dbuser:root
+          - dbpassword:mypassword
+      CodeUri: dist
+      MemorySize: 128
+      Timeout: 300
+      Policies:
+        - Statement:
+            - Action:
+                - sqs:*
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - lambda:put
+              Effect: Allow
+              Resource:
+                - arn:aws:sqs:us-east-1:12321312312:vuln_search_eng_package_names{{ENV}}
+                - arn:aws:sqs:us-east-1:12312312312:vuln_search_eng_package_repos{{ENV}}
+        - Statement:
+            - Action: "*"
+              Effect: Allow
+              Resource:
+                - arn:aws:sqs:us-east-1:12321312312:vuln_search_eng_package_names{{ENV}}
+                - arn:aws:sqs:us-east-1:12312312312:vuln_search_eng_package_repos{{ENV}}
+        - Statement:
+            - Action:
+                - sqs:Read
+              Effect: Allow
+              Resource: "*"
+      Events:
+        Stream:
+          Type: SQS
+          Properties:
+            Queue: arn:aws:sqs:us-east-1:321321312:vuln_search_eng_package_names{{ENV}}
+            BatchSize: 1
+  DatadogLambdaLogGroupPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref DatadogLambda
+      Principal: logs.us-east-1.amazonaws.com
+      SourceArn: !GetAtt LambdaFunctionLogGroup.Arn
+  LambdaFunctionLogGroup:
+    DependsOn: LambdaFunction
+    Properties:
+      LogGroupName:
+        Fn::Join:
+        - ''
+        - - /aws/lambda/
+          - Ref: LambdaFunction
+      RetentionInDays: 14
+    Type: AWS::Logs::LogGroup
+  LambdaSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      LogGroupName: !Ref LambdaFunctionLogGroup
+      DestinationArn: !Ref DatadogLambda
+      FilterPattern: ""
