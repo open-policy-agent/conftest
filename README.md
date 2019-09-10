@@ -130,6 +130,7 @@ You can find examples using various other tools in the `examples ` directory, in
 * [Kustomize](examples/kustomize)
 * [Terraform](examples/terraform)
 * [Serverless Framework](examples/serverless)
+* [Awssam Framework](examples/awssam)
 * [INI](examples/ini)
 * [Dockerfile](examples/docker)
 
