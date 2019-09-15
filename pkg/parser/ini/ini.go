@@ -8,9 +8,7 @@ import (
 	"github.com/go-ini/ini"
 )
 
-type Parser struct {
-	FileName string
-}
+type Parser struct{}
 
 func (i *Parser) Unmarshal(p []byte, v interface{}) error {
 	result := map[string]map[string]string{}
@@ -34,7 +32,7 @@ func (i *Parser) Unmarshal(p []byte, v interface{}) error {
 	}
 	err = yaml.Unmarshal(j, v)
 	if err != nil {
-		return fmt.Errorf("Unable to parse YAML from ini-json %s: %s", i.FileName, err)
+		return fmt.Errorf("Unable to parse YAML from ini-json: %s", err)
 	}
 	return nil
 }

@@ -8,9 +8,7 @@ import (
 	"github.com/ghodss/yaml"
 )
 
-type Parser struct {
-	FileName string
-}
+type Parser struct{}
 
 func (c *Parser) Unmarshal(p []byte, v interface{}) error {
 	var r cue.Runtime
@@ -24,11 +22,11 @@ func (c *Parser) Unmarshal(p []byte, v interface{}) error {
 	}
 	j, err := instance.Value().MarshalJSON()
 	if err != nil {
-		return fmt.Errorf("Unable to marshal cue config %s: %s", c.FileName, err)
+		return fmt.Errorf("Unable to marshal cue config: %s", err)
 	}
 	err = yaml.Unmarshal(j, v)
 	if err != nil {
-		return fmt.Errorf("Unable to parse YAML from cue-json %s: %s", c.FileName, err)
+		return fmt.Errorf("Unable to parse YAML cue-json: %s", err)
 	}
 	return nil
 }

@@ -9,9 +9,7 @@ import (
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
 )
 
-type Parser struct {
-	FileName string
-}
+type Parser struct{}
 
 type Command struct {
 	Cmd    string   // lowercased command name (ex: `from`)
@@ -25,7 +23,7 @@ func (dp *Parser) Unmarshal(p []byte, v interface{}) error {
 	r := bytes.NewReader(p)
 	res, err := parser.Parse(r)
 	if err != nil {
-		return fmt.Errorf("Unable to parse Dockerfile from %s: %s", dp.FileName, err)
+		return fmt.Errorf("Unable to parse Dockerfile from: %s", err)
 	}
 
 	// Code attributed to https://github.com/asottile/dockerfile
@@ -52,12 +50,12 @@ func (dp *Parser) Unmarshal(p []byte, v interface{}) error {
 
 	j, err := json.Marshal(ret)
 	if err != nil {
-		return fmt.Errorf("Unable to marshal config %s: %s", dp.FileName, err)
+		return fmt.Errorf("Unable to marshal config: %s", err)
 	}
 
 	err = yaml.Unmarshal(j, v)
 	if err != nil {
-		return fmt.Errorf("Unable to parse YAML from Docker-json %s: %s", dp.FileName, err)
+		return fmt.Errorf("Unable to parse YAML from Docker-json: %s", err)
 	}
 
 	return nil

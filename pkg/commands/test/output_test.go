@@ -1,19 +1,22 @@
-package test
+package test_test
 
 import (
 	"bytes"
 	"errors"
 	"log"
+	"reflect"
 	"strings"
 	"testing"
 
+	"github.com/instrumenta/conftest/pkg/commands/test"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_stdOutputManager_put(t *testing.T) {
 	type args struct {
 		fileName string
-		cr       checkResult
+		cr       test.CheckResult
 	}
 
 	tests := []struct {
@@ -23,12 +26,12 @@ func Test_stdOutputManager_put(t *testing.T) {
 		expErr error
 	}{
 		{
-			msg: "records failure and warnings",
+			msg: "records failure and Warnings",
 			args: args{
 				fileName: "foo.yaml",
-				cr: checkResult{
-					warnings: []error{errors.New("first warning")},
-					failures: []error{errors.New("first failure")},
+				cr: test.CheckResult{
+					Warnings: []error{errors.New("first warning")},
+					Failures: []error{errors.New("first failure")},
 				},
 			},
 			exp: []string{"WARN - foo.yaml - first warning", "FAIL - foo.yaml - first failure"},
@@ -37,9 +40,9 @@ func Test_stdOutputManager_put(t *testing.T) {
 			msg: "skips filenames for stdin",
 			args: args{
 				fileName: "-",
-				cr: checkResult{
-					warnings: []error{errors.New("first warning")},
-					failures: []error{errors.New("first failure")},
+				cr: test.CheckResult{
+					Warnings: []error{errors.New("first warning")},
+					Failures: []error{errors.New("first failure")},
 				},
 			},
 			exp: []string{"WARN - first warning", "FAIL - first failure"},
@@ -48,9 +51,9 @@ func Test_stdOutputManager_put(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.msg, func(t *testing.T) {
 			buf := new(bytes.Buffer)
-			s := newStdOutputManager(log.New(buf, "", 0), false)
+			s := test.NewStdOutputManager(log.New(buf, "", 0), false)
 
-			err := s.put(tt.args.fileName, tt.args.cr)
+			err := s.Put(tt.args.fileName, tt.args.cr)
 			if err != nil {
 				assert.Equal(t, tt.expErr, err)
 			}
@@ -65,7 +68,7 @@ func Test_stdOutputManager_put(t *testing.T) {
 func Test_jsonOutputManager_put(t *testing.T) {
 	type args struct {
 		fileName string
-		cr       checkResult
+		cr       test.CheckResult
 	}
 
 	tests := []struct {
@@ -75,36 +78,36 @@ func Test_jsonOutputManager_put(t *testing.T) {
 		expErr error
 	}{
 		{
-			msg: "no warnings or errors",
+			msg: "no Warnings or errors",
 			args: args{
 				fileName: "examples/kubernetes/service.yaml",
-				cr:       checkResult{},
+				cr:       test.CheckResult{},
 			},
 			exp: `[
 	{
 		"filename": "examples/kubernetes/service.yaml",
-		"warnings": [],
-		"failures": []
+		"Warnings": [],
+		"Failures": []
 	}
 ]
 `,
 		},
 		{
-			msg: "records failure and warnings",
+			msg: "records failure and Warnings",
 			args: args{
 				fileName: "examples/kubernetes/service.yaml",
-				cr: checkResult{
-					warnings: []error{errors.New("first warning")},
-					failures: []error{errors.New("first failure")},
+				cr: test.CheckResult{
+					Warnings: []error{errors.New("first warning")},
+					Failures: []error{errors.New("first failure")},
 				},
 			},
 			exp: `[
 	{
 		"filename": "examples/kubernetes/service.yaml",
-		"warnings": [
+		"Warnings": [
 			"first warning"
 		],
-		"failures": [
+		"Failures": [
 			"first failure"
 		]
 	}
@@ -112,18 +115,18 @@ func Test_jsonOutputManager_put(t *testing.T) {
 `,
 		},
 		{
-			msg: "mixed failure and warnings",
+			msg: "mixed failure and Warnings",
 			args: args{
 				fileName: "examples/kubernetes/service.yaml",
-				cr: checkResult{
-					failures: []error{errors.New("first failure")},
+				cr: test.CheckResult{
+					Failures: []error{errors.New("first failure")},
 				},
 			},
 			exp: `[
 	{
 		"filename": "examples/kubernetes/service.yaml",
-		"warnings": [],
-		"failures": [
+		"Warnings": [],
+		"Failures": [
 			"first failure"
 		]
 	}
@@ -134,15 +137,15 @@ func Test_jsonOutputManager_put(t *testing.T) {
 			msg: "handles stdin input",
 			args: args{
 				fileName: "-",
-				cr: checkResult{
-					failures: []error{errors.New("first failure")},
+				cr: test.CheckResult{
+					Failures: []error{errors.New("first failure")},
 				},
 			},
 			exp: `[
 	{
 		"filename": "",
-		"warnings": [],
-		"failures": [
+		"Warnings": [],
+		"Failures": [
 			"first failure"
 		]
 	}
@@ -153,16 +156,16 @@ func Test_jsonOutputManager_put(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.msg, func(t *testing.T) {
 			buf := new(bytes.Buffer)
-			s := newJSONOutputManager(log.New(buf, "", 0))
+			s := test.NewJSONOutputManager(log.New(buf, "", 0))
 
 			// record results
-			err := s.put(tt.args.fileName, tt.args.cr)
+			err := s.Put(tt.args.fileName, tt.args.cr)
 			if err != nil {
 				assert.Equal(t, tt.expErr, err)
 			}
 
 			// flush final buffer
-			err = s.flush()
+			err = s.Flush()
 			if err != nil {
 				assert.Equal(t, tt.expErr, err)
 			}
@@ -172,10 +175,51 @@ func Test_jsonOutputManager_put(t *testing.T) {
 	}
 }
 
+func TestSupportedOutputManagers(t *testing.T) {
+	for _, testunit := range []struct {
+		name          string
+		outputFormat  string
+		outputManager test.OutputManager
+	}{
+		{
+			name:          "std output should exist",
+			outputFormat:  test.OutputSTD,
+			outputManager: test.NewDefaultStdOutputManager(true),
+		},
+		{
+			name:          "json output should exist",
+			outputFormat:  test.OutputJSON,
+			outputManager: test.NewDefaultJSONOutputManager(),
+		},
+		{
+			name:          "tap output should exist",
+			outputFormat:  test.OutputTAP,
+			outputManager: test.NewDefaultTAPOutputManager(),
+		},
+		{
+			name:          "default output should exist",
+			outputFormat:  "somedefault",
+			outputManager: test.NewDefaultStdOutputManager(true),
+		},
+	} {
+		viper.Set("output", testunit.outputFormat)
+		outputManager := test.GetOutputManager()
+		if !reflect.DeepEqual(outputManager, testunit.outputManager) {
+			t.Errorf(
+				"We expected the output manager to be of type %v : %T and it was %T",
+				testunit.outputFormat,
+				testunit.outputManager,
+				outputManager,
+			)
+		}
+
+	}
+}
+
 func Test_tapOutputManager_put(t *testing.T) {
 	type args struct {
 		fileName string
-		cr       checkResult
+		cr       test.CheckResult
 	}
 
 	tests := []struct {
@@ -188,7 +232,7 @@ func Test_tapOutputManager_put(t *testing.T) {
 			msg: "no warnings or errors",
 			args: args{
 				fileName: "examples/kubernetes/service.yaml",
-				cr:       checkResult{},
+				cr:       test.CheckResult{},
 			},
 			exp: "",
 		},
@@ -196,9 +240,9 @@ func Test_tapOutputManager_put(t *testing.T) {
 			msg: "records failure and warnings",
 			args: args{
 				fileName: "examples/kubernetes/service.yaml",
-				cr: checkResult{
-					warnings: []error{errors.New("first warning")},
-					failures: []error{errors.New("first failure")},
+				cr: test.CheckResult{
+					Warnings: []error{errors.New("first warning")},
+					Failures: []error{errors.New("first failure")},
 				},
 			},
 			exp: `1..2
@@ -211,8 +255,8 @@ not ok 2 - examples/kubernetes/service.yaml - first warning
 			msg: "mixed failure and warnings",
 			args: args{
 				fileName: "examples/kubernetes/service.yaml",
-				cr: checkResult{
-					failures: []error{errors.New("first failure")},
+				cr: test.CheckResult{
+					Failures: []error{errors.New("first failure")},
 				},
 			},
 			exp: `1..1
@@ -223,8 +267,8 @@ not ok 1 - examples/kubernetes/service.yaml - first failure
 			msg: "handles stdin input",
 			args: args{
 				fileName: "-",
-				cr: checkResult{
-					failures: []error{errors.New("first failure")},
+				cr: test.CheckResult{
+					Failures: []error{errors.New("first failure")},
 				},
 			},
 			exp: `1..1
@@ -235,20 +279,19 @@ not ok 1 - first failure
 	for _, tt := range tests {
 		t.Run(tt.msg, func(t *testing.T) {
 			buf := new(bytes.Buffer)
-			s := newTAPOutputManager(log.New(buf, "", 0))
+			s := test.NewTAPOutputManager(log.New(buf, "", 0))
 
 			// record results
-			err := s.put(tt.args.fileName, tt.args.cr)
+			err := s.Put(tt.args.fileName, tt.args.cr)
 			if err != nil {
 				assert.Equal(t, tt.expErr, err)
 			}
 
 			// flush final buffer
-			err = s.flush()
+			err = s.Flush()
 			if err != nil {
 				assert.Equal(t, tt.expErr, err)
 			}
-
 			assert.Equal(t, tt.exp, buf.String())
 		})
 	}

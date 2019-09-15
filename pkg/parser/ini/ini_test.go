@@ -5,9 +5,7 @@ import (
 )
 
 func TestIniParser(t *testing.T) {
-	parser := &Parser{
-		FileName: "sample.ini",
-	}
+	parser := &Parser{}
 	sample := `[Local Varaibles] 
 	Name=name 
 	Title=title 

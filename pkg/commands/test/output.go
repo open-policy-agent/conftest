@@ -8,40 +8,45 @@ import (
 	"os"
 
 	"github.com/logrusorgru/aurora"
+	"github.com/spf13/viper"
 )
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 const (
-	outputSTD  = "stdout"
-	outputJSON = "json"
-	outputTAP  = "tap"
+	OutputSTD  = "stdout"
+	OutputJSON = "json"
+	OutputTAP  = "tap"
 )
 
 func validOutputs() []string {
 	return []string{
-		outputSTD,
-		outputJSON,
-		outputTAP,
+		OutputSTD,
+		OutputJSON,
+		OutputTAP,
 	}
 }
 
-func getOutputManager(outFmt string, color bool) outputManager {
+func GetOutputManager() OutputManager {
+	outFmt := viper.GetString("output")
+	color := !viper.GetBool("no-color")
 	switch outFmt {
-	case outputSTD:
-		return newDefaultStdOutputManager(color)
-	case outputJSON:
-		return newDefaultJSONOutputManager()
-	case outputTAP:
-		return newDefaultTAPOutputManager()
+	case OutputSTD:
+		return NewDefaultStdOutputManager(color)
+	case OutputJSON:
+		return NewDefaultJSONOutputManager()
+	case OutputTAP:
+		return NewDefaultTAPOutputManager()
 	default:
-		return newDefaultStdOutputManager(color)
+		return NewDefaultStdOutputManager(color)
 	}
 }
 
-// outputManager controls how results of the `ccheck` evaluation will be recorded
+// OutputManager controls how results of the `ccheck` evaluation will be recorded
 // and reported to the end user.
-type outputManager interface {
-	put(fileName string, cr checkResult) error
-	flush() error
+//counterfeiter:generate . OutputManager
+type OutputManager interface {
+	Put(fileName string, cr CheckResult) error
+	Flush() error
 }
 
 // stdOutputManager reports `ccheck` results to stdout.
@@ -52,13 +57,13 @@ type stdOutputManager struct {
 
 // newDefaultStdOutputManager instantiates a new instance of stdOutputManager
 // using the default logger.
-func newDefaultStdOutputManager(color bool) *stdOutputManager {
-	return newStdOutputManager(log.New(os.Stdout, "", 0), color)
+func NewDefaultStdOutputManager(color bool) *stdOutputManager {
+	return NewStdOutputManager(log.New(os.Stdout, "", 0), color)
 }
 
-// newStdOutputManager constructs an instance of stdOutputManager given a
+// NewStdOutputManager constructs an instance of stdOutputManager given a
 // logger instance.
-func newStdOutputManager(l *log.Logger, color bool) *stdOutputManager {
+func NewStdOutputManager(l *log.Logger, color bool) *stdOutputManager {
 	return &stdOutputManager{
 		logger: l,
 		// control color output within the logger
@@ -66,7 +71,7 @@ func newStdOutputManager(l *log.Logger, color bool) *stdOutputManager {
 	}
 }
 
-func (s *stdOutputManager) put(fileName string, cr checkResult) error {
+func (s *stdOutputManager) Put(fileName string, cr CheckResult) error {
 	var indicator string
 	if fileName == "-" {
 		indicator = " - "
@@ -75,26 +80,26 @@ func (s *stdOutputManager) put(fileName string, cr checkResult) error {
 	}
 
 	// print warnings and then print errors
-	for _, r := range cr.warnings {
+	for _, r := range cr.Warnings {
 		s.logger.Print(s.color.Colorize("WARN", aurora.YellowFg), indicator, r)
 	}
 
-	for _, r := range cr.failures {
+	for _, r := range cr.Failures {
 		s.logger.Print(s.color.Colorize("FAIL", aurora.RedFg), indicator, r)
 	}
 
 	return nil
 }
 
-func (s *stdOutputManager) flush() error {
+func (s *stdOutputManager) Flush() error {
 	// no op
 	return nil
 }
 
 type jsonCheckResult struct {
 	Filename string   `json:"filename"`
-	Warnings []string `json:"warnings"`
-	Failures []string `json:"failures"`
+	Warnings []string `json:"Warnings"`
+	Failures []string `json:"Failures"`
 }
 
 // jsonOutputManager reports `conftest` results to `stdout` as a json array..
@@ -104,11 +109,11 @@ type jsonOutputManager struct {
 	data []jsonCheckResult
 }
 
-func newDefaultJSONOutputManager() *jsonOutputManager {
-	return newJSONOutputManager(log.New(os.Stdout, "", 0))
+func NewDefaultJSONOutputManager() *jsonOutputManager {
+	return NewJSONOutputManager(log.New(os.Stdout, "", 0))
 }
 
-func newJSONOutputManager(l *log.Logger) *jsonOutputManager {
+func NewJSONOutputManager(l *log.Logger) *jsonOutputManager {
 	return &jsonOutputManager{
 		logger: l,
 	}
@@ -125,7 +130,7 @@ func errsToStrings(errs []error) []string {
 	return res
 }
 
-func (j *jsonOutputManager) put(fileName string, cr checkResult) error {
+func (j *jsonOutputManager) Put(fileName string, cr CheckResult) error {
 
 	if fileName == "-" {
 		fileName = ""
@@ -133,14 +138,14 @@ func (j *jsonOutputManager) put(fileName string, cr checkResult) error {
 
 	j.data = append(j.data, jsonCheckResult{
 		Filename: fileName,
-		Warnings: errsToStrings(cr.warnings),
-		Failures: errsToStrings(cr.failures),
+		Warnings: errsToStrings(cr.Warnings),
+		Failures: errsToStrings(cr.Failures),
 	})
 
 	return nil
 }
 
-func (j *jsonOutputManager) flush() error {
+func (j *jsonOutputManager) Flush() error {
 	b, err := json.Marshal(j.data)
 	if err != nil {
 		return err
@@ -161,21 +166,21 @@ type tapOutputManager struct {
 	logger *log.Logger
 }
 
-// newDefaultTapOutManager instantiates a new instance of tapOutputManager
+// NewDefaultTapOutManager instantiates a new instance of tapOutputManager
 // using the default logger.
-func newDefaultTAPOutputManager() *tapOutputManager {
-	return newTAPOutputManager(log.New(os.Stdout, "", 0))
+func NewDefaultTAPOutputManager() *tapOutputManager {
+	return NewTAPOutputManager(log.New(os.Stdout, "", 0))
 }
 
-// newTapOutputManager constructs an instance of stdOutputManager given a
+// NewTapOutputManager constructs an instance of stdOutputManager given a
 // logger instance.
-func newTAPOutputManager(l *log.Logger) *tapOutputManager {
+func NewTAPOutputManager(l *log.Logger) *tapOutputManager {
 	return &tapOutputManager{
 		logger: l,
 	}
 }
 
-func (s *tapOutputManager) put(fileName string, cr checkResult) error {
+func (s *tapOutputManager) Put(fileName string, cr CheckResult) error {
 	var indicator string
 	if fileName == "-" {
 		indicator = " - "
@@ -183,16 +188,16 @@ func (s *tapOutputManager) put(fileName string, cr checkResult) error {
 		indicator = fmt.Sprintf(" - %s - ", fileName)
 	}
 
-	issues := len(cr.failures) + len(cr.warnings)
+	issues := len(cr.Failures) + len(cr.Warnings)
 	if issues > 0 {
 		s.logger.Print(fmt.Sprintf("1..%d", issues))
-		for i, r := range cr.failures {
+		for i, r := range cr.Failures {
 			s.logger.Print("not ok ", i+1, indicator, r)
 		}
-		if len(cr.warnings) > 0 {
+		if len(cr.Warnings) > 0 {
 			s.logger.Print("# Warnings")
-			for i, r := range cr.warnings {
-				counter := i + 1 + len(cr.failures)
+			for i, r := range cr.Warnings {
+				counter := i + 1 + len(cr.Failures)
 				s.logger.Print("not ok ", counter, indicator, r)
 			}
 		}
@@ -201,7 +206,7 @@ func (s *tapOutputManager) put(fileName string, cr checkResult) error {
 	return nil
 }
 
-func (s *tapOutputManager) flush() error {
+func (s *tapOutputManager) Flush() error {
 	// no op
 	return nil
 }

@@ -74,6 +74,57 @@ FAIL - Deployments are not allowed
 Note that `conftest` isn't specific to Kubernetes. It will happily let you write tests for any
 configuration files.
 
+#### --combine-config flag
+Of note is the `--combine-config` flag that is sub flag for `conftest test`, ala `conftest test --combine-config`. This flag introduces *BREAKING CHANGES* in how `conftest` provides input to rego policies. However, you may find it useful to as you can now compare multiple values from different configurations simultaneously.
+
+Let's try it
+
+Save the following as `policy/combine.rego`:
+
+```rego
+package main
+
+
+deny[msg] {
+  input.kind = "Deployment"
+  deployment := input["deployment.yaml"]["spec"]["selector"]["matchLabels"]["app"]
+  service := input["service.yaml"]["spec"]["selector"]["app"]
+  
+  deployment != service
+
+  msg = sprintf("Expected these values to be the same but received %v for deployment and %v for service, [deployment, service])
+}
+```
+
+Then make a file in your root as service_two.yaml with the values below
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-kubernetes
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8080
+  selector:
+    app: goodbye-kubernetes
+```
+
+
+The `--combine-config` flag combines files into one `input` data structure. The structure is a `map` where each indice is the file path of the file being evaluated. 
+
+Assuming you have a Kubernetes deployment in `deployment.yaml` and a kubernetes service definition in `service.yaml` you can run `conftest` like so:
+
+```console
+$ conftest test --combine-config deployment.yaml service.yaml
+
+FAIL - Combined-configs (multi-file) - Expected these values to be the same but received hello-kubernetes for deployment and goodbye-kubernetes for service
+```
+
+This is just the tip of the iceberg. Now you can ensure that duplicate values match across the entirety of your configuration files.
+
 ### Configuring Output
 
 The output of `conftest` can be configured using the `--output` flag (`-o`). 

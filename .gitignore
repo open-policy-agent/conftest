@@ -3,3 +3,4 @@ dist
 
 # IDEs
 .vscode
+.DS*
