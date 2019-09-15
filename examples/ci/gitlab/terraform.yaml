@@ -1,0 +1,49 @@
+image:
+  name: hashicorp/terraform:light
+  entrypoint:
+    - '/usr/bin/env'
+    - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+
+stages:
+  - validate
+  - plan
+  - conformance
+  - apply
+
+before_script:
+  - rm -rf .terraform
+  - terraform --version
+  - terraform init
+
+validate:
+  stage: validate
+  script:
+    - terraform validate
+
+plan:
+  stage: plan
+  script:
+    - ls
+    - terraform plan -out "planfile"
+    - terraform show -json "planfile" > "showfile"
+  dependencies:
+    - validate
+  artifacts:
+    untracked: false
+    expire_in: 30 days
+    paths:
+      - planfile
+      - showfile
+
+conftest:
+  stage: conformance
+  image:
+    name: instrumenta/conftest:latest
+    entrypoint:
+      - ""
+  dependencies:
+    - plan
+  before_script:
+    - conftest --version
+  script:
+    - conftest test "$CI_PROJECT_DIR/showfile"
