@@ -1,0 +1,23 @@
+stages:
+  - validate
+  - conformance
+
+validate:
+  stage: validate
+  image:
+    name: garethr/kubeval
+    entrypoint:
+      - ""                          # Override default entrypoint.
+  script:
+    - kubeval --strict deploy/*     # Assume k8s configs are in folder deploy/
+
+conformance:
+  stage: conformance
+  dependancies:
+    - validate
+  image:
+    name: instrumenta/conftest:latest
+    entrypoint:
+      - ""                          # Override default entrypoint. If not included gitlab ci will execute `conftest sh test`
+  script:
+    - conftest test deploy/*        # Assume k8s configs are in folder deploy/
