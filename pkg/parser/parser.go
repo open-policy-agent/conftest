@@ -12,6 +12,7 @@ import (
 	"github.com/instrumenta/conftest/pkg/parser/terraform"
 	"github.com/instrumenta/conftest/pkg/parser/toml"
 	"github.com/instrumenta/conftest/pkg/parser/yaml"
+	"github.com/instrumenta/conftest/pkg/parser/hcl2"
 )
 
 // ValidInputs returns string array in order to passing valid input types to viper
@@ -109,6 +110,8 @@ func GetParser(fileType string) (Parser, error) {
 		return &cue.Parser{}, nil
 	case "ini":
 		return &ini.Parser{}, nil
+	case "hcl2":
+		return &hcl2.Parser{}, nil
 	case "Dockerfile":
 		return &docker.Parser{}, nil
 	case "yml", "yaml", "json":
