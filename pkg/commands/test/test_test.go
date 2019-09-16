@@ -160,10 +160,15 @@ func TestFailQuery(t *testing.T) {
 	}{
 		{"", false},
 		{"deny", true},
+		{"violation", true},
 		{"denyXYZ", false},
+		{"violationXYZ", false},
 		{"deny_", false},
+		{"violation_", false},
 		{"deny_x", true},
+		{"violation_x", true},
 		{"deny_x_y_z", true},
+		{"violation_x_y_z", true},
 	}
 
 	for _, tt := range tests {

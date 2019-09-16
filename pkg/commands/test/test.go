@@ -25,7 +25,7 @@ import (
 )
 
 var (
-	DenyQ                 = regexp.MustCompile("^deny(_[a-zA-Z]+)*$")
+	DenyQ                 = regexp.MustCompile("^(deny|violation)(_[a-zA-Z]+)*$")
 	WarnQ                 = regexp.MustCompile("^warn(_[a-zA-Z]+)*$")
 	CombineConfigFlagName = "combine-config"
 )
@@ -328,7 +328,7 @@ func recursivelySearchDirForRegoFiles(path string) ([]string, error) {
 			return err
 		}
 
-		if !info.IsDir() && strings.HasSuffix(info.Name(), ".rego"){
+		if !info.IsDir() && strings.HasSuffix(info.Name(), ".rego") {
 			filepaths = append(filepaths, path)
 		}
 
