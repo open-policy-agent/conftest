@@ -81,6 +81,12 @@
   [[ "$output" =~ "Users should verify their e-mail address" ]]
 }
 
+@test "Can parse hcl2 files" {
+  run ./conftest test -p examples/hcl2/policy examples/hcl2/terraform.tf -i hcl2
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "Application environment is should be `staging_environment`" ]]
+}
+
 @test "Can parse stdin with input flag" {
   run bash -c "cat examples/ini/grafana.ini | ./conftest test -p examples/ini/policy --input ini -"
   [ "$status" -eq 1 ]

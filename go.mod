@@ -20,6 +20,7 @@ require (
 	github.com/gorilla/mux v1.7.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.1 // indirect
 	github.com/hashicorp/hcl v1.0.0
+	github.com/hashicorp/hcl2 v0.0.0-20190618163856-0b64543c968c
 	github.com/hashicorp/terraform v0.12.3
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/logrusorgru/aurora v0.0.0-20190417130405-e50442bb4cb5
@@ -42,6 +43,7 @@ require (
 	github.com/xenolf/lego v2.5.0+incompatible // indirect
 	github.com/yashtewari/glob-intersection v0.0.0-20180916065949-5c77d914dd0b // indirect
 	github.com/yvasiyarov/newrelic_platform_go v0.0.0-20160601141957-9c099fbc30e9 // indirect
+	github.com/zclconf/go-cty v1.0.0
 	golang.org/x/crypto v0.0.0-20190513172903-22d7a77e9e5f // indirect
 	golang.org/x/oauth2 v0.0.0-20190523182746-aaccbc9213b0 // indirect
 	google.golang.org/appengine v1.6.0 // indirect
