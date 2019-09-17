@@ -134,6 +134,9 @@ func (c *converter) convertTemplateConditional(expr *hclsyntax.ConditionalExpr) 
 	}
 	builder.WriteString(trueResult)
 	falseResult, err := c.convertStringPart(expr.FalseResult)
+	if err != nil {
+		return "", nil
+	}
 	if len(falseResult) > 0 {
 		builder.WriteString("%{else}")
 		builder.WriteString(falseResult)
