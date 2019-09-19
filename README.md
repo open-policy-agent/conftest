@@ -28,6 +28,7 @@ As of today `conftest` supports:
 * HCL
 * CUE
 * Dockerfile
+* HCL2 (Experimental)
 
 Policies by default should be placed in a directory
 called `policy` but this can be overridden.
@@ -73,6 +74,16 @@ FAIL - Deployments are not allowed
 
 Note that `conftest` isn't specific to Kubernetes. It will happily let you write tests for any
 configuration files.
+
+#### --input flag
+`conftest` normally detects input type with the file extension, but you can force to use a different one with `--input` or `-i` flag.
+
+For the available parsers, take a look at: [parsers](pkg/parser). For instance:
+
+```console
+$ conftest test -p examples/hcl2/policy examples/hcl2/terraform.tf -i hcl2
+FAIL - examples/hcl2/terraform.tf - Application environment is should be `staging_environment`
+```
 
 #### --combine-config flag
 Of note is the `--combine-config` flag that is sub flag for `conftest test`, ala `conftest test --combine-config`. This flag introduces *BREAKING CHANGES* in how `conftest` provides input to rego policies. However, you may find it useful to as you can now compare multiple values from different configurations simultaneously.
@@ -183,7 +194,9 @@ You can find examples using various other tools in the `examples ` directory, in
 * [Serverless Framework](examples/serverless)
 * [AWS SAM Framework](examples/awssam)
 * [INI](examples/ini)
+* [TOML](examples/traefik)
 * [Dockerfile](examples/docker)
+* [HCL2](examples/hcl2)
 
 ## Configuration and external policies
 

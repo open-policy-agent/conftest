@@ -9,9 +9,7 @@ import (
 	"github.com/hashicorp/hcl2/hcl/hclsyntax"
 )
 
-type Parser struct {
-	FileName string
-}
+type Parser struct {}
 
 func (h *Parser) Unmarshal(p []byte, v interface{}) error {
 	file, diags := hclsyntax.ParseConfig(p, "", hcl.Pos{Line: 1, Column: 1})
