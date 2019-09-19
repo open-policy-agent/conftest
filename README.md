@@ -227,7 +227,7 @@ configuration file like the following:
 # You can override the directory in which to store and look for policies
 policy = "tests"
 
-# You can overide the namespace which to search for rules
+# You can override the namespace which to search for rules
 namespace = "conftest"
 
 # An array of individual policies to download. Only the repository
@@ -386,5 +386,5 @@ FAIL - deployment.yaml - Containers must not run as root in Deployment hello-kub
 * [kubetest](https://github.com/garethr/kubetest) was a similar project of mine, using [Skylark](https://docs.bazel.build/versions/master/skylark/language.html)
 * [Open Policy Agent](https://www.openpolicyagent.org/) and the Rego query language
 * The [helm-opa](https://github.com/eicnix/helm-opa) plugin from [@eicnix](https://github.com/eicnix/) helped with understanding the OPA Go packages
-* Tools from the wider instrastructure as code community, in particular rspec-puppet. Lots of my thoughts in [my talk from KubeCon 2017](https://speakerdeck.com/garethr/developer-tooling-for-kubernetes-configurations)
+* Tools from the wider infrastructure as code community, in particular rspec-puppet. Lots of my thoughts in [my talk from KubeCon 2017](https://speakerdeck.com/garethr/developer-tooling-for-kubernetes-configurations)
 * The code in `pkg/auth` is copied from Oras and will be removed once [this issue](https://github.com/deislabs/oras/issues/98) is resolved
