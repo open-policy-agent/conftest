@@ -12,40 +12,25 @@ import (
 // BuildCompiler compiles all Rego policies at the given path and returns the Compiler containing
 // the compilation state
 func BuildCompiler(path string) (*ast.Compiler, error) {
-	info, err := os.Stat(path)
+	files, err := recursivelySearchDirForRegoFiles(path)
 	if err != nil {
 		return nil, err
-	}
-	var files []os.FileInfo
-	var dirPath string
-	if info.IsDir() {
-		files, err = ioutil.ReadDir(path)
-		if err != nil {
-			return nil, err
-		}
-		dirPath = path
-	} else {
-		files = []os.FileInfo{info}
-		dirPath = filepath.Dir(path)
 	}
 
 	modules := map[string]*ast.Module{}
 
 	for _, file := range files {
-		if !strings.HasSuffix(file.Name(), ".rego") {
-			continue
-		}
-
-		out, err := ioutil.ReadFile(dirPath + "/" + file.Name())
+		out, err := ioutil.ReadFile(file)
 		if err != nil {
 			return nil, err
 		}
 
-		parsed, err := ast.ParseModule(file.Name(), string(out[:]))
+		name := filepath.Base(file)
+		parsed, err := ast.ParseModule(name, string(out[:]))
 		if err != nil {
 			return nil, err
 		}
-		modules[file.Name()] = parsed
+		modules[name] = parsed
 	}
 
 	compiler := ast.NewCompiler()
@@ -56,4 +41,21 @@ func BuildCompiler(path string) (*ast.Compiler, error) {
 	}
 
 	return compiler, nil
+}
+
+func recursivelySearchDirForRegoFiles(path string) ([]string, error) {
+	var filepaths []string
+	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() && strings.HasSuffix(info.Name(), ".rego") {
+			filepaths = append(filepaths, path)
+		}
+
+		return nil
+	})
+
+	return filepaths, err
 }

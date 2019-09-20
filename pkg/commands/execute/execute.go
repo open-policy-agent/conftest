@@ -1,34 +1,36 @@
 package execute
 
 import (
+	"path/filepath"
+	"fmt"
 	"context"
 	"os"
 
 	"github.com/containerd/containerd/log"
 	"github.com/instrumenta/conftest/pkg/policy"
-	"github.com/instrumenta/conftest/pkg/report"
+	"github.com/instrumenta/conftest/pkg/commands/test"
 	"github.com/open-policy-agent/opa/tester"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-func NewExecuteCommand() *cobra.Command {
+func NewExecuteCommand(getOutputManager func() test.OutputManager) *cobra.Command {
+	ctx := context.Background()
 	cmd := &cobra.Command{
 		Use:   "execute",
 		Short: "Execute Rego unit tests",
 
 		Run: func(cmd *cobra.Command, args []string) {
-			ctx := context.Background()
+			out := getOutputManager()
 
-			compiler, err := policy.BuildCompiler(viper.GetString("policy"))
+			policyPath := viper.GetString("policy")
+			compiler, err := policy.BuildCompiler(policyPath)
 			if err != nil {
 				log.G(ctx).Fatalf("Problem building rego compiler: %s", err)
 			}
 
 			runner := tester.NewRunner().
 				SetCompiler(compiler)
-
-			reporter := report.GetReporter(viper.GetString("output"), !viper.GetBool("color"))
 
 			ch, err := runner.Run(ctx, compiler.Modules)
 			if err != nil {
@@ -37,27 +39,54 @@ func NewExecuteCommand() *cobra.Command {
 
 			results := getResults(ctx, ch)
 
-			err = reporter.Report(results)
+			for result := range results {
+				msg := fmt.Errorf("%s", result.Msg)
+				fileName := filepath.Join(policyPath, result.FileName)
+				if result.Fail {
+					err = out.Put(fileName, test.CheckResult{Failures:[]error{msg}})
+				} else {
+					err = out.Put(fileName, test.CheckResult{Successes:[]error{msg}})
+				}
+
+				if err != nil {
+					log.G(ctx).Fatalf("Problem writing to output: %s", err)
+				}
+			}
+
+			err = out.Flush()
 			if err != nil {
-				log.G(ctx).Fatalf("Problem writing to output: %s", err)
+				log.G(ctx).Fatal(err)
 			}
 
 			os.Exit(0)
 		},
 	}
 
+	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", test.ValidOutputs()))
+	err := viper.BindPFlag("output", cmd.Flags().Lookup("output"))
+	if err != nil {
+		log.G(ctx).Fatal("Failed to bind argument:", err)
+	}
+
 	return cmd
 }
 
-func getResults(ctx context.Context, in <-chan *tester.Result) <-chan report.Result {
-	results := make(chan report.Result)
+type report struct {
+	FileName string
+	Msg      string
+	Fail 	bool
+}
+
+func getResults(ctx context.Context, in <-chan *tester.Result) <-chan report {
+	results := make(chan report)
 	go func() {
 		defer close(results)
 		for result := range in {
 			if result.Error != nil {
 				log.G(ctx).Fatalf("Test failed to execute: %s", result.Error)
 			}
-			results <- report.Result{Level: report.Error, FileName: result.Location.File, Msg: result.Name}
+			msg := result.Package+"."+result.Name
+			results <- report{FileName: result.Location.File, Msg: msg, Fail: result.Fail}
 		}
 	}()
 
