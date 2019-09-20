@@ -6,9 +6,11 @@ import (
 	"context"
 	"os"
 
-	"github.com/containerd/containerd/log"
+	"github.com/instrumenta/conftest/pkg/constants"
 	"github.com/instrumenta/conftest/pkg/policy"
 	"github.com/instrumenta/conftest/pkg/commands/test"
+
+	"github.com/containerd/containerd/log"
 	"github.com/open-policy-agent/opa/tester"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -19,6 +21,7 @@ func NewExecuteCommand(getOutputManager func() test.OutputManager) *cobra.Comman
 	cmd := &cobra.Command{
 		Use:   "execute",
 		Short: "Execute Rego unit tests",
+		Version: fmt.Sprintf("Version: %s\nCommit: %s\nDate: %s\n", constants.Version, constants.Commit, constants.Date),
 
 		Run: func(cmd *cobra.Command, args []string) {
 			out := getOutputManager()
