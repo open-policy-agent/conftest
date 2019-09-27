@@ -70,12 +70,12 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 				var config io.ReadCloser
 				fileType, err = getFileType(viper.GetString("input"), fileName)
 				if err != nil {
-					log.G(ctx).Printf("Unable to get file type: %v", err)
+					log.G(ctx).Errorf("Unable to get file type: %v", err)
 					osExit(1)
 				}
 				config, err = getConfig(fileName)
 				if err != nil {
-					log.G(ctx).Printf("Unable to open file or read from stdin %s", err)
+					log.G(ctx).Errorf("Unable to open file or read from stdin %s", err)
 					osExit(1)
 				}
 				configFiles = append(configFiles, parser.ConfigDoc{
@@ -86,7 +86,7 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 			configManager := parser.NewConfigManager(fileType)
 			configurations, err := configManager.BulkUnmarshal(configFiles)
 			if err != nil {
-				log.G(ctx).Printf("Unable to BulkUnmarshal your config files: %v", err)
+				log.G(ctx).Errorf("Unable to BulkUnmarshal your config files: %v", err)
 				osExit(1)
 			}
 
@@ -178,6 +178,9 @@ func getFileType(inputFileType, fileName string) (string, error) {
 	if inputFileType != "" {
 		return inputFileType, nil
 	}
+	if fileName == "-" && inputFileType == "" {
+		return "yaml", nil
+	}
 	if fileName != "-" {
 		fileType := ""
 		if strings.Contains(fileName, ".") {
@@ -188,9 +191,6 @@ func getFileType(inputFileType, fileName string) (string, error) {
 		}
 
 		return fileType, nil
-	}
-	if fileName == "-" && inputFileType == "" {
-		return "", fmt.Errorf("You must define an input type to read from stdin")
 	}
 	return "", fmt.Errorf("not supported filetype")
 }

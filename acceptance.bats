@@ -20,9 +20,9 @@
   [ "$status" -eq 0 ]
 }
 
-@test "Pass when testing a YAML document via stdin filetype is required" {
+@test "when testing a YAML document via stdin, default parser should be yaml if no input flag is passed" {
   run ./conftest test -p examples/kubernetes/policy - < examples/kubernetes/service.yaml
-  [ "$status" -eq 1 ]
+  [ "$status" -eq 0 ]
 }
 
 @test "Pass when testing a YAML document via stdin" {
