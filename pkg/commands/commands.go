@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/instrumenta/conftest/pkg/commands/execute"
+	"github.com/instrumenta/conftest/pkg/commands/verify"
 	"github.com/instrumenta/conftest/pkg/commands/pull"
 	"github.com/instrumenta/conftest/pkg/commands/push"
 	"github.com/instrumenta/conftest/pkg/commands/test"
@@ -51,7 +51,7 @@ func NewDefaultCommand() *cobra.Command {
 	cmd.AddCommand(update.NewUpdateCommand())
 	cmd.AddCommand(push.NewPushCommand())
 	cmd.AddCommand(pull.NewPullCommand())
-	cmd.AddCommand(execute.NewExecuteCommand(
+	cmd.AddCommand(verify.NewVerifyCommand(
 		test.GetOutputManager,
 	))
 

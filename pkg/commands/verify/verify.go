@@ -1,4 +1,4 @@
-package execute
+package verify
 
 import (
 	"path/filepath"
@@ -16,11 +16,11 @@ import (
 	"github.com/spf13/viper"
 )
 
-func NewExecuteCommand(getOutputManager func() test.OutputManager) *cobra.Command {
+func NewVerifyCommand(getOutputManager func() test.OutputManager) *cobra.Command {
 	ctx := context.Background()
 	cmd := &cobra.Command{
-		Use:   "execute",
-		Short: "Execute Rego unit tests",
+		Use:   "verify",
+		Short: "Verify Rego unit tests",
 		Version: fmt.Sprintf("Version: %s\nCommit: %s\nDate: %s\n", constants.Version, constants.Commit, constants.Date),
 
 		Run: func(cmd *cobra.Command, args []string) {
