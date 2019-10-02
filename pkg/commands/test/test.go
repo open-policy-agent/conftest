@@ -63,7 +63,10 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 				log.G(ctx).Fatalf("Problem building rego compiler: %s", err)
 			}
 
-			configurations := getConfigurations(ctx, osExit, fileList)
+			configurations, err := getConfigurations(ctx, fileList)
+			if err != nil {
+				osExit(1)
+			}
 
 			var res CheckResult
 			if viper.GetBool(CombineConfigFlagName) {
@@ -123,7 +126,7 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 	return cmd
 }
 
-func getConfigurations(ctx context.Context, osExit func(int), fileList []string) map[string]interface{} {
+func getConfigurations(ctx context.Context, fileList []string) (map[string]interface{}, error) {
 	var configFiles []parser.ConfigDoc
 	var fileType string
 
@@ -135,13 +138,13 @@ func getConfigurations(ctx context.Context, osExit func(int), fileList []string)
 
 		if err != nil {
 			log.G(ctx).Errorf("Unable to get file type: %v", err)
-			osExit(1)
+			return nil, err
 		}
 
 		config, err = getConfig(fileName)
 		if err != nil {
 			log.G(ctx).Errorf("Unable to open file or read from stdin %s", err)
-			osExit(1)
+			return nil, err
 		}
 
 		configFiles = append(configFiles, parser.ConfigDoc{
@@ -154,10 +157,10 @@ func getConfigurations(ctx context.Context, osExit func(int), fileList []string)
 	configurations, err := configManager.BulkUnmarshal(configFiles)
 	if err != nil {
 		log.G(ctx).Errorf("Unable to BulkUnmarshal your config files: %v", err)
-		osExit(1)
+		return nil, err
 	}
 
-	return configurations
+	return configurations, nil
 }
 
 func getConfig(fileName string) (io.ReadCloser, error) {
@@ -261,6 +264,7 @@ func processData(ctx context.Context, input interface{}, compiler *ast.Compiler)
 		if err != nil {
 			return CheckResult{}, err
 		}
+
 		failures = append(failures, fails...)
 	}
 
