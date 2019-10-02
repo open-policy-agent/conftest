@@ -214,7 +214,6 @@ func getFileType(inputFileType, fileName string) (string, error) {
 
 // finds all queries in the compiler
 func getRules(ctx context.Context, re *regexp.Regexp, compiler *ast.Compiler) []string {
-
 	var res []string
 
 	for _, m := range compiler.Modules {
@@ -246,22 +245,22 @@ func makeQuery(rule string) string {
 }
 
 func processData(ctx context.Context, input interface{}, compiler *ast.Compiler) (CheckResult, error) {
-	// collect warnings
 	warnings, err := runRules(ctx, input, WarnQ, compiler)
 	if err != nil {
 		return CheckResult{}, err
 	}
 
-	// collect failures
 	failures, err := runRules(ctx, input, DenyQ, compiler)
 	if err != nil {
 		return CheckResult{}, err
 	}
 
-	return CheckResult{
-		Failures: failures,
+	result := CheckResult{
 		Warnings: warnings,
-	}, nil
+		Failures: failures,
+	}
+
+	return result, nil
 }
 
 func runRules(ctx context.Context, input interface{}, regex *regexp.Regexp, compiler *ast.Compiler) ([]error, error) {
@@ -269,8 +268,8 @@ func runRules(ctx context.Context, input interface{}, regex *regexp.Regexp, comp
 	var errors []error
 	var err error
 
-	for _, rule := range getRules(ctx, regex, compiler) {
-
+	rules := getRules(ctx, regex, compiler)
+	for _, rule := range rules {
 		_, multiple := input.([]interface{})
 		if multiple {
 			errors, err = runMultipleQueries(ctx, makeQuery(rule), input, compiler)

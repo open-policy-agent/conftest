@@ -4,7 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"github.com/instrumenta/conftest/pkg/parser/docker"
 	"github.com/instrumenta/conftest/pkg/parser/yaml"
+
 	"github.com/spf13/viper"
 )
 
@@ -213,5 +215,40 @@ metadata:
 	actual := len(results.Failures)
 	if actual != expected {
 		t.Errorf("Multifile yaml test failure. Got %v failures, expected %v", actual, expected)
+	}
+}
+
+func TestDockerfile(t *testing.T) {
+	ctx := context.Background()
+
+	config := `FROM openjdk:8-jdk-alpine
+VOLUME /tmp
+
+ARG DEPENDENCY=target/dependency
+COPY ${DEPENDENCY}/BOOT-INF/lib /app/lib
+COPY ${DEPENDENCY}/META-INF /app/META-INF
+COPY ${DEPENDENCY}/BOOT-INF/classes /app
+
+ENTRYPOINT ["java","-cp","app:app/lib/*","hello.Application"]`
+
+	parser := docker.Parser{}
+
+	var jsonConfig interface{}
+	parser.Unmarshal([]byte(config), &jsonConfig)
+
+	compiler, err := buildCompiler("testdata/policy/test_policy_dockerfile.rego")
+	if err != nil {
+		t.Fatalf("Could not build rego compiler")
+	}
+
+	results, err := processData(ctx, jsonConfig, compiler)
+	if err != nil {
+		t.Fatalf("Could not process policy file")
+	}
+
+	const expected = 1
+	actual := len(results.Failures)
+	if actual != expected {
+		t.Errorf("Dockerfile test failure. Got %v failures, expected %v", actual, expected)
 	}
 }

@@ -10,10 +10,9 @@ import (
 func TestParser_Unmarshal(t *testing.T) {
 	parser := new(docker.Parser)
 
-	sample := `FROM golang:1.12-alpine as builder
-	COPY . /
-	RUN go build cmd/main.go
-	`
+	sample := `FROM foo
+COPY . /
+RUN echo hello`
 
 	var input interface{}
 	err := parser.Unmarshal([]byte(sample), &input)
