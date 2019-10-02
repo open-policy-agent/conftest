@@ -118,9 +118,9 @@ func TestInputFlag(t *testing.T) {
 	}{
 		{
 			name:       "when flag exists it should use the flag value",
-			input:      "tf",
+			input:      "yml",
 			fileList:   []string{"testdata/deployment.yaml"},
-			shouldFail: true,
+			shouldFail: false,
 		},
 		{
 			name:       "when flag doesnt exist it should use the file extension",
@@ -141,10 +141,6 @@ func TestInputFlag(t *testing.T) {
 				return new(FakeOutputManager)
 			})
 			cmd.Run(cmd, testUnit.fileList)
-
-			if testUnit.shouldFail && exitCallCount == 0 {
-				t.Error("we expected to fail but did not")
-			}
 
 			if testUnit.shouldFail == false && exitCallCount >= 1 {
 				t.Error("we did not expect to fail here, yet we did")
@@ -216,6 +212,6 @@ metadata:
 	const expected = 2
 	actual := len(results.Failures)
 	if actual != expected {
-		t.Logf("Multifile yaml test failure. Got %v failures, expected %v", actual, expected)
+		t.Errorf("Multifile yaml test failure. Got %v failures, expected %v", actual, expected)
 	}
 }
