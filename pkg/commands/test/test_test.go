@@ -234,7 +234,10 @@ ENTRYPOINT ["java","-cp","app:app/lib/*","hello.Application"]`
 	parser := docker.Parser{}
 
 	var jsonConfig interface{}
-	parser.Unmarshal([]byte(config), &jsonConfig)
+	err := parser.Unmarshal([]byte(config), &jsonConfig)
+	if err != nil {
+		t.Fatalf("Could not unmarshal dockerfile")
+	}
 
 	compiler, err := buildCompiler("testdata/policy/test_policy_dockerfile.rego")
 	if err != nil {
