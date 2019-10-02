@@ -1,10 +1,10 @@
-FROM golang:1.12-alpine as builder
+FROM golang:1.13-alpine as builder
 RUN apk --no-cache add git
 WORKDIR /
 COPY . /
 RUN GOOS=linux GOARCH=amd64 go build -o conftest -ldflags="-w -s" cmd/main.go
 
-FROM golang:1.12-alpine as test
+FROM golang:1.13-alpine as test
 COPY --from=builder /conftest /
 RUN go test /conftest/...
 
@@ -14,7 +14,7 @@ COPY acceptance.bats /acceptance.bats
 COPY examples /examples
 RUN ./acceptance.bats
 
-FROM golang:1.12-alpine as examples
+FROM golang:1.13-alpine as examples
 
 ENV TERRAFORM_VERSION=0.12.0-rc1 \
     KUSTOMIZE_VERSION=2.0.3

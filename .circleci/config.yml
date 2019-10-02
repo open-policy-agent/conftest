@@ -31,7 +31,7 @@ jobs:
   
   acceptance:
     docker:
-      - image: circleci/golang:1.12-node
+      - image: circleci/golang:1.13-node
 
     steps: 
       - checkout 
@@ -64,7 +64,7 @@ jobs:
 
   security:
     docker:
-      - image: circleci/golang:1.12-node
+      - image: circleci/golang:1.13-node
 
     steps: 
       - checkout 
@@ -99,7 +99,7 @@ jobs:
 
   release:
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.13
     steps:
       - checkout
       - run: curl -sL https://git.io/goreleaser | bash
