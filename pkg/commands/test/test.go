@@ -135,7 +135,6 @@ func getConfigurations(ctx context.Context, fileList []string) (map[string]inter
 		var config io.ReadCloser
 
 		fileType, err = getFileType(viper.GetString("input"), fileName)
-
 		if err != nil {
 			log.G(ctx).Errorf("Unable to get file type: %v", err)
 			return nil, err
@@ -245,6 +244,7 @@ func makeQuery(rule string) string {
 }
 
 func processData(ctx context.Context, input interface{}, compiler *ast.Compiler) (CheckResult, error) {
+
 	warnings, err := runRules(ctx, input, WarnQ, compiler)
 	if err != nil {
 		return CheckResult{}, err
