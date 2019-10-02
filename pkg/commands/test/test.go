@@ -244,7 +244,6 @@ func makeQuery(rule string) string {
 }
 
 func processData(ctx context.Context, input interface{}, compiler *ast.Compiler) (CheckResult, error) {
-
 	warnings, err := runRules(ctx, input, WarnQ, compiler)
 	if err != nil {
 		return CheckResult{}, err
@@ -270,10 +269,11 @@ func runRules(ctx context.Context, input interface{}, regex *regexp.Regexp, comp
 
 	rules := getRules(ctx, regex, compiler)
 	for _, rule := range rules {
-		_, multiple := input.([]interface{})
-		if multiple {
+
+		switch input.(type) {
+		case []interface{}:
 			errors, err = runMultipleQueries(ctx, makeQuery(rule), input, compiler)
-		} else {
+		default:
 			errors, err = runQuery(ctx, makeQuery(rule), input, compiler)
 		}
 
