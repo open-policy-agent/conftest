@@ -247,25 +247,15 @@ func makeQuery(rule string) string {
 
 func processData(ctx context.Context, input interface{}, compiler *ast.Compiler) (CheckResult, error) {
 	// collect warnings
-	var warnings []error
-	for _, rule := range getRules(ctx, WarnQ, compiler) {
-		warns, err := runQuery(ctx, makeQuery(rule), input, compiler)
-		if err != nil {
-			return CheckResult{}, err
-		}
-
-		warnings = append(warnings, warns...)
+	warnings, err := runRules(ctx, input, WarnQ, compiler)
+	if err != nil {
+		return CheckResult{}, err
 	}
 
 	// collect failures
-	var failures []error
-	for _, rule := range getRules(ctx, DenyQ, compiler) {
-		fails, err := runQuery(ctx, makeQuery(rule), input, compiler)
-		if err != nil {
-			return CheckResult{}, err
-		}
-
-		failures = append(failures, fails...)
+	failures, err := runRules(ctx, input, DenyQ, compiler)
+	if err != nil {
+		return CheckResult{}, err
 	}
 
 	return CheckResult{
@@ -274,14 +264,35 @@ func processData(ctx context.Context, input interface{}, compiler *ast.Compiler)
 	}, nil
 }
 
-func runQuery(ctx context.Context, query string, input interface{}, compiler *ast.Compiler) ([]error, error) {
-	hasResults := func(expression interface{}) bool {
-		if v, ok := expression.([]interface{}); ok {
-			return len(v) > 0
+func runRules(ctx context.Context, input interface{}, regex *regexp.Regexp, compiler *ast.Compiler) ([]error, error) {
+	var totalErrors []error
+	for _, rule := range getRules(ctx, WarnQ, compiler) {
+		errors, err := runQuery(ctx, makeQuery(rule), input, compiler)
+		if err != nil {
+			return nil, err
 		}
-		return false
+
+		totalErrors = append(totalErrors, errors...)
 	}
 
+	return totalErrors, nil
+}
+
+func runMultipleQueries(ctx context.Context, query string, inputs []interface{}, compiler *ast.Compiler) ([]error, error) {
+	var totalViolations []error
+	for _, input := range inputs {
+		violations, err := runQuery(ctx, query, input, compiler)
+		if err != nil {
+			return nil, err
+		}
+
+		totalViolations = append(totalViolations, violations...)
+	}
+
+	return totalViolations, nil
+}
+
+func runQuery(ctx context.Context, query string, input interface{}, compiler *ast.Compiler) ([]error, error) {
 	r, stdout := buildRego(viper.GetBool("trace"), query, input, compiler)
 	rs, err := r.Eval(ctx)
 
@@ -291,8 +302,14 @@ func runQuery(ctx context.Context, query string, input interface{}, compiler *as
 
 	topdown.PrettyTrace(os.Stdout, *stdout)
 
-	var errs []error
+	hasResults := func(expression interface{}) bool {
+		if v, ok := expression.([]interface{}); ok {
+			return len(v) > 0
+		}
+		return false
+	}
 
+	var errs []error
 	for _, r := range rs {
 		for _, e := range r.Expressions {
 			value := e.Value
