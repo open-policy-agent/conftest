@@ -33,7 +33,7 @@ require (
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/hashicorp/hcl v1.0.0
 	github.com/hashicorp/hcl2 v0.0.0-20190909202536-66c59f909e25
-	github.com/logrusorgru/aurora v0.0.0-20180419164547-d694e6f975a9
+	github.com/logrusorgru/aurora v0.0.0-20190803045625-94edacc10f9b
 	github.com/moby/buildkit v0.6.1
 	github.com/open-policy-agent/opa v0.14.0
 	github.com/opencontainers/image-spec v1.0.1

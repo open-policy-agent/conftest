@@ -81,7 +81,7 @@ func (s *stdOutputManager) Put(fileName string, cr CheckResult) error {
 
 	// print warnings and then print errors
 	for _, r := range cr.Warnings {
-		s.logger.Print(s.color.Colorize("WARN", aurora.RedFg), indicator, r)
+		s.logger.Print(s.color.Colorize("WARN", aurora.YellowFg), indicator, r)
 	}
 
 	for _, r := range cr.Failures {

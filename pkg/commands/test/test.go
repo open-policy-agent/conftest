@@ -266,8 +266,18 @@ func processData(ctx context.Context, input interface{}, compiler *ast.Compiler)
 
 func runRules(ctx context.Context, input interface{}, regex *regexp.Regexp, compiler *ast.Compiler) ([]error, error) {
 	var totalErrors []error
-	for _, rule := range getRules(ctx, WarnQ, compiler) {
-		errors, err := runQuery(ctx, makeQuery(rule), input, compiler)
+	var errors []error
+	var err error
+
+	for _, rule := range getRules(ctx, regex, compiler) {
+
+		_, multiple := input.([]interface{})
+		if multiple {
+			errors, err = runMultipleQueries(ctx, makeQuery(rule), input, compiler)
+		} else {
+			errors, err = runQuery(ctx, makeQuery(rule), input, compiler)
+		}
+
 		if err != nil {
 			return nil, err
 		}
@@ -278,9 +288,9 @@ func runRules(ctx context.Context, input interface{}, regex *regexp.Regexp, comp
 	return totalErrors, nil
 }
 
-func runMultipleQueries(ctx context.Context, query string, inputs []interface{}, compiler *ast.Compiler) ([]error, error) {
+func runMultipleQueries(ctx context.Context, query string, inputs interface{}, compiler *ast.Compiler) ([]error, error) {
 	var totalViolations []error
-	for _, input := range inputs {
+	for _, input := range inputs.([]interface{}) {
 		violations, err := runQuery(ctx, query, input, compiler)
 		if err != nil {
 			return nil, err
