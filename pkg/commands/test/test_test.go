@@ -199,7 +199,7 @@ metadata:
 		t.Fatalf("Could not unmarshal yaml")
 	}
 
-	compiler, err := buildCompiler("testdata/policy/test_policy_multifile.rego")
+	compiler, err := buildCompiler("testdata/policy/test_policy.rego")
 	if err != nil {
 		t.Fatalf("Could not build rego compiler")
 	}
