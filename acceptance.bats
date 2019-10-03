@@ -121,3 +121,9 @@
   count="${#lines[@]}"
   [ "$count" -eq 3 ]
 }
+
+@test "Can verify rego tests" {
+  run ./conftest verify --policy ./examples/kubernetes/policy
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "test_services_not_denied" ]]
+}
