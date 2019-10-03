@@ -47,7 +47,6 @@ require (
 	github.com/yvasiyarov/newrelic_platform_go v0.0.0-20160601141957-9c099fbc30e9 // indirect
 	github.com/zclconf/go-cty v1.0.0
 	golang.org/x/crypto v0.0.0-20190513172903-22d7a77e9e5f // indirect
-	google.golang.org/appengine v1.4.0 // indirect
 	google.golang.org/genproto v0.0.0-20190620144150-6af8c5fc6601 // indirect
 	gopkg.in/ini.v1 v1.46.0 // indirect
 )
