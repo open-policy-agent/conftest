@@ -6,6 +6,7 @@ import (
 
 	"github.com/instrumenta/conftest/pkg/parser/docker"
 	"github.com/instrumenta/conftest/pkg/parser/yaml"
+    "github.com/instrumenta/conftest/pkg/policy"
 
 	"github.com/spf13/viper"
 )
@@ -201,7 +202,7 @@ metadata:
 		t.Fatalf("Could not unmarshal yaml")
 	}
 
-	compiler, err := buildCompiler("testdata/policy/test_policy.rego")
+	compiler, err := policy.BuildCompiler("testdata/policy/test_policy.rego")
 	if err != nil {
 		t.Fatalf("Could not build rego compiler")
 	}
@@ -239,7 +240,7 @@ ENTRYPOINT ["java","-cp","app:app/lib/*","hello.Application"]`
 		t.Fatalf("Could not unmarshal dockerfile")
 	}
 
-	compiler, err := buildCompiler("testdata/policy/test_policy_dockerfile.rego")
+	compiler, err := policy.BuildCompiler("testdata/policy/test_policy_dockerfile.rego")
 	if err != nil {
 		t.Fatalf("Could not build rego compiler")
 	}
