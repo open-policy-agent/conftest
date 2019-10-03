@@ -1,4 +1,4 @@
-package test_test
+package test
 
 import (
 	"bytes"
@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/instrumenta/conftest/pkg/commands/test"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
@@ -16,7 +15,7 @@ import (
 func Test_stdOutputManager_put(t *testing.T) {
 	type args struct {
 		fileName string
-		cr       test.CheckResult
+		cr       CheckResult
 	}
 
 	tests := []struct {
@@ -29,7 +28,7 @@ func Test_stdOutputManager_put(t *testing.T) {
 			msg: "records failure and Warnings",
 			args: args{
 				fileName: "foo.yaml",
-				cr: test.CheckResult{
+				cr: CheckResult{
 					Warnings: []error{errors.New("first warning")},
 					Failures: []error{errors.New("first failure")},
 				},
@@ -40,7 +39,7 @@ func Test_stdOutputManager_put(t *testing.T) {
 			msg: "skips filenames for stdin",
 			args: args{
 				fileName: "-",
-				cr: test.CheckResult{
+				cr: CheckResult{
 					Warnings: []error{errors.New("first warning")},
 					Failures: []error{errors.New("first failure")},
 				},
@@ -51,7 +50,7 @@ func Test_stdOutputManager_put(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.msg, func(t *testing.T) {
 			buf := new(bytes.Buffer)
-			s := test.NewStdOutputManager(log.New(buf, "", 0), false)
+			s := NewStdOutputManager(log.New(buf, "", 0), false)
 
 			err := s.Put(tt.args.fileName, tt.args.cr)
 			if err != nil {
@@ -68,7 +67,7 @@ func Test_stdOutputManager_put(t *testing.T) {
 func Test_jsonOutputManager_put(t *testing.T) {
 	type args struct {
 		fileName string
-		cr       test.CheckResult
+		cr       CheckResult
 	}
 
 	tests := []struct {
@@ -81,7 +80,7 @@ func Test_jsonOutputManager_put(t *testing.T) {
 			msg: "no Warnings or errors",
 			args: args{
 				fileName: "examples/kubernetes/service.yaml",
-				cr:       test.CheckResult{},
+				cr:       CheckResult{},
 			},
 			exp: `[
 	{
@@ -96,7 +95,7 @@ func Test_jsonOutputManager_put(t *testing.T) {
 			msg: "records failure and Warnings",
 			args: args{
 				fileName: "examples/kubernetes/service.yaml",
-				cr: test.CheckResult{
+				cr: CheckResult{
 					Warnings: []error{errors.New("first warning")},
 					Failures: []error{errors.New("first failure")},
 				},
@@ -118,7 +117,7 @@ func Test_jsonOutputManager_put(t *testing.T) {
 			msg: "mixed failure and Warnings",
 			args: args{
 				fileName: "examples/kubernetes/service.yaml",
-				cr: test.CheckResult{
+				cr: CheckResult{
 					Failures: []error{errors.New("first failure")},
 				},
 			},
@@ -137,7 +136,7 @@ func Test_jsonOutputManager_put(t *testing.T) {
 			msg: "handles stdin input",
 			args: args{
 				fileName: "-",
-				cr: test.CheckResult{
+				cr: CheckResult{
 					Failures: []error{errors.New("first failure")},
 				},
 			},
@@ -156,7 +155,7 @@ func Test_jsonOutputManager_put(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.msg, func(t *testing.T) {
 			buf := new(bytes.Buffer)
-			s := test.NewJSONOutputManager(log.New(buf, "", 0))
+			s := NewJSONOutputManager(log.New(buf, "", 0))
 
 			// record results
 			err := s.Put(tt.args.fileName, tt.args.cr)
@@ -179,31 +178,31 @@ func TestSupportedOutputManagers(t *testing.T) {
 	for _, testunit := range []struct {
 		name          string
 		outputFormat  string
-		outputManager test.OutputManager
+		outputManager OutputManager
 	}{
 		{
 			name:          "std output should exist",
-			outputFormat:  test.OutputSTD,
-			outputManager: test.NewDefaultStdOutputManager(true),
+			outputFormat:  OutputSTD,
+			outputManager: NewDefaultStdOutputManager(true),
 		},
 		{
 			name:          "json output should exist",
-			outputFormat:  test.OutputJSON,
-			outputManager: test.NewDefaultJSONOutputManager(),
+			outputFormat:  OutputJSON,
+			outputManager: NewDefaultJSONOutputManager(),
 		},
 		{
 			name:          "tap output should exist",
-			outputFormat:  test.OutputTAP,
-			outputManager: test.NewDefaultTAPOutputManager(),
+			outputFormat:  OutputTAP,
+			outputManager: NewDefaultTAPOutputManager(),
 		},
 		{
 			name:          "default output should exist",
 			outputFormat:  "somedefault",
-			outputManager: test.NewDefaultStdOutputManager(true),
+			outputManager: NewDefaultStdOutputManager(true),
 		},
 	} {
 		viper.Set("output", testunit.outputFormat)
-		outputManager := test.GetOutputManager()
+		outputManager := GetOutputManager()
 		if !reflect.DeepEqual(outputManager, testunit.outputManager) {
 			t.Errorf(
 				"We expected the output manager to be of type %v : %T and it was %T",
@@ -219,7 +218,7 @@ func TestSupportedOutputManagers(t *testing.T) {
 func Test_tapOutputManager_put(t *testing.T) {
 	type args struct {
 		fileName string
-		cr       test.CheckResult
+		cr       CheckResult
 	}
 
 	tests := []struct {
@@ -232,7 +231,7 @@ func Test_tapOutputManager_put(t *testing.T) {
 			msg: "no warnings or errors",
 			args: args{
 				fileName: "examples/kubernetes/service.yaml",
-				cr:       test.CheckResult{},
+				cr:       CheckResult{},
 			},
 			exp: "",
 		},
@@ -240,7 +239,7 @@ func Test_tapOutputManager_put(t *testing.T) {
 			msg: "records failure and warnings",
 			args: args{
 				fileName: "examples/kubernetes/service.yaml",
-				cr: test.CheckResult{
+				cr: CheckResult{
 					Warnings: []error{errors.New("first warning")},
 					Failures: []error{errors.New("first failure")},
 				},
@@ -255,7 +254,7 @@ not ok 2 - examples/kubernetes/service.yaml - first warning
 			msg: "mixed failure and warnings",
 			args: args{
 				fileName: "examples/kubernetes/service.yaml",
-				cr: test.CheckResult{
+				cr: CheckResult{
 					Failures: []error{errors.New("first failure")},
 				},
 			},
@@ -267,7 +266,7 @@ not ok 1 - examples/kubernetes/service.yaml - first failure
 			msg: "handles stdin input",
 			args: args{
 				fileName: "-",
-				cr: test.CheckResult{
+				cr: CheckResult{
 					Failures: []error{errors.New("first failure")},
 				},
 			},
@@ -279,7 +278,7 @@ not ok 1 - first failure
 	for _, tt := range tests {
 		t.Run(tt.msg, func(t *testing.T) {
 			buf := new(bytes.Buffer)
-			s := test.NewTAPOutputManager(log.New(buf, "", 0))
+			s := NewTAPOutputManager(log.New(buf, "", 0))
 
 			// record results
 			err := s.Put(tt.args.fileName, tt.args.cr)

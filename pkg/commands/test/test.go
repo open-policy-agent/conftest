@@ -62,31 +62,9 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 			if err != nil {
 				log.G(ctx).Fatalf("Problem building rego compiler: %s", err)
 			}
-			foundFailures := false
-			var configFiles []parser.ConfigDoc
-			var fileType string
-			for _, fileName := range fileList {
-				var err error
-				var config io.ReadCloser
-				fileType, err = getFileType(viper.GetString("input"), fileName)
-				if err != nil {
-					log.G(ctx).Errorf("Unable to get file type: %v", err)
-					osExit(1)
-				}
-				config, err = getConfig(fileName)
-				if err != nil {
-					log.G(ctx).Errorf("Unable to open file or read from stdin %s", err)
-					osExit(1)
-				}
-				configFiles = append(configFiles, parser.ConfigDoc{
-					ReadCloser: config,
-					Filepath:   fileName,
-				})
-			}
-			configManager := parser.NewConfigManager(fileType)
-			configurations, err := configManager.BulkUnmarshal(configFiles)
+
+			configurations, err := getConfigurations(ctx, fileList)
 			if err != nil {
-				log.G(ctx).Errorf("Unable to BulkUnmarshal your config files: %v", err)
 				osExit(1)
 			}
 
@@ -112,6 +90,8 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 					}
 				}
 			}
+
+			var foundFailures bool
 			if len(res.Failures) > 0 || (len(res.Warnings) > 0 && viper.GetBool("fail-on-warn")) {
 				foundFailures = true
 			}
@@ -144,6 +124,42 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 	}
 
 	return cmd
+}
+
+func getConfigurations(ctx context.Context, fileList []string) (map[string]interface{}, error) {
+	var configFiles []parser.ConfigDoc
+	var fileType string
+
+	for _, fileName := range fileList {
+		var err error
+		var config io.ReadCloser
+
+		fileType, err = getFileType(viper.GetString("input"), fileName)
+		if err != nil {
+			log.G(ctx).Errorf("Unable to get file type: %v", err)
+			return nil, err
+		}
+
+		config, err = getConfig(fileName)
+		if err != nil {
+			log.G(ctx).Errorf("Unable to open file or read from stdin %s", err)
+			return nil, err
+		}
+
+		configFiles = append(configFiles, parser.ConfigDoc{
+			ReadCloser: config,
+			Filepath:   fileName,
+		})
+	}
+
+	configManager := parser.NewConfigManager(fileType)
+	configurations, err := configManager.BulkUnmarshal(configFiles)
+	if err != nil {
+		log.G(ctx).Errorf("Unable to BulkUnmarshal your config files: %v", err)
+		return nil, err
+	}
+
+	return configurations, nil
 }
 
 func getConfig(fileName string) (io.ReadCloser, error) {
@@ -197,7 +213,6 @@ func getFileType(inputFileType, fileName string) (string, error) {
 
 // finds all queries in the compiler
 func getRules(ctx context.Context, re *regexp.Regexp, compiler *ast.Compiler) []string {
-
 	var res []string
 
 	for _, m := range compiler.Modules {
@@ -229,41 +244,64 @@ func makeQuery(rule string) string {
 }
 
 func processData(ctx context.Context, input interface{}, compiler *ast.Compiler) (CheckResult, error) {
-	// collect warnings
-	var warnings []error
-	for _, rule := range getRules(ctx, WarnQ, compiler) {
-		warns, err := runQuery(ctx, makeQuery(rule), input, compiler)
-		if err != nil {
-			return CheckResult{}, err
-		}
-
-		warnings = append(warnings, warns...)
+	warnings, err := runRules(ctx, input, WarnQ, compiler)
+	if err != nil {
+		return CheckResult{}, err
 	}
 
-	// collect failures
-	var failures []error
-	for _, r := range getRules(ctx, DenyQ, compiler) {
-		fails, err := runQuery(ctx, makeQuery(r), input, compiler)
-		if err != nil {
-			return CheckResult{}, err
-		}
-		failures = append(failures, fails...)
+	failures, err := runRules(ctx, input, DenyQ, compiler)
+	if err != nil {
+		return CheckResult{}, err
 	}
 
-	return CheckResult{
-		Failures: failures,
+	result := CheckResult{
 		Warnings: warnings,
-	}, nil
+		Failures: failures,
+	}
+
+	return result, nil
+}
+
+func runRules(ctx context.Context, input interface{}, regex *regexp.Regexp, compiler *ast.Compiler) ([]error, error) {
+	var totalErrors []error
+	var errors []error
+	var err error
+
+	rules := getRules(ctx, regex, compiler)
+	for _, rule := range rules {
+
+		switch input.(type) {
+		case []interface{}:
+			errors, err = runMultipleQueries(ctx, makeQuery(rule), input, compiler)
+		default:
+			errors, err = runQuery(ctx, makeQuery(rule), input, compiler)
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		totalErrors = append(totalErrors, errors...)
+	}
+
+	return totalErrors, nil
+}
+
+func runMultipleQueries(ctx context.Context, query string, inputs interface{}, compiler *ast.Compiler) ([]error, error) {
+	var totalViolations []error
+	for _, input := range inputs.([]interface{}) {
+		violations, err := runQuery(ctx, query, input, compiler)
+		if err != nil {
+			return nil, err
+		}
+
+		totalViolations = append(totalViolations, violations...)
+	}
+
+	return totalViolations, nil
 }
 
 func runQuery(ctx context.Context, query string, input interface{}, compiler *ast.Compiler) ([]error, error) {
-	hasResults := func(expression interface{}) bool {
-		if v, ok := expression.([]interface{}); ok {
-			return len(v) > 0
-		}
-		return false
-	}
-
 	r, stdout := buildRego(viper.GetBool("trace"), query, input, compiler)
 	rs, err := r.Eval(ctx)
 
@@ -273,8 +311,14 @@ func runQuery(ctx context.Context, query string, input interface{}, compiler *as
 
 	topdown.PrettyTrace(os.Stdout, *stdout)
 
-	var errs []error
+	hasResults := func(expression interface{}) bool {
+		if v, ok := expression.([]interface{}); ok {
+			return len(v) > 0
+		}
+		return false
+	}
 
+	var errs []error
 	for _, r := range rs {
 		for _, e := range r.Expressions {
 			value := e.Value

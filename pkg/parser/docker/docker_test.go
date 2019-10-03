@@ -1,19 +1,16 @@
-package docker_test
+package docker
 
 import (
-	"strings"
 	"testing"
-
-	"github.com/instrumenta/conftest/pkg/parser/docker"
 )
 
 func TestParser_Unmarshal(t *testing.T) {
-	parser := new(docker.Parser)
 
-	sample := `FROM golang:1.12-alpine as builder
-	COPY . /
-	RUN go build cmd/main.go
-	`
+	parser := Parser{}
+
+	sample := `FROM foo
+COPY . /
+RUN echo hello`
 
 	var input interface{}
 	err := parser.Unmarshal([]byte(sample), &input)
@@ -25,9 +22,13 @@ func TestParser_Unmarshal(t *testing.T) {
 		t.Error("There should be information parsed but its nil")
 	}
 
-	arrayOfCommands := input.([]interface{})
-	inputMap := arrayOfCommands[0].(map[string]interface{})
-	if strings.Compare(inputMap["Cmd"].(string), "from") != 0 {
-		t.Error("The first command should be from")
+	dockerFile := input.([]interface{})[0]
+	commands := dockerFile.([]interface{})[0]
+
+	expected := "from"
+	actual := commands.(map[string]interface{})["Cmd"]
+
+	if actual != expected {
+		t.Errorf("First Docker command should be '%v', was '%v'", expected, actual)
 	}
 }

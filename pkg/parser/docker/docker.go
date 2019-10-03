@@ -27,14 +27,14 @@ func (dp *Parser) Unmarshal(p []byte, v interface{}) error {
 	}
 
 	// Code attributed to https://github.com/asottile/dockerfile
-	var ret []Command
+	// TODO: Just import the package
+	var commands []Command
 	for _, child := range res.AST.Children {
 		cmd := Command{
 			Cmd:   child.Value,
 			Flags: child.Flags,
 		}
 
-		// Only happens for ONBUILD
 		if child.Next != nil && len(child.Next.Children) > 0 {
 			cmd.SubCmd = child.Next.Children[0].Value
 			child = child.Next.Children[0]
@@ -45,10 +45,13 @@ func (dp *Parser) Unmarshal(p []byte, v interface{}) error {
 			cmd.Value = append(cmd.Value, n.Value)
 		}
 
-		ret = append(ret, cmd)
+		commands = append(commands, cmd)
 	}
 
-	j, err := json.Marshal(ret)
+	var dockerFile [][]Command
+	dockerFile = append(dockerFile, commands)
+
+	j, err := json.Marshal(dockerFile)
 	if err != nil {
 		return fmt.Errorf("Unable to marshal config: %s", err)
 	}
