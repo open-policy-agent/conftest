@@ -12,9 +12,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/instrumenta/conftest/pkg/commands/update"
 	"github.com/instrumenta/conftest/pkg/constants"
+	"github.com/instrumenta/conftest/pkg/commands/update"
 	"github.com/instrumenta/conftest/pkg/parser"
+	"github.com/instrumenta/conftest/pkg/policy"
 
 	"github.com/containerd/containerd/log"
 	"github.com/open-policy-agent/opa/ast"
@@ -36,6 +37,7 @@ var (
 type CheckResult struct {
 	Warnings []error
 	Failures []error
+	Successes []error
 }
 
 // NewTestCommand creates a new test command
@@ -43,10 +45,10 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 
 	ctx := context.Background()
 	cmd := &cobra.Command{
-		Use:     "test <file> [file...]",
-		Short:   "Test your configuration files using Open Policy Agent",
+		Use:   "test <file> [file...]",
+		Short: "Test your configuration files using Open Policy Agent",
 		Version: fmt.Sprintf("Version: %s\nCommit: %s\nDate: %s\n", constants.Version, constants.Commit, constants.Date),
-
+		
 		Run: func(cmd *cobra.Command, fileList []string) {
 			out := getOutputManager()
 			if len(fileList) < 1 {
@@ -58,7 +60,7 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 				update.NewUpdateCommand().Run(cmd, fileList)
 			}
 
-			compiler, err := buildCompiler(viper.GetString("policy"))
+			compiler, err := policy.BuildCompiler(viper.GetString("policy"))
 			if err != nil {
 				log.G(ctx).Fatalf("Problem building rego compiler: %s", err)
 			}
@@ -111,7 +113,7 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 	cmd.Flags().BoolP("update", "", false, "update any policies before running the tests")
 	cmd.Flags().BoolP(CombineConfigFlagName, "", false, "combine all given config files to be evaluated together")
 
-	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", validOutputs()))
+	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", ValidOutputs()))
 	cmd.Flags().StringP("input", "i", "", fmt.Sprintf("input type for given source, especially useful when using conftest with stdin, valid options are: %s", parser.ValidInputs()))
 
 	var err error
@@ -331,53 +333,4 @@ func runQuery(ctx context.Context, query string, input interface{}, compiler *as
 	}
 
 	return errs, nil
-}
-
-func buildCompiler(path string) (*ast.Compiler, error) {
-	files, err := recursivelySearchDirForRegoFiles(path)
-	if err != nil {
-		return nil, err
-	}
-
-	modules := map[string]*ast.Module{}
-
-	for _, file := range files {
-		out, err := ioutil.ReadFile(file)
-		if err != nil {
-			return nil, err
-		}
-
-		name := filepath.Base(file)
-		parsed, err := ast.ParseModule(name, string(out[:]))
-		if err != nil {
-			return nil, err
-		}
-		modules[name] = parsed
-	}
-
-	compiler := ast.NewCompiler()
-	compiler.Compile(modules)
-
-	if compiler.Failed() {
-		return nil, compiler.Errors
-	}
-
-	return compiler, nil
-}
-
-func recursivelySearchDirForRegoFiles(path string) ([]string, error) {
-	var filepaths []string
-	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if !info.IsDir() && strings.HasSuffix(info.Name(), ".rego") {
-			filepaths = append(filepaths, path)
-		}
-
-		return nil
-	})
-
-	return filepaths, err
 }

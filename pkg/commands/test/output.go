@@ -18,7 +18,8 @@ const (
 	OutputTAP  = "tap"
 )
 
-func validOutputs() []string {
+// ValidOutputs returns the available output formats for reporting tests
+func ValidOutputs() []string {
 	return []string{
 		OutputSTD,
 		OutputJSON,
@@ -79,7 +80,11 @@ func (s *stdOutputManager) Put(fileName string, cr CheckResult) error {
 		indicator = fmt.Sprintf(" - %s - ", fileName)
 	}
 
-	// print warnings and then print errors
+	// print successes, warnings and then print errors
+	for _, r := range cr.Successes {
+		s.logger.Print(s.color.Colorize("PASS", aurora.GreenFg), indicator, r)
+	}
+
 	for _, r := range cr.Warnings {
 		s.logger.Print(s.color.Colorize("WARN", aurora.YellowFg), indicator, r)
 	}
@@ -100,6 +105,7 @@ type jsonCheckResult struct {
 	Filename string   `json:"filename"`
 	Warnings []string `json:"Warnings"`
 	Failures []string `json:"Failures"`
+	Successes []string `json:"Successes"`
 }
 
 // jsonOutputManager reports `conftest` results to `stdout` as a json array..
@@ -140,6 +146,7 @@ func (j *jsonOutputManager) Put(fileName string, cr CheckResult) error {
 		Filename: fileName,
 		Warnings: errsToStrings(cr.Warnings),
 		Failures: errsToStrings(cr.Failures),
+		Successes: errsToStrings(cr.Successes),
 	})
 
 	return nil
@@ -188,7 +195,7 @@ func (s *tapOutputManager) Put(fileName string, cr CheckResult) error {
 		indicator = fmt.Sprintf(" - %s - ", fileName)
 	}
 
-	issues := len(cr.Failures) + len(cr.Warnings)
+	issues := len(cr.Failures) + len(cr.Warnings) + len(cr.Successes)
 	if issues > 0 {
 		s.logger.Print(fmt.Sprintf("1..%d", issues))
 		for i, r := range cr.Failures {
@@ -199,6 +206,13 @@ func (s *tapOutputManager) Put(fileName string, cr CheckResult) error {
 			for i, r := range cr.Warnings {
 				counter := i + 1 + len(cr.Failures)
 				s.logger.Print("not ok ", counter, indicator, r)
+			}
+		}
+		if len(cr.Successes) > 0 {
+			s.logger.Print("# Successes")
+			for i, r := range cr.Successes {
+				counter := i + 1 + len(cr.Failures) + len(cr.Warnings)
+				s.logger.Print("ok ", counter, indicator, r)
 			}
 		}
 	}
