@@ -9,10 +9,12 @@ builds:
   - windows
   - linux
   - darwin 
+  ignore:
+  - goarch: 386
   ldflags:
   - -s -w -X github.com/instrumenta/conftest/pkg/constants.Version={{.Version}} -X github.com/instrumenta/conftest/pkg/constants.Commit={{.ShortCommit}} -X github.com/instrumenta/conftest/pkg/constants.Date={{.Date}}
-archive:
-  replacements:
+archives:
+- replacements:
     darwin: Darwin
     linux: Linux
     windows: Windows
@@ -36,8 +38,8 @@ changelog:
     exclude:
     - '^docs:'
     - '^test:'
-brew:
-  github:
+brews:
+- github:
     owner: instrumenta
     name: homebrew-instrumenta
   folder: Formula
