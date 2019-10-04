@@ -71,9 +71,10 @@ func Test_jsonOutputManager_put(t *testing.T) {
 	}
 
 	tests := []struct {
-		msg  string
-		args args
-		exp  string
+		msg     string
+		details bool
+		args    args
+		exp     string
 	}{
 		{
 			msg: "no Warnings or errors",
@@ -154,11 +155,55 @@ func Test_jsonOutputManager_put(t *testing.T) {
 ]
 `,
 		},
+		{
+			msg: "handles structured errors",
+			args: args{
+				fileName: "-",
+				cr: CheckResult{
+					Failures: []error{StructuredError{"msg": "structured failure", "code": "ERR0001"}},
+				},
+			},
+			exp: `[
+	{
+		"filename": "",
+		"Warnings": [],
+		"Failures": [
+			"structured failure"
+		],
+		"Successes": []
+	}
+]
+`,
+		},
+		{
+			msg: "handles structured errors with details",
+			details: true,
+			args: args{
+				fileName: "-",
+				cr: CheckResult{
+					Failures: []error{StructuredError{"msg": "structured failure", "code": "ERR0001"}},
+				},
+			},
+			exp: `[
+	{
+		"filename": "",
+		"Warnings": [],
+		"Failures": [
+			{
+				"code": "ERR0001",
+				"msg": "structured failure"
+			}
+		],
+		"Successes": []
+	}
+]
+`,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.msg, func(t *testing.T) {
 			buf := new(bytes.Buffer)
-			s := NewJSONOutputManager(log.New(buf, "", 0))
+			s := NewJSONOutputManager(log.New(buf, "", 0), tt.details)
 
 			if err := s.Put(tt.args.fileName, tt.args.cr); err != nil {
 				t.Fatalf("put output: %v", err)
@@ -191,7 +236,7 @@ func TestSupportedOutputManagers(t *testing.T) {
 		{
 			name:          "json output should exist",
 			outputFormat:  outputJSON,
-			outputManager: NewDefaultJSONOutputManager(),
+			outputManager: NewDefaultJSONOutputManager(false),
 		},
 		{
 			name:          "tap output should exist",
