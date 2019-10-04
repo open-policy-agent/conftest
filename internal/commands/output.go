@@ -29,12 +29,13 @@ func ValidOutputs() []string {
 func GetOutputManager() OutputManager {
 	outFmt := viper.GetString("output")
 	color := !viper.GetBool("no-color")
+	details := viper.GetBool("details")
 
 	switch outFmt {
 	case outputSTD:
 		return NewDefaultStdOutputManager(color)
 	case outputJSON:
-		return NewDefaultJSONOutputManager()
+		return NewDefaultJSONOutputManager(details)
 	case outputTAP:
 		return NewDefaultTAPOutputManager()
 	default:
@@ -104,35 +105,50 @@ func (s *stdOutputManager) Flush() error {
 }
 
 type jsonCheckResult struct {
-	Filename  string   `json:"filename"`
-	Warnings  []string `json:"warnings"`
-	Failures  []string `json:"failures"`
-	Successes []string `json:"successes"`
+	Filename  string        `json:"filename"`
+	Warnings  []interface{} `json:"warnings"`
+	Failures  []interface{} `json:"failures"`
+	Successes []interface{} `json:"successes"`
 }
 
 // jsonOutputManager reports `conftest` results to `stdout` as a json array..
 type jsonOutputManager struct {
-	logger *log.Logger
+	logger  *log.Logger
+	details bool
 
 	data []jsonCheckResult
 }
 
-func NewDefaultJSONOutputManager() *jsonOutputManager {
-	return NewJSONOutputManager(log.New(os.Stdout, "", 0))
+func NewDefaultJSONOutputManager(details bool) *jsonOutputManager {
+	return NewJSONOutputManager(log.New(os.Stdout, "", 0), details)
 }
 
-func NewJSONOutputManager(l *log.Logger) *jsonOutputManager {
+func NewJSONOutputManager(l *log.Logger, details bool) *jsonOutputManager {
 	return &jsonOutputManager{
-		logger: l,
+		logger:  l,
+		details: details,
 	}
 }
 
-func errsToStrings(errs []error) []string {
+func errsToOutput(errs []error, details bool) []interface{} {
 	// we explicitly use an empty slice here to ensure that this field will not be
 	// null in json
-	res := []string{}
+	res := make([]interface{}, 0, len(errs))
+
 	for _, err := range errs {
-		res = append(res, err.Error())
+		if !details {
+			res = append(res, err.Error())
+			continue
+		}
+
+		if s, ok := err.(StructuredError); ok {
+			res = append(res, s)
+			continue
+		}
+
+		res = append(res, map[string]interface{}{
+			"msg": err.Error(),
+		})
 	}
 
 	return res
@@ -146,9 +162,9 @@ func (j *jsonOutputManager) Put(fileName string, cr CheckResult) error {
 
 	j.data = append(j.data, jsonCheckResult{
 		Filename:  fileName,
-		Warnings:  errsToStrings(cr.Warnings),
-		Failures:  errsToStrings(cr.Failures),
-		Successes: errsToStrings(cr.Successes),
+		Warnings:  errsToOutput(cr.Warnings, j.details),
+		Failures:  errsToOutput(cr.Failures, j.details),
+		Successes: errsToOutput(cr.Successes, j.details),
 	})
 
 	return nil

@@ -33,6 +33,16 @@ type CheckResult struct {
 	Traces    []*topdown.Event
 }
 
+// StructuredError represents a single violation of a conftest evaluation
+// it is used when the result of a violation is not a simple string
+type StructuredError map[string]interface{}
+
+// Error returns a simple string representation of a structured error
+func (e StructuredError) Error() string {
+	return e["msg"].(string)
+}
+
+
 // NewTestCommand creates a new test command
 func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd := cobra.Command{
@@ -134,6 +144,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().BoolP("update", "", false, "update any policies before running the tests")
 	cmd.Flags().BoolP(combineConfigFlagName, "", false, "combine all given config files to be evaluated together")
 	cmd.Flags().BoolP("trace", "", false, "enable more verbose trace output for rego queries")
+	cmd.Flags().BoolP("details", "d", false, "use extended output format (json output only)")
 
 	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", ValidOutputs()))
 	cmd.Flags().StringP("input", "i", "", fmt.Sprintf("input type for given source, especially useful when using conftest with stdin, valid options are: %s", parser.ValidInputs()))
@@ -258,7 +269,18 @@ func runQuery(ctx context.Context, query string, input interface{}, compiler *as
 
 			if hasResults(value) {
 				for _, v := range value.([]interface{}) {
-					errs = append(errs, errors.New(v.(string)))
+					switch val := v.(type) {
+					case string:
+						errs = append(errs, errors.New(val))
+					case map[string]interface{}:
+						if _, ok := val["msg"]; !ok {
+							panic("invalid rule violation format (%v), msg needs to be set")
+						}
+						if _, ok := val["msg"].(string); !ok {
+							panic("invalid rule violation format (%v), msg needs to be a string")
+						}
+						errs = append(errs, StructuredError(val))
+					}
 				}
 			}
 		}
