@@ -127,3 +127,13 @@
   [ "$status" -eq 0 ]
   [[ "$output" =~ "test_services_not_denied" ]]
 }
+
+@test "Can change output format in test command" {
+  run ./conftest test -p examples/kubernetes/policy/ -o tap examples/kubernetes/deployment.yaml
+  [[ "$output" =~ "not ok" ]]
+}
+
+@test "Can change output format in verify command" {
+  run ./conftest verify -p examples/kubernetes/policy/ -o tap
+  [[ "$output" =~ "ok" ]]
+}

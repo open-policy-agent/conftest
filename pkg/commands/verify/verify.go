@@ -22,7 +22,12 @@ func NewVerifyCommand(getOutputManager func() test.OutputManager) *cobra.Command
 		Use:   "verify",
 		Short: "Verify Rego unit tests",
 		Version: fmt.Sprintf("Version: %s\nCommit: %s\nDate: %s\n", constants.Version, constants.Commit, constants.Date),
-
+		PreRun: func(cmd *cobra.Command, args []string) {
+			err := viper.BindPFlag("output", cmd.Flags().Lookup("output"))
+			if err != nil {
+				log.G(ctx).Fatal("Failed to bind argument:", err)
+			}		
+		},
 		Run: func(cmd *cobra.Command, args []string) {
 			out := getOutputManager()
 
@@ -66,10 +71,6 @@ func NewVerifyCommand(getOutputManager func() test.OutputManager) *cobra.Command
 	}
 
 	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", test.ValidOutputs()))
-	err := viper.BindPFlag("output", cmd.Flags().Lookup("output"))
-	if err != nil {
-		log.G(ctx).Fatal("Failed to bind argument:", err)
-	}
 
 	return cmd
 }
