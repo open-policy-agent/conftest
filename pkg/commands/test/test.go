@@ -48,6 +48,16 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 		Use:   "test <file> [file...]",
 		Short: "Test your configuration files using Open Policy Agent",
 		Version: fmt.Sprintf("Version: %s\nCommit: %s\nDate: %s\n", constants.Version, constants.Commit, constants.Date),
+		PreRun: func(cmd *cobra.Command, args []string) {
+			var err error
+			flagNames := []string{"fail-on-warn", "update", CombineConfigFlagName, "output", "input"}
+			for _, name := range flagNames {
+				err = viper.BindPFlag(name, cmd.Flags().Lookup(name))
+				if err != nil {
+					log.G(ctx).Fatal("Failed to bind argument:", err)
+				}
+			}
+		},
 		Run: func(cmd *cobra.Command, fileList []string) {
 			out := getOutputManager()
 			if len(fileList) < 1 {
@@ -114,15 +124,6 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 
 	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", ValidOutputs()))
 	cmd.Flags().StringP("input", "i", "", fmt.Sprintf("input type for given source, especially useful when using conftest with stdin, valid options are: %s", parser.ValidInputs()))
-
-	var err error
-	flagNames := []string{"fail-on-warn", "update", CombineConfigFlagName, "output", "input"}
-	for _, name := range flagNames {
-		err = viper.BindPFlag(name, cmd.Flags().Lookup(name))
-		if err != nil {
-			log.G(ctx).Fatal("Failed to bind argument:", err)
-		}
-	}
 
 	return cmd
 }
