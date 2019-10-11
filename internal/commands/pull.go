@@ -21,9 +21,8 @@ func NewPullCommand(ctx context.Context) *cobra.Command {
 
 		RunE: func(cmd *cobra.Command, args []string) error {
 			policyDir := filepath.Join(".", viper.GetString("policy"))
-			policies := getPolicies(args)
 
-			if err := policy.Download(ctx, policyDir, policies); err != nil {
+			if err := policy.Download(ctx, policyDir, args); err != nil {
 				return fmt.Errorf("download policies: %w", err)
 			}
 
@@ -32,13 +31,4 @@ func NewPullCommand(ctx context.Context) *cobra.Command {
 	}
 
 	return &cmd
-}
-
-func getPolicies(repositories []string) []policy.Policy {
-	policies := []policy.Policy{}
-	for _, ref := range repositories {
-		policies = append(policies, policy.Policy{Repository: ref})
-	}
-
-	return policies
 }
