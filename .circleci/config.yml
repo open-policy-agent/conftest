@@ -85,7 +85,6 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-          docker_layer_caching: true
           version: 18.09.3
       - snyk/install_snyk
       - run:
