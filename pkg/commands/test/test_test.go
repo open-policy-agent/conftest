@@ -45,25 +45,25 @@ func TestCombineConfig(t *testing.T) {
 		fileList          []string
 	}{
 		{
-			name:              "valid policy with combine-config=true should namespace the configs into a map (single file)",
+			name:              "valid policy with combine=true should namespace the configs into a map (single file)",
 			combineConfigFlag: true,
 			policyPath:        "testdata/policy/test_policy_multifile.rego",
 			fileList:          []string{"testdata/deployment.yaml"},
 		},
 		{
-			name:              "config combine-config=false no namespacing, individual evaluation (single file)",
+			name:              "config combine=false no namespacing, individual evaluation (single file)",
 			combineConfigFlag: false,
 			policyPath:        "testdata/policy/test_policy.rego",
 			fileList:          []string{"testdata/deployment.yaml"},
 		},
 		{
-			name:              "config combine-config=false no namespacing, individual evaluation (multi-file)",
+			name:              "config combine=false no namespacing, individual evaluation (multi-file)",
 			combineConfigFlag: false,
 			policyPath:        "testdata/policy/test_policy.rego",
 			fileList:          []string{"testdata/deployment+service.yaml", "testdata/deployment.yaml"},
 		},
 		{
-			name:              "valid policy with combine-config=true should namespace the configs into a map (multi-file)",
+			name:              "valid policy with combine=true should namespace the configs into a map (multi-file)",
 			combineConfigFlag: true,
 			policyPath:        "testdata/policy/test_policy_multifile.rego",
 			fileList:          []string{"testdata/deployment+service.yaml", "testdata/deployment.yaml"},
@@ -85,29 +85,29 @@ func TestCombineConfig(t *testing.T) {
 			cmd.Run(cmd, testunit.fileList)
 			if outputPrinter.PutCallCount() != len(testunit.fileList) && !testunit.combineConfigFlag {
 				t.Errorf(
-					"Output manager when combine-config is false should print output for each file: expected %v calls but got %v",
+					"Output manager when combine is false should print output for each file: expected %v calls but got %v",
 					len(testunit.fileList),
 					outputPrinter.PutCallCount(),
 				)
 			}
 			if errorExitCodeFromCall == 0 && testunit.combineConfigFlag {
 				t.Errorf(
-					"Output manager when combine-config is true should have failed but it exited with a zero code: %v",
+					"Output manager when combine is true should have failed but it exited with a zero code: %v",
 					errorExitCodeFromCall,
 				)
 			}
 		})
 	}
 
-	t.Run("combine-config flag exists", func(t *testing.T) {
+	t.Run("combine flag exists", func(t *testing.T) {
 		callCount := 0
 		cmd := NewTestCommand(func(int) {
 			callCount += 1
 		}, func() OutputManager {
 			return new(FakeOutputManager)
 		})
-		if cmd.Flag("combine-config") == nil {
-			t.Errorf("combine-config flag should exist")
+		if cmd.Flag("combine") == nil {
+			t.Errorf("combine flag should exist")
 		}
 	})
 }

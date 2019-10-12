@@ -100,7 +100,7 @@
 }
   
 @test "Can combine configs and reference by file" {
-  run ./conftest test -p examples/terraform/policy/gke_combine.rego examples/terraform/gke.tf --combine-config
+  run ./conftest test -p examples/terraform/policy/gke_combine.rego examples/terraform/gke.tf --combine
   [ "$status" -eq 0 ]
 }
 
