@@ -28,7 +28,7 @@ import (
 var (
 	DenyQ                 = regexp.MustCompile("^(deny|violation)(_[a-zA-Z]+)*$")
 	WarnQ                 = regexp.MustCompile("^warn(_[a-zA-Z]+)*$")
-	CombineConfigFlagName = "combine-config"
+	CombineConfigFlagName = "combine"
 )
 
 // CheckResult describes the result of a conftest evaluation.
