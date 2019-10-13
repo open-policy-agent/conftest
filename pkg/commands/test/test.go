@@ -73,7 +73,7 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 				log.G(ctx).Fatalf("Problem building rego compiler: %s", err)
 			}
 
-			configurations, err := getConfigurations(ctx, fileList)
+			configurations, err := GetConfigurations(ctx, fileList)
 			if err != nil {
 				osExit(1)
 			}
@@ -131,7 +131,7 @@ func runTests(ctx context.Context, out OutputManager, name string, config interf
 	}
 }
 
-func getConfigurations(ctx context.Context, fileList []string) (map[string]interface{}, error) {
+func GetConfigurations(ctx context.Context, fileList []string) (map[string]interface{}, error) {
 	var configFiles []parser.ConfigDoc
 	var fileType string
 

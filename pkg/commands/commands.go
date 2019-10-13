@@ -8,11 +8,12 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/instrumenta/conftest/pkg/commands/verify"
+	"github.com/instrumenta/conftest/pkg/commands/parse"
 	"github.com/instrumenta/conftest/pkg/commands/pull"
 	"github.com/instrumenta/conftest/pkg/commands/push"
 	"github.com/instrumenta/conftest/pkg/commands/test"
 	"github.com/instrumenta/conftest/pkg/commands/update"
+	"github.com/instrumenta/conftest/pkg/commands/verify"
 	"github.com/instrumenta/conftest/pkg/constants"
 )
 
@@ -38,7 +39,7 @@ func NewDefaultCommand() *cobra.Command {
 	viper.BindPFlag("trace", cmd.PersistentFlags().Lookup("trace"))
 	viper.BindPFlag("namespace", cmd.PersistentFlags().Lookup("namespace"))
 	viper.BindPFlag("no-color", cmd.PersistentFlags().Lookup("no-color"))
-	
+
 	viper.SetEnvPrefix("CONFTEST")
 	viper.SetConfigName("conftest")
 	viper.AddConfigPath(".")
@@ -47,6 +48,9 @@ func NewDefaultCommand() *cobra.Command {
 	cmd.AddCommand(test.NewTestCommand(
 		os.Exit,
 		test.GetOutputManager,
+	))
+	cmd.AddCommand(parse.NewParseCommand(
+		os.Exit,
 	))
 	cmd.AddCommand(update.NewUpdateCommand())
 	cmd.AddCommand(push.NewPushCommand())
