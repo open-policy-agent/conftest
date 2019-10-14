@@ -36,25 +36,11 @@ func NewDefaultCommand() *cobra.Command {
 
 	cmd.SetVersionTemplate(`{{.Version}}`)
 
-	if err := viper.BindPFlag("policy", cmd.PersistentFlags().Lookup("policy")); err != nil {
-		log.G(ctx).Fatal("Failed to bind argument: policy:", err)
-	}
-
-	if err := viper.BindPFlag("debug", cmd.PersistentFlags().Lookup("debug")); err != nil {
-		log.G(ctx).Fatal("Failed to bind argument: debug:", err)
-	}
-
-	if err := viper.BindPFlag("trace", cmd.PersistentFlags().Lookup("trace")); err != nil {
-		log.G(ctx).Fatal("Failed to bind argument: trace:", err)
-	}
-
-	if err := viper.BindPFlag("namespace", cmd.PersistentFlags().Lookup("namespace")); err != nil {
-		log.G(ctx).Fatal("Failed to bind argument: namespace:", err)
-	}
-
-	if err := viper.BindPFlag("no-color", cmd.PersistentFlags().Lookup("no-color")); err != nil {
-		log.G(ctx).Fatal("Failed to bind argument: no-color:", err)
-	}
+	viper.BindPFlag("policy", cmd.PersistentFlags().Lookup("policy"))
+	viper.BindPFlag("debug", cmd.PersistentFlags().Lookup("debug"))
+	viper.BindPFlag("trace", cmd.PersistentFlags().Lookup("trace"))
+	viper.BindPFlag("namespace", cmd.PersistentFlags().Lookup("namespace"))
+	viper.BindPFlag("no-color", cmd.PersistentFlags().Lookup("no-color"))
 
 	viper.SetEnvPrefix("CONFTEST")
 	viper.SetConfigName("conftest")
