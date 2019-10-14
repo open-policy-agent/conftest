@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -20,9 +21,8 @@ import (
 
 // NewDefaultCommand creates the default command
 func NewDefaultCommand() *cobra.Command {
-
 	ctx := context.Background()
-	cmd := &cobra.Command{
+	cmd := cobra.Command{
 		Use:     "conftest <subcommand>",
 		Short:   "Test your configuration files using Open Policy Agent",
 		Version: fmt.Sprintf("Version: %s\nCommit: %s\nDate: %s\n", constants.Version, constants.Commit, constants.Date),
@@ -48,7 +48,10 @@ func NewDefaultCommand() *cobra.Command {
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
-		log.G(ctx).Fatal("Failed read config: ", err)
+		var e viper.ConfigFileNotFoundError
+		if !errors.As(err, &e) {
+			log.G(ctx).Fatal("failed to parse config file: ", err)
+		}
 	}
 
 	cmd.AddCommand(test.NewTestCommand(
@@ -68,5 +71,5 @@ func NewDefaultCommand() *cobra.Command {
 		logrus.SetLevel(logrus.ErrorLevel)
 	}
 
-	return cmd
+	return &cmd
 }
