@@ -1,24 +1,27 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"os"
 
+	"github.com/containerd/containerd/log"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/instrumenta/conftest/commands/verify"
 	"github.com/instrumenta/conftest/commands/pull"
 	"github.com/instrumenta/conftest/commands/push"
 	"github.com/instrumenta/conftest/commands/test"
 	"github.com/instrumenta/conftest/commands/update"
+	"github.com/instrumenta/conftest/commands/verify"
 	"github.com/instrumenta/conftest/constants"
 )
 
 // NewDefaultCommand creates the default command
 func NewDefaultCommand() *cobra.Command {
 
+	ctx := context.Background()
 	cmd := &cobra.Command{
 		Use:     "conftest <subcommand>",
 		Short:   "Test your configuration files using Open Policy Agent",
@@ -33,17 +36,35 @@ func NewDefaultCommand() *cobra.Command {
 
 	cmd.SetVersionTemplate(`{{.Version}}`)
 
-	viper.BindPFlag("policy", cmd.PersistentFlags().Lookup("policy"))
-	viper.BindPFlag("debug", cmd.PersistentFlags().Lookup("debug"))
-	viper.BindPFlag("trace", cmd.PersistentFlags().Lookup("trace"))
-	viper.BindPFlag("namespace", cmd.PersistentFlags().Lookup("namespace"))
-	viper.BindPFlag("no-color", cmd.PersistentFlags().Lookup("no-color"))
-	
+	if err := viper.BindPFlag("policy", cmd.PersistentFlags().Lookup("policy")); err != nil {
+		log.G(ctx).Fatal("Failed to bind argument: policy:", err)
+	}
+
+	if err := viper.BindPFlag("debug", cmd.PersistentFlags().Lookup("debug")); err != nil {
+		log.G(ctx).Fatal("Failed to bind argument: debug:", err)
+	}
+
+	if err := viper.BindPFlag("trace", cmd.PersistentFlags().Lookup("trace")); err != nil {
+		log.G(ctx).Fatal("Failed to bind argument: trace:", err)
+	}
+
+	if err := viper.BindPFlag("namespace", cmd.PersistentFlags().Lookup("namespace")); err != nil {
+		log.G(ctx).Fatal("Failed to bind argument: namespace:", err)
+	}
+
+	if err := viper.BindPFlag("no-color", cmd.PersistentFlags().Lookup("no-color")); err != nil {
+		log.G(ctx).Fatal("Failed to bind argument: no-color:", err)
+	}
+
 	viper.SetEnvPrefix("CONFTEST")
 	viper.SetConfigName("conftest")
 	viper.AddConfigPath(".")
 	viper.AutomaticEnv()
-	viper.ReadInConfig()
+
+	if err := viper.ReadInConfig(); err != nil {
+		log.G(ctx).Fatal("Failed read config: ", err)
+	}
+
 	cmd.AddCommand(test.NewTestCommand(
 		os.Exit,
 		test.GetOutputManager,
