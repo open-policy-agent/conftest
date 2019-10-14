@@ -89,13 +89,13 @@ func runVerification(ctx context.Context, path string, trace bool) ([]CheckResul
 		msg := fmt.Errorf("%s", result.Package+"."+result.Name)
 		fileName := filepath.Join(path, result.Location.File)
 
-		var failure []error
-		var success []error
+		var failure []Violation
+		var success []Violation
 
 		if result.Fail {
-			failure = []error{msg}
+			failure = []Violation{NewViolation(msg.Error())}
 		} else {
-			success = []error{msg}
+			success = []Violation{NewViolation(msg.Error())}
 		}
 
 		result := CheckResult{

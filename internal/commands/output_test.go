@@ -2,7 +2,6 @@ package commands
 
 import (
 	"bytes"
-	"errors"
 	"log"
 	"reflect"
 	"strings"
@@ -28,8 +27,8 @@ func Test_stdOutputManager_put(t *testing.T) {
 			args: args{
 				fileName: "foo.yaml",
 				cr: CheckResult{
-					Warnings: []error{errors.New("first warning")},
-					Failures: []error{errors.New("first failure")},
+					Warnings: []Violation{NewViolation("first warning")},
+					Failures: []Violation{NewViolation("first failure")},
 				},
 			},
 			exp: []string{"WARN - foo.yaml - first warning", "FAIL - foo.yaml - first failure"},
@@ -39,8 +38,8 @@ func Test_stdOutputManager_put(t *testing.T) {
 			args: args{
 				fileName: "-",
 				cr: CheckResult{
-					Warnings: []error{errors.New("first warning")},
-					Failures: []error{errors.New("first failure")},
+					Warnings: []Violation{NewViolation("first warning")},
+					Failures: []Violation{NewViolation("first failure")},
 				},
 			},
 			exp: []string{"WARN - first warning", "FAIL - first failure"},
@@ -97,8 +96,8 @@ func Test_jsonOutputManager_put(t *testing.T) {
 			args: args{
 				fileName: "examples/kubernetes/service.yaml",
 				cr: CheckResult{
-					Warnings: []error{errors.New("first warning")},
-					Failures: []error{errors.New("first failure")},
+					Warnings: []Violation{NewViolation("first warning")},
+					Failures: []Violation{NewViolation("first failure")},
 				},
 			},
 			exp: `[
@@ -120,7 +119,7 @@ func Test_jsonOutputManager_put(t *testing.T) {
 			args: args{
 				fileName: "examples/kubernetes/service.yaml",
 				cr: CheckResult{
-					Failures: []error{errors.New("first failure")},
+					Failures: []Violation{NewViolation("first failure")},
 				},
 			},
 			exp: `[
@@ -140,7 +139,7 @@ func Test_jsonOutputManager_put(t *testing.T) {
 			args: args{
 				fileName: "-",
 				cr: CheckResult{
-					Failures: []error{errors.New("first failure")},
+					Failures: []Violation{NewViolation("first failure")},
 				},
 			},
 			exp: `[
@@ -160,17 +159,17 @@ func Test_jsonOutputManager_put(t *testing.T) {
 			args: args{
 				fileName: "-",
 				cr: CheckResult{
-					Failures: []error{StructuredError{"msg": "structured failure", "code": "ERR0001"}},
+					Failures: []Violation{{"msg": "structured failure", "code": "ERR0001"}},
 				},
 			},
 			exp: `[
 	{
 		"filename": "",
-		"Warnings": [],
-		"Failures": [
+		"warnings": [],
+		"failures": [
 			"structured failure"
 		],
-		"Successes": []
+		"successes": []
 	}
 ]
 `,
@@ -181,20 +180,20 @@ func Test_jsonOutputManager_put(t *testing.T) {
 			args: args{
 				fileName: "-",
 				cr: CheckResult{
-					Failures: []error{StructuredError{"msg": "structured failure", "code": "ERR0001"}},
+					Failures: []Violation{{"msg": "structured failure", "code": "ERR0001"}},
 				},
 			},
 			exp: `[
 	{
 		"filename": "",
-		"Warnings": [],
-		"Failures": [
+		"warnings": [],
+		"failures": [
 			{
 				"code": "ERR0001",
 				"msg": "structured failure"
 			}
 		],
-		"Successes": []
+		"successes": []
 	}
 ]
 `,
@@ -287,8 +286,8 @@ func Test_tapOutputManager_put(t *testing.T) {
 			args: args{
 				fileName: "examples/kubernetes/service.yaml",
 				cr: CheckResult{
-					Warnings: []error{errors.New("first warning")},
-					Failures: []error{errors.New("first failure")},
+					Warnings: []Violation{NewViolation("first warning")},
+					Failures: []Violation{NewViolation("first failure")},
 				},
 			},
 			exp: `1..2
@@ -302,7 +301,7 @@ not ok 2 - examples/kubernetes/service.yaml - first warning
 			args: args{
 				fileName: "examples/kubernetes/service.yaml",
 				cr: CheckResult{
-					Failures: []error{errors.New("first failure")},
+					Failures: []Violation{NewViolation("first failure")},
 				},
 			},
 			exp: `1..1
@@ -314,7 +313,7 @@ not ok 1 - examples/kubernetes/service.yaml - first failure
 			args: args{
 				fileName: "-",
 				cr: CheckResult{
-					Failures: []error{errors.New("first failure")},
+					Failures: []Violation{NewViolation("first failure")},
 				},
 			},
 			exp: `1..1

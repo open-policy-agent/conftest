@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -27,21 +26,26 @@ var (
 // from other classes of exceptions.
 type CheckResult struct {
 	FileName  string
-	Warnings  []error
-	Failures  []error
-	Successes []error
+	Warnings  []Violation
+	Failures  []Violation
+	Successes []Violation
 	Traces    []*topdown.Event
 }
 
-// StructuredError represents a single violation of a conftest evaluation
+// Violation represents a single violation of a conftest evaluation
 // it is used when the result of a violation is not a simple string
-type StructuredError map[string]interface{}
+type Violation map[string]interface{}
 
-// Error returns a simple string representation of a structured error
-func (e StructuredError) Error() string {
-	return e["msg"].(string)
+func NewViolation(msg string) Violation {
+	return Violation{
+		"msg": msg,
+	}
 }
 
+// Error returns a simple string representation of a structured error
+func (e Violation) Error() string {
+	return e["msg"].(string)
+}
 
 // NewTestCommand creates a new test command
 func NewTestCommand(ctx context.Context) *cobra.Command {
@@ -50,7 +54,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 		Short: "Test your configuration files using Open Policy Agent",
 		Args:  cobra.MinimumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			flagNames := []string{"fail-on-warn", "update", combineConfigFlagName, "trace", "output", "input", "namespace"}
+			flagNames := []string{"fail-on-warn", "update", combineConfigFlagName, "trace", "details", "output", "input", "namespace"}
 			for _, name := range flagNames {
 				if err := viper.BindPFlag(name, cmd.Flags().Lookup(name)); err != nil {
 					return fmt.Errorf("bind flag: %w", err)
@@ -177,9 +181,9 @@ func isResultFailure(result CheckResult) bool {
 	return len(result.Failures) > 0 || (len(result.Warnings) > 0 && viper.GetBool("fail-on-warn"))
 }
 
-func runRules(ctx context.Context, namespace string, input interface{}, regex *regexp.Regexp, compiler *ast.Compiler) ([]error, error) {
-	var totalErrors []error
-	var errors []error
+func runRules(ctx context.Context, namespace string, input interface{}, regex *regexp.Regexp, compiler *ast.Compiler) ([]Violation, error) {
+	var totalErrors []Violation
+	var errors []Violation
 	var err error
 
 	rules := getRules(ctx, regex, compiler)
@@ -231,8 +235,8 @@ func stringInSlice(a string, list []string) bool {
 	return false
 }
 
-func runMultipleQueries(ctx context.Context, query string, inputs interface{}, compiler *ast.Compiler) ([]error, error) {
-	var totalViolations []error
+func runMultipleQueries(ctx context.Context, query string, inputs interface{}, compiler *ast.Compiler) ([]Violation, error) {
+	var totalViolations []Violation
 	for _, input := range inputs.([]interface{}) {
 		violations, err := runQuery(ctx, query, input, compiler)
 		if err != nil {
@@ -245,7 +249,7 @@ func runMultipleQueries(ctx context.Context, query string, inputs interface{}, c
 	return totalViolations, nil
 }
 
-func runQuery(ctx context.Context, query string, input interface{}, compiler *ast.Compiler) ([]error, error) {
+func runQuery(ctx context.Context, query string, input interface{}, compiler *ast.Compiler) ([]Violation, error) {
 	rego, stdout := buildRego(viper.GetBool("trace"), query, input, compiler)
 	resultSet, err := rego.Eval(ctx)
 	if err != nil {
@@ -262,7 +266,7 @@ func runQuery(ctx context.Context, query string, input interface{}, compiler *as
 		return false
 	}
 
-	var errs []error
+	var errs []Violation
 	for _, result := range resultSet {
 		for _, expression := range result.Expressions {
 			value := expression.Value
@@ -271,15 +275,19 @@ func runQuery(ctx context.Context, query string, input interface{}, compiler *as
 				for _, v := range value.([]interface{}) {
 					switch val := v.(type) {
 					case string:
-						errs = append(errs, errors.New(val))
+						errs = append(errs, NewViolation(val))
 					case map[string]interface{}:
 						if _, ok := val["msg"]; !ok {
-							panic("invalid rule violation format (%v), msg needs to be set")
+							return nil, fmt.Errorf("invalid rule violation format, msg needs to be set on (%v)", val)
 						}
 						if _, ok := val["msg"].(string); !ok {
-							panic("invalid rule violation format (%v), msg needs to be a string")
+							return nil, fmt.Errorf("invalid rule violation format, msg needs to be a string on (%v)", val)
 						}
-						errs = append(errs, StructuredError(val))
+						violation := NewViolation(val["msg"].(string))
+						for k, v := range val {
+							violation[k] = v
+						}
+						errs = append(errs, violation)
 					}
 				}
 			}

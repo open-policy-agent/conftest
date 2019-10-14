@@ -130,7 +130,7 @@ func NewJSONOutputManager(l *log.Logger, details bool) *jsonOutputManager {
 	}
 }
 
-func errsToOutput(errs []error, details bool) []interface{} {
+func violationsToOutput(errs []Violation, details bool) []interface{} {
 	// we explicitly use an empty slice here to ensure that this field will not be
 	// null in json
 	res := make([]interface{}, 0, len(errs))
@@ -141,14 +141,7 @@ func errsToOutput(errs []error, details bool) []interface{} {
 			continue
 		}
 
-		if s, ok := err.(StructuredError); ok {
-			res = append(res, s)
-			continue
-		}
-
-		res = append(res, map[string]interface{}{
-			"msg": err.Error(),
-		})
+		res = append(res, err)
 	}
 
 	return res
@@ -162,9 +155,9 @@ func (j *jsonOutputManager) Put(fileName string, cr CheckResult) error {
 
 	j.data = append(j.data, jsonCheckResult{
 		Filename:  fileName,
-		Warnings:  errsToOutput(cr.Warnings, j.details),
-		Failures:  errsToOutput(cr.Failures, j.details),
-		Successes: errsToOutput(cr.Successes, j.details),
+		Warnings:  violationsToOutput(cr.Warnings, j.details),
+		Failures:  violationsToOutput(cr.Failures, j.details),
+		Successes: violationsToOutput(cr.Successes, j.details),
 	})
 
 	return nil
