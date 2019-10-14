@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/instrumenta/conftest/pkg/parser/docker"
-	"github.com/instrumenta/conftest/pkg/parser/yaml"
-    "github.com/instrumenta/conftest/pkg/policy"
+	"github.com/instrumenta/conftest/parser/docker"
+	"github.com/instrumenta/conftest/parser/yaml"
+    "github.com/instrumenta/conftest/policy"
 
 	"github.com/spf13/viper"
 )

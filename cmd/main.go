@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/instrumenta/conftest/pkg/commands"
+	"github.com/instrumenta/conftest/commands"
 	"os"
 )
 

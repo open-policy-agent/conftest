@@ -6,9 +6,9 @@ import (
 	"context"
 	"os"
 
-	"github.com/instrumenta/conftest/pkg/constants"
-	"github.com/instrumenta/conftest/pkg/policy"
-	"github.com/instrumenta/conftest/pkg/commands/test"
+	"github.com/instrumenta/conftest/constants"
+	"github.com/instrumenta/conftest/policy"
+	"github.com/instrumenta/conftest/commands/test"
 
 	"github.com/containerd/containerd/log"
 	"github.com/open-policy-agent/opa/tester"

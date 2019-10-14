@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/instrumenta/conftest/pkg/constants"
+	"github.com/instrumenta/conftest/constants"
 
 	"github.com/containerd/containerd/log"
 	"github.com/containerd/containerd/remotes/docker"

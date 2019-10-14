@@ -12,7 +12,7 @@ builds:
   ignore:
   - goarch: 386
   ldflags:
-  - -s -w -X github.com/instrumenta/conftest/pkg/constants.Version={{.Version}} -X github.com/instrumenta/conftest/pkg/constants.Commit={{.ShortCommit}} -X github.com/instrumenta/conftest/pkg/constants.Date={{.Date}}
+  - -s -w -X github.com/instrumenta/conftest/constants.Version={{.Version}} -X github.com/instrumenta/conftest/constants.Commit={{.ShortCommit}} -X github.com/instrumenta/conftest/constants.Date={{.Date}}
 archives:
 - replacements:
     darwin: Darwin

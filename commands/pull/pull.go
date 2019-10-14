@@ -3,7 +3,7 @@ package pull
 import (
 	"context"
 
-	"github.com/instrumenta/conftest/pkg/policy"
+	"github.com/instrumenta/conftest/policy"
 
 	"github.com/spf13/cobra"
 )

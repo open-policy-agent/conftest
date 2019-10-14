@@ -8,12 +8,12 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/instrumenta/conftest/pkg/commands/verify"
-	"github.com/instrumenta/conftest/pkg/commands/pull"
-	"github.com/instrumenta/conftest/pkg/commands/push"
-	"github.com/instrumenta/conftest/pkg/commands/test"
-	"github.com/instrumenta/conftest/pkg/commands/update"
-	"github.com/instrumenta/conftest/pkg/constants"
+	"github.com/instrumenta/conftest/commands/verify"
+	"github.com/instrumenta/conftest/commands/pull"
+	"github.com/instrumenta/conftest/commands/push"
+	"github.com/instrumenta/conftest/commands/test"
+	"github.com/instrumenta/conftest/commands/update"
+	"github.com/instrumenta/conftest/constants"
 )
 
 // NewDefaultCommand creates the default command
