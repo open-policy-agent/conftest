@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/instrumenta/conftest/pkg/parser/yaml"
+	"github.com/instrumenta/conftest/parser/yaml"
 )
 
 func TestYAMLParser(t *testing.T) {
