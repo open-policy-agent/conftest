@@ -137,3 +137,8 @@
   run ./conftest verify -p examples/kubernetes/policy/ -o tap
   [[ "$output" =~ "ok" ]]
 }
+
+@test "Multi-file tests correctly fail when last file is fine" {
+  run ./conftest test -p examples/kubernetes/policy examples/kubernetes/deployment.yaml examples/kubernetes/service.yaml
+  [ "$status" -eq 1 ]
+}
