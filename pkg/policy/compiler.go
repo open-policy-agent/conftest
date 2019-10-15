@@ -11,8 +11,8 @@ import (
 
 // BuildCompiler compiles all Rego policies at the given path and returns the Compiler containing
 // the compilation state
-func BuildCompiler(path string) (*ast.Compiler, error) {
-	files, err := recursivelySearchDirForRegoFiles(path)
+func BuildCompiler(path string, withTests bool) (*ast.Compiler, error) {
+	files, err := recursivelySearchDirForRegoFiles(path, withTests)
 	if err != nil {
 		return nil, err
 	}
@@ -43,15 +43,23 @@ func BuildCompiler(path string) (*ast.Compiler, error) {
 	return compiler, nil
 }
 
-func recursivelySearchDirForRegoFiles(path string) ([]string, error) {
+func recursivelySearchDirForRegoFiles(path string, withTests bool) ([]string, error) {
 	var filepaths []string
+
 	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 
-		if !info.IsDir() && strings.HasSuffix(info.Name(), ".rego") {
-			filepaths = append(filepaths, path)
+		if withTests {
+			if !info.IsDir() && strings.HasSuffix(info.Name(), ".rego") {
+				filepaths = append(filepaths, path)
+			}
+		} else {
+			if !info.IsDir() && strings.HasSuffix(info.Name(), ".rego") && !strings.HasSuffix(info.Name(), "_test.rego") {
+				filepaths = append(filepaths, path)
+			}
+
 		}
 
 		return nil

@@ -68,7 +68,7 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 				update.NewUpdateCommand().Run(cmd, fileList)
 			}
 
-			compiler, err := policy.BuildCompiler(viper.GetString("policy"))
+			compiler, err := policy.BuildCompiler(viper.GetString("policy"), false)
 			if err != nil {
 				log.G(ctx).Fatalf("Problem building rego compiler: %s", err)
 			}
