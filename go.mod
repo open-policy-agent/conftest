@@ -33,6 +33,7 @@ require (
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/hashicorp/hcl v1.0.0
 	github.com/hashicorp/hcl2 v0.0.0-20190909202536-66c59f909e25
+	github.com/kami-zh/go-capturer v0.0.0-20171211120116-e492ea43421d
 	github.com/logrusorgru/aurora v0.0.0-20190803045625-94edacc10f9b
 	github.com/moby/buildkit v0.6.1
 	github.com/open-policy-agent/opa v0.14.0
@@ -49,4 +50,5 @@ require (
 	golang.org/x/crypto v0.0.0-20190513172903-22d7a77e9e5f // indirect
 	google.golang.org/genproto v0.0.0-20190620144150-6af8c5fc6601 // indirect
 	gopkg.in/ini.v1 v1.46.0 // indirect
+	gotest.tools v2.2.0+incompatible
 )
