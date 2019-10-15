@@ -12,12 +12,11 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/instrumenta/conftest/constants"
+	"github.com/containerd/containerd/log"
 	"github.com/instrumenta/conftest/commands/update"
+	"github.com/instrumenta/conftest/constants"
 	"github.com/instrumenta/conftest/parser"
 	"github.com/instrumenta/conftest/policy"
-
-	"github.com/containerd/containerd/log"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/topdown"
@@ -35,8 +34,8 @@ var (
 // warning and failure "errors" produced by rego should be considered separate
 // from other classes of exceptions.
 type CheckResult struct {
-	Warnings []error
-	Failures []error
+	Warnings  []error
+	Failures  []error
 	Successes []error
 }
 
@@ -45,8 +44,8 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 
 	ctx := context.Background()
 	cmd := &cobra.Command{
-		Use:   "test <file> [file...]",
-		Short: "Test your configuration files using Open Policy Agent",
+		Use:     "test <file> [file...]",
+		Short:   "Test your configuration files using Open Policy Agent",
 		Version: fmt.Sprintf("Version: %s\nCommit: %s\nDate: %s\n", constants.Version, constants.Commit, constants.Date),
 		PreRun: func(cmd *cobra.Command, args []string) {
 			var err error
@@ -59,7 +58,6 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 			}
 		},
 		Run: func(cmd *cobra.Command, fileList []string) {
-			out := getOutputManager()
 			if len(fileList) < 1 {
 				cmd.SilenceErrors = true
 				log.G(ctx).Fatal("The first argument should be a file")
@@ -79,32 +77,18 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 				osExit(1)
 			}
 
-			var res CheckResult
+			foundFailures := false
+			out := getOutputManager()
 			if viper.GetBool(CombineConfigFlagName) {
-				res, err = processData(ctx, configurations, compiler)
-				if err != nil {
-					log.G(ctx).Fatalf("Problem processing data: %s", err)
-				}
-				err = out.Put("Combined-configs (multi-file)", res)
-				if err != nil {
-					log.G(ctx).Fatalf("Problem generating output: %s", err)
+				if runTests(ctx, out, "Combined", configurations, compiler) {
+					foundFailures = true
 				}
 			} else {
 				for fileName, config := range configurations {
-					res, err = processData(ctx, config, compiler)
-					if err != nil {
-						log.G(ctx).Fatalf("Problem processing data: %s", err)
-					}
-					err = out.Put(fileName, res)
-					if err != nil {
-						log.G(ctx).Fatalf("Problem generating output: %s", err)
+					if runTests(ctx, out, fileName, config, compiler) {
+						foundFailures = true
 					}
 				}
-			}
-
-			var foundFailures bool
-			if len(res.Failures) > 0 || (len(res.Warnings) > 0 && viper.GetBool("fail-on-warn")) {
-				foundFailures = true
 			}
 
 			err = out.Flush()
@@ -126,6 +110,24 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 	cmd.Flags().StringP("input", "i", "", fmt.Sprintf("input type for given source, especially useful when using conftest with stdin, valid options are: %s", parser.ValidInputs()))
 
 	return cmd
+}
+
+func runTests(ctx context.Context, out OutputManager, name string, config interface{}, compiler *ast.Compiler) bool {
+	var res CheckResult
+	res, err := processData(ctx, config, compiler)
+	if err != nil {
+		log.G(ctx).Fatalf("Problem processing data: %s", err)
+	}
+	err = out.Put(name, res)
+	if err != nil {
+		log.G(ctx).Fatalf("Problem generating output: %s", err)
+	}
+
+	if len(res.Failures) > 0 || (len(res.Warnings) > 0 && viper.GetBool("fail-on-warn")) {
+		return true
+	} else {
+		return false
+	}
 }
 
 func getConfigurations(ctx context.Context, fileList []string) (map[string]interface{}, error) {
