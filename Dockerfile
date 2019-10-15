@@ -1,25 +1,45 @@
+## BUILDER STAGE ##
 FROM golang:1.13-alpine as builder
 RUN apk --no-cache add git
-WORKDIR /
-COPY . /
+WORKDIR /app
+
+COPY go.mod .
+COPY go.sum .
+RUN go mod download
+
+COPY . /app
+
 RUN GOOS=linux CGO_ENABLED=0 GOARCH=amd64 go build -o conftest -ldflags="-w -s" cmd/main.go
 
+## TEST STAGE ##
 FROM golang:1.13-alpine as test
-COPY --from=builder /conftest /
-RUN go test /conftest/...
+WORKDIR /app
 
+COPY go.mod .
+COPY go.sum .
+RUN go mod download
+
+COPY . .
+
+RUN GOOS=linux CGO_ENABLED=0 GOARCH=amd64 go test -v ./...
+
+## ACCEPTANCE STAGE ##
 FROM bats/bats:v1.1.0 as acceptance
-COPY --from=builder /conftest /
-COPY acceptance.bats /acceptance.bats
-COPY examples /examples
+WORKDIR /app
+
+COPY --from=builder /app/conftest .
+COPY examples ./examples
+COPY acceptance.bats .
+
+ENTRYPOINT ["/bin/sh"]
 RUN ./acceptance.bats
 
+## EXAMPLES STAGE ##
 FROM golang:1.13-alpine as examples
-
 ENV TERRAFORM_VERSION=0.12.0-rc1 \
     KUSTOMIZE_VERSION=2.0.3
 
-COPY --from=builder /conftest /usr/local/bin
+COPY --from=builder /app/conftest /usr/local/bin
 COPY examples /examples
 
 RUN apk add --update npm make git jq ca-certificates openssl unzip wget && \
@@ -34,10 +54,9 @@ RUN go get -u cuelang.org/go/cmd/cue
 
 WORKDIR /examples
 
-
 FROM alpine:latest
-COPY --from=builder /conftest /
+COPY --from=builder /app/conftest /
 RUN ln -s /conftest /usr/local/bin/conftest
-WORKDIR /project
+
 ENTRYPOINT ["/conftest"]
 CMD ["--help"]
