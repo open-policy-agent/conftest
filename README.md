@@ -85,8 +85,8 @@ $ conftest test -p examples/hcl2/policy examples/hcl2/terraform.tf -i hcl2
 FAIL - examples/hcl2/terraform.tf - Application environment is should be `staging_environment`
 ```
 
-#### --combine-config flag
-Of note is the `--combine-config` flag that is sub flag for `conftest test`, ala `conftest test --combine-config`. This flag introduces *BREAKING CHANGES* in how `conftest` provides input to rego policies. However, you may find it useful to as you can now compare multiple values from different configurations simultaneously.
+#### --combine flag
+Of note is the `--combine` flag that is sub flag for `conftest test`, ala `conftest test --combine`. This flag introduces *BREAKING CHANGES* in how `conftest` provides input to rego policies. However, you may find it useful to as you can now compare multiple values from different configurations simultaneously.
 
 Let's try it
 
@@ -124,12 +124,12 @@ spec:
 ```
 
 
-The `--combine-config` flag combines files into one `input` data structure. The structure is a `map` where each indice is the file path of the file being evaluated. 
+The `--combine` flag combines files into one `input` data structure. The structure is a `map` where each indice is the file path of the file being evaluated. 
 
 Assuming you have a Kubernetes deployment in `deployment.yaml` and a kubernetes service definition in `service.yaml` you can run `conftest` like so:
 
 ```console
-$ conftest test --combine-config deployment.yaml service.yaml
+$ conftest test --combine deployment.yaml service.yaml
 
 FAIL - Combined-configs (multi-file) - Expected these values to be the same but received hello-kubernetes for deployment and goodbye-kubernetes for service
 ```
