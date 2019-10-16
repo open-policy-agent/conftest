@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/instrumenta/conftest/pkg/commands/test"
-	"github.com/instrumenta/conftest/pkg/constants"
-	"github.com/instrumenta/conftest/pkg/parser"
+	"github.com/instrumenta/conftest/commands/test"
+	"github.com/instrumenta/conftest/constants"
+	"github.com/instrumenta/conftest/parser"
 
 	"github.com/containerd/containerd/log"
 	"github.com/spf13/cobra"
