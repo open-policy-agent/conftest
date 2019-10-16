@@ -69,6 +69,16 @@
   [ "$status" -eq 1 ]
 }
 
+@test "Can parse nested files with name overlap (first)" {
+  run ./conftest test -p examples/nested/policy --namespace group1 examples/nested/data.json
+  [ "$status" -eq 1 ]
+}
+
+@test "Can parse nested files with name overlap (second)" {
+  run ./conftest test -p examples/nested/policy --namespace group2 examples/nested/data.json
+  [ "$status" -eq 1 ]
+}
+
 @test "Can parse cue files" {
   run ./conftest test -p examples/cue/policy examples/cue/deployment.cue
   [ "$status" -eq 1 ]
