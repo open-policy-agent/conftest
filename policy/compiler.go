@@ -25,12 +25,17 @@ func BuildCompiler(path string, withTests bool) (*ast.Compiler, error) {
 			return nil, err
 		}
 
-		name := filepath.Base(file)
-		parsed, err := ast.ParseModule(name, string(out[:]))
+		relPath, err := filepath.Rel(path, file)
 		if err != nil {
 			return nil, err
 		}
-		modules[name] = parsed
+
+		parsed, err := ast.ParseModule(relPath, string(out[:]))
+		if err != nil {
+			return nil, err
+		}
+
+		modules[relPath] = parsed
 	}
 
 	compiler := ast.NewCompiler()
