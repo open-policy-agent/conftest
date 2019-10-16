@@ -16,6 +16,7 @@ import (
 	"github.com/instrumenta/conftest/commands/test"
 	"github.com/instrumenta/conftest/commands/update"
 	"github.com/instrumenta/conftest/commands/verify"
+	"github.com/instrumenta/conftest/commands/parse"
 	"github.com/instrumenta/conftest/constants"
 )
 
@@ -57,6 +58,9 @@ func NewDefaultCommand() *cobra.Command {
 	cmd.AddCommand(test.NewTestCommand(
 		os.Exit,
 		test.GetOutputManager,
+	))
+	cmd.AddCommand(parse.NewParseCommand(
+		os.Exit,
 	))
 	cmd.AddCommand(update.NewUpdateCommand())
 	cmd.AddCommand(push.NewPushCommand())
