@@ -7,7 +7,7 @@ COPY go.mod .
 COPY go.sum .
 RUN go mod download
 
-COPY . /app
+COPY . .
 
 RUN GOOS=linux CGO_ENABLED=0 GOARCH=amd64 go build -o conftest -ldflags="-w -s" cmd/main.go
 
