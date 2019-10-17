@@ -7,8 +7,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/instrumenta/conftest/pkg/constants"
-
 	"github.com/containerd/containerd/log"
 	"github.com/containerd/containerd/remotes/docker"
 	auth "github.com/deislabs/oras/pkg/auth/docker"
@@ -16,6 +14,12 @@ import (
 	"github.com/deislabs/oras/pkg/oras"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
+)
+
+const (
+	OpenPolicyAgentConfigMediaType      = "application/vnd.cncf.openpolicyagent.config.v1+json"
+	OpenPolicyAgentPolicyLayerMediaType = "application/vnd.cncf.openpolicyagent.policy.layer.v1+rego"
+	OpenPolicyAgentDataLayerMediaType   = "application/vnd.cncf.openpolicyagent.data.layer.v1+json"
 )
 
 // NewPushCommand creates a new push command
@@ -70,7 +74,7 @@ func uploadBundle(ctx context.Context, repository string, root string) {
 	layers, memoryStore := buildLayers(ctx, root)
 
 	log.G(ctx).Infof("Pushing bundle to %s\n", ref)
-	extraOpts := []oras.PushOpt{oras.WithConfigMediaType(constants.OpenPolicyAgentConfigMediaType)}
+	extraOpts := []oras.PushOpt{oras.WithConfigMediaType(OpenPolicyAgentConfigMediaType)}
 
 	manifest, err := oras.Push(ctx, resolver, ref, memoryStore, layers, extraOpts...)
 	if err != nil {
@@ -118,8 +122,8 @@ func buildLayers(ctx context.Context, root string) ([]ocispec.Descriptor, *conte
 		log.G(ctx).Fatal(err)
 	}
 
-	policyLayers := buildLayer(ctx, policy, root, memoryStore, constants.OpenPolicyAgentPolicyLayerMediaType)
-	dataLayers := buildLayer(ctx, data, root, memoryStore, constants.OpenPolicyAgentDataLayerMediaType)
+	policyLayers := buildLayer(ctx, policy, root, memoryStore, OpenPolicyAgentPolicyLayerMediaType)
+	dataLayers := buildLayer(ctx, data, root, memoryStore, OpenPolicyAgentDataLayerMediaType)
 	layers = append(policyLayers, dataLayers...)
 
 	return layers, memoryStore
@@ -140,7 +144,7 @@ func buildLayer(ctx context.Context, paths []string, root string, memoryStore *c
 
 		path := filepath.ToSlash(relative)
 
-		layer = memoryStore.Add(path, constants.OpenPolicyAgentPolicyLayerMediaType, contents)
+		layer = memoryStore.Add(path, OpenPolicyAgentPolicyLayerMediaType, contents)
 		layers = append(layers, layer)
 	}
 	return layers
