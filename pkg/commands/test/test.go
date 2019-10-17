@@ -13,7 +13,6 @@ import (
 	"strings"
 
 	"github.com/instrumenta/conftest/pkg/commands/update"
-	"github.com/instrumenta/conftest/pkg/constants"
 	"github.com/instrumenta/conftest/pkg/parser"
 	"github.com/instrumenta/conftest/pkg/policy"
 
@@ -45,9 +44,8 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 
 	ctx := context.Background()
 	cmd := &cobra.Command{
-		Use:     "test <file> [file...]",
-		Short:   "Test your configuration files using Open Policy Agent",
-		Version: fmt.Sprintf("Version: %s\nCommit: %s\nDate: %s\n", constants.Version, constants.Commit, constants.Date),
+		Use:   "test <file> [file...]",
+		Short: "Test your configuration files using Open Policy Agent",
 		PreRun: func(cmd *cobra.Command, args []string) {
 			var err error
 			flagNames := []string{"fail-on-warn", "update", CombineConfigFlagName, "output", "input"}

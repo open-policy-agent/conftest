@@ -14,16 +14,21 @@ import (
 	"github.com/instrumenta/conftest/pkg/commands/test"
 	"github.com/instrumenta/conftest/pkg/commands/update"
 	"github.com/instrumenta/conftest/pkg/commands/verify"
-	"github.com/instrumenta/conftest/pkg/constants"
+)
+
+// These values are set at build time
+var (
+	version = ""
+	commit  = ""
+	date    = ""
 )
 
 // NewDefaultCommand creates the default command
 func NewDefaultCommand() *cobra.Command {
-
-	cmd := &cobra.Command{
+	cmd := cobra.Command{
 		Use:     "conftest <subcommand>",
 		Short:   "Test your configuration files using Open Policy Agent",
-		Version: fmt.Sprintf("Version: %s\nCommit: %s\nDate: %s\n", constants.Version, constants.Commit, constants.Date),
+		Version: fmt.Sprintf("Version: %s\nCommit: %s\nDate: %s\n", version, commit, date),
 	}
 
 	cmd.PersistentFlags().StringP("policy", "p", "policy", "path to the Rego policy files directory. For the test command, specifying a specific .rego file is allowed.")
@@ -65,5 +70,5 @@ func NewDefaultCommand() *cobra.Command {
 		logrus.SetLevel(logrus.ErrorLevel)
 	}
 
-	return cmd
+	return &cmd
 }

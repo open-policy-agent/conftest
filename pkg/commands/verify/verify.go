@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 
 	"github.com/instrumenta/conftest/pkg/commands/test"
-	"github.com/instrumenta/conftest/pkg/constants"
 	"github.com/instrumenta/conftest/pkg/policy"
 
 	"github.com/containerd/containerd/log"
@@ -19,9 +18,8 @@ import (
 func NewVerifyCommand(getOutputManager func() test.OutputManager) *cobra.Command {
 	ctx := context.Background()
 	cmd := &cobra.Command{
-		Use:     "verify",
-		Short:   "Verify Rego unit tests",
-		Version: fmt.Sprintf("Version: %s\nCommit: %s\nDate: %s\n", constants.Version, constants.Commit, constants.Date),
+		Use:   "verify",
+		Short: "Verify Rego unit tests",
 		PreRun: func(cmd *cobra.Command, args []string) {
 			err := viper.BindPFlag("output", cmd.Flags().Lookup("output"))
 			if err != nil {
