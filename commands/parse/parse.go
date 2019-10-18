@@ -8,9 +8,7 @@ import (
 	"os"
 
 	"github.com/instrumenta/conftest/commands/test"
-	"github.com/instrumenta/conftest/constants"
 	"github.com/instrumenta/conftest/parser"
-
 	"github.com/containerd/containerd/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -24,7 +22,6 @@ func NewParseCommand(osExit func(int)) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "parse <filename>",
 		Short:   "Print out structured data from your input file",
-		Version: fmt.Sprintf("Version: %s\nCommit: %s\nDate: %s\n", constants.Version, constants.Commit, constants.Date),
 		PreRun: func(cmd *cobra.Command, args []string) {
 			err := viper.BindPFlag("input", cmd.Flags().Lookup("input"))
 			if err != nil {
