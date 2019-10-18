@@ -1,5 +1,5 @@
-## BUILDER STAGE ##
-FROM golang:1.13-alpine as builder
+FROM golang:1.13-alpine as base
+ENV GOOS=linux CGO_ENABLED=0 GOARCH=amd64
 RUN apk --no-cache add git
 WORKDIR /app
 
@@ -9,19 +9,13 @@ RUN go mod download
 
 COPY . .
 
-RUN GOOS=linux CGO_ENABLED=0 GOARCH=amd64 go build -o conftest -ldflags="-w -s" cmd/main.go
+## BUILDER STAGE ##
+FROM base as builder
+RUN go build -o conftest -ldflags="-w -s" cmd/main.go
 
 ## TEST STAGE ##
-FROM golang:1.13-alpine as test
-WORKDIR /app
-
-COPY go.mod .
-COPY go.sum .
-RUN go mod download
-
-COPY . .
-
-RUN GOOS=linux CGO_ENABLED=0 GOARCH=amd64 go test -v ./...
+FROM base as test
+RUN go test -v ./...
 
 ## ACCEPTANCE STAGE ##
 FROM bats/bats:v1.1.0 as acceptance
