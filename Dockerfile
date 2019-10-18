@@ -19,14 +19,10 @@ RUN go test -v ./...
 
 ## ACCEPTANCE STAGE ##
 FROM bats/bats:v1.1.0 as acceptance
-WORKDIR /app
-
-COPY --from=builder /app/conftest .
-COPY examples ./examples
-COPY acceptance.bats .
-
-ENTRYPOINT ["/bin/sh"]
-RUN ./acceptance.bats
+COPY --from=builder /app/conftest /
+COPY acceptance.bats /acceptance.bats
+COPY examples /examples
+RUN bats acceptance.bats
 
 ## EXAMPLES STAGE ##
 FROM golang:1.13-alpine as examples
