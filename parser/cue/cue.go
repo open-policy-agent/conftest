@@ -16,7 +16,7 @@ func (c *Parser) Unmarshal(p []byte, v interface{}) error {
 	if err != nil {
 		return fmt.Errorf("error occured when formatting cue: %v", err)
 	}
-	instance, err := r.Parse("name", out)
+	instance, err := r.Compile("name", out)
 	if err != nil {
 		return fmt.Errorf("error occured parsing cue: %v", err)
 	}

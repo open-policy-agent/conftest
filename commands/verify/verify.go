@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-
-	"github.com/instrumenta/conftest/pkg/commands/test"
-	"github.com/instrumenta/conftest/pkg/policy"
-
+	
+	"github.com/instrumenta/conftest/policy"
+	"github.com/instrumenta/conftest/commands/test"
 	"github.com/containerd/containerd/log"
 	"github.com/open-policy-agent/opa/tester"
 	"github.com/spf13/cobra"

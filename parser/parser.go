@@ -6,13 +6,13 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/instrumenta/conftest/pkg/parser/cue"
-	"github.com/instrumenta/conftest/pkg/parser/docker"
-	"github.com/instrumenta/conftest/pkg/parser/hcl2"
-	"github.com/instrumenta/conftest/pkg/parser/ini"
-	"github.com/instrumenta/conftest/pkg/parser/terraform"
-	"github.com/instrumenta/conftest/pkg/parser/toml"
-	"github.com/instrumenta/conftest/pkg/parser/yaml"
+	"github.com/instrumenta/conftest/parser/cue"
+	"github.com/instrumenta/conftest/parser/docker"
+	"github.com/instrumenta/conftest/parser/hcl2"
+	"github.com/instrumenta/conftest/parser/ini"
+	"github.com/instrumenta/conftest/parser/terraform"
+	"github.com/instrumenta/conftest/parser/toml"
+	"github.com/instrumenta/conftest/parser/yaml"
 )
 
 // ValidInputs returns string array in order to passing valid input types to viper

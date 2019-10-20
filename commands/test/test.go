@@ -12,10 +12,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/instrumenta/conftest/pkg/commands/update"
-	"github.com/instrumenta/conftest/pkg/parser"
-	"github.com/instrumenta/conftest/pkg/policy"
-
+	"github.com/instrumenta/conftest/commands/update"
+	"github.com/instrumenta/conftest/parser"
+	"github.com/instrumenta/conftest/policy"
 	"github.com/containerd/containerd/log"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"

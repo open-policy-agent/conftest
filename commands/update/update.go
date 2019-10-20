@@ -3,7 +3,7 @@ package update
 import (
 	"context"
 
-	"github.com/instrumenta/conftest/pkg/policy"
+	"github.com/instrumenta/conftest/policy"
 
 	"github.com/containerd/containerd/log"
 	"github.com/spf13/cobra"

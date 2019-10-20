@@ -1,19 +1,21 @@
 package commands
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"os"
 
+	"github.com/containerd/containerd/log"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
-	"github.com/instrumenta/conftest/pkg/commands/parse"
-	"github.com/instrumenta/conftest/pkg/commands/pull"
-	"github.com/instrumenta/conftest/pkg/commands/push"
-	"github.com/instrumenta/conftest/pkg/commands/test"
-	"github.com/instrumenta/conftest/pkg/commands/update"
-	"github.com/instrumenta/conftest/pkg/commands/verify"
+	"github.com/instrumenta/conftest/commands/pull"
+	"github.com/instrumenta/conftest/commands/push"
+	"github.com/instrumenta/conftest/commands/test"
+	"github.com/instrumenta/conftest/commands/update"
+	"github.com/instrumenta/conftest/commands/verify"
+	"github.com/instrumenta/conftest/commands/parse"
 )
 
 // These values are set at build time
@@ -25,6 +27,7 @@ var (
 
 // NewDefaultCommand creates the default command
 func NewDefaultCommand() *cobra.Command {
+	ctx := context.Background()
 	cmd := cobra.Command{
 		Use:     "conftest <subcommand>",
 		Short:   "Test your configuration files using Open Policy Agent",
@@ -49,7 +52,14 @@ func NewDefaultCommand() *cobra.Command {
 	viper.SetConfigName("conftest")
 	viper.AddConfigPath(".")
 	viper.AutomaticEnv()
-	viper.ReadInConfig()
+
+	if err := viper.ReadInConfig(); err != nil {
+		var e viper.ConfigFileNotFoundError
+		if !errors.As(err, &e) {
+			log.G(ctx).Fatal("failed to parse config file: ", err)
+		}
+	}
+
 	cmd.AddCommand(test.NewTestCommand(
 		os.Exit,
 		test.GetOutputManager,
