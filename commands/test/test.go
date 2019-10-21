@@ -66,8 +66,7 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 			}
 
 			policyPath := viper.GetString("policy")
-
-			regoFiles, err := policy.ReadRegoFiles(policyPath)
+			regoFiles, err := policy.ReadFiles(policyPath)
 			if err != nil {
 				log.G(ctx).Fatalf("read rego files: %s", err)
 			}

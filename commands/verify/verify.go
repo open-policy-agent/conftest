@@ -30,7 +30,7 @@ func NewVerifyCommand(getOutputManager func() test.OutputManager) *cobra.Command
 
 			policyPath := viper.GetString("policy")
 
-			regoFiles, err := policy.ReadRegoTestFiles(policyPath)
+			regoFiles, err := policy.ReadFilesWithTests(policyPath)
 			if err != nil {
 				log.G(ctx).Fatalf("read rego test files: %s", err)
 			}
