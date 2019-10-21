@@ -12,10 +12,10 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/containerd/containerd/log"
 	"github.com/instrumenta/conftest/commands/update"
 	"github.com/instrumenta/conftest/parser"
 	"github.com/instrumenta/conftest/policy"
-	"github.com/containerd/containerd/log"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/topdown"
@@ -65,9 +65,16 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 				update.NewUpdateCommand().Run(cmd, fileList)
 			}
 
-			compiler, err := policy.BuildCompiler(viper.GetString("policy"), false)
+			policyPath := viper.GetString("policy")
+
+			regoFiles, err := policy.ReadRegoFiles(policyPath)
 			if err != nil {
-				log.G(ctx).Fatalf("Problem building rego compiler: %s", err)
+				log.G(ctx).Fatalf("read rego files: %s", err)
+			}
+
+			compiler, err := policy.BuildCompiler(regoFiles)
+			if err != nil {
+				log.G(ctx).Fatalf("build rego compiler: %s", err)
 			}
 
 			configurations, err := GetConfigurations(ctx, fileList)

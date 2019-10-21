@@ -1,6 +1,7 @@
 package policy
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -9,14 +10,9 @@ import (
 	"github.com/open-policy-agent/opa/ast"
 )
 
-// BuildCompiler compiles all Rego policies at the given path and returns the Compiler containing
-// the compilation state
-func BuildCompiler(path string, withTests bool) (*ast.Compiler, error) {
-	files, err := recursivelySearchDirForRegoFiles(path, withTests)
-	if err != nil {
-		return nil, err
-	}
-
+// BuildCompiler compiles all of the given Rego policies
+// and returns the Compiler containing the compilation state
+func BuildCompiler(files []string) (*ast.Compiler, error) {
 	modules := map[string]*ast.Module{}
 
 	for _, file := range files {
@@ -25,22 +21,16 @@ func BuildCompiler(path string, withTests bool) (*ast.Compiler, error) {
 			return nil, err
 		}
 
-		relPath, err := filepath.Rel(path, file)
+		parsed, err := ast.ParseModule(file, string(out[:]))
 		if err != nil {
 			return nil, err
 		}
 
-		parsed, err := ast.ParseModule(relPath, string(out[:]))
-		if err != nil {
-			return nil, err
-		}
-
-		modules[relPath] = parsed
+		modules[file] = parsed
 	}
 
 	compiler := ast.NewCompiler()
 	compiler.Compile(modules)
-
 	if compiler.Failed() {
 		return nil, compiler.Errors
 	}
@@ -48,23 +38,46 @@ func BuildCompiler(path string, withTests bool) (*ast.Compiler, error) {
 	return compiler, nil
 }
 
-func recursivelySearchDirForRegoFiles(path string, withTests bool) ([]string, error) {
-	var filepaths []string
+// ReadRegoFiles returns all of the rego files at the given path
+// including its subdirectories.
+func ReadRegoFiles(path string) ([]string, error) {
+	files, err := recursivelySearchDirForRegoFiles(path, false)
+	if err != nil {
+		return nil, fmt.Errorf("search rego files: %w", err)
+	}
 
-	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+	return files, nil
+}
+
+// ReadRegoTestFiles returns all of the rego test files at
+// the given path including its subdirectories.
+// Rego test files are Rego files that have a suffix of _test.rego
+func ReadRegoTestFiles(path string) ([]string, error) {
+	files, err := recursivelySearchDirForRegoFiles(path, true)
+	if err != nil {
+		return nil, fmt.Errorf("search rego test files: %w", err)
+	}
+
+	return files, nil
+}
+
+func recursivelySearchDirForRegoFiles(path string, includeTests bool) ([]string, error) {
+	var filepaths []string
+	err := filepath.Walk(path, func(currentPath string, info os.FileInfo, err error) error {
 		if err != nil {
-			return err
+			return fmt.Errorf("walk path: %w", err)
 		}
 
-		if withTests {
-			if !info.IsDir() && strings.HasSuffix(info.Name(), ".rego") {
-				filepaths = append(filepaths, path)
-			}
-		} else {
-			if !info.IsDir() && strings.HasSuffix(info.Name(), ".rego") && !strings.HasSuffix(info.Name(), "_test.rego") {
-				filepaths = append(filepaths, path)
-			}
+		if info.IsDir() {
+			return nil
+		}
 
+		if filepath.Ext(currentPath) == "rego" && !strings.HasPrefix(info.Name(), "_test.rego") {
+			filepaths = append(filepaths, path)
+		}
+
+		if includeTests && strings.HasPrefix(info.Name(), "_test.rego") {
+			filepaths = append(filepaths, path)
 		}
 
 		return nil
