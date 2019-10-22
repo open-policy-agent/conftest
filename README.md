@@ -103,7 +103,7 @@ deny[msg] {
   
   deployment != service
 
-  msg = sprintf("Expected these values to be the same but received %v for deployment and %v for service, [deployment, service])
+  msg = sprintf("Expected these values to be the same but received %v for deployment and %v for service", [deployment, service])
 }
 ```
 
