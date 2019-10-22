@@ -2,13 +2,13 @@ package push
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/containerd/containerd/log"
-	"github.com/containerd/containerd/remotes/docker"
 	auth "github.com/deislabs/oras/pkg/auth/docker"
 	"github.com/deislabs/oras/pkg/content"
 	"github.com/deislabs/oras/pkg/oras"
@@ -17,22 +17,21 @@ import (
 )
 
 const (
-	OpenPolicyAgentConfigMediaType      = "application/vnd.cncf.openpolicyagent.config.v1+json"
-	OpenPolicyAgentPolicyLayerMediaType = "application/vnd.cncf.openpolicyagent.policy.layer.v1+rego"
-	OpenPolicyAgentDataLayerMediaType   = "application/vnd.cncf.openpolicyagent.data.layer.v1+json"
+	openPolicyAgentConfigMediaType      = "application/vnd.cncf.openpolicyagent.config.v1+json"
+	openPolicyAgentPolicyLayerMediaType = "application/vnd.cncf.openpolicyagent.policy.layer.v1+rego"
+	openPolicyAgentDataLayerMediaType   = "application/vnd.cncf.openpolicyagent.data.layer.v1+json"
 )
 
-// NewPushCommand creates a new push command
-func NewPushCommand() *cobra.Command {
-	cmd := &cobra.Command{
+// NewPushCommand creates a new push command which allows users to push
+// bundles to an OCI registry
+func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
+	cmd := cobra.Command{
 		Use:   "push <repository> [filepath]",
 		Short: "Upload OPA bundles to an OCI registry",
 		Long:  `Upload Open Policy Agent bundles to an OCI registry`,
 		Args:  cobra.RangeArgs(1, 2),
 
-		Run: func(cmd *cobra.Command, args []string) {
-			ctx := context.Background()
-
+		RunE: func(cmd *cobra.Command, args []string) error {
 			var path string
 			if len(args) == 2 {
 				path = args[1]
@@ -40,112 +39,132 @@ func NewPushCommand() *cobra.Command {
 				var err error
 				path, err = os.Getwd()
 				if err != nil {
-					log.G(ctx).Fatal(err)
+					return fmt.Errorf("get working directory: %w", err)
 				}
 			}
 
-			uploadBundle(ctx, args[0], path)
+			repository := getRepositoryWithTag(path)
+
+			if err := uploadBundle(ctx, logger, args[0], repository); err != nil {
+				return fmt.Errorf("upload bundle: %w", err)
+			}
+
+			return nil
 		},
 	}
 
-	return cmd
+	return &cmd
 }
 
-func uploadBundle(ctx context.Context, repository string, root string) {
+func getRepositoryWithTag(repository string) string {
+	var repositoryWithTag string
+	if strings.Contains(repository, ":") {
+		repositoryWithTag = repository
+	} else {
+		repositoryWithTag = repository + ":latest"
+	}
 
+	return repositoryWithTag
+}
+
+func uploadBundle(ctx context.Context, logger *log.Logger, repository string, path string) error {
 	cli, err := auth.NewClient()
 	if err != nil {
-		log.G(ctx).Warnf("Error loading auth file: %v\n", err)
+		return fmt.Errorf("get auth client: %w", err)
 	}
 
 	resolver, err := cli.Resolver(ctx)
 	if err != nil {
-		log.G(ctx).Warnf("Error loading resolver: %v\n", err)
-		resolver = docker.NewResolver(docker.ResolverOptions{})
+		return fmt.Errorf("docker resolver: %w", err)
 	}
 
-	var ref string
-	if strings.Contains(repository, ":") {
-		ref = repository
-	} else {
-		ref = repository + ":latest"
-	}
-
-	layers, memoryStore := buildLayers(ctx, root)
-
-	log.G(ctx).Infof("Pushing bundle to %s\n", ref)
-	extraOpts := []oras.PushOpt{oras.WithConfigMediaType(OpenPolicyAgentConfigMediaType)}
-
-	manifest, err := oras.Push(ctx, resolver, ref, memoryStore, layers, extraOpts...)
+	memoryStore := content.NewMemoryStore()
+	layers, err := buildLayers(memoryStore, path)
 	if err != nil {
-		log.G(ctx).Fatal(err)
+		return fmt.Errorf("building layers: %w", err)
 	}
 
-	log.G(ctx).Infof("Pushed bundle to %s with digest %s\n", ref, manifest.Digest)
+	logger.Printf("pushing bundle to %s\n", repository)
+	extraOpts := []oras.PushOpt{oras.WithConfigMediaType(openPolicyAgentConfigMediaType)}
+	manifest, err := oras.Push(ctx, resolver, repository, memoryStore, layers, extraOpts...)
+	if err != nil {
+		return fmt.Errorf("pushing manifest: %w", err)
+	}
+
+	logger.Printf("pushed bundle to %s with digest %s\n", repository, manifest.Digest)
+
+	return nil
 }
 
-func buildLayers(ctx context.Context, root string) ([]ocispec.Descriptor, *content.Memorystore) {
+func buildLayers(memoryStore *content.Memorystore, path string) ([]ocispec.Descriptor, error) {
 	var data []string
 	var policy []string
 	var layers []ocispec.Descriptor
 	var err error
 
-	root, err = filepath.Abs(root)
+	root, err := filepath.Abs(path)
 	if err != nil {
-		log.G(ctx).Fatal(err)
+		return nil, fmt.Errorf("get abs path: %w", err)
 	}
 
-	info, err := os.Stat(root)
-	if err != nil {
-		log.G(ctx).Fatal(err)
-	}
+	err = filepath.Walk(root, func(currentPath string, info os.FileInfo, err error) error {
+		if err != nil {
+			return fmt.Errorf("walk path: %w", err)
+		}
 
-	if !info.IsDir() {
-		log.G(ctx).Fatalf("%s isn't a directory", root)
-	}
-
-	memoryStore := content.NewMemoryStore()
-
-	err = filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
 			return nil
 		}
+
 		if filepath.Ext(path) == ".rego" {
-			policy = append(policy, path)
+			policy = append(policy, currentPath)
 		}
+
 		if filepath.Ext(path) == ".json" {
-			data = append(data, path)
+			data = append(data, currentPath)
 		}
+
 		return nil
 	})
 	if err != nil {
-		log.G(ctx).Fatal(err)
+		return nil, err
 	}
 
-	policyLayers := buildLayer(ctx, policy, root, memoryStore, OpenPolicyAgentPolicyLayerMediaType)
-	dataLayers := buildLayer(ctx, data, root, memoryStore, OpenPolicyAgentDataLayerMediaType)
+	policyLayers, err := buildLayer(policy, root, memoryStore, openPolicyAgentPolicyLayerMediaType)
+	if err != nil {
+		return nil, fmt.Errorf("build policy layer: %w", err)
+	}
+
+	dataLayers, err := buildLayer(data, root, memoryStore, openPolicyAgentDataLayerMediaType)
+	if err != nil {
+		return nil, fmt.Errorf("build data layer: %w", err)
+	}
+
 	layers = append(policyLayers, dataLayers...)
 
-	return layers, memoryStore
+	return layers, nil
 }
 
-func buildLayer(ctx context.Context, paths []string, root string, memoryStore *content.Memorystore, mediaType string) []ocispec.Descriptor {
+func buildLayer(paths []string, root string, memoryStore *content.Memorystore, mediaType string) ([]ocispec.Descriptor, error) {
 	var layer ocispec.Descriptor
 	var layers []ocispec.Descriptor
+
 	for _, file := range paths {
 		contents, err := ioutil.ReadFile(file)
 		if err != nil {
-			log.G(ctx).Fatal(err)
+			return nil, fmt.Errorf("read file: %w", err)
 		}
+
 		relative, err := filepath.Rel(root, file)
 		if err != nil {
-			log.G(ctx).Fatal(err)
+			return nil, fmt.Errorf("get relative filepath: %w", err)
 		}
 
 		path := filepath.ToSlash(relative)
 
-		layer = memoryStore.Add(path, OpenPolicyAgentPolicyLayerMediaType, contents)
+		layer = memoryStore.Add(path, openPolicyAgentPolicyLayerMediaType, contents)
 		layers = append(layers, layer)
 	}
-	return layers
+
+	return layers, nil
 }
