@@ -14,6 +14,8 @@ import (
 
 func NewVerifyCommand() *cobra.Command {
 	ctx := context.Background()
+	outputManager := test.GetOutputManager()
+
 	cmd := cobra.Command{
 		Use:   "verify",
 		Short: "Verify Rego unit tests",
@@ -46,29 +48,38 @@ func NewVerifyCommand() *cobra.Command {
 }
 
 // RunVerification runs the verify command
-func RunVerification(ctx context.Context, path string) ([]string, []string, error) {
+func RunVerification(ctx context.Context, path string) ([]test.CheckResult, error) {
 	compiler, err := policy.BuildCompiler(path, true)
 	if err != nil {
-		return nil, nil, fmt.Errorf("build compiler: %w", err)
+		return nil, fmt.Errorf("build compiler: %w", err)
 	}
 
 	runner := tester.NewRunner().SetCompiler(compiler)
 	ch, err := runner.RunTests(ctx, nil)
 	if err != nil {
-		return nil, nil, fmt.Errorf("running tests: %w", err)
+		return nil, fmt.Errorf("running tests: %w", err)
 	}
 
-	var success []string
-	var failure []string
+	var failures []error
+	var successes []error
 	for result := range ch {
 		msg := fmt.Errorf("%s", result.Package+"."+result.Name)
 		fileName := filepath.Join(path, result.Location.File)
 
 		if result.Fail {
-			failure = append(failure, fmt.Sprintf("[fail] file %s with message %s\n", fileName, msg))
+			failures = append(failures, msg)
 		} else {
-			success = append(success, fmt.Sprintf("[success] file %s with message %s\n", fileName, msg))
+			successes = append(successes, msg)
 		}
+
+		result := test.CheckResult{
+			FileName:  fileName,
+			Successes: successes,
+			Failures:  failures,
+		}
+
+		/// SPLIT OUT CONCERNS BETWEEN RESULT AND OUTPUT
+
 	}
 
 	return success, failure, nil

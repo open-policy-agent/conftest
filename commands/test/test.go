@@ -12,10 +12,10 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/containerd/containerd/log"
 	"github.com/instrumenta/conftest/commands/update"
 	"github.com/instrumenta/conftest/parser"
 	"github.com/instrumenta/conftest/policy"
-	"github.com/containerd/containerd/log"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/topdown"
@@ -33,6 +33,7 @@ var (
 // warning and failure "errors" produced by rego should be considered separate
 // from other classes of exceptions.
 type CheckResult struct {
+	FileName  string
 	Warnings  []error
 	Failures  []error
 	Successes []error
