@@ -78,11 +78,17 @@ configuration files.
 #### --input flag
 `conftest` normally detects input type with the file extension, but you can force to use a different one with `--input` or `-i` flag.
 
-For the available parsers, take a look at: [parsers](pkg/parser). For instance:
+For the available parsers, take a look at: [parsers](parser). For instance:
 
 ```console
 $ conftest test -p examples/hcl2/policy examples/hcl2/terraform.tf -i hcl2
 FAIL - examples/hcl2/terraform.tf - Application environment is should be `staging_environment`
+```
+
+To working easy with different inputs and seeing how they are parsed, you can use `conftest parse` command like:
+
+```console
+conftest parse examples/ini/grafana.ini # It also works with `--input` flag.
 ```
 
 #### --combine flag
