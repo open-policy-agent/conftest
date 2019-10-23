@@ -1,6 +1,5 @@
 package main
 
-
 empty(value) {
   count(value) == 0
 }
@@ -12,8 +11,6 @@ no_violations {
 no_warnings {
   empty(warn)
 }
-
-
 
 test_deployment_without_security_context {
   deny["Containers must not run as root in Deployment sample"] with input as {"kind": "Deployment", "metadata": { "name": "sample" }}
@@ -30,5 +27,5 @@ test_services_not_denied {
 }
 
 test_services_issue_warning {
-  warn["Found service sample but services are not allowed"] with input as {"kind": "Service", "metadata": { "name": "sample" }}
+  warn["Found service sample but services are not allowed"] with input as {"kind": "Servic", "metadata": { "name": "sample" }}
 }
