@@ -49,15 +49,15 @@ func NewDefaultCommand() *cobra.Command {
 	viper.AddConfigPath(".")
 	viper.AutomaticEnv()
 
+	logger := log.New(os.Stdout, "", log.LstdFlags)
+	ctx := context.Background()
+
 	if err := viper.ReadInConfig(); err != nil {
 		var e viper.ConfigFileNotFoundError
 		if !errors.As(err, &e) {
-			panic("moo")
+			logger.Fatalf("error reading config: %s", err)
 		}
 	}
-
-	logger := log.New(os.Stdout, "", log.LstdFlags)
-	ctx := context.Background()
 
 	cmd.AddCommand(test.NewTestCommand(
 		os.Exit,

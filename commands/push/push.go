@@ -43,11 +43,14 @@ func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 				}
 			}
 
-			repository := getRepositoryWithTag(path)
+			repository := args[0]
 
-			if err := uploadBundle(ctx, logger, args[0], repository); err != nil {
-				return fmt.Errorf("upload bundle: %w", err)
+			logger.Printf("pushing bundle to: %s\n", repository)
+			manifest, err := pushBundle(ctx, args[0], path)
+			if err != nil {
+				return fmt.Errorf("push bundle: %w", err)
 			}
+			logger.Printf("pushed bundle with digest: %s\n", manifest.Digest)
 
 			return nil
 		},
@@ -56,7 +59,23 @@ func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 	return &cmd
 }
 
-func getRepositoryWithTag(repository string) string {
+func pushBundle(ctx context.Context, repository string, path string) (*ocispec.Descriptor, error) {
+	cli, err := auth.NewClient()
+	if err != nil {
+		return nil, fmt.Errorf("get auth client: %w", err)
+	}
+
+	resolver, err := cli.Resolver(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("docker resolver: %w", err)
+	}
+
+	memoryStore := content.NewMemoryStore()
+	layers, err := buildLayers(memoryStore, path)
+	if err != nil {
+		return nil, fmt.Errorf("building layers: %w", err)
+	}
+
 	var repositoryWithTag string
 	if strings.Contains(repository, ":") {
 		repositoryWithTag = repository
@@ -64,49 +83,23 @@ func getRepositoryWithTag(repository string) string {
 		repositoryWithTag = repository + ":latest"
 	}
 
-	return repositoryWithTag
-}
-
-func uploadBundle(ctx context.Context, logger *log.Logger, repository string, path string) error {
-	cli, err := auth.NewClient()
-	if err != nil {
-		return fmt.Errorf("get auth client: %w", err)
-	}
-
-	resolver, err := cli.Resolver(ctx)
-	if err != nil {
-		return fmt.Errorf("docker resolver: %w", err)
-	}
-
-	memoryStore := content.NewMemoryStore()
-	layers, err := buildLayers(memoryStore, path)
-	if err != nil {
-		return fmt.Errorf("building layers: %w", err)
-	}
-
-	logger.Printf("pushing bundle to %s\n", repository)
 	extraOpts := []oras.PushOpt{oras.WithConfigMediaType(openPolicyAgentConfigMediaType)}
-	manifest, err := oras.Push(ctx, resolver, repository, memoryStore, layers, extraOpts...)
+	manifest, err := oras.Push(ctx, resolver, repositoryWithTag, memoryStore, layers, extraOpts...)
 	if err != nil {
-		return fmt.Errorf("pushing manifest: %w", err)
+		return nil, fmt.Errorf("pushing manifest: %w", err)
 	}
 
-	logger.Printf("pushed bundle to %s with digest %s\n", repository, manifest.Digest)
-
-	return nil
+	return &manifest, nil
 }
 
 func buildLayers(memoryStore *content.Memorystore, path string) ([]ocispec.Descriptor, error) {
-	var data []string
-	var policy []string
-	var layers []ocispec.Descriptor
-	var err error
-
 	root, err := filepath.Abs(path)
 	if err != nil {
 		return nil, fmt.Errorf("get abs path: %w", err)
 	}
 
+	var policy []string
+	var data []string
 	err = filepath.Walk(root, func(currentPath string, info os.FileInfo, err error) error {
 		if err != nil {
 			return fmt.Errorf("walk path: %w", err)
@@ -140,8 +133,7 @@ func buildLayers(memoryStore *content.Memorystore, path string) ([]ocispec.Descr
 		return nil, fmt.Errorf("build data layer: %w", err)
 	}
 
-	layers = append(policyLayers, dataLayers...)
-
+	layers := append(policyLayers, dataLayers...)
 	return layers, nil
 }
 
@@ -162,7 +154,7 @@ func buildLayer(paths []string, root string, memoryStore *content.Memorystore, m
 
 		path := filepath.ToSlash(relative)
 
-		layer = memoryStore.Add(path, openPolicyAgentPolicyLayerMediaType, contents)
+		layer = memoryStore.Add(path, mediaType, contents)
 		layers = append(layers, layer)
 	}
 
