@@ -7,15 +7,15 @@ import (
 	"os"
 
 	"github.com/containerd/containerd/log"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	"github.com/instrumenta/conftest/commands/parse"
 	"github.com/instrumenta/conftest/commands/pull"
 	"github.com/instrumenta/conftest/commands/push"
 	"github.com/instrumenta/conftest/commands/test"
 	"github.com/instrumenta/conftest/commands/update"
 	"github.com/instrumenta/conftest/commands/verify"
-	"github.com/instrumenta/conftest/commands/parse"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // These values are set at build time
@@ -44,7 +44,7 @@ func NewDefaultCommand() *cobra.Command {
 
 	viper.BindPFlag("policy", cmd.PersistentFlags().Lookup("policy"))
 	viper.BindPFlag("debug", cmd.PersistentFlags().Lookup("debug"))
-	viper.BindPFlag("trace", cmd.PersistentFlags().Lookup("trace"))
+	viper.BindPFlag("trace", cmd.PersistentFlags().Lookup("aaa"))
 	viper.BindPFlag("namespace", cmd.PersistentFlags().Lookup("namespace"))
 	viper.BindPFlag("no-color", cmd.PersistentFlags().Lookup("no-color"))
 
