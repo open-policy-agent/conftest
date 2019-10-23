@@ -85,10 +85,10 @@ $ conftest test -p examples/hcl2/policy examples/hcl2/terraform.tf -i hcl2
 FAIL - examples/hcl2/terraform.tf - Application environment is should be `staging_environment`
 ```
 
-To working easy with different inputs and seeing how they are parsed, you can use `conftest parse` command like:
+The `--input` flag can also be a good way to see how different input types would be parsed:
 
 ```console
-conftest parse examples/ini/grafana.ini # It also works with `--input` flag.
+conftest parse examples/hcl2/terraform.tf -i hcl2
 ```
 
 #### --combine flag
