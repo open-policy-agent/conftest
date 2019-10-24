@@ -3,7 +3,6 @@ package parse
 import (
 	"testing"
 
-	"github.com/kami-zh/go-capturer"
 	"github.com/spf13/viper"
 	"gotest.tools/assert"
 	is "gotest.tools/assert/cmp"
@@ -30,23 +29,23 @@ func TestParseConfig(t *testing.T) {
 
 	for _, testunit := range testTable {
 		t.Run(testunit.name, func(t *testing.T) {
-			exitCallCount := 0
+			exit := 0
 			cmd := NewParseCommand(func(int) {
-				exitCallCount++
+				exit++
 			})
-			cmd.Run(cmd, testunit.fileList)
+			cmd.RunE(cmd, testunit.fileList)
 
-			if exitCallCount != 1 {
+			if exit != 0 {
 				t.Errorf(
-					"It should called one time but we have exit code: %v",
-					exitCallCount,
+					"The exit code should be 0 but got: %v",
+					exit,
 				)
 			}
 		})
 	}
 }
 
-func TestInputFlagforParseConfig(t *testing.T) {
+func TestInputFlagForparseInput(t *testing.T) {
 	testunit := struct {
 		name     string
 		input    string
@@ -57,9 +56,6 @@ func TestInputFlagforParseConfig(t *testing.T) {
 		fileList: []string{"testdata/terraform.tf"},
 	}
 	t.Run(testunit.name, func(t *testing.T) {
-		viper.Reset()
-		viper.Set("input", testunit.input)
-		exitCallCount := 0
 		expectedFile := "testdata/terraform.tf"
 		expected := `{
 	"data.consul_key_prefix.environment": {
@@ -86,20 +82,16 @@ func TestInputFlagforParseConfig(t *testing.T) {
 		}
 	}
 }`
-		output := capturer.CaptureOutput(func() {
-			cmd := NewParseCommand(func(int) {
-				exitCallCount++
-			})
-
-			cmd.Run(cmd, testunit.fileList)
-		})
 		viper.Reset()
-		assert.Assert(t, is.Contains(output, expected))
-		assert.Assert(t, is.Contains(output, expectedFile))
+		viper.Set("input", testunit.input)
+		parsed, _ := parseInput(testunit.fileList)
+		viper.Reset()
+		assert.Assert(t, is.Contains(string(parsed), expected))
+		assert.Assert(t, is.Contains(string(parsed), expectedFile))
 	})
 }
 
-func TestParseOutput(t *testing.T) {
+func TestParseOutputwithNoFlag(t *testing.T) {
 	unit := struct {
 		name     string
 		fileList []string
@@ -126,15 +118,9 @@ func TestParseOutput(t *testing.T) {
 	},
 	`
 	t.Run(unit.name, func(t *testing.T) {
-		exitCallCount := 0
-		output := capturer.CaptureOutput(func() {
-			cmd := NewParseCommand(func(int) {
-				exitCallCount++
-			})
-			cmd.Run(cmd, unit.fileList)
-		})
-		assert.Assert(t, is.Contains(output, expected))
-		assert.Assert(t, is.Contains(output, expectedFile))
+		parsed, _ := parseInput(unit.fileList)
+		assert.Assert(t, is.Contains(string(parsed), expected))
+		assert.Assert(t, is.Contains(string(parsed), expectedFile))
 
 	})
 }

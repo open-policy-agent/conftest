@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/containerd/containerd/log"
 	"github.com/instrumenta/conftest/commands/test"
 	"github.com/instrumenta/conftest/parser"
-	"github.com/containerd/containerd/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -18,40 +18,55 @@ import (
 //This command can be used for printing structured inputs from unstructured configuration inputs.
 //Can be used with '--input' or '-i' flag.
 func NewParseCommand(osExit func(int)) *cobra.Command {
-	ctx := context.Background()
-	cmd := &cobra.Command{
-		Use:     "parse <filename>",
-		Short:   "Print out structured data from your input file",
-		PreRun: func(cmd *cobra.Command, args []string) {
+	cmd := cobra.Command{
+		Use:   "parse <filename>",
+		Short: "Print out structured data from your input file",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
 			err := viper.BindPFlag("input", cmd.Flags().Lookup("input"))
 			if err != nil {
-				log.G(ctx).Fatal("Failed to bind argument:", err)
+				return fmt.Errorf("failed to bind argument: %w", err)
 			}
+			return nil
 		},
-		Run: func(cmd *cobra.Command, fileList []string) {
-			configurations, err := test.GetConfigurations(ctx, fileList)
+		RunE: func(cmd *cobra.Command, fileList []string) error {
+			out, err := parseInput(fileList)
 			if err != nil {
-				log.G(ctx).Fatalf("Your inputs could not be parsed : %s", err)
+				return fmt.Errorf("failed during parser process: %w", err)
 			}
-
-			for filename, config := range configurations {
-				var prettyJSON bytes.Buffer
-				os.Stdout.WriteString((filename) + "\n")
-				out, err := json.Marshal(config)
-				if err != nil {
-					log.G(ctx).Fatalf("Error converting config to JSON out: %s", err)
-				}
-				err = json.Indent(&prettyJSON, out, "", "\t")
-				if err != nil {
-					log.G(ctx).Fatalf("Error indenting JSON output: %s", err)
-				}
-				os.Stdout.Write(prettyJSON.Bytes())
-			}
-
-			osExit(0)
+			print(out)
+			return nil
 		},
 	}
 
 	cmd.Flags().StringP("input", "i", "", fmt.Sprintf("input type for given source, especially useful when using conftest with stdin, valid options are: %s", parser.ValidInputs()))
-	return cmd
+	return &cmd
+}
+
+func parseInput(fileList []string) ([]byte, error) {
+	ctx := context.Background()
+	configurations, err := test.GetConfigurations(ctx, fileList)
+	var bundle []byte
+	if err != nil {
+		log.G(ctx).Fatalf("Your inputs could not be parsed : %s", err)
+	}
+	for filename, config := range configurations {
+		filename = filename + "\n"
+		var prettyJSON bytes.Buffer
+		out, err := json.Marshal(config)
+		if err != nil {
+			return nil, fmt.Errorf("Error converting config to JSON out: %s", err)
+		}
+		err = json.Indent(&prettyJSON, out, "", "\t")
+		if err != nil {
+			return nil, fmt.Errorf("Error indenting JSON output: %s", err)
+		}
+		bundle = append(bundle, filename...)
+		bundle = append(bundle, prettyJSON.Bytes()...)
+	}
+	return bundle, nil
+}
+
+//Will be replaced with OutputManager
+func print(output []byte) {
+	os.Stdout.Write(output)
 }
