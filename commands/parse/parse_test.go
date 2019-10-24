@@ -33,8 +33,10 @@ func TestParseConfig(t *testing.T) {
 			cmd := NewParseCommand(func(int) {
 				exit++
 			})
-			cmd.RunE(cmd, testunit.fileList)
-
+			err := cmd.RunE(cmd, testunit.fileList)
+			if err != nil {
+				t.Errorf("problem running parse command in test: %w", err)
+			}
 			if exit != 0 {
 				t.Errorf(
 					"The exit code should be 0 but got: %v",
