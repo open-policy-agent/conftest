@@ -27,5 +27,5 @@ test_services_not_denied {
 }
 
 test_services_issue_warning {
-  warn["Found service sample but services are not allowed"] with input as {"kind": "Servic", "metadata": { "name": "sample" }}
+  warn["Found service sample but services are not allowed"] with input as {"kind": "Service", "metadata": { "name": "sample" }}
 }

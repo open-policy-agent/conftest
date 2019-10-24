@@ -30,6 +30,7 @@ func ValidOutputs() []string {
 func GetOutputManager() OutputManager {
 	outFmt := viper.GetString("output")
 	color := !viper.GetBool("no-color")
+
 	switch outFmt {
 	case OutputSTD:
 		return NewDefaultStdOutputManager(color)
@@ -46,17 +47,16 @@ func GetOutputManager() OutputManager {
 // and reported to the end user.
 //counterfeiter:generate . OutputManager
 type OutputManager interface {
-	Put(fileName string, cr CheckResult) error
+	Put(fileName string, cr CheckResult)
 	Flush() error
 }
 
-// stdOutputManager reports `ccheck` results to stdout.
 type stdOutputManager struct {
 	logger *log.Logger
 	color  aurora.Aurora
 }
 
-// newDefaultStdOutputManager instantiates a new instance of stdOutputManager
+// NewDefaultStdOutputManager instantiates a new instance of stdOutputManager
 // using the default logger.
 func NewDefaultStdOutputManager(color bool) *stdOutputManager {
 	return NewStdOutputManager(log.New(os.Stdout, "", 0), color)
@@ -72,7 +72,7 @@ func NewStdOutputManager(l *log.Logger, color bool) *stdOutputManager {
 	}
 }
 
-func (s *stdOutputManager) Put(fileName string, cr CheckResult) error {
+func (s *stdOutputManager) Put(fileName string, cr CheckResult) {
 	var indicator string
 	if fileName == "-" {
 		indicator = " - "
@@ -92,19 +92,16 @@ func (s *stdOutputManager) Put(fileName string, cr CheckResult) error {
 	for _, r := range cr.Failures {
 		s.logger.Print(s.color.Colorize("FAIL", aurora.RedFg), indicator, r)
 	}
-
-	return nil
 }
 
 func (s *stdOutputManager) Flush() error {
-	// no op
 	return nil
 }
 
 type jsonCheckResult struct {
-	Filename string   `json:"filename"`
-	Warnings []string `json:"Warnings"`
-	Failures []string `json:"Failures"`
+	Filename  string   `json:"filename"`
+	Warnings  []string `json:"Warnings"`
+	Failures  []string `json:"Failures"`
 	Successes []string `json:"Successes"`
 }
 
@@ -136,20 +133,18 @@ func errsToStrings(errs []error) []string {
 	return res
 }
 
-func (j *jsonOutputManager) Put(fileName string, cr CheckResult) error {
+func (j *jsonOutputManager) Put(fileName string, cr CheckResult) {
 
 	if fileName == "-" {
 		fileName = ""
 	}
 
 	j.data = append(j.data, jsonCheckResult{
-		Filename: fileName,
-		Warnings: errsToStrings(cr.Warnings),
-		Failures: errsToStrings(cr.Failures),
+		Filename:  fileName,
+		Warnings:  errsToStrings(cr.Warnings),
+		Failures:  errsToStrings(cr.Failures),
 		Successes: errsToStrings(cr.Successes),
 	})
-
-	return nil
 }
 
 func (j *jsonOutputManager) Flush() error {
@@ -173,13 +168,13 @@ type tapOutputManager struct {
 	logger *log.Logger
 }
 
-// NewDefaultTapOutManager instantiates a new instance of tapOutputManager
+// NewDefaultTAPOutputManager instantiates a new instance of tapOutputManager
 // using the default logger.
 func NewDefaultTAPOutputManager() *tapOutputManager {
 	return NewTAPOutputManager(log.New(os.Stdout, "", 0))
 }
 
-// NewTapOutputManager constructs an instance of stdOutputManager given a
+// NewTAPOutputManager constructs an instance of stdOutputManager given a
 // logger instance.
 func NewTAPOutputManager(l *log.Logger) *tapOutputManager {
 	return &tapOutputManager{
@@ -187,7 +182,7 @@ func NewTAPOutputManager(l *log.Logger) *tapOutputManager {
 	}
 }
 
-func (s *tapOutputManager) Put(fileName string, cr CheckResult) error {
+func (s *tapOutputManager) Put(fileName string, cr CheckResult) {
 	var indicator string
 	if fileName == "-" {
 		indicator = " - "
@@ -216,11 +211,8 @@ func (s *tapOutputManager) Put(fileName string, cr CheckResult) error {
 			}
 		}
 	}
-
-	return nil
 }
 
 func (s *tapOutputManager) Flush() error {
-	// no op
 	return nil
 }

@@ -70,7 +70,7 @@ func NewDefaultCommand() *cobra.Command {
 	cmd.AddCommand(update.NewUpdateCommand())
 	cmd.AddCommand(push.NewPushCommand())
 	cmd.AddCommand(pull.NewPullCommand())
-	cmd.AddCommand(verify.NewVerifyCommand())
+	cmd.AddCommand(verify.NewVerifyCommand(ctx))
 
 	if viper.GetBool("debug") {
 		logrus.SetLevel(logrus.DebugLevel)

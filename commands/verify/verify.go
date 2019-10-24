@@ -12,10 +12,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func NewVerifyCommand() *cobra.Command {
-	ctx := context.Background()
-	outputManager := test.GetOutputManager()
-
+func NewVerifyCommand(ctx context.Context) *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "verify",
 		Short: "Verify Rego unit tests",
@@ -28,15 +25,21 @@ func NewVerifyCommand() *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
+			outputManager := test.GetOutputManager()
 			policyPath := viper.GetString("policy")
 
-			success, failure, err := RunVerification(ctx, policyPath)
+			results, err := RunVerification(ctx, policyPath)
 			if err != nil {
 				return fmt.Errorf("running verification: %w", err)
 			}
 
-			fmt.Println(success)
-			fmt.Println(failure)
+			for _, result := range results {
+				outputManager.Put(result.FileName, result)
+			}
+
+			if err := outputManager.Flush(); err != nil {
+				return fmt.Errorf("flushing output: %w", err)
+			}
 
 			return nil
 		},
@@ -60,27 +63,28 @@ func RunVerification(ctx context.Context, path string) ([]test.CheckResult, erro
 		return nil, fmt.Errorf("running tests: %w", err)
 	}
 
-	var failures []error
-	var successes []error
+	var results []test.CheckResult
 	for result := range ch {
 		msg := fmt.Errorf("%s", result.Package+"."+result.Name)
 		fileName := filepath.Join(path, result.Location.File)
 
+		var failure []error
+		var success []error
+
 		if result.Fail {
-			failures = append(failures, msg)
+			failure = []error{msg}
 		} else {
-			successes = append(successes, msg)
+			success = []error{msg}
 		}
 
 		result := test.CheckResult{
 			FileName:  fileName,
-			Successes: successes,
-			Failures:  failures,
+			Successes: success,
+			Failures:  failure,
 		}
 
-		/// SPLIT OUT CONCERNS BETWEEN RESULT AND OUTPUT
-
+		results = append(results, result)
 	}
 
-	return success, failure, nil
+	return results, nil
 }
