@@ -7,15 +7,15 @@ import (
 	"os"
 
 	"github.com/containerd/containerd/log"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	"github.com/instrumenta/conftest/commands/parse"
 	"github.com/instrumenta/conftest/commands/pull"
 	"github.com/instrumenta/conftest/commands/push"
 	"github.com/instrumenta/conftest/commands/test"
 	"github.com/instrumenta/conftest/commands/update"
 	"github.com/instrumenta/conftest/commands/verify"
-	"github.com/instrumenta/conftest/commands/parse"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // These values are set at build time
@@ -60,10 +60,7 @@ func NewDefaultCommand() *cobra.Command {
 		}
 	}
 
-	cmd.AddCommand(test.NewTestCommand(
-		os.Exit,
-		test.GetOutputManager,
-	))
+	cmd.AddCommand(test.NewTestCommand(ctx))
 	cmd.AddCommand(parse.NewParseCommand(
 		os.Exit,
 	))

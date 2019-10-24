@@ -11,7 +11,6 @@ import (
 )
 
 func TestWarnQuery(t *testing.T) {
-
 	tests := []struct {
 		in  string
 		exp bool
@@ -26,10 +25,10 @@ func TestWarnQuery(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {
-			res := WarnQ.MatchString(tt.in)
+			res := warnQ.MatchString(tt.in)
 
 			if tt.exp != res {
-				t.Fatalf("%s recognized as `warn` query - expected: %v actual: %v", tt.in, tt.exp, res)
+				t.Errorf("%s recognized as `warn` query - expected: %v actual: %v", tt.in, tt.exp, res)
 			}
 		})
 	}
@@ -71,16 +70,11 @@ func TestCombineConfig(t *testing.T) {
 
 	for _, testunit := range testTable {
 		t.Run(testunit.name, func(t *testing.T) {
-			viper.Set(CombineConfigFlagName, testunit.combineConfigFlag)
+			viper.Set(combineConfigFlagName, testunit.combineConfigFlag)
 			viper.Set("policy", testunit.policyPath)
-			errorExitCodeFromCall := 0
-			var outputPrinter *FakeOutputManager
-			cmd := NewTestCommand(func(int) {
-				errorExitCodeFromCall += 1
-			}, func() OutputManager {
-				outputPrinter = new(FakeOutputManager)
-				return outputPrinter
-			})
+
+			ctx := context.Background()
+			cmd := NewTestCommand(ctx)
 			cmd.Run(cmd, testunit.fileList)
 			if outputPrinter.PutCallCount() != len(testunit.fileList) && !testunit.combineConfigFlag {
 				t.Errorf(
@@ -136,6 +130,7 @@ func TestInputFlag(t *testing.T) {
 		t.Run(testUnit.name, func(t *testing.T) {
 			viper.Set("policy", "testdata/policy/test_policy.rego")
 			viper.Set("input", testUnit.input)
+
 			exitCallCount := 0
 			cmd := NewTestCommand(func(int) {
 				exitCallCount += 1
@@ -151,7 +146,6 @@ func TestInputFlag(t *testing.T) {
 	}
 }
 func TestFailQuery(t *testing.T) {
-
 	tests := []struct {
 		in  string
 		exp bool
@@ -171,7 +165,7 @@ func TestFailQuery(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {
-			res := DenyQ.MatchString(tt.in)
+			res := denyQ.MatchString(tt.in)
 
 			if tt.exp != res {
 				t.Fatalf("%s recognized as `fail` query - expected: %v actual: %v", tt.in, tt.exp, res)
@@ -206,7 +200,7 @@ metadata:
 		t.Fatalf("Could not build rego compiler")
 	}
 
-	results, err := processData(ctx, jsonConfig, compiler)
+	results, err := GetResult(ctx, jsonConfig, compiler)
 	if err != nil {
 		t.Fatalf("Could not process policy file")
 	}
@@ -244,7 +238,7 @@ ENTRYPOINT ["java","-cp","app:app/lib/*","hello.Application"]`
 		t.Fatalf("Could not build rego compiler")
 	}
 
-	results, err := processData(ctx, jsonConfig, compiler)
+	results, err := GetResult(ctx, jsonConfig, compiler)
 	if err != nil {
 		t.Fatalf("Could not process policy file")
 	}

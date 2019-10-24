@@ -38,8 +38,7 @@ type CheckResult struct {
 }
 
 // NewTestCommand creates a new test command
-func NewTestCommand() *cobra.Command {
-	ctx := context.Background()
+func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "test <file> [file...]",
 		Short: "Test your configuration files using Open Policy Agent",
