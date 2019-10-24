@@ -47,7 +47,7 @@ func GetOutputManager() OutputManager {
 // and reported to the end user.
 //counterfeiter:generate . OutputManager
 type OutputManager interface {
-	Put(fileName string, cr CheckResult)
+	Put(fileName string, cr CheckResult) error
 	Flush() error
 }
 
@@ -72,7 +72,7 @@ func NewStdOutputManager(l *log.Logger, color bool) *stdOutputManager {
 	}
 }
 
-func (s *stdOutputManager) Put(fileName string, cr CheckResult) {
+func (s *stdOutputManager) Put(fileName string, cr CheckResult) error {
 	var indicator string
 	if fileName == "-" {
 		indicator = " - "
@@ -92,6 +92,8 @@ func (s *stdOutputManager) Put(fileName string, cr CheckResult) {
 	for _, r := range cr.Failures {
 		s.logger.Print(s.color.Colorize("FAIL", aurora.RedFg), indicator, r)
 	}
+
+	return nil
 }
 
 func (s *stdOutputManager) Flush() error {
@@ -133,7 +135,7 @@ func errsToStrings(errs []error) []string {
 	return res
 }
 
-func (j *jsonOutputManager) Put(fileName string, cr CheckResult) {
+func (j *jsonOutputManager) Put(fileName string, cr CheckResult) error {
 
 	if fileName == "-" {
 		fileName = ""
@@ -145,6 +147,8 @@ func (j *jsonOutputManager) Put(fileName string, cr CheckResult) {
 		Failures:  errsToStrings(cr.Failures),
 		Successes: errsToStrings(cr.Successes),
 	})
+
+	return nil
 }
 
 func (j *jsonOutputManager) Flush() error {
@@ -182,7 +186,7 @@ func NewTAPOutputManager(l *log.Logger) *tapOutputManager {
 	}
 }
 
-func (s *tapOutputManager) Put(fileName string, cr CheckResult) {
+func (s *tapOutputManager) Put(fileName string, cr CheckResult) error {
 	var indicator string
 	if fileName == "-" {
 		indicator = " - "
@@ -211,6 +215,8 @@ func (s *tapOutputManager) Put(fileName string, cr CheckResult) {
 			}
 		}
 	}
+
+	return nil
 }
 
 func (s *tapOutputManager) Flush() error {

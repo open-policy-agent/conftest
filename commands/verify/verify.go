@@ -34,7 +34,9 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 			}
 
 			for _, result := range results {
-				outputManager.Put(result.FileName, result)
+				if err := outputManager.Put(result.FileName, result); err != nil {
+					return fmt.Errorf("put result: %w", err)
+				}
 			}
 
 			if err := outputManager.Flush(); err != nil {
