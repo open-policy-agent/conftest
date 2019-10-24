@@ -12,10 +12,10 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/containerd/containerd/log"
 	"github.com/instrumenta/conftest/commands/update"
 	"github.com/instrumenta/conftest/parser"
 	"github.com/instrumenta/conftest/policy"
-	"github.com/containerd/containerd/log"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/topdown"
@@ -24,9 +24,9 @@ import (
 )
 
 var (
-	DenyQ                 = regexp.MustCompile("^(deny|violation)(_[a-zA-Z]+)*$")
-	WarnQ                 = regexp.MustCompile("^warn(_[a-zA-Z]+)*$")
-	CombineConfigFlagName = "combine"
+	denyQ                 = regexp.MustCompile("^(deny|violation)(_[a-zA-Z]+)*$")
+	warnQ                 = regexp.MustCompile("^warn(_[a-zA-Z]+)*$")
+	combineConfigFlagName = "combine"
 )
 
 // CheckResult describes the result of a conftest evaluation.
@@ -39,93 +39,113 @@ type CheckResult struct {
 }
 
 // NewTestCommand creates a new test command
-func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *cobra.Command {
-
+func NewTestCommand() *cobra.Command {
 	ctx := context.Background()
-	cmd := &cobra.Command{
+	cmd := cobra.Command{
 		Use:   "test <file> [file...]",
 		Short: "Test your configuration files using Open Policy Agent",
-		PreRun: func(cmd *cobra.Command, args []string) {
-			var err error
-			flagNames := []string{"fail-on-warn", "update", CombineConfigFlagName, "output", "input"}
+		Args:  cobra.MinimumNArgs(1),
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			flagNames := []string{"fail-on-warn", "update", combineConfigFlagName, "output", "input"}
 			for _, name := range flagNames {
-				err = viper.BindPFlag(name, cmd.Flags().Lookup(name))
-				if err != nil {
-					log.G(ctx).Fatal("Failed to bind argument:", err)
+				if err := viper.BindPFlag(name, cmd.Flags().Lookup(name)); err != nil {
+					return fmt.Errorf("bind flag: %w", err)
 				}
 			}
+
+			return nil
 		},
-		Run: func(cmd *cobra.Command, fileList []string) {
-			if len(fileList) < 1 {
-				cmd.SilenceErrors = true
-				log.G(ctx).Fatal("The first argument should be a file")
-			}
+		RunE: func(cmd *cobra.Command, args []string) error {
+			out := GetOutputManager()
 
 			if viper.GetBool("update") {
-				update.NewUpdateCommand().Run(cmd, fileList)
+				update.NewUpdateCommand().Run(cmd, args)
 			}
 
 			compiler, err := policy.BuildCompiler(viper.GetString("policy"), false)
 			if err != nil {
-				log.G(ctx).Fatalf("Problem building rego compiler: %s", err)
+				return fmt.Errorf("build compiler: %w", err)
 			}
 
-			configurations, err := GetConfigurations(ctx, fileList)
+			configurations, err := GetConfigurations(ctx, args)
 			if err != nil {
-				osExit(1)
+				return fmt.Errorf("get configurations: %w", err)
 			}
 
-			foundFailures := false
-			out := getOutputManager()
-			if viper.GetBool(CombineConfigFlagName) {
-				if runTests(ctx, out, "Combined", configurations, compiler) {
-					foundFailures = true
+			var foundFailure bool
+			if viper.GetBool(combineConfigFlagName) {
+				result, err := GetResult(ctx, configurations, compiler)
+				if err != nil {
+					return fmt.Errorf("get combined test result: %w", err)
+				}
+
+				if shouldReportError(result) {
+					foundFailure = true
+				}
+
+				if err := out.Put("Combined", result); err != nil {
+					return fmt.Errorf("writing error: %w", err)
 				}
 			} else {
 				for fileName, config := range configurations {
-					if runTests(ctx, out, fileName, config, compiler) {
-						foundFailures = true
+					result, err := GetResult(ctx, config, compiler)
+					if err != nil {
+						return fmt.Errorf("get test result: %w", err)
+					}
+
+					if shouldReportError(result) {
+						foundFailure = true
+					}
+
+					if err := out.Put(fileName, result); err != nil {
+						return fmt.Errorf("writing error: %w", err)
 					}
 				}
 			}
 
-			err = out.Flush()
-			if err != nil {
-				log.G(ctx).Fatal(err)
+			if err := out.Flush(); err != nil {
+				return fmt.Errorf("flushing output: %w", err)
 			}
 
-			if foundFailures {
-				osExit(1)
+			if foundFailure {
+				os.Exit(1)
 			}
+
+			return nil
 		},
 	}
 
 	cmd.Flags().BoolP("fail-on-warn", "", false, "return a non-zero exit code if only warnings are found")
 	cmd.Flags().BoolP("update", "", false, "update any policies before running the tests")
-	cmd.Flags().BoolP(CombineConfigFlagName, "", false, "combine all given config files to be evaluated together")
+	cmd.Flags().BoolP(combineConfigFlagName, "", false, "combine all given config files to be evaluated together")
 
 	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", ValidOutputs()))
 	cmd.Flags().StringP("input", "i", "", fmt.Sprintf("input type for given source, especially useful when using conftest with stdin, valid options are: %s", parser.ValidInputs()))
 
-	return cmd
+	return &cmd
 }
 
-func runTests(ctx context.Context, out OutputManager, name string, config interface{}, compiler *ast.Compiler) bool {
-	var res CheckResult
-	res, err := processData(ctx, config, compiler)
+func shouldReportError(result CheckResult) bool {
+	return len(result.Failures) > 0 || (len(result.Warnings) > 0 && viper.GetBool("fail-on-warn"))
+}
+
+func GetResult(ctx context.Context, input interface{}, compiler *ast.Compiler) (CheckResult, error) {
+	warnings, err := runRules(ctx, input, warnQ, compiler)
 	if err != nil {
-		log.G(ctx).Fatalf("Problem processing data: %s", err)
-	}
-	err = out.Put(name, res)
-	if err != nil {
-		log.G(ctx).Fatalf("Problem generating output: %s", err)
+		return CheckResult{}, err
 	}
 
-	if len(res.Failures) > 0 || (len(res.Warnings) > 0 && viper.GetBool("fail-on-warn")) {
-		return true
-	} else {
-		return false
+	failures, err := runRules(ctx, input, denyQ, compiler)
+	if err != nil {
+		return CheckResult{}, err
 	}
+
+	result := CheckResult{
+		Warnings: warnings,
+		Failures: failures,
+	}
+
+	return result, nil
 }
 
 func GetConfigurations(ctx context.Context, fileList []string) (map[string]interface{}, error) {
@@ -178,20 +198,6 @@ func getConfig(fileName string) (io.ReadCloser, error) {
 	return config, nil
 }
 
-func buildRego(trace bool, query string, input interface{}, compiler *ast.Compiler) (*rego.Rego, *topdown.BufferTracer) {
-	var regoObj *rego.Rego
-	var regoFunc []func(r *rego.Rego)
-	buf := topdown.NewBufferTracer()
-
-	regoFunc = append(regoFunc, rego.Query(query), rego.Compiler(compiler), rego.Input(input))
-	if trace {
-		regoFunc = append(regoFunc, rego.Tracer(buf))
-	}
-	regoObj = rego.New(regoFunc...)
-
-	return regoObj, buf
-}
-
 func getFileType(inputFileType, fileName string) (string, error) {
 	if inputFileType != "" {
 		return inputFileType, nil
@@ -213,7 +219,33 @@ func getFileType(inputFileType, fileName string) (string, error) {
 	return "", fmt.Errorf("not supported filetype")
 }
 
-// finds all queries in the compiler
+func runRules(ctx context.Context, input interface{}, regex *regexp.Regexp, compiler *ast.Compiler) ([]error, error) {
+	var totalErrors []error
+	var errors []error
+	var err error
+
+	rules := getRules(ctx, regex, compiler)
+	for _, rule := range rules {
+
+		query := fmt.Sprintf("data.%s.%s", viper.GetString("namespace"), rule)
+
+		switch input.(type) {
+		case []interface{}:
+			errors, err = runMultipleQueries(ctx, query, input, compiler)
+		default:
+			errors, err = runQuery(ctx, query, input, compiler)
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		totalErrors = append(totalErrors, errors...)
+	}
+
+	return totalErrors, nil
+}
+
 func getRules(ctx context.Context, re *regexp.Regexp, compiler *ast.Compiler) []string {
 	var res []string
 
@@ -239,54 +271,6 @@ func stringInSlice(a string, list []string) bool {
 		}
 	}
 	return false
-}
-
-func makeQuery(rule string) string {
-	return fmt.Sprintf("data.%s.%s", viper.GetString("namespace"), rule)
-}
-
-func processData(ctx context.Context, input interface{}, compiler *ast.Compiler) (CheckResult, error) {
-	warnings, err := runRules(ctx, input, WarnQ, compiler)
-	if err != nil {
-		return CheckResult{}, err
-	}
-
-	failures, err := runRules(ctx, input, DenyQ, compiler)
-	if err != nil {
-		return CheckResult{}, err
-	}
-
-	result := CheckResult{
-		Warnings: warnings,
-		Failures: failures,
-	}
-
-	return result, nil
-}
-
-func runRules(ctx context.Context, input interface{}, regex *regexp.Regexp, compiler *ast.Compiler) ([]error, error) {
-	var totalErrors []error
-	var errors []error
-	var err error
-
-	rules := getRules(ctx, regex, compiler)
-	for _, rule := range rules {
-
-		switch input.(type) {
-		case []interface{}:
-			errors, err = runMultipleQueries(ctx, makeQuery(rule), input, compiler)
-		default:
-			errors, err = runQuery(ctx, makeQuery(rule), input, compiler)
-		}
-
-		if err != nil {
-			return nil, err
-		}
-
-		totalErrors = append(totalErrors, errors...)
-	}
-
-	return totalErrors, nil
 }
 
 func runMultipleQueries(ctx context.Context, query string, inputs interface{}, compiler *ast.Compiler) ([]error, error) {
@@ -333,4 +317,18 @@ func runQuery(ctx context.Context, query string, input interface{}, compiler *as
 	}
 
 	return errs, nil
+}
+
+func buildRego(trace bool, query string, input interface{}, compiler *ast.Compiler) (*rego.Rego, *topdown.BufferTracer) {
+	var regoObj *rego.Rego
+	var regoFunc []func(r *rego.Rego)
+	buf := topdown.NewBufferTracer()
+
+	regoFunc = append(regoFunc, rego.Query(query), rego.Compiler(compiler), rego.Input(input))
+	if trace {
+		regoFunc = append(regoFunc, rego.Tracer(buf))
+	}
+	regoObj = rego.New(regoFunc...)
+
+	return regoObj, buf
 }
