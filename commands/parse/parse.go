@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/containerd/containerd/log"
 	"github.com/instrumenta/conftest/commands/test"
 	"github.com/instrumenta/conftest/parser"
 	"github.com/spf13/cobra"
@@ -47,7 +46,7 @@ func parseInput(fileList []string) ([]byte, error) {
 	configurations, err := test.GetConfigurations(ctx, fileList)
 	var bundle []byte
 	if err != nil {
-		log.G(ctx).Fatalf("Your inputs could not be parsed : %s", err)
+		return nil, fmt.Errorf("Your inputs could not be parsed : %w", err)
 	}
 	for filename, config := range configurations {
 		filename = filename + "\n"
