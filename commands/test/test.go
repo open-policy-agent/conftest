@@ -12,7 +12,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/containerd/containerd/log"
 	"github.com/instrumenta/conftest/commands/update"
 	"github.com/instrumenta/conftest/parser"
 	"github.com/instrumenta/conftest/policy"
@@ -79,9 +78,7 @@ func NewTestCommand() *cobra.Command {
 					return fmt.Errorf("get combined test result: %w", err)
 				}
 
-				if shouldReportError(result) {
-					foundFailure = true
-				}
+				foundFailure = isResultFailure(result)
 
 				if err := out.Put("Combined", result); err != nil {
 					return fmt.Errorf("writing error: %w", err)
@@ -93,9 +90,7 @@ func NewTestCommand() *cobra.Command {
 						return fmt.Errorf("get test result: %w", err)
 					}
 
-					if shouldReportError(result) {
-						foundFailure = true
-					}
+					foundFailure = isResultFailure(result)
 
 					if err := out.Put(fileName, result); err != nil {
 						return fmt.Errorf("writing error: %w", err)
@@ -125,10 +120,7 @@ func NewTestCommand() *cobra.Command {
 	return &cmd
 }
 
-func shouldReportError(result CheckResult) bool {
-	return len(result.Failures) > 0 || (len(result.Warnings) > 0 && viper.GetBool("fail-on-warn"))
-}
-
+// GetResult returns the result of testing the structured data against their policies
 func GetResult(ctx context.Context, input interface{}, compiler *ast.Compiler) (CheckResult, error) {
 	warnings, err := runRules(ctx, input, warnQ, compiler)
 	if err != nil {
@@ -148,6 +140,7 @@ func GetResult(ctx context.Context, input interface{}, compiler *ast.Compiler) (
 	return result, nil
 }
 
+// GetConfigurations parses and returns the configurations given in the file list
 func GetConfigurations(ctx context.Context, fileList []string) (map[string]interface{}, error) {
 	var configFiles []parser.ConfigDoc
 	var fileType string
@@ -158,14 +151,12 @@ func GetConfigurations(ctx context.Context, fileList []string) (map[string]inter
 
 		fileType, err = getFileType(viper.GetString("input"), fileName)
 		if err != nil {
-			log.G(ctx).Errorf("Unable to get file type: %v", err)
-			return nil, err
+			return nil, fmt.Errorf("get file type: %w", err)
 		}
 
 		config, err = getConfig(fileName)
 		if err != nil {
-			log.G(ctx).Errorf("Unable to open file or read from stdin %s", err)
-			return nil, err
+			return nil, fmt.Errorf("get config: %w", err)
 		}
 
 		configFiles = append(configFiles, parser.ConfigDoc{
@@ -177,11 +168,14 @@ func GetConfigurations(ctx context.Context, fileList []string) (map[string]inter
 	configManager := parser.NewConfigManager(fileType)
 	configurations, err := configManager.BulkUnmarshal(configFiles)
 	if err != nil {
-		log.G(ctx).Errorf("Unable to BulkUnmarshal your config files: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("bulk unmarshal: %w", err)
 	}
 
 	return configurations, nil
+}
+
+func isResultFailure(result CheckResult) bool {
+	return len(result.Failures) > 0 || (len(result.Warnings) > 0 && viper.GetBool("fail-on-warn"))
 }
 
 func getConfig(fileName string) (io.ReadCloser, error) {
@@ -190,11 +184,16 @@ func getConfig(fileName string) (io.ReadCloser, error) {
 		return config, nil
 	}
 
-	filePath, _ := filepath.Abs(fileName)
+	filePath, err := filepath.Abs(fileName)
+	if err != nil {
+		return nil, fmt.Errorf("get abs: %w", err)
+	}
+
 	config, err := os.Open(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to open file %s: %s", filePath, err)
+		return nil, fmt.Errorf("open file: %w", err)
 	}
+
 	return config, nil
 }
 
@@ -202,9 +201,11 @@ func getFileType(inputFileType, fileName string) (string, error) {
 	if inputFileType != "" {
 		return inputFileType, nil
 	}
+
 	if fileName == "-" && inputFileType == "" {
 		return "yaml", nil
 	}
+
 	if fileName != "-" {
 		fileType := ""
 		if strings.Contains(fileName, ".") {
@@ -216,7 +217,8 @@ func getFileType(inputFileType, fileName string) (string, error) {
 
 		return fileType, nil
 	}
-	return "", fmt.Errorf("not supported filetype")
+
+	return "", fmt.Errorf("unsupported file type")
 }
 
 func runRules(ctx context.Context, input interface{}, regex *regexp.Regexp, compiler *ast.Compiler) ([]error, error) {
@@ -248,19 +250,18 @@ func runRules(ctx context.Context, input interface{}, regex *regexp.Regexp, comp
 
 func getRules(ctx context.Context, re *regexp.Regexp, compiler *ast.Compiler) []string {
 	var res []string
+	for _, module := range compiler.Modules {
+		for _, rule := range module.Rules {
+			ruleName := rule.Head.Name.String()
 
-	for _, m := range compiler.Modules {
-		for _, r := range m.Rules {
-			n := r.Head.Name.String()
-			if re.MatchString(n) {
-				// the same rule names can be used multiple times, but
-				// we only want to run the query and report results once
-				if !stringInSlice(n, res) {
-					res = append(res, n)
-				}
+			// the same rule names can be used multiple times, but
+			// we only want to run the query and report results once
+			if re.MatchString(ruleName) && !stringInSlice(ruleName, res) {
+				res = append(res, ruleName)
 			}
 		}
 	}
+
 	return res
 }
 
@@ -270,6 +271,7 @@ func stringInSlice(a string, list []string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -278,7 +280,7 @@ func runMultipleQueries(ctx context.Context, query string, inputs interface{}, c
 	for _, input := range inputs.([]interface{}) {
 		violations, err := runQuery(ctx, query, input, compiler)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("run query: %w", err)
 		}
 
 		totalViolations = append(totalViolations, violations...)
@@ -288,11 +290,10 @@ func runMultipleQueries(ctx context.Context, query string, inputs interface{}, c
 }
 
 func runQuery(ctx context.Context, query string, input interface{}, compiler *ast.Compiler) ([]error, error) {
-	r, stdout := buildRego(viper.GetBool("trace"), query, input, compiler)
-	rs, err := r.Eval(ctx)
-
+	rego, stdout := buildRego(viper.GetBool("trace"), query, input, compiler)
+	resultSet, err := rego.Eval(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("Problem evaluating r policy: %s", err)
+		return nil, fmt.Errorf("evaluating policy: %w", err)
 	}
 
 	topdown.PrettyTrace(os.Stdout, *stdout)
@@ -301,13 +302,15 @@ func runQuery(ctx context.Context, query string, input interface{}, compiler *as
 		if v, ok := expression.([]interface{}); ok {
 			return len(v) > 0
 		}
+
 		return false
 	}
 
 	var errs []error
-	for _, r := range rs {
-		for _, e := range r.Expressions {
-			value := e.Value
+	for _, result := range resultSet {
+		for _, expression := range result.Expressions {
+			value := expression.Value
+
 			if hasResults(value) {
 				for _, v := range value.([]interface{}) {
 					errs = append(errs, errors.New(v.(string)))
@@ -328,6 +331,7 @@ func buildRego(trace bool, query string, input interface{}, compiler *ast.Compil
 	if trace {
 		regoFunc = append(regoFunc, rego.Tracer(buf))
 	}
+
 	regoObj = rego.New(regoFunc...)
 
 	return regoObj, buf
