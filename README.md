@@ -103,7 +103,6 @@ package main
 
 
 deny[msg] {
-  input.kind = "Deployment"
   deployment := input["deployment.yaml"]["spec"]["selector"]["matchLabels"]["app"]
   service := input["service.yaml"]["spec"]["selector"]["app"]
   

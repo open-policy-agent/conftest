@@ -40,7 +40,7 @@ jobs:
             - go-mod-{{ checksum "go.sum" }}
       - run:
           name: Build binary
-          command: go build -o conftest cmd/main.go
+          command: go build -o conftest main.go
       - save_cache:
           key: go-mod-{{ checksum "go.sum" }}
           paths:
