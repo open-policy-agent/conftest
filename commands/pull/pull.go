@@ -29,7 +29,7 @@ func RunPullCommand(repositories []string) {
 	policies := getPolicies(repositories)
 
 	ctx := context.Background()
-	policy.DownloadPolicy(ctx, policies)
+	policy.Download(ctx, policies)
 }
 
 func getPolicies(repositories []string) []policy.Policy {

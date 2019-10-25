@@ -12,6 +12,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+// NewVerifyCommand creates a new verify command which allows users
+// to validate their rego unit tests
 func NewVerifyCommand(ctx context.Context) *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "verify",
@@ -54,7 +56,13 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 
 // RunVerification runs the verify command
 func RunVerification(ctx context.Context, path string) ([]test.CheckResult, error) {
-	compiler, err := policy.BuildCompiler(path, true)
+
+	regoFiles, err := policy.ReadFilesWithTests(path)
+	if err != nil {
+		return nil, fmt.Errorf("read rego test files: %s", err)
+	}
+
+	compiler, err := policy.BuildCompiler(regoFiles)
 	if err != nil {
 		return nil, fmt.Errorf("build compiler: %w", err)
 	}
