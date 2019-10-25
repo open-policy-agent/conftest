@@ -11,7 +11,7 @@ COPY . .
 
 ## BUILDER STAGE ##
 FROM base as builder
-RUN go build -o conftest -ldflags="-w -s" cmd/main.go
+RUN go build -o conftest -ldflags="-w -s" main.go
 
 ## TEST STAGE ##
 FROM base as test
