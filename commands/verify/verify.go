@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	
-	"github.com/instrumenta/conftest/policy"
-	"github.com/instrumenta/conftest/commands/test"
+
 	"github.com/containerd/containerd/log"
+	"github.com/instrumenta/conftest/commands/test"
+	"github.com/instrumenta/conftest/policy"
 	"github.com/open-policy-agent/opa/tester"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -29,9 +29,15 @@ func NewVerifyCommand(getOutputManager func() test.OutputManager) *cobra.Command
 			out := getOutputManager()
 
 			policyPath := viper.GetString("policy")
-			compiler, err := policy.BuildCompiler(policyPath, true)
+
+			regoFiles, err := policy.ReadFilesWithTests(policyPath)
 			if err != nil {
-				log.G(ctx).Fatalf("Problem building rego compiler: %s", err)
+				log.G(ctx).Fatalf("read rego test files: %s", err)
+			}
+
+			compiler, err := policy.BuildCompiler(regoFiles)
+			if err != nil {
+				log.G(ctx).Fatalf("build compiler: %s", err)
 			}
 
 			runner := tester.NewRunner().
@@ -39,7 +45,7 @@ func NewVerifyCommand(getOutputManager func() test.OutputManager) *cobra.Command
 
 			ch, err := runner.Run(ctx, compiler.Modules)
 			if err != nil {
-				log.G(ctx).Fatalf("Problem running rego tests: %s", err)
+				log.G(ctx).Fatalf("run rego tests: %s", err)
 			}
 
 			results := getResults(ctx, ch)

@@ -31,7 +31,7 @@ func NewUpdateCommand() *cobra.Command {
 				log.G(ctx).Fatal(err)
 			}
 
-			policy.DownloadPolicy(ctx, config.Policies)
+			policy.Download(ctx, config.Policies)
 		},
 	}
 
