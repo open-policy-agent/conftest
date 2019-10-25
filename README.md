@@ -78,11 +78,17 @@ configuration files.
 #### --input flag
 `conftest` normally detects input type with the file extension, but you can force to use a different one with `--input` or `-i` flag.
 
-For the available parsers, take a look at: [parsers](pkg/parser). For instance:
+For the available parsers, take a look at: [parsers](parser). For instance:
 
 ```console
 $ conftest test -p examples/hcl2/policy examples/hcl2/terraform.tf -i hcl2
 FAIL - examples/hcl2/terraform.tf - Application environment is should be `staging_environment`
+```
+
+The `--input` flag can also be a good way to see how different input types would be parsed:
+
+```console
+conftest parse examples/hcl2/terraform.tf -i hcl2
 ```
 
 #### --combine flag
@@ -97,13 +103,12 @@ package main
 
 
 deny[msg] {
-  input.kind = "Deployment"
   deployment := input["deployment.yaml"]["spec"]["selector"]["matchLabels"]["app"]
   service := input["service.yaml"]["spec"]["selector"]["app"]
   
   deployment != service
 
-  msg = sprintf("Expected these values to be the same but received %v for deployment and %v for service, [deployment, service])
+  msg = sprintf("Expected these values to be the same but received %v for deployment and %v for service", [deployment, service])
 }
 ```
 

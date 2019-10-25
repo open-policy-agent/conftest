@@ -21,7 +21,7 @@ conftest:
 	$(COMMAND) tag $(IMAGE):$(TAG) $(IMAGE):latest
 
 test: conftest
-	$(BUILD) --target test
+	$(BUILD) --target test .
 
 push: examples conftest
 	$(PUSH) $(IMAGE):$(TAG)

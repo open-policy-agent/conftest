@@ -2,7 +2,7 @@ before:
   hooks:
     - go mod download
 builds:
-- main: ./cmd/main.go
+- main: ./main.go
   env:
   - CGO_ENABLED=0
   goos:
