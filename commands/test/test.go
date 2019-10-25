@@ -12,7 +12,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/containerd/containerd/log"
 	"github.com/instrumenta/conftest/commands/update"
 	"github.com/instrumenta/conftest/parser"
 	"github.com/instrumenta/conftest/policy"
