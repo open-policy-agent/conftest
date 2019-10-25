@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/containerd/containerd/log"
 	"github.com/instrumenta/conftest/commands/update"
 	"github.com/instrumenta/conftest/parser"
 	"github.com/instrumenta/conftest/policy"
@@ -60,7 +61,13 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				update.NewUpdateCommand().Run(cmd, args)
 			}
 
-			compiler, err := policy.BuildCompiler(viper.GetString("policy"), false)
+			policyPath := viper.GetString("policy")
+			regoFiles, err := policy.ReadFiles(policyPath)
+			if err != nil {
+				return fmt.Errorf("read rego files: %s", err)
+			}
+
+			compiler, err := policy.BuildCompiler(regoFiles)
 			if err != nil {
 				return fmt.Errorf("build compiler: %w", err)
 			}
