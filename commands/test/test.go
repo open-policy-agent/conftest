@@ -70,26 +70,32 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("get configurations: %w", err)
 			}
 
-			var foundFailure bool
+			namespace := viper.GetString("namespace")
+
+			var failures int
 			if viper.GetBool(combineConfigFlagName) {
-				result, err := GetResult(ctx, configurations, compiler)
+				result, err := GetResult(ctx, namespace, configurations, compiler)
 				if err != nil {
 					return fmt.Errorf("get combined test result: %w", err)
 				}
 
-				foundFailure = isResultFailure(result)
+				if isResultFailure(result) {
+					failures++
+				}
 
 				if err := out.Put("Combined", result); err != nil {
-					return fmt.Errorf("writing error: %w", err)
+					return fmt.Errorf("writing combined error: %w", err)
 				}
 			} else {
 				for fileName, config := range configurations {
-					result, err := GetResult(ctx, config, compiler)
+					result, err := GetResult(ctx, namespace, config, compiler)
 					if err != nil {
 						return fmt.Errorf("get test result: %w", err)
 					}
 
-					foundFailure = isResultFailure(result)
+					if isResultFailure(result) {
+						failures++
+					}
 
 					if err := out.Put(fileName, result); err != nil {
 						return fmt.Errorf("writing error: %w", err)
@@ -101,7 +107,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("flushing output: %w", err)
 			}
 
-			if foundFailure {
+			if failures > 0 {
 				os.Exit(1)
 			}
 
@@ -120,13 +126,13 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 }
 
 // GetResult returns the result of testing the structured data against their policies
-func GetResult(ctx context.Context, input interface{}, compiler *ast.Compiler) (CheckResult, error) {
-	warnings, err := runRules(ctx, input, warnQ, compiler)
+func GetResult(ctx context.Context, namespace string, input interface{}, compiler *ast.Compiler) (CheckResult, error) {
+	warnings, err := runRules(ctx, namespace, input, warnQ, compiler)
 	if err != nil {
 		return CheckResult{}, err
 	}
 
-	failures, err := runRules(ctx, input, denyQ, compiler)
+	failures, err := runRules(ctx, namespace, input, denyQ, compiler)
 	if err != nil {
 		return CheckResult{}, err
 	}
@@ -220,7 +226,7 @@ func getFileType(inputFileType, fileName string) (string, error) {
 	return "", fmt.Errorf("unsupported file type")
 }
 
-func runRules(ctx context.Context, input interface{}, regex *regexp.Regexp, compiler *ast.Compiler) ([]error, error) {
+func runRules(ctx context.Context, namespace string, input interface{}, regex *regexp.Regexp, compiler *ast.Compiler) ([]error, error) {
 	var totalErrors []error
 	var errors []error
 	var err error
@@ -228,7 +234,7 @@ func runRules(ctx context.Context, input interface{}, regex *regexp.Regexp, comp
 	rules := getRules(ctx, regex, compiler)
 	for _, rule := range rules {
 
-		query := fmt.Sprintf("data.%s.%s", viper.GetString("namespace"), rule)
+		query := fmt.Sprintf("data.%s.%s", namespace, rule)
 
 		switch input.(type) {
 		case []interface{}:
