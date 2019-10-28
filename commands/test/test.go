@@ -63,7 +63,7 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 			}
 
 			if viper.GetBool("update") {
-				update.NewUpdateCommand().Run(cmd, fileList)
+				update.NewUpdateCommand(ctx).Run(cmd, fileList)
 			}
 
 			policyPath := viper.GetString("policy")
