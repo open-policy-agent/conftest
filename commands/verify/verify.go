@@ -30,7 +30,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 			outputManager := test.GetOutputManager()
 			policyPath := viper.GetString("policy")
 
-			results, err := RunVerification(ctx, policyPath)
+			results, err := runVerification(ctx, policyPath)
 			if err != nil {
 				return fmt.Errorf("running verification: %w", err)
 			}
@@ -54,8 +54,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 	return &cmd
 }
 
-// RunVerification runs the verify command
-func RunVerification(ctx context.Context, path string) ([]test.CheckResult, error) {
+func runVerification(ctx context.Context, path string) ([]test.CheckResult, error) {
 
 	regoFiles, err := policy.ReadFilesWithTests(path)
 	if err != nil {
