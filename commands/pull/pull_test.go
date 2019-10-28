@@ -8,7 +8,6 @@ import (
 )
 
 func TestPoliciesToPull(t *testing.T) {
-
 	repositories := []string{
 		"my.url.com/repository",
 		"my.url.com/repository:v1",
