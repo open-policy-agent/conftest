@@ -1,6 +1,7 @@
 package parse
 
 import (
+	"context"
 	"testing"
 
 	"github.com/spf13/viper"
@@ -29,25 +30,17 @@ func TestParseConfig(t *testing.T) {
 
 	for _, testunit := range testTable {
 		t.Run(testunit.name, func(t *testing.T) {
-			exit := 0
-			cmd := NewParseCommand(func(int) {
-				exit++
-			})
+			cmd := NewParseCommand()
 			err := cmd.RunE(cmd, testunit.fileList)
 			if err != nil {
 				t.Errorf("problem running parse command in test: %w", err)
-			}
-			if exit != 0 {
-				t.Errorf(
-					"The exit code should be 0 but got: %v",
-					exit,
-				)
 			}
 		})
 	}
 }
 
 func TestInputFlagForparseInput(t *testing.T) {
+	ctx := context.Background()
 	testunit := struct {
 		name     string
 		input    string
@@ -86,7 +79,7 @@ func TestInputFlagForparseInput(t *testing.T) {
 }`
 		viper.Reset()
 		viper.Set("input", testunit.input)
-		parsed, _ := parseInput(testunit.fileList)
+		parsed, _ := parseInput(ctx, testunit.fileList)
 		viper.Reset()
 		assert.Assert(t, is.Contains(string(parsed), expected))
 		assert.Assert(t, is.Contains(string(parsed), expectedFile))
@@ -94,6 +87,7 @@ func TestInputFlagForparseInput(t *testing.T) {
 }
 
 func TestParseOutputwithNoFlag(t *testing.T) {
+	ctx := context.Background()
 	unit := struct {
 		name     string
 		fileList []string
@@ -120,7 +114,7 @@ func TestParseOutputwithNoFlag(t *testing.T) {
 	},
 	`
 	t.Run(unit.name, func(t *testing.T) {
-		parsed, _ := parseInput(unit.fileList)
+		parsed, _ := parseInput(ctx, unit.fileList)
 		assert.Assert(t, is.Contains(string(parsed), expected))
 		assert.Assert(t, is.Contains(string(parsed), expectedFile))
 

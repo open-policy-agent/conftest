@@ -16,7 +16,8 @@ import (
 //NewParseCommand creates a parse command.
 //This command can be used for printing structured inputs from unstructured configuration inputs.
 //Can be used with '--input' or '-i' flag.
-func NewParseCommand(osExit func(int)) *cobra.Command {
+func NewParseCommand() *cobra.Command {
+	ctx := context.Background()
 	cmd := cobra.Command{
 		Use:   "parse <filename>",
 		Short: "Print out structured data from your input file",
@@ -28,7 +29,7 @@ func NewParseCommand(osExit func(int)) *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, fileList []string) error {
-			out, err := parseInput(fileList)
+			out, err := parseInput(ctx, fileList)
 			if err != nil {
 				return fmt.Errorf("failed during parser process: %w", err)
 			}
@@ -41,8 +42,7 @@ func NewParseCommand(osExit func(int)) *cobra.Command {
 	return &cmd
 }
 
-func parseInput(fileList []string) ([]byte, error) {
-	ctx := context.Background()
+func parseInput(ctx context.Context, fileList []string) ([]byte, error) {
 	configurations, err := test.GetConfigurations(ctx, fileList)
 	var bundle []byte
 	if err != nil {
