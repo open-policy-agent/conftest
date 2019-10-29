@@ -1,15 +1,16 @@
 package parse
 
 import (
+	"context"
 	"testing"
 
-	"github.com/kami-zh/go-capturer"
 	"github.com/spf13/viper"
 	"gotest.tools/assert"
 	is "gotest.tools/assert/cmp"
 )
 
 func TestParseConfig(t *testing.T) {
+	ctx := context.Background()
 	testTable := []struct {
 		name     string
 		fileList []string
@@ -30,56 +31,64 @@ func TestParseConfig(t *testing.T) {
 
 	for _, testunit := range testTable {
 		t.Run(testunit.name, func(t *testing.T) {
-			exitCallCount := 0
-			cmd := NewParseCommand(func(int) {
-				exitCallCount++
-			})
-			cmd.Run(cmd, testunit.fileList)
-
-			if exitCallCount != 1 {
-				t.Errorf(
-					"It should called one time but we have exit code: %v",
-					exitCallCount,
-				)
+			cmd := NewParseCommand(ctx)
+			err := cmd.RunE(cmd, testunit.fileList)
+			if err != nil {
+				t.Errorf("problem running parse command in test: %w", err)
 			}
 		})
 	}
 }
 
-func TestInputFlagforParseConfig(t *testing.T) {
-	testTable := []struct {
+func TestInputFlagForparseInput(t *testing.T) {
+	ctx := context.Background()
+	testunit := struct {
 		name     string
 		input    string
 		fileList []string
 	}{
-		{
-			name:     "valid input flag parse for terraform version 2",
-			input:    "hcl2",
-			fileList: []string{"testdata/terraform.tf"},
+		name:     "valid input flag parse for terraform version 2",
+		input:    "hcl2",
+		fileList: []string{"testdata/terraform.tf"},
+	}
+	t.Run(testunit.name, func(t *testing.T) {
+		expectedFile := "testdata/terraform.tf"
+		expected := `{
+	"data.consul_key_prefix.environment": {
+		"path": "apps/example/env"
+	},
+	"output.environment": {
+		"value": "${{\n    id           = aws_elastic_beanstalk_environment.example.id\n    vpc_settings = {\n      for s in aws_elastic_beanstalk_environment.example.all_settings :\n      s.name =\u003e s.value\n      if s.namespace == \"aws:ec2:vpc\"\n    }\n  }}"
+	},
+	"resource.aws_elastic_beanstalk_environment.example": {
+		"application": "testing",
+		"dynamic.setting": {
+			"content": {
+				"name": "${setting.key}",
+				"namespace": "aws:elasticbeanstalk:application:environment",
+				"value": "${setting.value}"
+			},
+			"for_each": "${data.consul_key_prefix.environment.var}"
 		},
+		"name": "test_environment",
+		"setting": {
+			"name": "MinSize",
+			"namespace": "aws:autoscaling:asg",
+			"value": "1"
+		}
 	}
-
-	for _, testunit := range testTable {
-		t.Run(testunit.name, func(t *testing.T) {
-			viper.Reset()
-			viper.Set("input", "hcl2")
-			exitCallCount := 0
-			expected := `
-			"for_each": "${data.consul_key_prefix.environment.var}"`
-			output := capturer.CaptureOutput(func() {
-				cmd := NewParseCommand(func(int) {
-					exitCallCount++
-				})
-
-				cmd.Run(cmd, testunit.fileList)
-			})
-			viper.Reset()
-			assert.Assert(t, is.Contains(output, expected))
-		})
-	}
+}`
+		viper.Reset()
+		viper.Set("input", testunit.input)
+		parsed, _ := parseInput(ctx, testunit.fileList)
+		viper.Reset()
+		assert.Assert(t, is.Contains(string(parsed), expected))
+		assert.Assert(t, is.Contains(string(parsed), expectedFile))
+	})
 }
 
-func TestParseOutput(t *testing.T) {
+func TestParseOutputwithNoFlag(t *testing.T) {
+	ctx := context.Background()
 	unit := struct {
 		name     string
 		fileList []string
@@ -87,7 +96,7 @@ func TestParseOutput(t *testing.T) {
 		name:     "valid parse output",
 		fileList: []string{"testdata/grafana.ini"},
 	}
-
+	expectedFile := "testdata/grafana.ini"
 	expected := `
 	"auth.basic": {
 		"enabled": "true"
@@ -106,14 +115,9 @@ func TestParseOutput(t *testing.T) {
 	},
 	`
 	t.Run(unit.name, func(t *testing.T) {
-		exitCallCount := 0
-		output := capturer.CaptureOutput(func() {
-			cmd := NewParseCommand(func(int) {
-				exitCallCount++
-			})
-			cmd.Run(cmd, unit.fileList)
-		})
-		assert.Assert(t, is.Contains(output, expected))
+		parsed, _ := parseInput(ctx, unit.fileList)
+		assert.Assert(t, is.Contains(string(parsed), expected))
+		assert.Assert(t, is.Contains(string(parsed), expectedFile))
 
 	})
 }
