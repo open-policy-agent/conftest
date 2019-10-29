@@ -201,7 +201,8 @@ metadata:
 		t.Fatalf("Could not unmarshal yaml")
 	}
 
-	compiler, err := policy.BuildCompiler("testdata/policy/test_policy.rego", false)
+	regoFiles := []string{"testdata/policy/test_policy.rego"}
+	compiler, err := policy.BuildCompiler(regoFiles)
 	if err != nil {
 		t.Fatalf("Could not build rego compiler")
 	}
@@ -239,7 +240,8 @@ ENTRYPOINT ["java","-cp","app:app/lib/*","hello.Application"]`
 		t.Fatalf("Could not unmarshal dockerfile")
 	}
 
-	compiler, err := policy.BuildCompiler("testdata/policy/test_policy_dockerfile.rego", false)
+	regoFiles := []string{"testdata/policy/test_policy_dockerfile.rego"}
+	compiler, err := policy.BuildCompiler(regoFiles)
 	if err != nil {
 		t.Fatalf("Could not build rego compiler")
 	}
