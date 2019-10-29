@@ -57,7 +57,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 			out := GetOutputManager()
 
 			if viper.GetBool("update") {
-				update.NewUpdateCommand().Run(cmd, args)
+				update.NewUpdateCommand(ctx).Run(cmd, args)
 			}
 
 			policyPath := viper.GetString("policy")

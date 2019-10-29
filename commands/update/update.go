@@ -2,38 +2,37 @@ package update
 
 import (
 	"context"
+	"fmt"
+	"path/filepath"
 
 	"github.com/instrumenta/conftest/policy"
-
-	"github.com/containerd/containerd/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-type Config struct {
-	Policy    string
-	Namespace string
-	Policies  []policy.Policy
-}
-
-// NewUpdateCommand creates a new update command
-func NewUpdateCommand() *cobra.Command {
-
-	command := &cobra.Command{
+// NewUpdateCommand creates a new update command allowing users
+// to update their policies from a given registry
+func NewUpdateCommand(ctx context.Context) *cobra.Command {
+	cmd := cobra.Command{
 		Use:   "update",
 		Short: "Download policy from registry",
 		Long:  `Download latest policy files according to configuration file`,
-		Run: func(cmd *cobra.Command, args []string) {
-			ctx := context.Background()
-			var config Config
+		RunE: func(cmd *cobra.Command, args []string) error {
+			var policies []policy.Policy
 
-			if err := viper.Unmarshal(&config); err != nil {
-				log.G(ctx).Fatal(err)
+			if err := viper.Unmarshal(&policies); err != nil {
+				return fmt.Errorf("unmarshal policies: %w", err)
 			}
 
-			policy.Download(ctx, config.Policies)
+			policyDir := filepath.Join(".", viper.GetString("policy"))
+
+			if err := policy.Download(ctx, policyDir, policies); err != nil {
+				return fmt.Errorf("downloading policies: %w", err)
+			}
+
+			return nil
 		},
 	}
 
-	return command
+	return &cmd
 }
