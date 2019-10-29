@@ -10,6 +10,7 @@ import (
 )
 
 func TestParseConfig(t *testing.T) {
+	ctx := context.Background()
 	testTable := []struct {
 		name     string
 		fileList []string
@@ -30,7 +31,7 @@ func TestParseConfig(t *testing.T) {
 
 	for _, testunit := range testTable {
 		t.Run(testunit.name, func(t *testing.T) {
-			cmd := NewParseCommand()
+			cmd := NewParseCommand(ctx)
 			err := cmd.RunE(cmd, testunit.fileList)
 			if err != nil {
 				t.Errorf("problem running parse command in test: %w", err)

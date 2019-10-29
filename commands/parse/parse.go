@@ -16,8 +16,7 @@ import (
 //NewParseCommand creates a parse command.
 //This command can be used for printing structured inputs from unstructured configuration inputs.
 //Can be used with '--input' or '-i' flag.
-func NewParseCommand() *cobra.Command {
-	ctx := context.Background()
+func NewParseCommand(ctx context.Context) *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "parse <filename>",
 		Short: "Print out structured data from your input file",
