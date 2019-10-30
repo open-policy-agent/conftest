@@ -38,7 +38,6 @@ For instance, save the following as `policy/deployment.rego`:
 ```rego
 package main
 
-
 deny[msg] {
   input.kind = "Deployment"
   not input.spec.template.spec.securityContext.runAsNonRoot = true
@@ -52,8 +51,7 @@ deny[msg] {
 }
 ```
 
-
-By default Conftest looks for `deny` and `warn` rules in the `main` namespace. This can be
+By default `conftest` looks for `deny` and `warn` rules in the `main` namespace. This can be
 altered by running `--namespace` or provided on the configuration file.
 
 Assuming you have a Kubernetes deployment in `deployment.yaml` you can run `conftest` like so:
@@ -75,8 +73,9 @@ FAIL - Deployments are not allowed
 Note that `conftest` isn't specific to Kubernetes. It will happily let you write tests for any
 configuration files.
 
-#### --input flag
-`conftest` normally detects input type with the file extension, but you can force to use a different one with `--input` or `-i` flag.
+### --input flag
+
+`conftest` normally detects input type with the file extension, but you can force to use a different one with the `--input` flag (`-i`).
 
 For the available parsers, take a look at: [parsers](parser). For instance:
 
@@ -91,10 +90,13 @@ The `--input` flag can also be a good way to see how different input types would
 conftest parse examples/hcl2/terraform.tf -i hcl2
 ```
 
-#### --combine flag
-Of note is the `--combine` flag that is sub flag for `conftest test`, ala `conftest test --combine`. This flag introduces *BREAKING CHANGES* in how `conftest` provides input to rego policies. However, you may find it useful to as you can now compare multiple values from different configurations simultaneously.
+### --combine flag
 
-Let's try it
+This flag introduces *BREAKING CHANGES* in how `conftest` provides input to rego policies. However, you may find it useful to as you can now compare multiple values from different configurations simultaneously.
+
+The `--combine` flag combines files into one `input` data structure. The structure is a `map` where each indice is the file path of the file being evaluated.
+
+Let's try it!
 
 Save the following as `policy/combine.rego`:
 
@@ -105,14 +107,14 @@ package main
 deny[msg] {
   deployment := input["deployment.yaml"]["spec"]["selector"]["matchLabels"]["app"]
   service := input["service.yaml"]["spec"]["selector"]["app"]
-  
+
   deployment != service
 
   msg = sprintf("Expected these values to be the same but received %v for deployment and %v for service", [deployment, service])
 }
 ```
 
-Then make a file in your root as service_two.yaml with the values below
+Save the following as `service.yaml`:
 
 ```yaml
 apiVersion: v1
@@ -128,10 +130,21 @@ spec:
     app: goodbye-kubernetes
 ```
 
+and lastly, save the following as `deployment.yaml`:
 
-The `--combine` flag combines files into one `input` data structure. The structure is a `map` where each indice is the file path of the file being evaluated. 
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-kubernetes
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: hello-kubernetes
+```
 
-Assuming you have a Kubernetes deployment in `deployment.yaml` and a kubernetes service definition in `service.yaml` you can run `conftest` like so:
+With the above files created, run the following command:
 
 ```console
 $ conftest test --combine deployment.yaml service.yaml
@@ -141,9 +154,9 @@ FAIL - Combined-configs (multi-file) - Expected these values to be the same but 
 
 This is just the tip of the iceberg. Now you can ensure that duplicate values match across the entirety of your configuration files.
 
-### Configuring Output
+### --output flag
 
-The output of `conftest` can be configured using the `--output` flag (`-o`). 
+The output of `conftest` can be configured using the `--output` flag (`-o`).
 
 As of today `conftest` supports the following output types:
 
@@ -156,10 +169,10 @@ As of today `conftest` supports the following output types:
 ##### Plaintext
 
 ```console
-$ conftest test -p examples/kubernetes/policy examples/kubernetes/deployment.yaml 
+$ conftest test -p examples/kubernetes/policy examples/kubernetes/deployment.yaml
 FAIL - examples/kubernetes/deployment.yaml - Containers must not run as root in Deployment hello-kubernetes
 FAIL - examples/kubernetes/deployment.yaml - Deployment hello-kubernetes must provide app/release labels for pod selectors
-FAIL - examples/kubernetes/deployment.yaml - hello-kubernetes must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels 
+FAIL - examples/kubernetes/deployment.yaml - hello-kubernetes must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels
 ```
 
 ##### JSON
@@ -182,16 +195,16 @@ $ conftest test -o json -p examples/kubernetes/policy examples/kubernetes/deploy
 ##### TAP
 
 ```console
-$ conftest test -o tap -p examples/kubernetes/policy examples/kubernetes/deployment.yaml 
+$ conftest test -o tap -p examples/kubernetes/policy examples/kubernetes/deployment.yaml
 1..3
 not ok 1 - examples/kubernetes/deployment.yaml - Containers must not run as root in Deployment hello-kubernetes
 not ok 2 - examples/kubernetes/deployment.yaml - Deployment hello-kubernetes must provide app/release labels for pod selectors
-not ok 3 - examples/kubernetes/deployment.yaml - hello-kubernetes must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels 
+not ok 3 - examples/kubernetes/deployment.yaml - hello-kubernetes must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels
 ```
 
 ## Examples
 
-You can find examples using various other tools in the `examples ` directory, including:
+You can find examples using various other tools in the `examples` directory, including:
 
 * [CUE](examples/cue)
 * [Kustomize](examples/kustomize)
@@ -205,8 +218,8 @@ You can find examples using various other tools in the `examples ` directory, in
 
 ## Configuration and external policies
 
-Policies are often reusable between different projects, and Conftest supports a mechanism
-to specify dependent policies and to download them. The format reuses the [Bundle defined
+Policies are often reusable between different projects, and `conftest` supports a mechanism
+to specify dependent policies as well as download them. The format reuses the [Bundle defined
 by Open Policy Agent](https://www.openpolicyagent.org/docs/latest/bundles).
 
 You can download individual policies directly:
@@ -224,7 +237,7 @@ If you have a compatible OCI registry you can also push new policy bundles like 
 conftest push instrumenta.azurecr.io/test
 ```
 
-Conftest also supports a simple configuration file which can be used to store the
+`conftest` also supports a simple configuration file which can be used to store the
 list of dependent bundles and download them in one go. Create a `conftest.toml`
 configuration file like the following:
 
@@ -242,25 +255,23 @@ repository = "instrumenta.azurecr.io/test"
 tag = "latest"
 ```
 
-With that in place you can use the following command to download all specified policies:
+With that in place, you can use the following command to download all specified policies:
 
 ```console
 conftest update
 ```
 
-If you want to download the latest policies and run the tests in one go you can do so with:
+If you want to download the latest policies and run the tests in one go, you can do so with:
 
 ```console
 conftest test --update <file-to-test>
 ```
 
-
 ## Debugging queries
 
-When working on more complex queries, or when learning rego, it's useful to see exactly how the policy is
+When working on more complex queries (or when learning rego), it's useful to see exactly how the policy is
 applied. For this purpose you can use the `--trace` flag. This will output a large trace from Open Policy Agent
 like the following:
-
 
 <details>
 <summary>Example of trace</summary>
@@ -346,11 +357,10 @@ FAIL - deployment.yaml - Deployment hello-kubernetes must provide app/release la
 
 </details>
 
-
 ## Installation
 
 `conftest` releases are available for Windows, macOS and Linux on the [releases page](https://github.com/instrumenta/conftest/releases).
-On Linux and macOS you can probably download as follows:
+On Linux and macOS you can download as follows:
 
 ```console
 $ wget https://github.com/instrumenta/conftest/releases/download/v0.10.0/conftest_0.10.0_Linux_x86_64.tar.gz
@@ -376,10 +386,9 @@ scoop bucket add instrumenta https://github.com/instrumenta/scoop-instrumenta
 scoop install conftest
 ```
 
-
 ### Docker
 
-Conftest is also able to be used via Docker. Simply mount your configuration and policy at `/project` and specify the relevant command like so:
+`conftest` is also able to be used via Docker. Simply mount your configuration and policy at `/project` and specify the relevant command like so:
 
 ```console
 $ docker run --rm -v $(pwd):/project instrumenta/conftest test deployment.yaml
@@ -392,4 +401,3 @@ FAIL - deployment.yaml - Containers must not run as root in Deployment hello-kub
 * [Open Policy Agent](https://www.openpolicyagent.org/) and the Rego query language
 * The [helm-opa](https://github.com/eicnix/helm-opa) plugin from [@eicnix](https://github.com/eicnix/) helped with understanding the OPA Go packages
 * Tools from the wider infrastructure as code community, in particular rspec-puppet. Lots of my thoughts in [my talk from KubeCon 2017](https://speakerdeck.com/garethr/developer-tooling-for-kubernetes-configurations)
-* The code in `pkg/auth` is copied from Oras and will be removed once [this issue](https://github.com/deislabs/oras/issues/98) is resolved
