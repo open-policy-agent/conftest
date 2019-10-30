@@ -102,9 +102,9 @@ func (s *stdOutputManager) Flush() error {
 
 type jsonCheckResult struct {
 	Filename  string   `json:"filename"`
-	Warnings  []string `json:"Warnings"`
-	Failures  []string `json:"Failures"`
-	Successes []string `json:"Successes"`
+	Warnings  []string `json:"warnings"`
+	Failures  []string `json:"failures"`
+	Successes []string `json:"successes"`
 }
 
 // jsonOutputManager reports `conftest` results to `stdout` as a json array..

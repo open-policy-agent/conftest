@@ -17,7 +17,7 @@ test_deployment_without_security_context {
 }
 
 test_deployment_with_security_context {
-  no_violations with input as {"kind": "Deployment", "spec": {
+  no_violations with input as {"kind": "Deployment", "metadata": {"name": "sample"}, "spec": {
     "selector": { "matchLabels": { "app": "something", "release": "something" }},
     "template": { "spec": { "securityContext": { "runAsNonRoot": true  }}}}}
 }
