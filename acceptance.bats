@@ -5,6 +5,11 @@
   [ "$status" -eq 0 ]
 }
 
+@test "Not fail when passed an explicit blank filename" {
+  run ./conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml ""
+  [ "$status" -eq 0 ]
+}
+
 @test "Fail when testing a deployment with root containers" {
   run ./conftest test -p examples/kubernetes/policy examples/kubernetes/deployment.yaml
   [ "$status" -eq 1 ]
