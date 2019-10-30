@@ -85,9 +85,9 @@ func Test_jsonOutputManager_put(t *testing.T) {
 			exp: `[
 	{
 		"filename": "examples/kubernetes/service.yaml",
-		"Warnings": [],
-		"Failures": [],
-		"Successes": []
+		"warnings": [],
+		"failures": [],
+		"successes": []
 	}
 ]
 `,
@@ -104,13 +104,13 @@ func Test_jsonOutputManager_put(t *testing.T) {
 			exp: `[
 	{
 		"filename": "examples/kubernetes/service.yaml",
-		"Warnings": [
+		"warnings": [
 			"first warning"
 		],
-		"Failures": [
+		"failures": [
 			"first failure"
 		],
-		"Successes": []
+		"successes": []
 	}
 ]
 `,
@@ -126,11 +126,11 @@ func Test_jsonOutputManager_put(t *testing.T) {
 			exp: `[
 	{
 		"filename": "examples/kubernetes/service.yaml",
-		"Warnings": [],
-		"Failures": [
+		"warnings": [],
+		"failures": [
 			"first failure"
 		],
-		"Successes": []
+		"successes": []
 	}
 ]
 `,
@@ -146,11 +146,11 @@ func Test_jsonOutputManager_put(t *testing.T) {
 			exp: `[
 	{
 		"filename": "",
-		"Warnings": [],
-		"Failures": [
+		"warnings": [],
+		"failures": [
 			"first failure"
 		],
-		"Successes": []
+		"successes": []
 	}
 ]
 `,
