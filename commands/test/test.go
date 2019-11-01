@@ -56,13 +56,22 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 			}
 		},
 		Run: func(cmd *cobra.Command, fileList []string) {
-			if len(fileList) < 1 {
+
+			// Remove any blank files from the array
+			var nonBlankFileList []string
+			for _, name := range fileList {
+				if name != "" {
+					nonBlankFileList = append(nonBlankFileList, name)
+				}
+			}
+
+			if len(nonBlankFileList) < 1 {
 				cmd.SilenceErrors = true
 				log.G(ctx).Fatal("The first argument should be a file")
 			}
 
 			if viper.GetBool("update") {
-				update.NewUpdateCommand(ctx).Run(cmd, fileList)
+				update.NewUpdateCommand(ctx).Run(cmd, nonBlankFileList)
 			}
 
 			policyPath := viper.GetString("policy")
@@ -76,7 +85,7 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 				log.G(ctx).Fatalf("build rego compiler: %s", err)
 			}
 
-			configurations, err := GetConfigurations(ctx, fileList)
+			configurations, err := GetConfigurations(ctx, nonBlankFileList)
 			if err != nil {
 				osExit(1)
 			}
