@@ -18,8 +18,8 @@ import (
 //Can be used with '--input' or '-i' flag.
 func NewParseCommand(ctx context.Context) *cobra.Command {
 	cmd := cobra.Command{
-		Use:   "parse <filename>",
-		Short: "Print out structured data from your input file",
+		Use:   "parse [file...]",
+		Short: "Print out structured data from your input files",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			err := viper.BindPFlag("input", cmd.Flags().Lookup("input"))
 			if err != nil {
@@ -45,18 +45,22 @@ func parseInput(ctx context.Context, fileList []string) ([]byte, error) {
 	configurations, err := test.GetConfigurations(ctx, fileList)
 	var bundle []byte
 	if err != nil {
-		return nil, fmt.Errorf("Your inputs could not be parsed : %w", err)
+		return nil, fmt.Errorf("calling the parser method: %w", err)
 	}
 	for filename, config := range configurations {
 		filename = filename + "\n"
 		var prettyJSON bytes.Buffer
 		out, err := json.Marshal(config)
 		if err != nil {
-			return nil, fmt.Errorf("Error converting config to JSON out: %s", err)
+			return nil, fmt.Errorf("marshal output to json: %w", err)
 		}
 		err = json.Indent(&prettyJSON, out, "", "\t")
 		if err != nil {
-			return nil, fmt.Errorf("Error indenting JSON output: %s", err)
+			return nil, fmt.Errorf("indentation: %w", err)
+		}
+		_, err = prettyJSON.WriteString("\n")
+		if err != nil {
+			return nil, fmt.Errorf("adding line break: %w", err)
 		}
 		bundle = append(bundle, filename...)
 		bundle = append(bundle, prettyJSON.Bytes()...)
