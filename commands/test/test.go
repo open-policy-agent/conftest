@@ -169,7 +169,11 @@ func GetConfigurations(ctx context.Context, fileList []string) (map[string]inter
 		})
 	}
 
-	configManager := parser.NewConfigManager(fileType)
+	configManager, err := parser.NewConfigManager(fileType)
+	if err != nil {
+		return nil, fmt.Errorf("create config manager: %w", err)
+	}
+
 	configurations, err := configManager.BulkUnmarshal(configFiles)
 	if err != nil {
 		log.G(ctx).Errorf("Unable to BulkUnmarshal your config files: %v", err)

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/ghodss/yaml"
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
 )
 
@@ -23,7 +22,7 @@ func (dp *Parser) Unmarshal(p []byte, v interface{}) error {
 	r := bytes.NewReader(p)
 	res, err := parser.Parse(r)
 	if err != nil {
-		return fmt.Errorf("Unable to parse Dockerfile from: %s", err)
+		return fmt.Errorf("parse dockerfile: %w", err)
 	}
 
 	// Code attributed to https://github.com/asottile/dockerfile
@@ -53,12 +52,11 @@ func (dp *Parser) Unmarshal(p []byte, v interface{}) error {
 
 	j, err := json.Marshal(dockerFile)
 	if err != nil {
-		return fmt.Errorf("Unable to marshal config: %s", err)
+		return fmt.Errorf("marshal dockerfile to json: %w", err)
 	}
 
-	err = yaml.Unmarshal(j, v)
-	if err != nil {
-		return fmt.Errorf("Unable to parse YAML from Docker-json: %s", err)
+	if err := json.Unmarshal(j, v); err != nil {
+		return fmt.Errorf("unmarshal dockerfile json: %w", err)
 	}
 
 	return nil
