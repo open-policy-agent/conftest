@@ -53,11 +53,24 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 
 			return nil
 		},
-		RunE: func(cmd *cobra.Command, args []string) error {
-			out := GetOutputManager()
+
+		RunE: func(cmd *cobra.Command, fileList []string) {
+      out := GetOutputManager()
+
+			// Remove any blank files from the array
+			var nonBlankFileList []string
+			for _, name := range fileList {
+				if name != "" {
+					nonBlankFileList = append(nonBlankFileList, name)
+				}
+			}
+
+			if len(nonBlankFileList) < 1 {
+					return fmt.Errorf("no file specified: %w", err)
+			}
 
 			if viper.GetBool("update") {
-				update.NewUpdateCommand(ctx).Run(cmd, args)
+				update.NewUpdateCommand(ctx).Run(cmd, nonBlankFileList)
 			}
 
 			policyPath := viper.GetString("policy")
@@ -71,7 +84,8 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("build compiler: %w", err)
 			}
 
-			configurations, err := GetConfigurations(ctx, args)
+			configurations, err := GetConfigurations(ctx, nonBlankFileList)
+
 			if err != nil {
 				return fmt.Errorf("get configurations: %w", err)
 			}

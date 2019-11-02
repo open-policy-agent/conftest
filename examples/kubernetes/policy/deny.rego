@@ -6,7 +6,8 @@ name = input.metadata.name
 
 deny[msg] {
   kubernetes.is_deployment
-  not input.spec.template.spec.securityContext.runAsNonRoot = true
+  not input.spec.template.spec.securityContext.runAsNonRoot
+
   msg = sprintf("Containers must not run as root in Deployment %s", [name])
 }
 
@@ -18,5 +19,6 @@ labels {
 deny[msg] {
   kubernetes.is_deployment
   not labels
+
   msg = sprintf("Deployment %s must provide app/release labels for pod selectors", [name])
 }

@@ -47,6 +47,7 @@ WORKDIR /examples
 FROM alpine:latest
 COPY --from=builder /app/conftest /
 RUN ln -s /conftest /usr/local/bin/conftest
+WORKDIR /project
 
 ENTRYPOINT ["/conftest"]
 CMD ["--help"]
