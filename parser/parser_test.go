@@ -19,9 +19,12 @@ import (
 
 func TestUnmarshaller(t *testing.T) {
 	t.Run("we should be able to construct a unmarshaller for a type of file", func(t *testing.T) {
-		configManager := parser.NewConfigManager("yml")
-		t.Run("which can be used to BulkUnmarshal file contents into an object", func(t *testing.T) {
+		configManager, err := parser.NewConfigManager("yml")
+		if err != nil {
+			t.Fatalf("create config parser: %v", err)
+		}
 
+		t.Run("which can be used to BulkUnmarshal file contents into an object", func(t *testing.T) {
 			testTable := []struct {
 				name           string
 				controlReaders []parser.ConfigDoc

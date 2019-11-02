@@ -9,9 +9,8 @@ import (
 type Parser struct{}
 
 func (tp *Parser) Unmarshal(p []byte, v interface{}) error {
-	err := toml.Unmarshal(p, v)
-	if err != nil {
-		return fmt.Errorf("Unable to parse TOML: %s", err)
+	if err := toml.Unmarshal(p, v); err != nil {
+		return fmt.Errorf("unmarshal toml: %w", err)
 	}
 
 	return nil

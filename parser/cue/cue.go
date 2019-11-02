@@ -1,32 +1,36 @@
 package cue
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"cuelang.org/go/cue"
-	cFormat "cuelang.org/go/cue/format"
-	"github.com/ghodss/yaml"
+	cformat "cuelang.org/go/cue/format"
 )
 
 type Parser struct{}
 
 func (c *Parser) Unmarshal(p []byte, v interface{}) error {
-	var r cue.Runtime
-	out, err := cFormat.Source(p)
+	out, err := cformat.Source(p)
 	if err != nil {
-		return fmt.Errorf("error occured when formatting cue: %v", err)
+		return fmt.Errorf("format cue: %w", err)
 	}
+
+	var r cue.Runtime
 	instance, err := r.Compile("name", out)
 	if err != nil {
-		return fmt.Errorf("error occured parsing cue: %v", err)
+		return fmt.Errorf("compile cue: %w", err)
 	}
+
 	j, err := instance.Value().MarshalJSON()
 	if err != nil {
-		return fmt.Errorf("Unable to marshal cue config: %s", err)
+		return fmt.Errorf("marshal cue to json: %w", err)
 	}
-	err = yaml.Unmarshal(j, v)
+
+	err = json.Unmarshal(j, v)
 	if err != nil {
-		return fmt.Errorf("Unable to parse YAML cue-json: %s", err)
+		return fmt.Errorf("unmarshal cue json: %w", err)
 	}
+
 	return nil
 }
