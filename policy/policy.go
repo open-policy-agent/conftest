@@ -3,11 +3,11 @@ package policy
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/containerd/containerd/remotes/docker"
 	"github.com/deislabs/oras/pkg/content"
 	"github.com/deislabs/oras/pkg/oras"
 
@@ -32,9 +32,9 @@ func Download(ctx context.Context, path string, policies []Policy) error {
 		return fmt.Errorf("new auth client: %w", err)
 	}
 
-	resolver, err := cli.Resolver(ctx)
+	resolver, err := cli.Resolver(ctx, http.DefaultClient, false)
 	if err != nil {
-		resolver = docker.NewResolver(docker.ResolverOptions{})
+		return fmt.Errorf("new resolver: %w", err)
 	}
 
 	fileStore := content.NewFileStore(path)
