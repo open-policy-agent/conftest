@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -65,7 +66,7 @@ func pushBundle(ctx context.Context, repository string, path string) (*ocispec.D
 		return nil, fmt.Errorf("get auth client: %w", err)
 	}
 
-	resolver, err := cli.Resolver(ctx)
+	resolver, err := cli.Resolver(ctx, http.DefaultClient, false)
 	if err != nil {
 		return nil, fmt.Errorf("docker resolver: %w", err)
 	}
@@ -109,11 +110,11 @@ func buildLayers(memoryStore *content.Memorystore, path string) ([]ocispec.Descr
 			return nil
 		}
 
-		if filepath.Ext(path) == ".rego" {
+		if filepath.Ext(currentPath) == ".rego" {
 			policy = append(policy, currentPath)
 		}
 
-		if filepath.Ext(path) == ".json" {
+		if filepath.Ext(currentPath) == ".json" {
 			data = append(data, currentPath)
 		}
 
