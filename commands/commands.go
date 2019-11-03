@@ -64,9 +64,7 @@ func NewDefaultCommand() *cobra.Command {
 	cmd.AddCommand(update.NewUpdateCommand(ctx))
 	cmd.AddCommand(push.NewPushCommand(ctx, logger))
 	cmd.AddCommand(pull.NewPullCommand(ctx))
-	cmd.AddCommand(verify.NewVerifyCommand(
-		test.GetOutputManager,
-	))
+	cmd.AddCommand(verify.NewVerifyCommand(ctx))
 
 	return &cmd
 }

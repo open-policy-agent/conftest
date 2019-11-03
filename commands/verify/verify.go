@@ -3,10 +3,8 @@ package verify
 import (
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 
-	"github.com/containerd/containerd/log"
 	"github.com/instrumenta/conftest/commands/test"
 	"github.com/instrumenta/conftest/policy"
 	"github.com/open-policy-agent/opa/tester"
@@ -14,88 +12,88 @@ import (
 	"github.com/spf13/viper"
 )
 
-func NewVerifyCommand(getOutputManager func() test.OutputManager) *cobra.Command {
-	ctx := context.Background()
-	cmd := &cobra.Command{
+// NewVerifyCommand creates a new verify command which allows users
+// to validate their rego unit tests
+func NewVerifyCommand(ctx context.Context) *cobra.Command {
+	cmd := cobra.Command{
 		Use:   "verify",
 		Short: "Verify Rego unit tests",
-		PreRun: func(cmd *cobra.Command, args []string) {
+		PreRunE: func(cmd *cobra.Command, args []string) error {
 			err := viper.BindPFlag("output", cmd.Flags().Lookup("output"))
 			if err != nil {
-				log.G(ctx).Fatal("Failed to bind argument:", err)
+				return fmt.Errorf("bind output: %w", err)
 			}
-		},
-		Run: func(cmd *cobra.Command, args []string) {
-			out := getOutputManager()
 
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			outputManager := test.GetOutputManager()
 			policyPath := viper.GetString("policy")
 
-			regoFiles, err := policy.ReadFilesWithTests(policyPath)
+			results, err := runVerification(ctx, policyPath)
 			if err != nil {
-				log.G(ctx).Fatalf("read rego test files: %s", err)
+				return fmt.Errorf("running verification: %w", err)
 			}
 
-			compiler, err := policy.BuildCompiler(regoFiles)
-			if err != nil {
-				log.G(ctx).Fatalf("build compiler: %s", err)
-			}
-
-			runner := tester.NewRunner().
-				SetCompiler(compiler)
-
-			ch, err := runner.Run(ctx, compiler.Modules)
-			if err != nil {
-				log.G(ctx).Fatalf("run rego tests: %s", err)
-			}
-
-			results := getResults(ctx, ch)
-
-			for result := range results {
-				msg := fmt.Errorf("%s", result.Msg)
-				fileName := filepath.Join(policyPath, result.FileName)
-				if result.Fail {
-					err = out.Put(fileName, test.CheckResult{Failures: []error{msg}})
-				} else {
-					err = out.Put(fileName, test.CheckResult{Successes: []error{msg}})
-				}
-
-				if err != nil {
-					log.G(ctx).Fatalf("Problem writing to output: %s", err)
+			for _, result := range results {
+				if err := outputManager.Put(result.FileName, result); err != nil {
+					return fmt.Errorf("put result: %w", err)
 				}
 			}
 
-			err = out.Flush()
-			if err != nil {
-				log.G(ctx).Fatal(err)
+			if err := outputManager.Flush(); err != nil {
+				return fmt.Errorf("flushing output: %w", err)
 			}
 
-			os.Exit(0)
+			return nil
 		},
 	}
 
 	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", test.ValidOutputs()))
 
-	return cmd
+	return &cmd
 }
 
-type report struct {
-	FileName string
-	Msg      string
-	Fail     bool
-}
+func runVerification(ctx context.Context, path string) ([]test.CheckResult, error) {
 
-func getResults(ctx context.Context, in <-chan *tester.Result) <-chan report {
-	results := make(chan report)
-	go func() {
-		defer close(results)
-		for result := range in {
-			if result.Error != nil {
-				log.G(ctx).Fatalf("Test failed to execute: %s", result.Error)
-			}
-			msg := result.Package + "." + result.Name
-			results <- report{FileName: result.Location.File, Msg: msg, Fail: result.Fail}
+	regoFiles, err := policy.ReadFilesWithTests(path)
+	if err != nil {
+		return nil, fmt.Errorf("read rego test files: %s", err)
+	}
+
+	compiler, err := policy.BuildCompiler(regoFiles)
+	if err != nil {
+		return nil, fmt.Errorf("build compiler: %w", err)
+	}
+
+	runner := tester.NewRunner().SetCompiler(compiler)
+	ch, err := runner.RunTests(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("running tests: %w", err)
+	}
+
+	var results []test.CheckResult
+	for result := range ch {
+		msg := fmt.Errorf("%s", result.Package+"."+result.Name)
+		fileName := filepath.Join(path, result.Location.File)
+
+		var failure []error
+		var success []error
+
+		if result.Fail {
+			failure = []error{msg}
+		} else {
+			success = []error{msg}
 		}
-	}()
 
-	return results
+		result := test.CheckResult{
+			FileName:  fileName,
+			Successes: success,
+			Failures:  failure,
+		}
+
+		results = append(results, result)
+	}
+
+	return results, nil
 }

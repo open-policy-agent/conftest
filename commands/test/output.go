@@ -30,6 +30,7 @@ func ValidOutputs() []string {
 func GetOutputManager() OutputManager {
 	outFmt := viper.GetString("output")
 	color := !viper.GetBool("no-color")
+
 	switch outFmt {
 	case OutputSTD:
 		return NewDefaultStdOutputManager(color)
@@ -50,13 +51,12 @@ type OutputManager interface {
 	Flush() error
 }
 
-// stdOutputManager reports `ccheck` results to stdout.
 type stdOutputManager struct {
 	logger *log.Logger
 	color  aurora.Aurora
 }
 
-// newDefaultStdOutputManager instantiates a new instance of stdOutputManager
+// NewDefaultStdOutputManager instantiates a new instance of stdOutputManager
 // using the default logger.
 func NewDefaultStdOutputManager(color bool) *stdOutputManager {
 	return NewStdOutputManager(log.New(os.Stdout, "", 0), color)
@@ -97,14 +97,13 @@ func (s *stdOutputManager) Put(fileName string, cr CheckResult) error {
 }
 
 func (s *stdOutputManager) Flush() error {
-	// no op
 	return nil
 }
 
 type jsonCheckResult struct {
-	Filename string   `json:"filename"`
-	Warnings []string `json:"warnings"`
-	Failures []string `json:"failures"`
+	Filename  string   `json:"filename"`
+	Warnings  []string `json:"warnings"`
+	Failures  []string `json:"failures"`
 	Successes []string `json:"successes"`
 }
 
@@ -143,9 +142,9 @@ func (j *jsonOutputManager) Put(fileName string, cr CheckResult) error {
 	}
 
 	j.data = append(j.data, jsonCheckResult{
-		Filename: fileName,
-		Warnings: errsToStrings(cr.Warnings),
-		Failures: errsToStrings(cr.Failures),
+		Filename:  fileName,
+		Warnings:  errsToStrings(cr.Warnings),
+		Failures:  errsToStrings(cr.Failures),
 		Successes: errsToStrings(cr.Successes),
 	})
 
@@ -173,13 +172,13 @@ type tapOutputManager struct {
 	logger *log.Logger
 }
 
-// NewDefaultTapOutManager instantiates a new instance of tapOutputManager
+// NewDefaultTAPOutputManager instantiates a new instance of tapOutputManager
 // using the default logger.
 func NewDefaultTAPOutputManager() *tapOutputManager {
 	return NewTAPOutputManager(log.New(os.Stdout, "", 0))
 }
 
-// NewTapOutputManager constructs an instance of stdOutputManager given a
+// NewTAPOutputManager constructs an instance of stdOutputManager given a
 // logger instance.
 func NewTAPOutputManager(l *log.Logger) *tapOutputManager {
 	return &tapOutputManager{
@@ -221,6 +220,5 @@ func (s *tapOutputManager) Put(fileName string, cr CheckResult) error {
 }
 
 func (s *tapOutputManager) Flush() error {
-	// no op
 	return nil
 }

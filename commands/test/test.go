@@ -32,6 +32,7 @@ var (
 // warning and failure "errors" produced by rego should be considered separate
 // from other classes of exceptions.
 type CheckResult struct {
+	FileName  string
 	Warnings  []error
 	Failures  []error
 	Successes []error
