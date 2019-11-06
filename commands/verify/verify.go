@@ -55,7 +55,6 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 }
 
 func runVerification(ctx context.Context, path string) ([]test.CheckResult, error) {
-
 	regoFiles, err := policy.ReadFilesWithTests(path)
 	if err != nil {
 		return nil, fmt.Errorf("read rego test files: %s", err)
