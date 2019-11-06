@@ -32,16 +32,16 @@ func NewDefaultCommand() *cobra.Command {
 		Version: fmt.Sprintf("Version: %s\nCommit: %s\nDate: %s\n", version, commit, date),
 	}
 
-	cmd.PersistentFlags().StringP("policy", "p", "policy", "path to the Rego policy files directory. For the test command, specifying a specific .rego file is allowed.")
-	cmd.PersistentFlags().BoolP("trace", "", false, "enable more verbose trace output for rego queries")
-	cmd.PersistentFlags().StringP("namespace", "", "main", "namespace in which to find deny and warn rules")
-	cmd.PersistentFlags().BoolP("no-color", "", false, "disable color when printing")
-
 	cmd.SetVersionTemplate(`{{.Version}}`)
 
+	cmd.PersistentFlags().StringP("policy", "p", "policy", "path to the Rego policy files directory. For the test command, specifying a specific .rego file is allowed.")
+	cmd.PersistentFlags().String("namespace", "main", "namespace in which to find deny and warn rules")
+	cmd.PersistentFlags().Bool("trace", false, "enable more verbose trace output for rego queries")
+	cmd.PersistentFlags().Bool("no-color", false, "disable color when printing")
+
 	viper.BindPFlag("policy", cmd.PersistentFlags().Lookup("policy"))
-	viper.BindPFlag("trace", cmd.PersistentFlags().Lookup("trace"))
 	viper.BindPFlag("namespace", cmd.PersistentFlags().Lookup("namespace"))
+	viper.BindPFlag("trace", cmd.PersistentFlags().Lookup("trace"))
 	viper.BindPFlag("no-color", cmd.PersistentFlags().Lookup("no-color"))
 
 	viper.SetEnvPrefix("CONFTEST")
