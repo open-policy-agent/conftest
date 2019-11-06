@@ -41,32 +41,31 @@ func NewParseCommand(ctx context.Context) *cobra.Command {
 	return &cmd
 }
 
-func parseInput(ctx context.Context, fileList []string) ([]byte, error) {
+func parseInput(ctx context.Context, fileList []string) (string, error) {
 	configurations, err := test.GetConfigurations(ctx, fileList)
 	if err != nil {
-		return nil, fmt.Errorf("calling the parser method: %w", err)
+		return "", fmt.Errorf("calling the parser method: %w", err)
 	}
 
-	var bundle []byte
+	var output string
 	for filename, config := range configurations {
 		out, err := json.Marshal(config)
 		if err != nil {
-			return nil, fmt.Errorf("marshal output to json: %w", err)
+			return "", fmt.Errorf("marshal output to json: %w", err)
 		}
 
 		var prettyJSON bytes.Buffer
 		if err = json.Indent(&prettyJSON, out, "", "\t"); err != nil {
-			return nil, fmt.Errorf("indentation: %w", err)
+			return "", fmt.Errorf("indentation: %w", err)
 		}
 
 		if _, err := prettyJSON.WriteString("\n"); err != nil {
-			return nil, fmt.Errorf("adding line break: %w", err)
+			return "", fmt.Errorf("adding line break: %w", err)
 		}
 
-		filename = filename + "\n"
-		bundle = append(bundle, filename...)
-		bundle = append(bundle, prettyJSON.Bytes()...)
+		output = output + filename + "\n"
+		output = output + prettyJSON.String()
 	}
 
-	return bundle, nil
+	return output, nil
 }

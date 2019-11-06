@@ -85,11 +85,11 @@ func TestInputFlagForparseInput(t *testing.T) {
 		}
 		viper.Reset()
 
-		if !strings.Contains(string(actual), expected) {
+		if !strings.Contains(actual, expected) {
 			t.Errorf("unexpected parsed input. expected %v actual %v", expected, actual)
 		}
 
-		if !strings.Contains(string(actual), expectedFile) {
+		if !strings.Contains(actual, expectedFile) {
 			t.Errorf("unexpected parsed filename. expected %v actual %v", expected, actual)
 		}
 	})
@@ -128,11 +128,11 @@ func TestParseOutputwithNoFlag(t *testing.T) {
 			t.Fatalf("parsing input: %v", err)
 		}
 
-		if !strings.Contains(string(actual), expected) {
+		if !strings.Contains(actual, expected) {
 			t.Errorf("unexpected parsed input. expected %v actual %v", expected, actual)
 		}
 
-		if !strings.Contains(string(actual), expectedFile) {
+		if !strings.Contains(actual, expectedFile) {
 			t.Errorf("unexpected parsed filename. expected %v actual %v", expected, actual)
 		}
 	})
