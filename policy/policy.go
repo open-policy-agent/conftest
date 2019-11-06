@@ -8,10 +8,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	auth "github.com/deislabs/oras/pkg/auth/docker"
 	"github.com/deislabs/oras/pkg/content"
 	"github.com/deislabs/oras/pkg/oras"
-
-	auth "github.com/deislabs/oras/pkg/auth/docker"
 )
 
 // Policy represents a policy
