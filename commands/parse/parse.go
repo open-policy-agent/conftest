@@ -42,6 +42,14 @@ func NewParseCommand(ctx context.Context) *cobra.Command {
 	return &cmd
 }
 
+func parseInput(ctx context.Context, fileList []string) (string, error) {
+	out, err := parse(ctx, fileList)
+	if err != nil {
+		return "", fmt.Errorf("parse process: %w", err)
+	}
+	return finalize(out), nil
+}
+
 func parse(ctx context.Context, fileList []string) ([]byte, error) {
 	configurations, err := test.GetConfigurations(ctx, fileList)
 	var bundle []byte
@@ -73,14 +81,6 @@ func finalize(input []byte) string {
 	final := string(input)
 	final = strings.Replace(final, "\\r", "", -1)
 	return final
-}
-
-func parseInput(ctx context.Context, fileList []string) (string, error) {
-	out, err := parse(ctx, fileList)
-	if err != nil {
-		return "", fmt.Errorf("parse process: %w", err)
-	}
-	return finalize(out), nil
 }
 
 //Will be replaced with OutputManager
