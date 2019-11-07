@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/instrumenta/conftest/commands/test"
 	"github.com/instrumenta/conftest/parser"
@@ -30,7 +31,7 @@ func NewParseCommand(ctx context.Context) *cobra.Command {
 		RunE: func(cmd *cobra.Command, fileList []string) error {
 			out, err := parseInput(ctx, fileList)
 			if err != nil {
-				return fmt.Errorf("failed during parser process: %w", err)
+				return fmt.Errorf("failed during %w", err)
 			}
 			print(out)
 			return nil
@@ -41,11 +42,11 @@ func NewParseCommand(ctx context.Context) *cobra.Command {
 	return &cmd
 }
 
-func parseInput(ctx context.Context, fileList []string) ([]byte, error) {
+func parse(ctx context.Context, fileList []string) ([]byte, error) {
 	configurations, err := test.GetConfigurations(ctx, fileList)
 	var bundle []byte
 	if err != nil {
-		return nil, fmt.Errorf("calling the parser method: %w", err)
+		return nil, fmt.Errorf("calling the main parser method: %w", err)
 	}
 	for filename, config := range configurations {
 		filename = filename + "\n"
@@ -68,7 +69,21 @@ func parseInput(ctx context.Context, fileList []string) ([]byte, error) {
 	return bundle, nil
 }
 
+func finalize(input []byte) string {
+	final := string(input)
+	final = strings.Replace(final, "\\r", "", -1)
+	return final
+}
+
+func parseInput(ctx context.Context, fileList []string) (string, error) {
+	out, err := parse(ctx, fileList)
+	if err != nil {
+		return "", fmt.Errorf("parse process: %w", err)
+	}
+	return finalize(out), nil
+}
+
 //Will be replaced with OutputManager
-func print(output []byte) {
-	os.Stdout.Write(output)
+func print(output string) {
+	os.Stdout.WriteString(output)
 }

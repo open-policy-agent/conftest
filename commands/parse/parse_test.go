@@ -2,7 +2,6 @@ package parse
 
 import (
 	"context"
-	"strings"
 	"testing"
 
 	"github.com/spf13/viper"
@@ -82,11 +81,9 @@ func TestInputFlagForparseInput(t *testing.T) {
 		viper.Reset()
 		viper.Set("input", testunit.input)
 		parsed, _ := parseInput(ctx, testunit.fileList)
-		tmp := string(parsed)
-		tmp = strings.Replace(tmp, "\\r", "", -1)
 		viper.Reset()
-		assert.Assert(t, is.Contains(tmp, expected))
-		assert.Assert(t, is.Contains(tmp, expectedFile))
+		assert.Assert(t, is.Contains(parsed, expected))
+		assert.Assert(t, is.Contains(parsed, expectedFile))
 	})
 }
 
@@ -119,8 +116,8 @@ func TestParseOutputwithNoFlag(t *testing.T) {
 	`
 	t.Run(unit.name, func(t *testing.T) {
 		parsed, _ := parseInput(ctx, unit.fileList)
-		assert.Assert(t, is.Contains(string(parsed), expected))
-		assert.Assert(t, is.Contains(string(parsed), expectedFile))
+		assert.Assert(t, is.Contains(parsed, expected))
+		assert.Assert(t, is.Contains(parsed, expectedFile))
 
 	})
 }
