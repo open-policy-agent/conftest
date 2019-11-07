@@ -56,7 +56,7 @@ jobs:
           command: |
             sudo npm install tap-xunit -g
             mkdir -p ~/reports
-            bats acceptance.bats --tap | tap-xunit > ~/reports/conftest.xml
+            bats acceptance --tap | tap-xunit > ~/reports/conftest.xml
       - store_test_results:
           path: ~/reports
       - store_artifacts:
