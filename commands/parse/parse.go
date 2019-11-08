@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/instrumenta/conftest/commands/test"
 	"github.com/instrumenta/conftest/parser"
@@ -65,6 +66,7 @@ func parseInput(ctx context.Context, fileList []string) (string, error) {
 
 		output = output + filename + "\n"
 		output = output + prettyJSON.String()
+		output = strings.Replace(output, "\\r", "", -1)
 	}
 
 	return output, nil
