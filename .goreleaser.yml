@@ -53,3 +53,11 @@ scoop:
     name: scoop-instrumenta
   description: "Test your configuration using Open Policy Agent"
   homepage: "https://github.com/instrumenta/conftest"
+nfpms:
+  - bindir: /usr/bin
+    description: "Test your configuration using Open Policy Agent"
+    formats:
+      - deb
+      - rpm
+    homepage: https://github.com/instrumenta/conftest
+    license: Apache-2.0
