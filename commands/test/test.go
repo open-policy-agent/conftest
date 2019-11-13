@@ -45,7 +45,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 		Short: "Test your configuration files using Open Policy Agent",
 		Args:  cobra.MinimumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			flagNames := []string{"fail-on-warn", "update", combineConfigFlagName, "output", "input"}
+			flagNames := []string{"fail-on-warn", "update", combineConfigFlagName, "trace", "output", "input", "namespace"}
 			for _, name := range flagNames {
 				if err := viper.BindPFlag(name, cmd.Flags().Lookup(name)); err != nil {
 					return fmt.Errorf("bind flag: %w", err)
@@ -139,9 +139,11 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().BoolP("fail-on-warn", "", false, "return a non-zero exit code if only warnings are found")
 	cmd.Flags().BoolP("update", "", false, "update any policies before running the tests")
 	cmd.Flags().BoolP(combineConfigFlagName, "", false, "combine all given config files to be evaluated together")
+	cmd.Flags().BoolP("trace", "", false, "enable more verbose trace output for rego queries")
 
 	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", ValidOutputs()))
 	cmd.Flags().StringP("input", "i", "", fmt.Sprintf("input type for given source, especially useful when using conftest with stdin, valid options are: %s", parser.ValidInputs()))
+	cmd.Flags().StringP("namespace", "", "main", "namespace in which to find deny and warn rules")
 
 	return &cmd
 }
