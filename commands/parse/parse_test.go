@@ -4,8 +4,6 @@ import (
 	"context"
 	"strings"
 	"testing"
-
-	"github.com/spf13/viper"
 )
 
 func TestParseConfig(t *testing.T) {
@@ -77,13 +75,10 @@ func TestInputFlagForparseInput(t *testing.T) {
 		}
 	}
 }`
-		viper.Reset()
-		viper.Set("input", testunit.input)
-		actual, err := parseInput(ctx, testunit.fileList)
+		actual, err := parseInput(ctx, testunit.input, testunit.fileList)
 		if err != nil {
 			t.Fatalf("parsing input: %v", err)
 		}
-		viper.Reset()
 
 		if !strings.Contains(actual, expected) {
 			t.Errorf("unexpected parsed input. expected %v actual %v", expected, actual)
@@ -123,7 +118,7 @@ func TestParseOutputwithNoFlag(t *testing.T) {
 	},
 	`
 	t.Run(unit.name, func(t *testing.T) {
-		actual, err := parseInput(ctx, unit.fileList)
+		actual, err := parseInput(ctx, "", unit.fileList)
 		if err != nil {
 			t.Fatalf("parsing input: %v", err)
 		}
