@@ -14,7 +14,8 @@ func TestParse_ByDefault_AddsIndentationAndNewline(t *testing.T) {
 		Property: "value",
 	}
 
-	configurations["file.json"] = config
+	const expectedFileName = "file.json"
+	configurations[expectedFileName] = config
 
 	actual, err := parseConfigurations(configurations)
 	if err != nil {
@@ -29,5 +30,9 @@ func TestParse_ByDefault_AddsIndentationAndNewline(t *testing.T) {
 
 	if !strings.Contains(actual, expected) {
 		t.Errorf("unexpected parsed config. expected %v actual %v", expected, actual)
+	}
+
+	if !strings.Contains(actual, expectedFileName) {
+		t.Errorf("unexpected parsed filename. expected %v actual %v", expected, actual)
 	}
 }
