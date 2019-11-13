@@ -5,7 +5,6 @@ go 1.13
 require (
 	cuelang.org/go v0.0.13
 	github.com/BurntSushi/toml v0.3.1
-	github.com/containerd/containerd v1.3.0
 	github.com/deislabs/oras v0.8.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-ini/ini v1.49.0
@@ -17,8 +16,6 @@ require (
 	github.com/opencontainers/image-spec v1.0.1
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.5.0
-	github.com/stretchr/testify v1.4.0
 	github.com/zclconf/go-cty v1.1.0
 	gopkg.in/ini.v1 v1.49.0 // indirect
-	gotest.tools v2.2.0+incompatible
 )

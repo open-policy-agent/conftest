@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
+	"strings"
 
 	"github.com/instrumenta/conftest/commands/test"
 	"github.com/instrumenta/conftest/parser"
@@ -13,9 +13,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-//NewParseCommand creates a parse command.
-//This command can be used for printing structured inputs from unstructured configuration inputs.
-//Can be used with '--input' or '-i' flag.
+// NewParseCommand creates a parse command.
+// This command can be used for printing structured inputs from unstructured configuration inputs.
 func NewParseCommand(ctx context.Context) *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "parse [file...]",
@@ -25,6 +24,7 @@ func NewParseCommand(ctx context.Context) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("failed to bind argument: %w", err)
 			}
+
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, fileList []string) error {
@@ -32,7 +32,8 @@ func NewParseCommand(ctx context.Context) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("failed during parser process: %w", err)
 			}
-			print(out)
+
+			fmt.Println(out)
 			return nil
 		},
 	}
@@ -41,34 +42,32 @@ func NewParseCommand(ctx context.Context) *cobra.Command {
 	return &cmd
 }
 
-func parseInput(ctx context.Context, fileList []string) ([]byte, error) {
+func parseInput(ctx context.Context, fileList []string) (string, error) {
 	configurations, err := test.GetConfigurations(ctx, fileList)
-	var bundle []byte
 	if err != nil {
-		return nil, fmt.Errorf("calling the parser method: %w", err)
+		return "", fmt.Errorf("calling the parser method: %w", err)
 	}
+
+	var output string
 	for filename, config := range configurations {
-		filename = filename + "\n"
-		var prettyJSON bytes.Buffer
 		out, err := json.Marshal(config)
 		if err != nil {
-			return nil, fmt.Errorf("marshal output to json: %w", err)
+			return "", fmt.Errorf("marshal output to json: %w", err)
 		}
-		err = json.Indent(&prettyJSON, out, "", "\t")
-		if err != nil {
-			return nil, fmt.Errorf("indentation: %w", err)
-		}
-		_, err = prettyJSON.WriteString("\n")
-		if err != nil {
-			return nil, fmt.Errorf("adding line break: %w", err)
-		}
-		bundle = append(bundle, filename...)
-		bundle = append(bundle, prettyJSON.Bytes()...)
-	}
-	return bundle, nil
-}
 
-//Will be replaced with OutputManager
-func print(output []byte) {
-	os.Stdout.Write(output)
+		var prettyJSON bytes.Buffer
+		if err = json.Indent(&prettyJSON, out, "", "\t"); err != nil {
+			return "", fmt.Errorf("indentation: %w", err)
+		}
+
+		if _, err := prettyJSON.WriteString("\n"); err != nil {
+			return "", fmt.Errorf("adding line break: %w", err)
+		}
+
+		output = output + filename + "\n"
+		output = output + prettyJSON.String()
+		output = strings.Replace(output, "\\r", "", -1)
+	}
+
+	return output, nil
 }

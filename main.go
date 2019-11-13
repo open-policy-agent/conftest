@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/instrumenta/conftest/commands"
 	"os"
+
+	"github.com/instrumenta/conftest/commands"
 )
 
 func main() {

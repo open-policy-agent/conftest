@@ -2,9 +2,10 @@ package hcl2
 
 import (
 	"encoding/json"
+	"testing"
+
 	"github.com/hashicorp/hcl2/hcl"
 	"github.com/hashicorp/hcl2/hcl/hclsyntax"
-	"testing"
 )
 
 // This file is mostly attributed to https://github.com/tmccombs/hcl2json

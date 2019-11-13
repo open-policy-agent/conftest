@@ -47,7 +47,7 @@ func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 			repository := args[0]
 
 			logger.Printf("pushing bundle to: %s\n", repository)
-			manifest, err := pushBundle(ctx, args[0], path)
+			manifest, err := pushBundle(ctx, repository, path)
 			if err != nil {
 				return fmt.Errorf("push bundle: %w", err)
 			}

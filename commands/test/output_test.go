@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/spf13/viper"
-	"github.com/stretchr/testify/assert"
 )
 
 func Test_stdOutputManager_put(t *testing.T) {
@@ -47,19 +46,20 @@ func Test_stdOutputManager_put(t *testing.T) {
 			exp: []string{"WARN - first warning", "FAIL - first failure"},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.msg, func(t *testing.T) {
 			buf := new(bytes.Buffer)
 			s := NewStdOutputManager(log.New(buf, "", 0), false)
 
-			err := s.Put(tt.args.fileName, tt.args.cr)
-			if err != nil {
-				assert.Equal(t, tt.expErr, err)
+			if err := s.Put(tt.args.fileName, tt.args.cr); err != nil {
+				t.Fatalf("put output: %v", err)
 			}
 
-			// split on newlines but remove last one for easier comparisons
-			res := strings.Split(strings.TrimSuffix(buf.String(), "\n"), "\n")
-			assert.Equal(t, tt.exp, res)
+			actual := strings.Split(strings.TrimSuffix(buf.String(), "\n"), "\n")
+			if !reflect.DeepEqual(tt.exp, actual) {
+				t.Errorf("unexpected output. expected %v actual %v", tt.exp, actual)
+			}
 		})
 	}
 }
@@ -71,10 +71,9 @@ func Test_jsonOutputManager_put(t *testing.T) {
 	}
 
 	tests := []struct {
-		msg    string
-		args   args
-		exp    string
-		expErr error
+		msg  string
+		args args
+		exp  string
 	}{
 		{
 			msg: "no Warnings or errors",
@@ -161,19 +160,19 @@ func Test_jsonOutputManager_put(t *testing.T) {
 			buf := new(bytes.Buffer)
 			s := NewJSONOutputManager(log.New(buf, "", 0))
 
-			// record results
-			err := s.Put(tt.args.fileName, tt.args.cr)
-			if err != nil {
-				assert.Equal(t, tt.expErr, err)
+			if err := s.Put(tt.args.fileName, tt.args.cr); err != nil {
+				t.Fatalf("put output: %v", err)
 			}
 
-			// flush final buffer
-			err = s.Flush()
-			if err != nil {
-				assert.Equal(t, tt.expErr, err)
+			if err := s.Flush(); err != nil {
+				t.Fatalf("flush output: %v", err)
 			}
 
-			assert.Equal(t, tt.exp, buf.String())
+			actual := buf.String()
+
+			if tt.exp != actual {
+				t.Errorf("unexpected output. expected %v got %v", tt.exp, actual)
+			}
 		})
 	}
 }
@@ -226,10 +225,9 @@ func Test_tapOutputManager_put(t *testing.T) {
 	}
 
 	tests := []struct {
-		msg    string
-		args   args
-		exp    string
-		expErr error
+		msg  string
+		args args
+		exp  string
 	}{
 		{
 			msg: "no warnings or errors",
@@ -284,18 +282,19 @@ not ok 1 - first failure
 			buf := new(bytes.Buffer)
 			s := NewTAPOutputManager(log.New(buf, "", 0))
 
-			// record results
-			err := s.Put(tt.args.fileName, tt.args.cr)
-			if err != nil {
-				assert.Equal(t, tt.expErr, err)
+			if err := s.Put(tt.args.fileName, tt.args.cr); err != nil {
+				t.Fatalf("put output: %v", err)
 			}
 
-			// flush final buffer
-			err = s.Flush()
-			if err != nil {
-				assert.Equal(t, tt.expErr, err)
+			if err := s.Flush(); err != nil {
+				t.Fatalf("flush output: %v", err)
 			}
-			assert.Equal(t, tt.exp, buf.String())
+
+			actual := buf.String()
+
+			if tt.exp != actual {
+				t.Errorf("unexpected output. expected %v actual %v", tt.exp, actual)
+			}
 		})
 	}
 }

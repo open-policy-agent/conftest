@@ -2,11 +2,10 @@ package parse
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/spf13/viper"
-	"gotest.tools/assert"
-	is "gotest.tools/assert/cmp"
 )
 
 func TestParseConfig(t *testing.T) {
@@ -80,10 +79,19 @@ func TestInputFlagForparseInput(t *testing.T) {
 }`
 		viper.Reset()
 		viper.Set("input", testunit.input)
-		parsed, _ := parseInput(ctx, testunit.fileList)
+		actual, err := parseInput(ctx, testunit.fileList)
+		if err != nil {
+			t.Fatalf("parsing input: %v", err)
+		}
 		viper.Reset()
-		assert.Assert(t, is.Contains(string(parsed), expected))
-		assert.Assert(t, is.Contains(string(parsed), expectedFile))
+
+		if !strings.Contains(actual, expected) {
+			t.Errorf("unexpected parsed input. expected %v actual %v", expected, actual)
+		}
+
+		if !strings.Contains(actual, expectedFile) {
+			t.Errorf("unexpected parsed filename. expected %v actual %v", expected, actual)
+		}
 	})
 }
 
@@ -115,9 +123,17 @@ func TestParseOutputwithNoFlag(t *testing.T) {
 	},
 	`
 	t.Run(unit.name, func(t *testing.T) {
-		parsed, _ := parseInput(ctx, unit.fileList)
-		assert.Assert(t, is.Contains(string(parsed), expected))
-		assert.Assert(t, is.Contains(string(parsed), expectedFile))
+		actual, err := parseInput(ctx, unit.fileList)
+		if err != nil {
+			t.Fatalf("parsing input: %v", err)
+		}
 
+		if !strings.Contains(actual, expected) {
+			t.Errorf("unexpected parsed input. expected %v actual %v", expected, actual)
+		}
+
+		if !strings.Contains(actual, expectedFile) {
+			t.Errorf("unexpected parsed filename. expected %v actual %v", expected, actual)
+		}
 	})
 }
