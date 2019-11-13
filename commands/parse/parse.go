@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/instrumenta/conftest/commands/test"
 	"github.com/instrumenta/conftest/parser"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -28,7 +27,7 @@ func NewParseCommand(ctx context.Context) *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, fileList []string) error {
-			out, err := parseInput(ctx, fileList)
+			out, err := parseInput(ctx, viper.GetString("input"), fileList)
 			if err != nil {
 				return fmt.Errorf("failed during parser process: %w", err)
 			}
@@ -42,8 +41,8 @@ func NewParseCommand(ctx context.Context) *cobra.Command {
 	return &cmd
 }
 
-func parseInput(ctx context.Context, fileList []string) (string, error) {
-	configurations, err := test.GetConfigurations(ctx, fileList)
+func parseInput(ctx context.Context, input string, fileList []string) (string, error) {
+	configurations, err := parser.GetConfigurations(ctx, input, fileList)
 	if err != nil {
 		return "", fmt.Errorf("calling the parser method: %w", err)
 	}

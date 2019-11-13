@@ -1,16 +1,11 @@
 package test
 
 import (
-	"bufio"
 	"context"
 	"errors"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"os"
-	"path/filepath"
 	"regexp"
-	"strings"
 
 	"github.com/instrumenta/conftest/commands/update"
 	"github.com/instrumenta/conftest/parser"
@@ -85,8 +80,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("build compiler: %w", err)
 			}
 
-			configurations, err := GetConfigurations(ctx, nonBlankFileList)
-
+			configurations, err := parser.GetConfigurations(ctx, viper.GetString("input"), nonBlankFileList)
 			if err != nil {
 				return fmt.Errorf("get configurations: %w", err)
 			}
@@ -168,89 +162,8 @@ func GetResult(ctx context.Context, namespace string, input interface{}, compile
 	return result, nil
 }
 
-// GetConfigurations parses and returns the configurations given in the file list
-func GetConfigurations(ctx context.Context, fileList []string) (map[string]interface{}, error) {
-	var configFiles []parser.ConfigDoc
-	var fileType string
-
-	for _, fileName := range fileList {
-		var err error
-		var config io.ReadCloser
-
-		fileType, err = getFileType(viper.GetString("input"), fileName)
-		if err != nil {
-			return nil, fmt.Errorf("get file type: %w", err)
-		}
-
-		config, err = getConfig(fileName)
-		if err != nil {
-			return nil, fmt.Errorf("get config: %w", err)
-		}
-
-		configFiles = append(configFiles, parser.ConfigDoc{
-			ReadCloser: config,
-			Filepath:   fileName,
-		})
-	}
-
-	configManager, err := parser.NewConfigManager(fileType)
-	if err != nil {
-		return nil, fmt.Errorf("create config manager: %w", err)
-	}
-
-	configurations, err := configManager.BulkUnmarshal(configFiles)
-	if err != nil {
-		return nil, fmt.Errorf("bulk unmarshal: %w", err)
-	}
-
-	return configurations, nil
-}
-
 func isResultFailure(result CheckResult) bool {
 	return len(result.Failures) > 0 || (len(result.Warnings) > 0 && viper.GetBool("fail-on-warn"))
-}
-
-func getConfig(fileName string) (io.ReadCloser, error) {
-	if fileName == "-" {
-		config := ioutil.NopCloser(bufio.NewReader(os.Stdin))
-		return config, nil
-	}
-
-	filePath, err := filepath.Abs(fileName)
-	if err != nil {
-		return nil, fmt.Errorf("get abs: %w", err)
-	}
-
-	config, err := os.Open(filePath)
-	if err != nil {
-		return nil, fmt.Errorf("open file: %w", err)
-	}
-
-	return config, nil
-}
-
-func getFileType(inputFileType, fileName string) (string, error) {
-	if inputFileType != "" {
-		return inputFileType, nil
-	}
-
-	if fileName == "-" && inputFileType == "" {
-		return "yaml", nil
-	}
-
-	if fileName != "-" {
-		fileType := ""
-		if strings.Contains(fileName, ".") {
-			fileType = strings.TrimPrefix(filepath.Ext(fileName), ".")
-		} else {
-			ss := strings.SplitAfter(fileName, "/")
-			fileType = ss[len(ss)-1]
-		}
-
-		return fileType, nil
-	}
-
-	return "", fmt.Errorf("unsupported file type")
 }
 
 func runRules(ctx context.Context, namespace string, input interface{}, regex *regexp.Regexp, compiler *ast.Compiler) ([]error, error) {
