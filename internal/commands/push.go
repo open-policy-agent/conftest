@@ -1,4 +1,4 @@
-package push
+package commands
 
 import (
 	"context"

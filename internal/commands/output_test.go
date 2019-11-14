@@ -1,4 +1,4 @@
-package test
+package commands
 
 import (
 	"bytes"
@@ -185,17 +185,17 @@ func TestSupportedOutputManagers(t *testing.T) {
 	}{
 		{
 			name:          "std output should exist",
-			outputFormat:  OutputSTD,
+			outputFormat:  outputSTD,
 			outputManager: NewDefaultStdOutputManager(true),
 		},
 		{
 			name:          "json output should exist",
-			outputFormat:  OutputJSON,
+			outputFormat:  outputJSON,
 			outputManager: NewDefaultJSONOutputManager(),
 		},
 		{
 			name:          "tap output should exist",
-			outputFormat:  OutputTAP,
+			outputFormat:  outputTAP,
 			outputManager: NewDefaultTAPOutputManager(),
 		},
 		{
