@@ -1,134 +1,38 @@
 package parse
 
 import (
-	"context"
 	"strings"
 	"testing"
 )
 
-func TestParseConfig(t *testing.T) {
-	ctx := context.Background()
-	testTable := []struct {
-		name     string
-		fileList []string
+func TestParse_ByDefault_AddsIndentationAndNewline(t *testing.T) {
+	configurations := make(map[string]interface{})
+
+	config := struct {
+		Property string
 	}{
-		{
-			name:     "valid parse for multi-line yamls",
-			fileList: []string{"testdata/dummy-deploy.yaml"},
-		},
-		{
-			name:     "valid parse for unstructured inputs(ini)",
-			fileList: []string{"testdata/grafana.ini"},
-		},
-		{
-			name:     "valid parse for unstructured inputs(toml)",
-			fileList: []string{"testdata/traefik.toml"},
-		},
+		Property: "value",
 	}
 
-	for _, testunit := range testTable {
-		t.Run(testunit.name, func(t *testing.T) {
-			cmd := NewParseCommand(ctx)
-			err := cmd.RunE(cmd, testunit.fileList)
-			if err != nil {
-				t.Errorf("problem running parse command in test: %w", err)
-			}
-		})
-	}
-}
+	const expectedFileName = "file.json"
+	configurations[expectedFileName] = config
 
-func TestInputFlagForparseInput(t *testing.T) {
-	ctx := context.Background()
-	testunit := struct {
-		name     string
-		input    string
-		fileList []string
-	}{
-		name:     "valid input flag parse for terraform version 2",
-		input:    "hcl2",
-		fileList: []string{"testdata/terraform.tf"},
+	actual, err := parseConfigurations(configurations)
+	if err != nil {
+		t.Fatalf("parsing configs: %s", err)
 	}
-	t.Run(testunit.name, func(t *testing.T) {
-		expectedFile := "testdata/terraform.tf"
-		expected := `{
-	"data.consul_key_prefix.environment": {
-		"path": "apps/example/env"
-	},
-	"output.environment": {
-		"value": "${{\n    id           = aws_elastic_beanstalk_environment.example.id\n    vpc_settings = {\n      for s in aws_elastic_beanstalk_environment.example.all_settings :\n      s.name =\u003e s.value\n      if s.namespace == \"aws:ec2:vpc\"\n    }\n  }}"
-	},
-	"resource.aws_elastic_beanstalk_environment.example": {
-		"application": "testing",
-		"dynamic.setting": {
-			"content": {
-				"name": "${setting.key}",
-				"namespace": "aws:elasticbeanstalk:application:environment",
-				"value": "${setting.value}"
-			},
-			"for_each": "${data.consul_key_prefix.environment.var}"
-		},
-		"name": "test_environment",
-		"setting": {
-			"name": "MinSize",
-			"namespace": "aws:autoscaling:asg",
-			"value": "1"
-		}
-	}
-}`
-		actual, err := parseInput(ctx, testunit.input, testunit.fileList)
-		if err != nil {
-			t.Fatalf("parsing input: %v", err)
-		}
 
-		if !strings.Contains(actual, expected) {
-			t.Errorf("unexpected parsed input. expected %v actual %v", expected, actual)
-		}
-
-		if !strings.Contains(actual, expectedFile) {
-			t.Errorf("unexpected parsed filename. expected %v actual %v", expected, actual)
-		}
-	})
-}
-
-func TestParseOutputwithNoFlag(t *testing.T) {
-	ctx := context.Background()
-	unit := struct {
-		name     string
-		fileList []string
-	}{
-		name:     "valid parse output",
-		fileList: []string{"testdata/grafana.ini"},
-	}
-	expectedFile := "testdata/grafana.ini"
 	expected := `
-	"auth.basic": {
-		"enabled": "true"
-	},
-	"server": {
-		"domain": "localhost",
-		"enable_gzip": "false",
-		"enforce_domain": "false",
-		"http_addr": "",
-		"http_port": "3000",
-		"protocol": "http",
-		"root_url": "%(protocol)s://%(domain)s:%(http_port)s/",
-		"router_logging": "false",
-		"serve_from_sub_path": "false",
-		"static_root_path": "public"
-	},
-	`
-	t.Run(unit.name, func(t *testing.T) {
-		actual, err := parseInput(ctx, "", unit.fileList)
-		if err != nil {
-			t.Fatalf("parsing input: %v", err)
-		}
+{
+	"Property": "value"
+}
+`
 
-		if !strings.Contains(actual, expected) {
-			t.Errorf("unexpected parsed input. expected %v actual %v", expected, actual)
-		}
+	if !strings.Contains(actual, expected) {
+		t.Errorf("unexpected parsed config. expected %v actual %v", expected, actual)
+	}
 
-		if !strings.Contains(actual, expectedFile) {
-			t.Errorf("unexpected parsed filename. expected %v actual %v", expected, actual)
-		}
-	})
+	if !strings.Contains(actual, expectedFileName) {
+		t.Errorf("unexpected parsed filename. expected %v actual %v", expected, actual)
+	}
 }

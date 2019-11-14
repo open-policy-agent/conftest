@@ -47,6 +47,16 @@ func parseInput(ctx context.Context, input string, fileList []string) (string, e
 		return "", fmt.Errorf("calling the parser method: %w", err)
 	}
 
+	parsedConfigurations, err := parseConfigurations(configurations)
+	if err != nil {
+		return "", fmt.Errorf("parsing configs: %w", err)
+	}
+
+	return parsedConfigurations, nil
+
+}
+
+func parseConfigurations(configurations map[string]interface{}) (string, error) {
 	var output string
 	for filename, config := range configurations {
 		out, err := json.Marshal(config)
