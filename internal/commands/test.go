@@ -17,6 +17,7 @@ import (
 )
 
 var (
+	successQ              = (*regexp.Regexp)(nil)
 	denyQ                 = regexp.MustCompile("^(deny|violation)(_[a-zA-Z]+)*$")
 	warnQ                 = regexp.MustCompile("^warn(_[a-zA-Z]+)*$")
 	combineConfigFlagName = "combine"
@@ -154,9 +155,15 @@ func GetResult(ctx context.Context, namespace string, input interface{}, compile
 		return CheckResult{}, err
 	}
 
+	successes, err := runRules(ctx, namespace, input, successQ, compiler)
+	if err != nil {
+		return CheckResult{}, err
+	}
+
 	result := CheckResult{
-		Warnings: warnings,
-		Failures: failures,
+		Warnings:  warnings,
+		Failures:  failures,
+		Successes: successes,
 	}
 
 	return result, nil
@@ -171,9 +178,15 @@ func runRules(ctx context.Context, namespace string, input interface{}, regex *r
 	var errors []error
 	var err error
 
-	rules := getRules(ctx, regex, compiler)
-	for _, rule := range rules {
+	var rules []string
+	if regex == nil {
+		rules = getRules(ctx, denyQ, compiler)
+		rules = append(rules, getRules(ctx, warnQ, compiler)...)
+	} else {
+		rules = getRules(ctx, regex, compiler)
+	}
 
+	for _, rule := range rules {
 		query := fmt.Sprintf("data.%s.%s", namespace, rule)
 
 		switch input.(type) {
@@ -187,7 +200,12 @@ func runRules(ctx context.Context, namespace string, input interface{}, regex *r
 			return nil, err
 		}
 
-		totalErrors = append(totalErrors, errors...)
+		if regex != nil {
+			totalErrors = append(totalErrors, errors...)
+		} else {
+			errors := []error{fmt.Errorf("passed rule %s", rule)}
+			totalErrors = append(totalErrors, errors...)
+		}
 	}
 
 	return totalErrors, nil
