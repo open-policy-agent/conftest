@@ -203,7 +203,7 @@ func runRules(ctx context.Context, namespace string, input interface{}, regex *r
 		if regex != nil {
 			totalErrors = append(totalErrors, errors...)
 		} else {
-			errors := []error{fmt.Errorf("passed rule %s", rule)}
+			errors := []error{fmt.Errorf("rule %s", rule)}
 			totalErrors = append(totalErrors, errors...)
 		}
 	}
