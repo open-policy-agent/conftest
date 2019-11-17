@@ -17,7 +17,6 @@ import (
 )
 
 var (
-	successQ              = (*regexp.Regexp)(nil)
 	denyQ                 = regexp.MustCompile("^(deny|violation)(_[a-zA-Z]+)*$")
 	warnQ                 = regexp.MustCompile("^warn(_[a-zA-Z]+)*$")
 	combineConfigFlagName = "combine"
@@ -145,20 +144,18 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 
 // GetResult returns the result of testing the structured data against their policies
 func GetResult(ctx context.Context, namespace string, input interface{}, compiler *ast.Compiler) (CheckResult, error) {
-	warnings, err := runRules(ctx, namespace, input, warnQ, compiler)
+	var successes []error
+	warnings, warnSuccesses, err := runRules(ctx, namespace, input, warnQ, compiler)
 	if err != nil {
 		return CheckResult{}, err
 	}
+	successes = append(successes, warnSuccesses...)
 
-	failures, err := runRules(ctx, namespace, input, denyQ, compiler)
+	failures, failureSuccesses, err := runRules(ctx, namespace, input, denyQ, compiler)
 	if err != nil {
 		return CheckResult{}, err
 	}
-
-	successes, err := runRules(ctx, namespace, input, successQ, compiler)
-	if err != nil {
-		return CheckResult{}, err
-	}
+	successes = append(successes, failureSuccesses...)
 
 	result := CheckResult{
 		Warnings:  warnings,
@@ -173,8 +170,10 @@ func isResultFailure(result CheckResult) bool {
 	return len(result.Failures) > 0 || (len(result.Warnings) > 0 && viper.GetBool("fail-on-warn"))
 }
 
-func runRules(ctx context.Context, namespace string, input interface{}, regex *regexp.Regexp, compiler *ast.Compiler) ([]error, error) {
+func runRules(ctx context.Context, namespace string, input interface{}, regex *regexp.Regexp, compiler *ast.Compiler) ([]error, []error, error) {
 	var totalErrors []error
+	var totalSuccesses []error
+	var successes []error
 	var errors []error
 	var err error
 
@@ -191,24 +190,20 @@ func runRules(ctx context.Context, namespace string, input interface{}, regex *r
 
 		switch input.(type) {
 		case []interface{}:
-			errors, err = runMultipleQueries(ctx, query, input, compiler)
+			errors, successes, err = runMultipleQueries(ctx, query, input, compiler)
 		default:
-			errors, err = runQuery(ctx, query, input, compiler)
+			errors, successes, err = runQuery(ctx, query, input, compiler)
 		}
 
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
-		if regex != nil {
-			totalErrors = append(totalErrors, errors...)
-		} else {
-			errors := []error{fmt.Errorf("rule %s", rule)}
-			totalErrors = append(totalErrors, errors...)
-		}
+		totalErrors = append(totalErrors, errors...)
+		totalSuccesses = append(totalSuccesses, successes...)
 	}
 
-	return totalErrors, nil
+	return totalErrors, totalSuccesses, nil
 }
 
 func getRules(ctx context.Context, re *regexp.Regexp, compiler *ast.Compiler) []string {
@@ -238,25 +233,27 @@ func stringInSlice(a string, list []string) bool {
 	return false
 }
 
-func runMultipleQueries(ctx context.Context, query string, inputs interface{}, compiler *ast.Compiler) ([]error, error) {
+func runMultipleQueries(ctx context.Context, query string, inputs interface{}, compiler *ast.Compiler) ([]error, []error, error) {
 	var totalViolations []error
+	var totalSuccesses []error
 	for _, input := range inputs.([]interface{}) {
-		violations, err := runQuery(ctx, query, input, compiler)
+		violations, successes, err := runQuery(ctx, query, input, compiler)
 		if err != nil {
-			return nil, fmt.Errorf("run query: %w", err)
+			return nil, nil, fmt.Errorf("run query: %w", err)
 		}
 
 		totalViolations = append(totalViolations, violations...)
+		totalSuccesses = append(totalSuccesses, successes...)
 	}
 
-	return totalViolations, nil
+	return totalViolations, totalSuccesses, nil
 }
 
-func runQuery(ctx context.Context, query string, input interface{}, compiler *ast.Compiler) ([]error, error) {
+func runQuery(ctx context.Context, query string, input interface{}, compiler *ast.Compiler) ([]error, []error, error) {
 	rego, stdout := buildRego(viper.GetBool("trace"), query, input, compiler)
 	resultSet, err := rego.Eval(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("evaluating policy: %w", err)
+		return nil, nil, fmt.Errorf("evaluating policy: %w", err)
 	}
 
 	topdown.PrettyTrace(os.Stdout, *stdout)
@@ -270,19 +267,21 @@ func runQuery(ctx context.Context, query string, input interface{}, compiler *as
 	}
 
 	var errs []error
+	var successes []error
 	for _, result := range resultSet {
 		for _, expression := range result.Expressions {
 			value := expression.Value
-
 			if hasResults(value) {
 				for _, v := range value.([]interface{}) {
 					errs = append(errs, errors.New(v.(string)))
 				}
+			} else {
+				successes = append(successes, errors.New(expression.Text))
 			}
 		}
 	}
 
-	return errs, nil
+	return errs, successes, nil
 }
 
 func buildRego(trace bool, query string, input interface{}, compiler *ast.Compiler) (*rego.Rego, *topdown.BufferTracer) {
