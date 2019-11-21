@@ -7,12 +7,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/instrumenta/conftest/commands/parse"
-	"github.com/instrumenta/conftest/commands/pull"
-	"github.com/instrumenta/conftest/commands/push"
-	"github.com/instrumenta/conftest/commands/test"
-	"github.com/instrumenta/conftest/commands/update"
-	"github.com/instrumenta/conftest/commands/verify"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -55,12 +49,12 @@ func NewDefaultCommand() *cobra.Command {
 		}
 	}
 
-	cmd.AddCommand(test.NewTestCommand(ctx))
-	cmd.AddCommand(parse.NewParseCommand(ctx))
-	cmd.AddCommand(update.NewUpdateCommand(ctx))
-	cmd.AddCommand(push.NewPushCommand(ctx, logger))
-	cmd.AddCommand(pull.NewPullCommand(ctx))
-	cmd.AddCommand(verify.NewVerifyCommand(ctx))
+	cmd.AddCommand(NewTestCommand(ctx))
+	cmd.AddCommand(NewParseCommand(ctx))
+	cmd.AddCommand(NewUpdateCommand(ctx))
+	cmd.AddCommand(NewPushCommand(ctx, logger))
+	cmd.AddCommand(NewPullCommand(ctx))
+	cmd.AddCommand(NewVerifyCommand(ctx))
 
 	return &cmd
 }

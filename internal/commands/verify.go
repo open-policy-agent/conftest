@@ -1,11 +1,10 @@
-package verify
+package commands
 
 import (
 	"context"
 	"fmt"
 	"path/filepath"
 
-	"github.com/instrumenta/conftest/commands/test"
 	"github.com/instrumenta/conftest/policy"
 	"github.com/open-policy-agent/opa/tester"
 	"github.com/spf13/cobra"
@@ -27,7 +26,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			outputManager := test.GetOutputManager()
+			outputManager := GetOutputManager()
 			policyPath := viper.GetString("policy")
 
 			results, err := runVerification(ctx, policyPath)
@@ -49,12 +48,12 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", test.ValidOutputs()))
+	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", ValidOutputs()))
 
 	return &cmd
 }
 
-func runVerification(ctx context.Context, path string) ([]test.CheckResult, error) {
+func runVerification(ctx context.Context, path string) ([]CheckResult, error) {
 	regoFiles, err := policy.ReadFilesWithTests(path)
 	if err != nil {
 		return nil, fmt.Errorf("read rego test files: %s", err)
@@ -71,7 +70,7 @@ func runVerification(ctx context.Context, path string) ([]test.CheckResult, erro
 		return nil, fmt.Errorf("running tests: %w", err)
 	}
 
-	var results []test.CheckResult
+	var results []CheckResult
 	for result := range ch {
 		msg := fmt.Errorf("%s", result.Package+"."+result.Name)
 		fileName := filepath.Join(path, result.Location.File)
@@ -85,7 +84,7 @@ func runVerification(ctx context.Context, path string) ([]test.CheckResult, erro
 			success = []error{msg}
 		}
 
-		result := test.CheckResult{
+		result := CheckResult{
 			FileName:  fileName,
 			Successes: success,
 			Failures:  failure,

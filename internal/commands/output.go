@@ -1,4 +1,4 @@
-package test
+package commands
 
 import (
 	"bytes"
@@ -11,19 +11,18 @@ import (
 	"github.com/spf13/viper"
 )
 
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 const (
-	OutputSTD  = "stdout"
-	OutputJSON = "json"
-	OutputTAP  = "tap"
+	outputSTD  = "stdout"
+	outputJSON = "json"
+	outputTAP  = "tap"
 )
 
 // ValidOutputs returns the available output formats for reporting tests
 func ValidOutputs() []string {
 	return []string{
-		OutputSTD,
-		OutputJSON,
-		OutputTAP,
+		outputSTD,
+		outputJSON,
+		outputTAP,
 	}
 }
 
@@ -32,11 +31,11 @@ func GetOutputManager() OutputManager {
 	color := !viper.GetBool("no-color")
 
 	switch outFmt {
-	case OutputSTD:
+	case outputSTD:
 		return NewDefaultStdOutputManager(color)
-	case OutputJSON:
+	case outputJSON:
 		return NewDefaultJSONOutputManager()
-	case OutputTAP:
+	case outputTAP:
 		return NewDefaultTAPOutputManager()
 	default:
 		return NewDefaultStdOutputManager(color)

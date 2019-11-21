@@ -1,4 +1,4 @@
-package test
+package commands
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/instrumenta/conftest/commands/update"
 	"github.com/instrumenta/conftest/parser"
 	"github.com/instrumenta/conftest/policy"
 	"github.com/open-policy-agent/opa/ast"
@@ -66,7 +65,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 			}
 
 			if viper.GetBool("update") {
-				update.NewUpdateCommand(ctx).Run(cmd, nonBlankFileList)
+				NewUpdateCommand(ctx).Run(cmd, nonBlankFileList)
 			}
 
 			policyPath := viper.GetString("policy")
