@@ -193,20 +193,20 @@ func runRules(ctx context.Context, namespace string, input interface{}, regex *r
 }
 
 func getRules(ctx context.Context, re *regexp.Regexp, compiler *ast.Compiler) []string {
-	var res []string
+	var rules []string
 	for _, module := range compiler.Modules {
 		for _, rule := range module.Rules {
 			ruleName := rule.Head.Name.String()
 
 			// the same rule names can be used multiple times, but
 			// we only want to run the query and report results once
-			if re.MatchString(ruleName) && !stringInSlice(ruleName, res) {
-				res = append(res, ruleName)
+			if re.MatchString(ruleName) && !stringInSlice(ruleName, rules) {
+				rules = append(rules, ruleName)
 			}
 		}
 	}
 
-	return res
+	return rules
 }
 
 func stringInSlice(a string, list []string) bool {
