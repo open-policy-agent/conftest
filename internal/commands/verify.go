@@ -18,9 +18,11 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 		Use:   "verify",
 		Short: "Verify Rego unit tests",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			err := viper.BindPFlag("output", cmd.Flags().Lookup("output"))
-			if err != nil {
-				return fmt.Errorf("bind output: %w", err)
+			flagNames := []string{"output", "trace"}
+			for _, name := range flagNames {
+				if err := viper.BindPFlag(name, cmd.Flags().Lookup(name)); err != nil {
+					return fmt.Errorf("bind flag: %w", err)
+				}
 			}
 
 			return nil
@@ -28,8 +30,9 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			outputManager := GetOutputManager()
 			policyPath := viper.GetString("policy")
+			trace := viper.GetBool("trace")
 
-			results, err := runVerification(ctx, policyPath)
+			results, err := runVerification(ctx, policyPath, trace)
 			if err != nil {
 				return fmt.Errorf("running verification: %w", err)
 			}
@@ -49,11 +52,12 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 	}
 
 	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", ValidOutputs()))
+	cmd.Flags().BoolP("trace", "", false, "enable more verbose trace output for rego queries")
 
 	return &cmd
 }
 
-func runVerification(ctx context.Context, path string) ([]CheckResult, error) {
+func runVerification(ctx context.Context, path string, trace bool) ([]CheckResult, error) {
 	regoFiles, err := policy.ReadFilesWithTests(path)
 	if err != nil {
 		return nil, fmt.Errorf("read rego test files: %s", err)
@@ -64,7 +68,7 @@ func runVerification(ctx context.Context, path string) ([]CheckResult, error) {
 		return nil, fmt.Errorf("build compiler: %w", err)
 	}
 
-	runner := tester.NewRunner().SetCompiler(compiler)
+	runner := tester.NewRunner().SetCompiler(compiler).EnableTracing(trace)
 	ch, err := runner.RunTests(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("running tests: %w", err)
@@ -88,6 +92,7 @@ func runVerification(ctx context.Context, path string) ([]CheckResult, error) {
 			FileName:  fileName,
 			Successes: success,
 			Failures:  failure,
+			Traces:    result.Trace,
 		}
 
 		results = append(results, result)

@@ -79,7 +79,7 @@ func (s *stdOutputManager) Put(fileName string, cr CheckResult) error {
 		indicator = fmt.Sprintf(" - %s - ", fileName)
 	}
 
-	// print successes, warnings and then print errors
+	// print successes, warnings and then print errors and traces
 	for _, r := range cr.Successes {
 		s.logger.Print(s.color.Colorize("PASS", aurora.GreenFg), indicator, r)
 	}
@@ -90,6 +90,10 @@ func (s *stdOutputManager) Put(fileName string, cr CheckResult) error {
 
 	for _, r := range cr.Failures {
 		s.logger.Print(s.color.Colorize("FAIL", aurora.RedFg), indicator, r)
+	}
+
+	for _, r := range cr.Traces {
+		s.logger.Print(s.color.Colorize("TRAC", aurora.BlueFg), indicator, r)
 	}
 
 	return nil
