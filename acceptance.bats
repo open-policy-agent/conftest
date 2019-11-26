@@ -163,3 +163,8 @@
   run ./conftest test -p examples/kubernetes/policy examples/kubernetes/deployment.yaml examples/kubernetes/service.yaml
   [ "$status" -eq 1 ]
 }
+
+@test "Fail when unit test rego" {
+  run ./conftest verify -p examples/traefik/policy
+  [ "$status" -eq 1 ]
+}
