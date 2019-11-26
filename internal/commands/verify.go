@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/instrumenta/conftest/policy"
@@ -37,14 +38,23 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("running verification: %w", err)
 			}
 
+			var failures int
 			for _, result := range results {
 				if err := outputManager.Put(result.FileName, result); err != nil {
 					return fmt.Errorf("put result: %w", err)
+				}
+
+				if isResultFailure(result) {
+					failures++
 				}
 			}
 
 			if err := outputManager.Flush(); err != nil {
 				return fmt.Errorf("flushing output: %w", err)
+			}
+
+			if failures > 0 {
+				os.Exit(1)
 			}
 
 			return nil
