@@ -30,6 +30,7 @@ type CheckResult struct {
 	Warnings  []error
 	Failures  []error
 	Successes []error
+	Traces    []*topdown.Event
 }
 
 // NewTestCommand creates a new test command
