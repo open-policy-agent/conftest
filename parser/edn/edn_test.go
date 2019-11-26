@@ -44,18 +44,16 @@ func TestEDNParser(t *testing.T) {
 				var unmarshalledConfigs interface{}
 				ednParser := new(edn.Parser)
 
-				err := ednParser.Unmarshal(test.controlConfigs, &unmarshalledConfigs)
-
-				if err != nil {
-					t.Errorf("we should not have any errors on unmarshalling: %v", err)
+				if err := ednParser.Unmarshal(test.controlConfigs, &unmarshalledConfigs); err != nil {
+					t.Errorf("err on unmarshalling: %v", err)
 				}
 
 				if unmarshalledConfigs == nil {
-					t.Error("we should see an actual value in our object, but we are nil")
+					t.Error("expected actual value in our object, got nil")
 				}
 
 				if !reflect.DeepEqual(test.expectedResult, unmarshalledConfigs) {
-					t.Errorf("Expected\n%T : %v\n to equal\n%T : %v\n", unmarshalledConfigs, unmarshalledConfigs, test.expectedResult, test.expectedResult)
+					t.Errorf("expected\n%T : %v\n to equal\n%T : %v\n", unmarshalledConfigs, unmarshalledConfigs, test.expectedResult, test.expectedResult)
 				}
 			})
 		}
