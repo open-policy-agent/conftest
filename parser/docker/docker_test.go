@@ -13,13 +13,12 @@ COPY . /
 RUN echo hello`
 
 	var input interface{}
-	err := parser.Unmarshal([]byte(sample), &input)
-	if err != nil {
+	if err := parser.Unmarshal([]byte(sample), &input); err != nil {
 		t.Fatalf("parser should not have thrown an error: %v", err)
 	}
 
 	if input == nil {
-		t.Error("There should be information parsed but its nil")
+		t.Error("there should be information parsed but its nil")
 	}
 
 	dockerFile := input.([]interface{})[0]
@@ -29,6 +28,6 @@ RUN echo hello`
 	actual := commands.(map[string]interface{})["Cmd"]
 
 	if actual != expected {
-		t.Errorf("First Docker command should be '%v', was '%v'", expected, actual)
+		t.Errorf("first Docker command should be '%v', was '%v'", expected, actual)
 	}
 }
