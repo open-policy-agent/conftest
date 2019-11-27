@@ -80,6 +80,11 @@
   [ "$status" -eq 1 ]
 }
 
+@test "Can parse edn files" {
+  run ./conftest test -p examples/edn/policy examples/edn/sample_config.edn
+  [ "$status" -eq 1 ]
+}
+
 @test "Can parse nested files with name overlap (first)" {
   run ./conftest test -p examples/nested/policy --namespace group1 examples/nested/data.json
   [ "$status" -eq 1 ]

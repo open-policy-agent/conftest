@@ -18,4 +18,5 @@ require (
 	github.com/spf13/viper v1.5.0
 	github.com/zclconf/go-cty v1.1.0
 	gopkg.in/ini.v1 v1.49.0 // indirect
+	olympos.io/encoding/edn v0.0.0-20191103180435-78e1aef28b15
 )

@@ -7,6 +7,7 @@ import (
 
 	"github.com/instrumenta/conftest/parser/cue"
 	"github.com/instrumenta/conftest/parser/docker"
+	"github.com/instrumenta/conftest/parser/edn"
 	"github.com/instrumenta/conftest/parser/hcl2"
 	"github.com/instrumenta/conftest/parser/ini"
 	"github.com/instrumenta/conftest/parser/terraform"
@@ -23,6 +24,7 @@ func ValidInputs() []string {
 		"ini",
 		"yaml",
 		"json",
+		"edn",
 	}
 }
 
@@ -111,6 +113,8 @@ func GetParser(fileType string) (Parser, error) {
 		return &docker.Parser{}, nil
 	case "yml", "yaml", "json":
 		return &yaml.Parser{}, nil
+	case "edn":
+		return &edn.Parser{}, nil
 	default:
 		return nil, fmt.Errorf("unknown filetype given: %v", fileType)
 	}

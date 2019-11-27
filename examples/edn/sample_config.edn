@@ -1,0 +1,50 @@
+;; Sample configuration for myapp.
+
+{;; The db map is the set of values required to login to the postgres database
+ ;; we connect to.
+ :db {:user "my-username"
+      :pwd "secret"
+      :host "hostname.at.my-region.rds.amazonaws.com"
+      :db "databasename"
+      :port 5432}
+ ;; Configuration options for myapp
+ :myapp {;; Myapp is really available on 443 through reverse proxying done by
+         ;; nginx, to avoid handling SSL ourselves. 3000 is blocked to the
+         ;; public via iptables.
+         :port 3000
+         ;; The features are allowed on the form #{:foo :bar :baz}, but the
+         ;; common form :all is better when you want all enabled. All options
+         ;; available are: :admin-panel, :swear-filter, :ads,
+         ;; :keyboard-shortcuts and :pirate-lang. See the internal wiki page for
+         ;; details.
+         :features #{:admin-panel :keyboard-shortcuts} #_:all
+         ;; Configuration for the foo service which we depend on
+         :foo {;; The DNS entry to lookup to connect to a foo service. If you
+               ;; use the DNS to a specific cluster -- like "eu1.foo.mycorp.com"
+               ;; -- you only have to provide that key.
+               :hostname "foo.mycorp.com"
+               ;; Keys to the foo service. Starts with key1, goes on to key2 if
+               ;; that fails and so on. We'd like it to be a single key some
+               ;; day, but unfortunately we opened the foo API to some clients.
+               ;; As a stupid way to handle rate limiting we decided that it
+               ;; would be a good idea to use different keys for different
+               ;; clusters, instead of giving specific users specific keys
+               ;; instead.
+               :api-keys ["key1" "key2"]
+               ;; How often we check for more data from foo. It's recommended to
+               ;; turn this down to 20 minutes, because a lot of instances of
+               ;; bar would end up rechecking myapp waiting for data. Basically
+               ;; what caused the major outage earlier this year.
+               :recheck-frequency #duration "20m"}
+         ;; Timestamp to put on elements that will be cached forever by HTTP
+         ;; caches. If not set, it is placed one year ahead of the current time.
+         :forever-date #inst "2032-01-01T12:20:50.52Z"
+         ;; How many goroutines we should delegate to processing data.
+         :process-pool 5}
+ ;; The loglevel. Use :warn only if the logs become too verbose or you don't
+ ;; need the data, otherwise use :info. Use :debug only in development
+ ;; environments because that thing spits out basically everything.
+ :log :debug
+ ;; Which environment we're in. Has nothing to say for the app itself, but it's
+ ;; attached on the log messages sent to our centralised logging system.
+ :env :production}

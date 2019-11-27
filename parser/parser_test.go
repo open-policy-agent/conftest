@@ -8,6 +8,7 @@ import (
 
 	"github.com/instrumenta/conftest/parser"
 	"github.com/instrumenta/conftest/parser/cue"
+	"github.com/instrumenta/conftest/parser/edn"
 	"github.com/instrumenta/conftest/parser/ini"
 	"github.com/instrumenta/conftest/parser/terraform"
 	"github.com/instrumenta/conftest/parser/toml"
@@ -228,6 +229,12 @@ func TestGetParser(t *testing.T) {
 			name:        "Test getting YAML parser from YAML input",
 			fileType:    "yaml",
 			expected:    new(yaml.Parser),
+			expectError: false,
+		},
+		{
+			name:        "Test getting EDN parser",
+			fileType:    "edn",
+			expected:    new(edn.Parser),
 			expectError: false,
 		},
 		{
