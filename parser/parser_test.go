@@ -19,7 +19,7 @@ import (
 // a map [k,v] where k is the filename and v is the document
 
 func TestUnmarshaller(t *testing.T) {
-	t.Run("we should be able to construct a unmarshaller for a type of file", func(t *testing.T) {
+	t.Run("error constructing an unmarshaller for a type of file", func(t *testing.T) {
 		configManager, err := parser.NewConfigManager("yml")
 		if err != nil {
 			t.Fatalf("create config parser: %v", err)
@@ -166,11 +166,11 @@ nice: true`)),
 					var unmarshalledConfigs map[string]interface{}
 					unmarshalledConfigs, err := configManager.BulkUnmarshal(test.controlReaders)
 					if err != nil {
-						t.Errorf("we should not have any errors on unmarshalling: %v", err)
+						t.Errorf("errors unmarshalling: %v", err)
 					}
 
 					if unmarshalledConfigs == nil {
-						t.Error("we should see an actual value in our object, but we are nil")
+						t.Error("error seeing the actual value of object, received nil")
 					}
 
 					if !reflect.DeepEqual(test.expectedResult, unmarshalledConfigs) {
@@ -253,10 +253,10 @@ func TestGetParser(t *testing.T) {
 				t.Errorf("expected: %T \n got this: %T", testUnit.expected, received)
 			}
 			if !testUnit.expectError && err != nil {
-				t.Errorf("we did not expect to see an error here: %v", err)
+				t.Errorf("error here: %v", err)
 			}
 			if testUnit.expectError && err == nil {
-				t.Error("we did not see an error even though one was expected")
+				t.Error("error expected but not received")
 			}
 		})
 	}

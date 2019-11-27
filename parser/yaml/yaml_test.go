@@ -8,7 +8,7 @@ import (
 )
 
 func TestYAMLParser(t *testing.T) {
-	t.Run("we should be able to parse a YAML document", func(t *testing.T) {
+	t.Run("error parsing a YAML document", func(t *testing.T) {
 
 		testTable := []struct {
 			name           string
@@ -52,14 +52,12 @@ nice: true`),
 				var unmarshalledConfigs interface{}
 				yamlParser := new(yaml.Parser)
 
-				err := yamlParser.Unmarshal(test.controlConfigs, &unmarshalledConfigs)
-
-				if err != nil {
-					t.Errorf("we should not have any errors on unmarshalling: %v", err)
+				if err := yamlParser.Unmarshal(test.controlConfigs, &unmarshalledConfigs); err != nil {
+					t.Errorf("errors unmarshalling: %v", err)
 				}
 
 				if unmarshalledConfigs == nil {
-					t.Error("we should see an actual value in our object, but we are nil")
+					t.Error("error seeing actual value in object, received nil")
 				}
 
 				if !reflect.DeepEqual(test.expectedResult, unmarshalledConfigs) {

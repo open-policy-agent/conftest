@@ -8,7 +8,7 @@ import (
 )
 
 func TestEDNParser(t *testing.T) {
-	t.Run("we should be able to parse an EDN document", func(t *testing.T) {
+	t.Run("error parsing EDN document", func(t *testing.T) {
 
 		testTable := []struct {
 			name           string
