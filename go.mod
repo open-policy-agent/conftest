@@ -9,6 +9,7 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-ini/ini v1.49.0
 	github.com/hashicorp/hcl v1.0.0
+	github.com/hashicorp/hcl/v2 v2.1.0
 	github.com/hashicorp/hcl2 v0.0.0-20191002203319-fb75b3253c80
 	github.com/logrusorgru/aurora v0.0.0-20191017060258-dc85c304c434
 	github.com/moby/buildkit v0.3.3
