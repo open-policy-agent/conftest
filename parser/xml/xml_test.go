@@ -19,7 +19,7 @@ func TestIniParser(t *testing.T) {
 	}
 
 	if input == nil {
-		t.Error("there should be information parsed but its nil")
+		t.Fatalf("there should be information parsed but its nil")
 	}
 
 	inputMap := input.(map[string]interface{})

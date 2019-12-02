@@ -17,7 +17,7 @@ func (xml *Parser) Unmarshal(p []byte, v interface{}) error {
 	}
 
 	if err := json.Unmarshal(res.Bytes(), v); err != nil {
-		return fmt.Errorf("convert xml to dynamic-json: %w", err)
+		return fmt.Errorf("convert xml to json: %w", err)
 	}
 
 	return nil
