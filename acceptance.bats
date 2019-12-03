@@ -85,6 +85,12 @@
   [ "$status" -eq 1 ]
 }
 
+@test "Can parse xml files" {
+  run ./conftest test -p examples/xml/policy examples/xml/pom.xml
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "--- maven-plugin must have the version: 3.6.1" ]]
+}
+
 @test "Can parse nested files with name overlap (first)" {
   run ./conftest test -p examples/nested/policy --namespace group1 examples/nested/data.json
   [ "$status" -eq 1 ]
