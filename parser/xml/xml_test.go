@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestIniParser(t *testing.T) {
+func TestXMLParser(t *testing.T) {
 	parser := &Parser{}
 	sample := `<note>
 	<to>foo</to>
