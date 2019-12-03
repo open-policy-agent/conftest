@@ -149,13 +149,13 @@ func GetResult(ctx context.Context, namespace string, input interface{}, compile
 	if err != nil {
 		return CheckResult{}, err
 	}
-	totalSuccesses = append(successes, successes...)
+	totalSuccesses = append(totalSuccesses, successes...)
 
 	failures, successes, err := runRules(ctx, namespace, input, denyQ, compiler)
 	if err != nil {
 		return CheckResult{}, err
 	}
-	totalSuccesses = append(successes, successes...)
+	totalSuccesses = append(totalSuccesses, successes...)
 
 	result := CheckResult{
 		Warnings:  warnings,
