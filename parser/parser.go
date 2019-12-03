@@ -12,6 +12,7 @@ import (
 	"github.com/instrumenta/conftest/parser/ini"
 	"github.com/instrumenta/conftest/parser/terraform"
 	"github.com/instrumenta/conftest/parser/toml"
+	"github.com/instrumenta/conftest/parser/xml"
 	"github.com/instrumenta/conftest/parser/yaml"
 )
 
@@ -25,6 +26,7 @@ func ValidInputs() []string {
 		"yaml",
 		"json",
 		"edn",
+		"xml",
 	}
 }
 
@@ -115,6 +117,8 @@ func GetParser(fileType string) (Parser, error) {
 		return &yaml.Parser{}, nil
 	case "edn":
 		return &edn.Parser{}, nil
+	case "xml":
+		return &xml.Parser{}, nil
 	default:
 		return nil, fmt.Errorf("unknown filetype given: %v", fileType)
 	}

@@ -1,13 +1,17 @@
 package commands
 
 import (
+	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/instrumenta/conftest/policy"
 	"github.com/open-policy-agent/opa/tester"
+	"github.com/open-policy-agent/opa/topdown"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -98,11 +102,20 @@ func runVerification(ctx context.Context, path string, trace bool) ([]CheckResul
 			success = []error{msg}
 		}
 
+		buf := new(bytes.Buffer)
+		topdown.PrettyTrace(buf, result.Trace)
+		var traces []error
+		for _, line := range strings.Split(buf.String(), "\n") {
+			if len(line) > 0 {
+				traces = append(traces, errors.New(line))
+			}
+		}
+
 		result := CheckResult{
 			FileName:  fileName,
 			Successes: success,
 			Failures:  failure,
-			Traces:    result.Trace,
+			Traces:    traces,
 		}
 
 		results = append(results, result)

@@ -30,6 +30,7 @@ As of today `conftest` supports:
 * Dockerfile
 * HCL2 (Experimental)
 * EDN
+* XML
 
 Policies by default should be placed in a directory
 called `policy` but this can be overridden.
@@ -217,6 +218,7 @@ You can find examples using various other tools in the `examples` directory, inc
 * [Dockerfile](examples/docker)
 * [HCL2](examples/hcl2)
 * [EDN](examples/edn)
+* [XML](examples/xml)
 
 ## Configuration and external policies
 
