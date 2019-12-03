@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/hashicorp/hcl2/hcl"
-	"github.com/hashicorp/hcl2/hcl/hclsyntax"
+	"github.com/hashicorp/hcl/v2"
+	"github.com/hashicorp/hcl/v2/hclsyntax"
 )
 
 // This file is mostly attributed to https://github.com/tmccombs/hcl2json
@@ -73,7 +73,7 @@ const expectedJSON = `{
 // Test that conversion works as expected
 func TestConversion(t *testing.T) {
 	bytes := []byte(input)
-	conf, diags := hclsyntax.ParseConfig(bytes, "test", hcl.Pos{Line: 1, Column: 1})
+	conf, diags := hclsyntax.ParseConfig(bytes, "test", hcl.Pos{Byte: 0, Line: 1, Column: 1})
 	if diags.HasErrors() {
 		t.Errorf("Failed to parse config: %v", diags)
 	}
