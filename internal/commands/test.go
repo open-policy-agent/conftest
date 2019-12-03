@@ -201,7 +201,7 @@ func runRules(ctx context.Context, namespace string, input interface{}, regex *r
 		}
 
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, nil, err
 		}
 
 		totalErrors = append(totalErrors, errors...)
@@ -246,7 +246,7 @@ func runMultipleQueries(ctx context.Context, query string, inputs interface{}, c
 	for _, input := range inputs.([]interface{}) {
 		violations, successes, traces, err := runQuery(ctx, query, input, compiler)
 		if err != nil {
-			return nil, nil, fmt.Errorf("run query: %w", err)
+			return nil, nil, nil, fmt.Errorf("run query: %w", err)
 		}
 
 		totalViolations = append(totalViolations, violations...)
