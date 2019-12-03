@@ -144,23 +144,23 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 
 // GetResult returns the result of testing the structured data against their policies
 func GetResult(ctx context.Context, namespace string, input interface{}, compiler *ast.Compiler) (CheckResult, error) {
-	var successes []error
-	warnings, warnSuccesses, err := runRules(ctx, namespace, input, warnQ, compiler)
+	var totalSuccesses []error
+	warnings, successes, err := runRules(ctx, namespace, input, warnQ, compiler)
 	if err != nil {
 		return CheckResult{}, err
 	}
-	successes = append(successes, warnSuccesses...)
+	totalSuccesses = append(successes, successes...)
 
-	failures, failureSuccesses, err := runRules(ctx, namespace, input, denyQ, compiler)
+	failures, successes, err := runRules(ctx, namespace, input, denyQ, compiler)
 	if err != nil {
 		return CheckResult{}, err
 	}
-	successes = append(successes, failureSuccesses...)
+	totalSuccesses = append(successes, successes...)
 
 	result := CheckResult{
 		Warnings:  warnings,
 		Failures:  failures,
-		Successes: successes,
+		Successes: totalSuccesses,
 	}
 
 	return result, nil
