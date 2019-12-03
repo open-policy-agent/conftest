@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/instrumenta/conftest/parser/docker"
@@ -95,11 +96,19 @@ metadata:
 		t.Fatalf("could not process policy file: %s", err)
 	}
 
-	const expected = 2
-	actual := len(results.Failures)
-	if actual != expected {
-		t.Errorf("Multifile yaml test failure. Got %v failures, expected %v", actual, expected)
+	const expectedFailures = 2
+	actualFailures := len(results.Failures)
+	if actualFailures != expectedFailures {
+		t.Errorf("Multifile yaml test failure. Got %v failures, expected %v", actualFailures, expectedFailures)
 	}
+
+	const expectedSuccesses = 1
+	actualSuccesses := len(results.Successes)
+	if actualSuccesses != expectedSuccesses {
+		t.Errorf("Multifile yaml test failure. Got %v success, expected %v", actualSuccesses, expectedSuccesses)
+	}
+
+	fmt.Println(len(results.Successes))
 }
 
 func TestDockerfile(t *testing.T) {
@@ -135,9 +144,15 @@ ENTRYPOINT ["java","-cp","app:app/lib/*","hello.Application"]`
 		t.Fatalf("could not process policy file: %s", err)
 	}
 
-	const expected = 1
-	actual := len(results.Failures)
-	if actual != expected {
-		t.Errorf("Dockerfile test failure. Got %v failures, expected %v", actual, expected)
+	const expectedFailures = 1
+	actualFailures := len(results.Failures)
+	if actualFailures != expectedFailures {
+		t.Errorf("Dockerfile test failure. Got %v failures, expected %v", actualFailures, expectedFailures)
+	}
+
+	const expectedSuccesses = 0
+	actualSuccesses := len(results.Successes)
+	if actualSuccesses != expectedSuccesses {
+		t.Errorf("Dockerfile test failure. Got %v successes, expected %v", actualSuccesses, expectedSuccesses)
 	}
 }
