@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/instrumenta/conftest/parser/docker"
@@ -107,8 +106,6 @@ metadata:
 	if actualSuccesses != expectedSuccesses {
 		t.Errorf("Multifile yaml test failure. Got %v success, expected %v", actualSuccesses, expectedSuccesses)
 	}
-
-	fmt.Println(len(results.Successes))
 }
 
 func TestDockerfile(t *testing.T) {
