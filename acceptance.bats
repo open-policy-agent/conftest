@@ -59,6 +59,11 @@
   [[ "$output" =~ "data.kubernetes.is_service" ]]
 }
 
+@test "Test command with json output and trace" {
+  run ./conftest test -p examples/kubernetes/policy examples/kubernetes/deployment.yaml -o json --trace
+  [ "$status" -eq 1 ]
+}
+
 @test "Has help flag" {
   run ./conftest --help
   [ "$status" -eq 0 ]

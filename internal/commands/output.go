@@ -108,6 +108,7 @@ type jsonCheckResult struct {
 	Warnings  []string `json:"warnings"`
 	Failures  []string `json:"failures"`
 	Successes []string `json:"successes"`
+	Traces    []string `json:"traces"`
 }
 
 // jsonOutputManager reports `conftest` results to `stdout` as a json array..
@@ -149,6 +150,7 @@ func (j *jsonOutputManager) Put(fileName string, cr CheckResult) error {
 		Warnings:  errsToStrings(cr.Warnings),
 		Failures:  errsToStrings(cr.Failures),
 		Successes: errsToStrings(cr.Successes),
+		Traces:    errsToStrings(cr.Traces),
 	})
 
 	return nil
