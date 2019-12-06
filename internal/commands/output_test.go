@@ -199,6 +199,11 @@ func TestSupportedOutputManagers(t *testing.T) {
 			outputManager: NewDefaultTAPOutputManager(),
 		},
 		{
+			name:          "table output should exist",
+			outputFormat:  outputTable,
+			outputManager: NewDefaultTableOutputManager(),
+		},
+		{
 			name:          "default output should exist",
 			outputFormat:  "somedefault",
 			outputManager: NewDefaultStdOutputManager(true),
