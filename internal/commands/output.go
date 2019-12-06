@@ -270,6 +270,8 @@ func (s *tableOutputManager) Put(filename string, cr CheckResult) error {
 }
 
 func (s *tableOutputManager) Flush() error {
-	s.table.Render()
+	if s.table.NumLines() > 0 {
+		s.table.Render()
+	}
 	return nil
 }
