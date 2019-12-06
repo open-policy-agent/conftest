@@ -166,14 +166,24 @@
   [[ "$output" =~ "\"Cmd\": \"from\"" ]]
 }
 
-@test "Can change output format in test command" {
+@test "Can output tap format in test command" {
   run ./conftest test -p examples/kubernetes/policy/ -o tap examples/kubernetes/deployment.yaml
   [[ "$output" =~ "not ok" ]]
 }
 
-@test "Can change output format in verify command" {
+@test "Can output tap format in verify command" {
   run ./conftest verify -p examples/kubernetes/policy/ -o tap
   [[ "$output" =~ "ok" ]]
+}
+
+@test "Can output table format in test command" {
+  run ./conftest test -p examples/kubernetes/policy/ -o table examples/kubernetes/deployment.yaml
+  [[ "$output" =~ "failure" ]]
+}
+
+@test "Can output table format in verify command" {
+  run ./conftest verify -p examples/kubernetes/policy/ -o table
+  [[ "$output" =~ "success" ]]
 }
 
 @test "Multi-file tests correctly fail when last file is fine" {
