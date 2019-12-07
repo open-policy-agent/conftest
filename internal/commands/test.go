@@ -67,11 +67,19 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("no file specified")
 			}
 
-			if viper.GetBool("update") {
-				NewUpdateCommand(ctx).Run(cmd, nonBlankFileList)
+			policyPath := viper.GetString("policy")
+			urls := viper.GetStringSlice("update")
+			for _, url := range urls {
+				sourcedURL, err := policy.Detect(url, policyPath)
+				if err != nil {
+					return fmt.Errorf("detect policies: %w", err)
+				}
+
+				if err = policy.Download(ctx, policyPath, []string{sourcedURL}); err != nil {
+					return fmt.Errorf("update policies: %w", err)
+				}
 			}
 
-			policyPath := viper.GetString("policy")
 			regoFiles, err := policy.ReadFiles(policyPath)
 			if err != nil {
 				return fmt.Errorf("read rego files: %w", err)
@@ -133,10 +141,10 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 	}
 
 	cmd.Flags().BoolP("fail-on-warn", "", false, "return a non-zero exit code if only warnings are found")
-	cmd.Flags().BoolP("update", "", false, "update any policies before running the tests")
 	cmd.Flags().BoolP(combineConfigFlagName, "", false, "combine all given config files to be evaluated together")
 	cmd.Flags().BoolP("trace", "", false, "enable more verbose trace output for rego queries")
 
+	cmd.Flags().StringSliceP("update", "u", []string{}, "a list of urls can be provided to the update flag, which will download before the tests run")
 	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", ValidOutputs()))
 	cmd.Flags().StringP("input", "i", "", fmt.Sprintf("input type for given source, especially useful when using conftest with stdin, valid options are: %s", parser.ValidInputs()))
 	cmd.Flags().StringP("namespace", "", "main", "namespace in which to find deny and warn rules")

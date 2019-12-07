@@ -3,70 +3,68 @@ package policy
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
-	auth "github.com/deislabs/oras/pkg/auth/docker"
-	"github.com/deislabs/oras/pkg/content"
-	"github.com/deislabs/oras/pkg/oras"
+	"github.com/containerd/containerd/log"
+	getter "github.com/hashicorp/go-getter"
 )
 
-// Policy represents a policy
-type Policy struct {
-	Repository string
-	Tag        string
+var detectors = []getter.Detector{
+	new(OCIDetector),
+	new(getter.GitHubDetector),
+	new(getter.GitDetector),
+	new(getter.BitBucketDetector),
+	new(getter.S3Detector),
+	new(getter.GCSDetector),
+	new(getter.FileDetector),
 }
 
-// Download downloads the given policies
-func Download(ctx context.Context, path string, policies []Policy) error {
-	err := os.MkdirAll(path, os.ModePerm)
-	if err != nil {
-		return fmt.Errorf("make policy directory: %w", err)
-	}
+var getters = map[string]getter.Getter{
+	"file":  new(getter.FileGetter),
+	"git":   new(getter.GitGetter),
+	"gcs":   new(getter.GCSGetter),
+	"hg":    new(getter.HgGetter),
+	"s3":    new(getter.S3Getter),
+	"oci":   new(OCIGetter),
+	"http":  new(getter.HttpGetter),
+	"https": new(getter.HttpGetter),
+}
 
-	cli, err := auth.NewClient()
-	if err != nil {
-		return fmt.Errorf("new auth client: %w", err)
-	}
+// Download downloads the given policies into the given destination
+func Download(ctx context.Context, dst string, urls []string) error {
+	opts := []getter.ClientOption{}
+	for _, url := range urls {
+		log.G(ctx).Debugf("Initializing go-getter client with url %v and dst %v", url, dst)
+		client := &getter.Client{
+			Ctx:       ctx,
+			Src:       url,
+			Dst:       dst,
+			Pwd:       dst,
+			Mode:      getter.ClientModeAny,
+			Detectors: detectors,
+			Getters:   getters,
+			Options:   opts,
+		}
 
-	resolver, err := cli.Resolver(ctx, http.DefaultClient, false)
-	if err != nil {
-		return fmt.Errorf("new resolver: %w", err)
-	}
-
-	fileStore := content.NewFileStore(path)
-	defer fileStore.Close()
-
-	for _, policy := range policies {
-		repository := getRepositoryFromPolicy(policy)
-
-		_, _, err = oras.Pull(ctx, resolver, repository, fileStore)
-		if err != nil {
-			return fmt.Errorf("pulling policy: %w", err)
+		if err := client.Get(); err != nil {
+			return err
 		}
 	}
 
 	return nil
 }
 
-func getRepositoryFromPolicy(policy Policy) string {
-	var repository string
-	if repositoryContainsTag(policy.Repository) {
-		repository = policy.Repository
-	} else if policy.Tag == "" {
-		repository = policy.Repository + ":latest"
-	} else {
-		repository = policy.Repository + ":" + policy.Tag
+// Detect determines whether a url is a known source url from which we can download files.
+// If a known source is found, the url is formatted, otherwise an error is returned.
+func Detect(url string, dst string) (string, error) {
+	result, err := getter.Detect(url, dst, detectors)
+	if err != nil {
+		return "", err
 	}
 
-	return repository
-}
-
-func repositoryContainsTag(repository string) bool {
-	split := strings.Split(repository, "/")
-	return strings.Contains(split[len(split)-1], ":")
+	return result, err
 }
 
 // ReadFiles returns all of the policy files (not including tests)

@@ -197,3 +197,19 @@
   run ./conftest verify -p examples/traefik/policy
   [ "$status" -eq 1 ]
 }
+
+@test "Can update policies in test command" {
+  run ./conftest test -p $TMP --update https://raw.githubusercontent.com/instrumenta/conftest/master/examples/compose/policy/deny.rego examples/compose/docker-compose.yml
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "No images tagged latest" ]]
+}
+
+setup() {
+  export TMP="$BATS_TEST_DIRNAME/tmp"
+}
+
+teardown() {
+  if [ -d "$TMP" ]; then
+    rm -rf "$TMP"
+  fi
+}
