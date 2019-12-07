@@ -65,6 +65,12 @@
   [[ "$output" =~ "data.kubernetes.is_service" ]]
 }
 
+@test "Test command with table output and trace flag" {
+  run ./conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml -o table --trace
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "data.kubernetes.is_service" ]]
+}
+
 @test "Verify command has trace flag" {
     run ./conftest verify --policy ./examples/kubernetes/policy --trace
   [ "$status" -eq 0 ]
