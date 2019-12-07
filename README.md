@@ -246,8 +246,15 @@ You can download individual policies directly:
 conftest pull instrumenta.azurecr.io/test
 ```
 
-Policies are stored in OCI-compatible registries. You can read more about this idea in
+Pull also supports other policy locations, such as git or https. Under the hood conftest leverages [go-getter](https://github.com/hashicorp/go-getter) to download policies. For example, to download a policy via https:
+
+```console
+conftest pull https://raw.githubusercontent.com/instrumenta/conftest/master/examples/compose/policy/deny.rego
+```
+
+Policies can be stored in OCI-compatible registries. You can read more about this idea in
 [this post](https://stevelasker.blog/2019/01/25/cloud-native-artifact-stores-evolve-from-container-registries/).
+Conftest supports storing policies using this mechanism leveraging [ORAS](https://github.com/deislabs/oras).
 
 If you have a compatible OCI registry you can also push new policy bundles like so:
 
@@ -255,34 +262,22 @@ If you have a compatible OCI registry you can also push new policy bundles like 
 conftest push instrumenta.azurecr.io/test
 ```
 
-`conftest` also supports a simple configuration file which can be used to store the
-list of dependent bundles and download them in one go. Create a `conftest.toml`
-configuration file like the following:
+If you want to download the latest policies and run the tests in one go, you can do so with:
+
+```console
+conftest test --update <url(s)> <file-to-test>
+```
+
+`conftest` also supports a simple configuration file which can be used to store
+configuration settings for the `conftest` command.
+
+Create a `conftest.toml` configuration file like the following:
 
 ```toml
 # You can override the directory in which to store and look for policies
 policy = "tests"
-
 # You can override the namespace which to search for rules
 namespace = "conftest"
-
-# An array of individual policies to download. Only the repository
-# key is required. If tag is omitted then latest will be used
-[[policies]]
-repository = "instrumenta.azurecr.io/test"
-tag = "latest"
-```
-
-With that in place, you can use the following command to download all specified policies:
-
-```console
-conftest update
-```
-
-If you want to download the latest policies and run the tests in one go, you can do so with:
-
-```console
-conftest test --update <file-to-test>
 ```
 
 ## Debugging queries

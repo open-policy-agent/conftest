@@ -53,6 +53,18 @@
   [[ "$output" =~ "data.kubernetes.is_service" ]]
 }
 
+@test "Test command with json output and trace flag" {
+  run ./conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml -o json --trace
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "data.kubernetes.is_service" ]]
+}
+
+@test "Test command with tap output and trace flag" {
+  run ./conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml -o tap --trace
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "data.kubernetes.is_service" ]]
+}
+
 @test "Verify command has trace flag" {
     run ./conftest verify --policy ./examples/kubernetes/policy --trace
   [ "$status" -eq 0 ]
@@ -130,7 +142,7 @@
   run ./conftest test -p examples/terraform/policy/gke.rego examples/terraform/gke.tf -i ini
   [ "$status" -eq 1 ]
 }
-  
+
 @test "Can combine configs and reference by file" {
   run ./conftest test -p examples/terraform/policy/gke_combine.rego examples/terraform/gke.tf --combine
   [ "$status" -eq 0 ]
@@ -194,4 +206,20 @@
 @test "Fail when unit test rego" {
   run ./conftest verify -p examples/traefik/policy
   [ "$status" -eq 1 ]
+}
+
+@test "Can update policies in test command" {
+  run ./conftest test -p $TMP --update https://raw.githubusercontent.com/instrumenta/conftest/master/examples/compose/policy/deny.rego examples/compose/docker-compose.yml
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "No images tagged latest" ]]
+}
+
+setup() {
+  export TMP="$BATS_TEST_DIRNAME/tmp"
+}
+
+teardown() {
+  if [ -d "$TMP" ]; then
+    rm -rf "$TMP"
+  fi
 }

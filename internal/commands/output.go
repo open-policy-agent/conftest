@@ -113,6 +113,7 @@ type jsonCheckResult struct {
 	Warnings  []string `json:"warnings"`
 	Failures  []string `json:"failures"`
 	Successes []string `json:"successes"`
+	Traces    []string `json:"traces"`
 }
 
 // jsonOutputManager reports `conftest` results to `stdout` as a json array..
@@ -154,6 +155,7 @@ func (j *jsonOutputManager) Put(fileName string, cr CheckResult) error {
 		Warnings:  errsToStrings(cr.Warnings),
 		Failures:  errsToStrings(cr.Failures),
 		Successes: errsToStrings(cr.Successes),
+		Traces:    errsToStrings(cr.Traces),
 	})
 
 	return nil
@@ -202,7 +204,7 @@ func (s *tapOutputManager) Put(fileName string, cr CheckResult) error {
 		indicator = fmt.Sprintf(" - %s - ", fileName)
 	}
 
-	issues := len(cr.Failures) + len(cr.Warnings) + len(cr.Successes)
+	issues := len(cr.Failures) + len(cr.Warnings) + len(cr.Successes) + len(cr.Traces)
 	if issues > 0 {
 		s.logger.Print(fmt.Sprintf("1..%d", issues))
 		for i, r := range cr.Failures {
@@ -220,6 +222,13 @@ func (s *tapOutputManager) Put(fileName string, cr CheckResult) error {
 			for i, r := range cr.Successes {
 				counter := i + 1 + len(cr.Failures) + len(cr.Warnings)
 				s.logger.Print("ok ", counter, indicator, r)
+			}
+		}
+		if len(cr.Traces) > 0 {
+			s.logger.Print("# Traces")
+			for i, r := range cr.Traces {
+				counter := i + 1
+				s.logger.Print("trace ", counter, indicator, r)
 			}
 		}
 	}
