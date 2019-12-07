@@ -203,6 +203,11 @@ func TestSupportedOutputManagers(t *testing.T) {
 			outputManager: NewDefaultTAPOutputManager(),
 		},
 		{
+			name:          "table output should exist",
+			outputFormat:  outputTable,
+			outputManager: NewDefaultTableOutputManager(),
+		},
+		{
 			name:          "default output should exist",
 			outputFormat:  "somedefault",
 			outputManager: NewDefaultStdOutputManager(true),
@@ -285,6 +290,65 @@ not ok 1 - first failure
 		t.Run(tt.msg, func(t *testing.T) {
 			buf := new(bytes.Buffer)
 			s := NewTAPOutputManager(log.New(buf, "", 0))
+
+			if err := s.Put(tt.args.fileName, tt.args.cr); err != nil {
+				t.Fatalf("put output: %v", err)
+			}
+
+			if err := s.Flush(); err != nil {
+				t.Fatalf("flush output: %v", err)
+			}
+
+			actual := buf.String()
+
+			if tt.exp != actual {
+				t.Errorf("unexpected output. expected %v actual %v", tt.exp, actual)
+			}
+		})
+	}
+}
+
+func Test_tableOutputManager_put(t *testing.T) {
+	type args struct {
+		fileName string
+		cr       CheckResult
+	}
+
+	tests := []struct {
+		msg  string
+		args args
+		exp  string
+	}{
+		{
+			msg: "no warnings or errors",
+			args: args{
+				fileName: "examples/kubernetes/service.yaml",
+				cr:       CheckResult{},
+			},
+			exp: "",
+		},
+		{
+			msg: "records failure and warnings",
+			args: args{
+				fileName: "examples/kubernetes/service.yaml",
+				cr: CheckResult{
+					Warnings: []error{errors.New("first warning")},
+					Failures: []error{errors.New("first failure")},
+				},
+			},
+			exp: `+---------+----------------------------------+---------------+
+| RESULT  |               FILE               |    MESSAGE    |
++---------+----------------------------------+---------------+
+| warning | examples/kubernetes/service.yaml | first warning |
+| failure | examples/kubernetes/service.yaml | first failure |
++---------+----------------------------------+---------------+
+`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.msg, func(t *testing.T) {
+			buf := new(bytes.Buffer)
+			s := NewTableOutputManager(buf)
 
 			if err := s.Put(tt.args.fileName, tt.args.cr); err != nil {
 				t.Fatalf("put output: %v", err)

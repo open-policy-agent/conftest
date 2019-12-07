@@ -4,17 +4,20 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"os"
 
 	"github.com/logrusorgru/aurora"
+	table "github.com/olekukonko/tablewriter"
 	"github.com/spf13/viper"
 )
 
 const (
-	outputSTD  = "stdout"
-	outputJSON = "json"
-	outputTAP  = "tap"
+	outputSTD   = "stdout"
+	outputJSON  = "json"
+	outputTAP   = "tap"
+	outputTable = "table"
 )
 
 // ValidOutputs returns the available output formats for reporting tests
@@ -37,6 +40,8 @@ func GetOutputManager() OutputManager {
 		return NewDefaultJSONOutputManager()
 	case outputTAP:
 		return NewDefaultTAPOutputManager()
+	case outputTable:
+		return NewDefaultTableOutputManager()
 	default:
 		return NewDefaultStdOutputManager(color)
 	}
@@ -232,5 +237,50 @@ func (s *tapOutputManager) Put(fileName string, cr CheckResult) error {
 }
 
 func (s *tapOutputManager) Flush() error {
+	return nil
+}
+
+type tableOutputManager struct {
+	table *table.Table
+}
+
+// NewDefaultTableOutputManager instantiates a new instance of tableOutputManager
+func NewDefaultTableOutputManager() *tableOutputManager {
+	return NewTableOutputManager(os.Stdout)
+}
+
+// NewTableOutputManager constructs an instance of tableOutputManager given a
+// io.Writer.
+func NewTableOutputManager(w io.Writer) *tableOutputManager {
+	table := table.NewWriter(w)
+	table.SetHeader([]string{"result", "file", "message"})
+	return &tableOutputManager{
+		table: table,
+	}
+}
+
+func (s *tableOutputManager) Put(filename string, cr CheckResult) error {
+	for range cr.Successes {
+		d := []string{"success", filename, ""}
+		s.table.Append(d)
+	}
+
+	for _, r := range cr.Warnings {
+		d := []string{"warning", filename, r.Error()}
+		s.table.Append(d)
+	}
+
+	for _, r := range cr.Failures {
+		d := []string{"failure", filename, r.Error()}
+		s.table.Append(d)
+	}
+
+	return nil
+}
+
+func (s *tableOutputManager) Flush() error {
+	if s.table.NumLines() > 0 {
+		s.table.Render()
+	}
 	return nil
 }

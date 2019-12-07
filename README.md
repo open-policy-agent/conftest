@@ -165,6 +165,7 @@ As of today `conftest` supports the following output types:
 - Plaintext `--output=stdout`
 - JSON: `--output=json`
 - [TAP](https://testanything.org/): `--output=tap`
+- Table `--output=table`
 
 #### Example Output
 
@@ -202,6 +203,19 @@ $ conftest test -o tap -p examples/kubernetes/policy examples/kubernetes/deploym
 not ok 1 - examples/kubernetes/deployment.yaml - Containers must not run as root in Deployment hello-kubernetes
 not ok 2 - examples/kubernetes/deployment.yaml - Deployment hello-kubernetes must provide app/release labels for pod selectors
 not ok 3 - examples/kubernetes/deployment.yaml - hello-kubernetes must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels
+```
+
+##### TABLE
+
+```console
+$ conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml -o table
++---------+----------------------------------+--------------------------------+
+| RESULT  |               FILE               |            MESSAGE             |
++---------+----------------------------------+--------------------------------+
+| success | examples/kubernetes/service.yaml |                                |
+| warning | examples/kubernetes/service.yaml | Found service hello-kubernetes |
+|         |                                  | but services are not allowed   |
++---------+----------------------------------+--------------------------------+
 ```
 
 ## Examples

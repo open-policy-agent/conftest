@@ -15,6 +15,7 @@ require (
 	github.com/hashicorp/hcl/v2 v2.1.0
 	github.com/logrusorgru/aurora v0.0.0-20191017060258-dc85c304c434
 	github.com/moby/buildkit v0.3.3
+	github.com/olekukonko/tablewriter v0.0.1
 	github.com/open-policy-agent/opa v0.15.0
 	github.com/opencontainers/image-spec v1.0.1
 	github.com/spf13/cobra v0.0.5
