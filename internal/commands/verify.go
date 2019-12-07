@@ -44,7 +44,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 
 			var failures int
 			for _, result := range results {
-				if err := outputManager.Put(result.FileName, result); err != nil {
+				if err := outputManager.Put(result); err != nil {
 					return fmt.Errorf("put result: %w", err)
 				}
 
@@ -93,14 +93,8 @@ func runVerification(ctx context.Context, path string, trace bool) ([]CheckResul
 		msg := fmt.Errorf("%s", result.Package+"."+result.Name)
 		fileName := filepath.Join(path, result.Location.File)
 
-		var failure []error
-		var success []error
-
-		if result.Fail {
-			failure = []error{msg}
-		} else {
-			success = []error{msg}
-		}
+		var failure []Result
+		var success []Result
 
 		buf := new(bytes.Buffer)
 		topdown.PrettyTrace(buf, result.Trace)
@@ -111,11 +105,22 @@ func runVerification(ctx context.Context, path string, trace bool) ([]CheckResul
 			}
 		}
 
+		if result.Fail {
+			failure = append(failure, Result{
+				Message: msg,
+				Traces:  traces,
+			})
+		} else {
+			success = append(success, Result{
+				Message: msg,
+				Traces:  traces,
+			})
+		}
+
 		result := CheckResult{
 			FileName:  fileName,
 			Successes: success,
 			Failures:  failure,
-			Traces:    traces,
 		}
 
 		results = append(results, result)

@@ -26,6 +26,7 @@ func ValidOutputs() []string {
 		outputSTD,
 		outputJSON,
 		outputTAP,
+		outputTable,
 	}
 }
 
@@ -51,7 +52,7 @@ func GetOutputManager() OutputManager {
 // and reported to the end user.
 //counterfeiter:generate . OutputManager
 type OutputManager interface {
-	Put(fileName string, cr CheckResult) error
+	Put(cr CheckResult) error
 	Flush() error
 }
 
@@ -76,29 +77,32 @@ func NewStdOutputManager(l *log.Logger, color bool) *stdOutputManager {
 	}
 }
 
-func (s *stdOutputManager) Put(fileName string, cr CheckResult) error {
+func (s *stdOutputManager) Put(cr CheckResult) error {
 	var indicator string
-	if fileName == "-" {
+	if cr.FileName == "-" {
 		indicator = " - "
 	} else {
-		indicator = fmt.Sprintf(" - %s - ", fileName)
+		indicator = fmt.Sprintf(" - %s - ", cr.FileName)
 	}
 
-	// print successes, warnings and then print errors and traces
+	printResults := func(r Result, prefix string, color aurora.Color) {
+		s.logger.Print(s.color.Colorize(prefix, color), indicator, r.Message)
+		for _, t := range r.Traces {
+			s.logger.Print(s.color.Colorize("TRAC", aurora.BlueFg), indicator, t)
+		}
+	}
+
+	// print successes, warnings, errors and their traces
 	for _, r := range cr.Successes {
-		s.logger.Print(s.color.Colorize("PASS", aurora.GreenFg), indicator, r)
+		printResults(r, "PASS", aurora.GreenFg)
 	}
 
 	for _, r := range cr.Warnings {
-		s.logger.Print(s.color.Colorize("WARN", aurora.YellowFg), indicator, r)
+		printResults(r, "WARN", aurora.YellowFg)
 	}
 
 	for _, r := range cr.Failures {
-		s.logger.Print(s.color.Colorize("FAIL", aurora.RedFg), indicator, r)
-	}
-
-	for _, r := range cr.Traces {
-		s.logger.Print(s.color.Colorize("TRAC", aurora.BlueFg), indicator, r)
+		printResults(r, "FAIL", aurora.RedFg)
 	}
 
 	return nil
@@ -108,19 +112,23 @@ func (s *stdOutputManager) Flush() error {
 	return nil
 }
 
+type jsonResult struct {
+	Message string   `json:"message"`
+	Traces  []string `json:"traces,omitempty"`
+}
+
 type jsonCheckResult struct {
-	Filename  string   `json:"filename"`
-	Warnings  []string `json:"warnings"`
-	Failures  []string `json:"failures"`
-	Successes []string `json:"successes"`
-	Traces    []string `json:"traces"`
+	Filename  string       `json:"filename"`
+	Warnings  []jsonResult `json:"warnings"`
+	Failures  []jsonResult `json:"failures"`
+	Successes []jsonResult `json:"successes"`
 }
 
 // jsonOutputManager reports `conftest` results to `stdout` as a json array..
 type jsonOutputManager struct {
 	logger *log.Logger
 
-	data []jsonCheckResult
+	data jsonCheckResult
 }
 
 func NewDefaultJSONOutputManager() *jsonOutputManager {
@@ -144,19 +152,57 @@ func errsToStrings(errs []error) []string {
 	return res
 }
 
-func (j *jsonOutputManager) Put(fileName string, cr CheckResult) error {
+func (j *jsonOutputManager) Put(cr CheckResult) error {
 
-	if fileName == "-" {
-		fileName = ""
+	if cr.FileName == "-" {
+		cr.FileName = ""
 	}
 
-	j.data = append(j.data, jsonCheckResult{
-		Filename:  fileName,
-		Warnings:  errsToStrings(cr.Warnings),
-		Failures:  errsToStrings(cr.Failures),
-		Successes: errsToStrings(cr.Successes),
-		Traces:    errsToStrings(cr.Traces),
-	})
+	j.data = jsonCheckResult{
+		Filename:  cr.FileName,
+		Warnings:  []jsonResult{},
+		Failures:  []jsonResult{},
+		Successes: []jsonResult{},
+	}
+
+	for _, warning := range cr.Warnings {
+		if len(warning.Traces) > 0 {
+			j.data.Warnings = append(j.data.Warnings, jsonResult{
+				Message: warning.Message.Error(),
+				Traces:  errsToStrings(warning.Traces),
+			})
+		} else {
+			j.data.Warnings = append(j.data.Warnings, jsonResult{
+				Message: warning.Message.Error(),
+			})
+		}
+	}
+
+	for _, failure := range cr.Failures {
+		if len(failure.Traces) > 0 {
+			j.data.Failures = append(j.data.Failures, jsonResult{
+				Message: failure.Message.Error(),
+				Traces:  errsToStrings(failure.Traces),
+			})
+		} else {
+			j.data.Failures = append(j.data.Failures, jsonResult{
+				Message: failure.Message.Error(),
+			})
+		}
+	}
+
+	for _, successes := range cr.Successes {
+		if len(successes.Traces) > 0 {
+			j.data.Successes = append(j.data.Successes, jsonResult{
+				Message: successes.Message.Error(),
+				Traces:  errsToStrings(successes.Traces),
+			})
+		} else {
+			j.data.Successes = append(j.data.Successes, jsonResult{
+				Message: successes.Message.Error(),
+			})
+		}
+	}
 
 	return nil
 }
@@ -196,39 +242,44 @@ func NewTAPOutputManager(l *log.Logger) *tapOutputManager {
 	}
 }
 
-func (s *tapOutputManager) Put(fileName string, cr CheckResult) error {
+func (s *tapOutputManager) Put(cr CheckResult) error {
+
 	var indicator string
-	if fileName == "-" {
+	if cr.FileName == "-" {
 		indicator = " - "
 	} else {
-		indicator = fmt.Sprintf(" - %s - ", fileName)
+		indicator = fmt.Sprintf(" - %s - ", cr.FileName)
 	}
 
-	issues := len(cr.Failures) + len(cr.Warnings) + len(cr.Successes) + len(cr.Traces)
+	printResults := func(r Result, prefix string, counter int) {
+		s.logger.Print(prefix, counter, indicator, r.Message)
+		if len(r.Traces) > 0 {
+			s.logger.Print("# Traces")
+			for j, t := range r.Traces {
+				s.logger.Print("trace ", counter, j+1, indicator, t.Error())
+			}
+		}
+	}
+
+	issues := len(cr.Failures) + len(cr.Warnings) + len(cr.Successes)
 	if issues > 0 {
 		s.logger.Print(fmt.Sprintf("1..%d", issues))
 		for i, r := range cr.Failures {
-			s.logger.Print("not ok ", i+1, indicator, r)
+			printResults(r, "not ok ", i+1)
+
 		}
 		if len(cr.Warnings) > 0 {
 			s.logger.Print("# Warnings")
 			for i, r := range cr.Warnings {
 				counter := i + 1 + len(cr.Failures)
-				s.logger.Print("not ok ", counter, indicator, r)
+				printResults(r, "not ok ", counter)
 			}
 		}
 		if len(cr.Successes) > 0 {
 			s.logger.Print("# Successes")
 			for i, r := range cr.Successes {
 				counter := i + 1 + len(cr.Failures) + len(cr.Warnings)
-				s.logger.Print("ok ", counter, indicator, r)
-			}
-		}
-		if len(cr.Traces) > 0 {
-			s.logger.Print("# Traces")
-			for i, r := range cr.Traces {
-				counter := i + 1
-				s.logger.Print("trace ", counter, indicator, r)
+				printResults(r, "ok ", counter)
 			}
 		}
 	}
@@ -259,20 +310,27 @@ func NewTableOutputManager(w io.Writer) *tableOutputManager {
 	}
 }
 
-func (s *tableOutputManager) Put(filename string, cr CheckResult) error {
-	for range cr.Successes {
-		d := []string{"success", filename, ""}
+func (s *tableOutputManager) Put(cr CheckResult) error {
+
+	printResults := func(r Result, prefix string, filename string) {
+		d := []string{prefix, filename, r.Message.Error()}
 		s.table.Append(d)
+		for _, t := range r.Traces {
+			dt := []string{"trace", filename, t.Error()}
+			s.table.Append(dt)
+		}
+	}
+
+	for _, r := range cr.Successes {
+		printResults(r, "success", cr.FileName)
 	}
 
 	for _, r := range cr.Warnings {
-		d := []string{"warning", filename, r.Error()}
-		s.table.Append(d)
+		printResults(r, "warning", cr.FileName)
 	}
 
 	for _, r := range cr.Failures {
-		d := []string{"failure", filename, r.Error()}
-		s.table.Append(d)
+		printResults(r, "failure", cr.FileName)
 	}
 
 	return nil
