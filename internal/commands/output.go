@@ -275,6 +275,11 @@ func (s *tableOutputManager) Put(filename string, cr CheckResult) error {
 		s.table.Append(d)
 	}
 
+	for _, r := range cr.Traces {
+		d := []string{"trace", filename, r.Error()}
+		s.table.Append(d)
+	}
+
 	return nil
 }
 
