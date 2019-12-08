@@ -1,6 +1,5 @@
 package main
 
-
 deny[msg] {
   input.kind == "Pod"
   not input.metadata.labels.app
