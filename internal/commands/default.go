@@ -53,7 +53,7 @@ func NewDefaultCommand() *cobra.Command {
 	cmd.AddCommand(NewParseCommand(ctx))
 	cmd.AddCommand(NewPushCommand(ctx, logger))
 	cmd.AddCommand(NewPullCommand(ctx))
-	cmd.AddCommand(NewVerifyCommand(ctx))
+	cmd.AddCommand(NewVerifyCommand(ctx, logger))
 
 	return &cmd
 }

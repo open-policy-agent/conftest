@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,7 +19,7 @@ import (
 
 // NewVerifyCommand creates a new verify command which allows users
 // to validate their rego unit tests
-func NewVerifyCommand(ctx context.Context) *cobra.Command {
+func NewVerifyCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "verify",
 		Short: "Verify Rego unit tests",
@@ -37,7 +38,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 			policyPath := viper.GetString("policy")
 			trace := viper.GetBool("trace")
 
-			results, err := runVerification(ctx, policyPath, trace)
+			results, err := runVerification(ctx, policyPath, logger, trace)
 			if err != nil {
 				return fmt.Errorf("running verification: %w", err)
 			}
@@ -71,11 +72,24 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 	return &cmd
 }
 
-func runVerification(ctx context.Context, path string, trace bool) ([]CheckResult, error) {
+func runVerification(ctx context.Context, path string, logger *log.Logger, trace bool) ([]CheckResult, error) {
+	logger.Printf("Attempting path \"%s\"", path)
+
 	regoFiles, err := policy.ReadFilesWithTests(path)
 	if err != nil {
 		return nil, fmt.Errorf("read rego test files: %s", err)
 	}
+
+	if len(regoFiles) == 0 {
+		logger.Printf("No policies found in dir \"%s\"", path)
+		os.Exit(0)
+	}
+
+	for _, filename := range regoFiles {
+		logger.Printf("File \"%s\" found", filename)
+	}
+
+	logger.Print("Running verification...")
 
 	compiler, err := policy.BuildCompiler(regoFiles)
 	if err != nil {
