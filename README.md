@@ -291,81 +291,112 @@ like the following:
 
 ```console
 $ conftest test --trace deployment.yaml
-Enter data.main.deny = _
-| Eval data.main.deny = _
-| Index data.main.deny = _ (matched 2 rules)
-| Enter deny[msg] { data.kubernetes.is_deployment; not input.spec.template.spec.securityContext.runAsNonRoot = true; __local3__ = data.main.name; sprintf("Containers must not run as root in Deployment %s", [__local3__], __local0__); msg = __local0__ }
-| | Eval data.kubernetes.is_deployment
-| | Index data.kubernetes.is_deployment (matched 1 rule)
-| | Enter is_deployment = true { input.kind = "Deployment" }
-| | | Eval input.kind = "Deployment"
-| | | Exit is_deployment = true { input.kind = "Deployment" }
-| | Eval not input.spec.template.spec.securityContext.runAsNonRoot = true
-| | | Eval input.spec.template.spec.securityContext.runAsNonRoot = true
-| | | Fail input.spec.template.spec.securityContext.runAsNonRoot = true
-| | Eval __local3__ = data.main.name
-| | Index __local3__ = data.main.name (matched 2 rules)
-| | Enter name = __local1__ { true; __local1__ = input.metadata.name }
-| | | Eval true
-| | | Eval __local1__ = input.metadata.name
-| | | Exit name = __local1__ { true; __local1__ = input.metadata.name }
-| | Eval sprintf("Containers must not run as root in Deployment %s", [__local3__], __local0__)
-| | Eval msg = __local0__
-| | Exit deny[msg] { data.kubernetes.is_deployment; not input.spec.template.spec.securityContext.runAsNonRoot = true; __local3__ = data.main.name; sprintf("Containers must not run as root in Deployment %s", [__local3__], __local0__); msg = __local0__ }
-| Redo deny[msg] { data.kubernetes.is_deployment; not input.spec.template.spec.securityContext.runAsNonRoot = true; __local3__ = data.main.name; sprintf("Containers must not run as root in Deployment %s", [__local3__], __local0__); msg = __local0__ }
-| | Redo msg = __local0__
-| | Redo sprintf("Containers must not run as root in Deployment %s", [__local3__], __local0__)
-| | Redo __local3__ = data.main.name
-| | Redo name = __local1__ { true; __local1__ = input.metadata.name }
-| | | Redo __local1__ = input.metadata.name
-| | | Redo true
-| | Enter name = __local2__ { true; __local2__ = input.metadata.name }
-| | | Eval true
-| | | Eval __local2__ = input.metadata.name
-| | | Exit name = __local2__ { true; __local2__ = input.metadata.name }
-| | Redo name = __local2__ { true; __local2__ = input.metadata.name }
-| | | Redo __local2__ = input.metadata.name
-| | | Redo true
-| | Redo data.kubernetes.is_deployment
-| | Redo is_deployment = true { input.kind = "Deployment" }
-| | | Redo input.kind = "Deployment"
-| Enter deny[msg] { data.kubernetes.is_deployment; not data.main.labels; __local4__ = data.main.name; sprintf("Deployment %s must provide app/release labels for pod selectors", [__local4__], __local1__); msg = __local1__ }
-| | Eval data.kubernetes.is_deployment
-| | Index data.kubernetes.is_deployment (matched 1 rule)
-| | Eval not data.main.labels
-| | | Eval data.main.labels
-| | | Index data.main.labels (matched 1 rule)
-| | | Enter labels = true { input.spec.selector.matchLabels.app; input.spec.selector.matchLabels.release }
-| | | | Eval input.spec.selector.matchLabels.app
-| | | | Eval input.spec.selector.matchLabels.release
-| | | | Fail input.spec.selector.matchLabels.release
-| | | | Redo input.spec.selector.matchLabels.app
-| | | Fail data.main.labels
-| | Eval __local4__ = data.main.name
-| | Index __local4__ = data.main.name (matched 2 rules)
-| | Eval sprintf("Deployment %s must provide app/release labels for pod selectors", [__local4__], __local1__)
-| | Eval msg = __local1__
-| | Exit deny[msg] { data.kubernetes.is_deployment; not data.main.labels; __local4__ = data.main.name; sprintf("Deployment %s must provide app/release labels for pod selectors", [__local4__], __local1__); msg = __local1__ }
-| Redo deny[msg] { data.kubernetes.is_deployment; not data.main.labels; __local4__ = data.main.name; sprintf("Deployment %s must provide app/release labels for pod selectors", [__local4__], __local1__); msg = __local1__ }
-| | Redo msg = __local1__
-| | Redo sprintf("Deployment %s must provide app/release labels for pod selectors", [__local4__], __local1__)
-| | Redo __local4__ = data.main.name
-| | Redo data.kubernetes.is_deployment
-| Exit data.main.deny = _
-Redo data.main.deny = _
-| Redo data.main.deny = _
-Enter data.main.warn = _
-| Eval data.main.warn = _
-| Index data.main.warn = _ (matched 1 rule)
-| Enter warn[msg] { data.kubernetes.is_service; __local2__ = data.main.name; sprintf("Found service %s but services are not allowed", [__local2__], __local0__); msg = __local0__ }
-| | Eval data.kubernetes.is_service
-| | Index data.kubernetes.is_service (matched 0 rules)
-| | Fail data.kubernetes.is_service
-| Exit data.main.warn = _
-Redo data.main.warn = _
-| Redo data.main.warn = _
-FAIL - deployment.yaml - Containers must not run as root in Deployment hello-kubernetes
 FAIL - deployment.yaml - Deployment hello-kubernetes must provide app/release labels for pod selectors
+TRAC - deployment.yaml - Enter data.main.deny = _
+TRAC - deployment.yaml - | Eval data.main.deny = _
+TRAC - deployment.yaml - | Index data.main.deny = _ matched 3 rules)
+TRAC - deployment.yaml - | Enter data.main.deny
+TRAC - deployment.yaml - | | Eval data.kubernetes.is_deployment
+TRAC - deployment.yaml - | | Index data.kubernetes.is_deployment (matched 1 rule)
+TRAC - deployment.yaml - | | Enter data.kubernetes.is_deployment
+TRAC - deployment.yaml - | | | Eval input.kind = "Deployment"
+TRAC - deployment.yaml - | | | Exit data.kubernetes.is_deployment
+TRAC - deployment.yaml - | | Eval not data.main.labels
+TRAC - deployment.yaml - | | Enter data.main.labels
+TRAC - deployment.yaml - | | | Eval data.main.labels
+TRAC - deployment.yaml - | | | Index data.main.labels matched 2 rules)
+TRAC - deployment.yaml - | | | Enter data.main.labels
+TRAC - deployment.yaml - | | | | Eval input.metadata.labels["app.kubernetes.io/name"]
+TRAC - deployment.yaml - | | | | Eval input.metadata.labels["app.kubernetes.io/instance"]
+TRAC - deployment.yaml - | | | | Fail input.metadata.labels["app.kubernetes.io/instance"]
+TRAC - deployment.yaml - | | | | Redo input.metadata.labels["app.kubernetes.io/name"]
+TRAC - deployment.yaml - | | | Enter data.main.labels
+TRAC - deployment.yaml - | | | | Eval input.spec.selector.matchLabels.app
+TRAC - deployment.yaml - | | | | Eval input.spec.selector.matchLabels.release
+TRAC - deployment.yaml - | | | | Fail input.spec.selector.matchLabels.release
+TRAC - deployment.yaml - | | | | Redo input.spec.selector.matchLabels.app
+TRAC - deployment.yaml - | | | Fail data.main.labels
+TRAC - deployment.yaml - | | Eval __local9__ = data.main.name
+TRAC - deployment.yaml - | | Index __local9__ = data.main.name matched 3 rules)
+TRAC - deployment.yaml - | | Enter data.main.name
+TRAC - deployment.yaml - | | | Eval true
+TRAC - deployment.yaml - | | | Eval __local5__ = input.metadata.name
+TRAC - deployment.yaml - | | | Exit data.main.name
+TRAC - deployment.yaml - | | Eval sprintf("%s must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels ", [__local9__], __local2__)
+TRAC - deployment.yaml - | | Eval msg = __local2__
+TRAC - deployment.yaml - | | Exit data.main.deny
+TRAC - deployment.yaml - | Redo data.main.deny
+TRAC - deployment.yaml - | | Redo msg = __local2__
+TRAC - deployment.yaml - | | Redo sprintf("%s must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels ", [__local9__], __local2__)
+TRAC - deployment.yaml - | | Redo __local9__ = data.main.name
+TRAC - deployment.yaml - | | Redo data.main.name
+TRAC - deployment.yaml - | | | Redo __local5__ = input.metadata.name
+TRAC - deployment.yaml - | | | Redo true
+TRAC - deployment.yaml - | | Enter data.main.name
+TRAC - deployment.yaml - | | | Eval true
+TRAC - deployment.yaml - | | | Eval __local6__ = input.metadata.name
+TRAC - deployment.yaml - | | | Exit data.main.name
+TRAC - deployment.yaml - | | Redo data.main.name
+TRAC - deployment.yaml - | | | Redo __local6__ = input.metadata.name
+TRAC - deployment.yaml - | | | Redo true
+TRAC - deployment.yaml - | | Enter data.main.name
+TRAC - deployment.yaml - | | | Eval true
+TRAC - deployment.yaml - | | | Eval __local4__ = input.metadata.name
+TRAC - deployment.yaml - | | | Exit data.main.name
+TRAC - deployment.yaml - | | Redo data.main.name
+TRAC - deployment.yaml - | | | Redo __local4__ = input.metadata.name
+TRAC - deployment.yaml - | | | Redo true
+TRAC - deployment.yaml - | | Redo data.kubernetes.is_deployment
+TRAC - deployment.yaml - | | Redo data.kubernetes.is_deployment
+TRAC - deployment.yaml - | | | Redo input.kind = "Deployment"
+TRAC - deployment.yaml - | Enter data.main.deny
+TRAC - deployment.yaml - | | Eval data.kubernetes.is_deployment
+TRAC - deployment.yaml - | | Index data.kubernetes.is_deployment (matched 1 rule)
+TRAC - deployment.yaml - | | Eval not input.spec.template.spec.securityContext.runAsNonRoot
+TRAC - deployment.yaml - | | Enter input.spec.template.spec.securityContext.runAsNonRoot
+TRAC - deployment.yaml - | | | Eval input.spec.template.spec.securityContext.runAsNonRoot
+TRAC - deployment.yaml - | | | Fail input.spec.template.spec.securityContext.runAsNonRoot
+TRAC - deployment.yaml - | | Eval __local7__ = data.main.name
+TRAC - deployment.yaml - | | Index __local7__ = data.main.name matched 3 rules)
+TRAC - deployment.yaml - | | Eval sprintf("Containers must not run as root in Deployment %s", [__local7__], __local0__)
+TRAC - deployment.yaml - | | Eval msg = __local0__
+TRAC - deployment.yaml - | | Exit data.main.deny
+TRAC - deployment.yaml - | Redo data.main.deny
+TRAC - deployment.yaml - | | Redo msg = __local0__
+TRAC - deployment.yaml - | | Redo sprintf("Containers must not run as root in Deployment %s", [__local7__], __local0__)
+TRAC - deployment.yaml - | | Redo __local7__ = data.main.name
+TRAC - deployment.yaml - | | Redo data.kubernetes.is_deployment
+TRAC - deployment.yaml - | Enter data.main.deny
+TRAC - deployment.yaml - | | Eval data.kubernetes.is_deployment
+TRAC - deployment.yaml - | | Index data.kubernetes.is_deployment (matched 1 rule)
+TRAC - deployment.yaml - | | Eval not data.main.labels
+TRAC - deployment.yaml - | | Enter data.main.labels
+TRAC - deployment.yaml - | | | Eval data.main.labels
+TRAC - deployment.yaml - | | | Index data.main.labels matched 2 rules)
+TRAC - deployment.yaml - | | | Enter data.main.labels
+TRAC - deployment.yaml - | | | | Eval input.metadata.labels["app.kubernetes.io/name"]
+TRAC - deployment.yaml - | | | | Eval input.metadata.labels["app.kubernetes.io/instance"]
+TRAC - deployment.yaml - | | | | Fail input.metadata.labels["app.kubernetes.io/instance"]
+TRAC - deployment.yaml - | | | | Redo input.metadata.labels["app.kubernetes.io/name"]
+TRAC - deployment.yaml - | | | Enter data.main.labels
+TRAC - deployment.yaml - | | | | Eval input.spec.selector.matchLabels.app
+TRAC - deployment.yaml - | | | | Eval input.spec.selector.matchLabels.release
+TRAC - deployment.yaml - | | | | Fail input.spec.selector.matchLabels.release
+TRAC - deployment.yaml - | | | | Redo input.spec.selector.matchLabels.app
+TRAC - deployment.yaml - | | | Fail data.main.labels
+TRAC - deployment.yaml - | | Eval __local8__ = data.main.name
+TRAC - deployment.yaml - | | Index __local8__ = data.main.name matched 3 rules)
+TRAC - deployment.yaml - | | Eval sprintf("Deployment %s must provide app/release labels for pod selectors", [__local8__], __local1__)
+TRAC - deployment.yaml - | | Eval msg = __local1__
+TRAC - deployment.yaml - | | Exit data.main.deny
+TRAC - deployment.yaml - | Redo data.main.deny
+TRAC - deployment.yaml - | | Redo msg = __local1__
+TRAC - deployment.yaml - | | Redo sprintf("Deployment %s must provide app/release labels for pod selectors", [__local8__], __local1__)
+TRAC - deployment.yaml - | | Redo __local8__ = data.main.name
+TRAC - deployment.yaml - | | Redo data.kubernetes.is_deployment
+TRAC - deployment.yaml - | Exit data.main.deny = _
+TRAC - deployment.yaml - Redo data.main.deny = _
+TRAC - deployment.yaml - | Redo data.main.deny = _
 ```
 
 </details>
