@@ -222,16 +222,21 @@ $ conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml -
 
 You can find examples using various other tools in the `examples` directory, including:
 
-* [CUE](examples/cue)
-* [Kustomize](examples/kustomize)
-* [Terraform](examples/terraform)
-* [Serverless Framework](examples/serverless)
 * [AWS SAM Framework](examples/awssam)
-* [INI](examples/ini)
-* [TOML](examples/traefik)
+* [CUE](examples/cue)
+* [Docker compose](examples/compose)
 * [Dockerfile](examples/docker)
-* [HCL2](examples/hcl2)
 * [EDN](examples/edn)
+* [HCL2](examples/hcl2)
+* [INI](examples/ini)
+* [GitLab](examples/ci)
+* [Kubernetes](examples/kubernetes)
+* [Kustomize](examples/kustomize)
+* [Serverless Framework](examples/serverless)
+* [Tekton](examples/tekton)
+* [Terraform](examples/terraform)
+* [Traefix](examples/traefik)
+* [Typescript](examples/ts)
 * [XML](examples/xml)
 
 ## Configuration and external policies
