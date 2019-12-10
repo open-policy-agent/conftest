@@ -77,6 +77,10 @@ func runVerification(ctx context.Context, path string, trace bool) ([]CheckResul
 		return nil, fmt.Errorf("read rego test files: %s", err)
 	}
 
+	if len(regoFiles) < 1 {
+		return nil, fmt.Errorf("no policies found in %s", path)
+	}
+
 	compiler, err := policy.BuildCompiler(regoFiles)
 	if err != nil {
 		return nil, fmt.Errorf("build compiler: %w", err)

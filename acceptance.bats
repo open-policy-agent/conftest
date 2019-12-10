@@ -20,6 +20,11 @@
   [ "$status" -eq 1 ]
 }
 
+@test "Fail when testing with no policies path" {
+  run ./conftest test -p internal/ examples/kubernetes/deployment.yaml
+  [ "$status" -eq 1 ]
+}
+
 @test "Pass when testing a blank namespace" {
   run ./conftest test --namespace notpresent -p examples/kubernetes/policy examples/kubernetes/deployment.yaml
   [ "$status" -eq 0 ]
@@ -69,6 +74,11 @@
     run ./conftest verify --policy ./examples/kubernetes/policy --trace
   [ "$status" -eq 0 ]
   [[ "$output" =~ "data.kubernetes.is_service" ]]
+}
+
+@test "Fail when verifing with no policies path" {
+  run ./conftest verify -p internal/
+  [ "$status" -eq 1 ]
 }
 
 @test "Has help flag" {
