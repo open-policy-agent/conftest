@@ -167,6 +167,14 @@ As of today `conftest` supports the following output types:
 - [TAP](https://testanything.org/): `--output=tap`
 - Table `--output=table`
 
+## Multi input type
+
+Conftest supports different types of input file type.
+
+```console
+$ conftest parse examples/ini/grafana.ini examples/kubernetes/deployment.yaml
+```
+
 #### Example Output
 
 ##### Plaintext
@@ -232,6 +240,7 @@ You can find examples using various other tools in the `examples` directory, inc
 * [GitLab](examples/ci)
 * [Kubernetes](examples/kubernetes)
 * [Kustomize](examples/kustomize)
+* [Multitype](examples/multitype)
 * [Serverless Framework](examples/serverless)
 * [Tekton](examples/tekton)
 * [Terraform](examples/terraform)
