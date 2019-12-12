@@ -72,6 +72,11 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("no file specified")
 			}
 
+			configurations, err := parser.GetConfigurations(ctx, viper.GetString("input"), nonBlankFileList)
+			if err != nil {
+				return fmt.Errorf("get configurations: %w", err)
+			}
+
 			policyPath := viper.GetString("policy")
 			urls := viper.GetStringSlice("update")
 			for _, url := range urls {
@@ -93,11 +98,6 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 			compiler, err := policy.BuildCompiler(regoFiles)
 			if err != nil {
 				return fmt.Errorf("build compiler: %w", err)
-			}
-
-			configurations, err := parser.GetConfigurations(ctx, viper.GetString("input"), nonBlankFileList)
-			if err != nil {
-				return fmt.Errorf("get configurations: %w", err)
 			}
 
 			namespace := viper.GetString("namespace")
