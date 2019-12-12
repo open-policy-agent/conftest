@@ -95,8 +95,13 @@ func getPolicyFiles(path string) ([]string, error) {
 
 		return nil
 	})
+
 	if err != nil {
 		return nil, err
+	}
+
+	if len(filepaths) < 1 {
+		return nil, fmt.Errorf("no policies found in %s", path)
 	}
 
 	return filepaths, nil
