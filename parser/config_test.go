@@ -6,11 +6,11 @@ import (
 
 func TestGetFileType(t *testing.T) {
 	testTable := []struct {
-		name            string
-		inputFileType   string
-		filename        string
-		expectdFileType string
-		shouldError     bool
+		name             string
+		inputFileType    string
+		filename         string
+		expectedFileType string
+		shouldError      bool
 	}{
 		{"Test YAML file", "", "example/kubernetes/deployment.yaml", "yaml", false},
 		{"Test not YAML file", "", "example/traefik/traefik.toml", "toml", false},
@@ -34,8 +34,8 @@ func TestGetFileType(t *testing.T) {
 				t.Fatalf("expected errors but returned no error")
 			}
 
-			if fileType != testUnit.expectdFileType {
-				t.Fatalf("got wrong filetype got:%s want:%s", fileType, testUnit.expectdFileType)
+			if fileType != testUnit.expectedFileType {
+				t.Fatalf("got wrong filetype got:%s want:%s", fileType, testUnit.expectedFileType)
 			}
 		})
 	}

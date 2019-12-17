@@ -20,6 +20,7 @@ var (
 		"cue",
 		"ini",
 		"yaml",
+		"yml",
 		"json",
 		"edn",
 		"xml",
