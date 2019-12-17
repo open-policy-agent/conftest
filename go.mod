@@ -19,7 +19,7 @@ require (
 	github.com/open-policy-agent/opa v0.15.1
 	github.com/opencontainers/image-spec v1.0.1
 	github.com/spf13/cobra v0.0.5
-	github.com/spf13/viper v1.6.1
+	github.com/spf13/viper v1.5.0
 	github.com/zclconf/go-cty v1.2.0
 	olympos.io/encoding/edn v0.0.0-20191103180435-78e1aef28b15
 )
