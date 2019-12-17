@@ -137,6 +137,11 @@
   [[ "$output" =~ "Application environment is should be `staging_environment`" ]]
 }
 
+@test "Fail when unsupported input type file" {
+  run ./conftest test -p examples/hcl2/policy examples/hcl2/terraform.tf -i invalid
+  [ "$status" -eq 1 ]
+}
+
 @test "Can parse stdin with input flag" {
   run bash -c "cat examples/ini/grafana.ini | ./conftest test -p examples/ini/policy --input ini -"
   [ "$status" -eq 1 ]

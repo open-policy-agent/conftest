@@ -11,6 +11,22 @@ import (
 	"strings"
 )
 
+var (
+	supporedFileTypes = []string{
+		"toml",
+		"tf",
+		"hcl",
+		"hcl2",
+		"cue",
+		"ini",
+		"yaml",
+		"json",
+		"edn",
+		"xml",
+		"Dockerfile",
+	}
+)
+
 // GetConfigurations parses and returns the configurations given in the file list
 func GetConfigurations(ctx context.Context, input string, fileList []string) (map[string]interface{}, error) {
 	var configFiles []ConfigDoc
@@ -71,6 +87,10 @@ func getConfig(fileName string) (io.ReadCloser, error) {
 
 func getFileType(inputFileType, fileName string) (string, error) {
 	if inputFileType != "" {
+		if !isSupported(inputFileType) {
+			return "", fmt.Errorf("unsupported file type")
+		}
+
 		return inputFileType, nil
 	}
 
@@ -87,8 +107,22 @@ func getFileType(inputFileType, fileName string) (string, error) {
 			fileType = ss[len(ss)-1]
 		}
 
+		if !isSupported(fileType) {
+			return "", fmt.Errorf("unsupported file type")
+		}
+
 		return fileType, nil
 	}
 
 	return "", fmt.Errorf("unsupported file type")
+}
+
+func isSupported(fileType string) bool {
+	for _, t := range supporedFileTypes {
+		if fileType == t {
+			return true
+		}
+	}
+
+	return false
 }
