@@ -50,7 +50,6 @@ func GetOutputManager() OutputManager {
 
 // OutputManager controls how results of the `ccheck` evaluation will be recorded
 // and reported to the end user.
-//counterfeiter:generate . OutputManager
 type OutputManager interface {
 	Put(cr CheckResult) error
 	Flush() error
@@ -72,8 +71,7 @@ func NewDefaultStdOutputManager(color bool) *stdOutputManager {
 func NewStdOutputManager(l *log.Logger, color bool) *stdOutputManager {
 	return &stdOutputManager{
 		logger: l,
-		// control color output within the logger
-		color: aurora.NewAurora(color),
+		color:  aurora.NewAurora(color),
 	}
 }
 
