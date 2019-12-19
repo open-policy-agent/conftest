@@ -83,7 +83,7 @@ metadata:
 		t.Fatalf("could not unmarshal yaml: %s", err)
 	}
 
-	regoFiles := []string{"../../examples/kubernetes/policy/kubernetes.rego", "../../examples/kubernetes/policy/deny.rego"}
+	regoFiles := []string{"../examples/kubernetes/policy/kubernetes.rego", "../examples/kubernetes/policy/deny.rego"}
 	compiler, err := policy.BuildCompiler(regoFiles)
 	if err != nil {
 		t.Fatalf("could not build rego compiler: %s", err)
@@ -129,7 +129,7 @@ ENTRYPOINT ["java","-cp","app:app/lib/*","hello.Application"]`
 		t.Fatalf("could not unmarshal dockerfile: %s", err)
 	}
 
-	regoFiles := []string{"../../examples/docker/policy/base.rego"}
+	regoFiles := []string{"../examples/docker/policy/base.rego"}
 	compiler, err := policy.BuildCompiler(regoFiles)
 	if err != nil {
 		t.Fatalf("could not build rego compiler: %s", err)
