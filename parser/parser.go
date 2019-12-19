@@ -21,10 +21,11 @@ func ValidInputs() []string {
 	return []string{
 		"toml",
 		"tf|hcl",
+		"hcl2",
 		"cue",
 		"ini",
-		"yaml",
-		"json",
+		"yml|yaml|json",
+		"Dockerfile",
 		"edn",
 		"xml",
 	}
@@ -111,7 +112,7 @@ func GetParser(fileType string) (Parser, error) {
 		return &ini.Parser{}, nil
 	case "hcl2":
 		return &hcl2.Parser{}, nil
-	case "Dockerfile":
+	case "Dockerfile", "dockerfile":
 		return &docker.Parser{}, nil
 	case "yml", "yaml", "json":
 		return &yaml.Parser{}, nil

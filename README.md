@@ -235,7 +235,7 @@ You can find examples using various other tools in the `examples` directory, inc
 * [Serverless Framework](examples/serverless)
 * [Tekton](examples/tekton)
 * [Terraform](examples/terraform)
-* [Traefix](examples/traefik)
+* [Traefik](examples/traefik)
 * [Typescript](examples/ts)
 * [XML](examples/xml)
 
