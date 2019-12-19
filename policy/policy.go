@@ -90,6 +90,10 @@ func getPolicyFiles(path string) ([]string, error) {
 		}
 
 		if filepath.Ext(currentPath) == ".rego" && !strings.HasSuffix(info.Name(), "_test.rego") {
+			if info.Size() == 0 {
+				return fmt.Errorf("empty policy found in %s", currentPath)
+			}
+
 			filepaths = append(filepaths, currentPath)
 		}
 
