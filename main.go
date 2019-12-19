@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/instrumenta/conftest/internal/commands"
+	"github.com/instrumenta/conftest/commands"
 )
 
 func main() {
