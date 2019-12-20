@@ -92,6 +92,15 @@ The `--input` flag can also be a good way to see how different input types would
 conftest parse examples/hcl2/terraform.tf -i hcl2
 ```
 
+#### Multi input type
+
+Conftest supports different types of input file type in a single call.
+This does not assume all file types are the same.
+
+```console
+$ conftest test examples/multitype/grafana.ini examples/multitype/kubernetes.yaml -p examples/multitype
+```
+
 ### --combine flag
 
 This flag introduces *BREAKING CHANGES* in how `conftest` provides input to rego policies. However, you may find it useful to as you can now compare multiple values from different configurations simultaneously.
@@ -166,14 +175,6 @@ As of today `conftest` supports the following output types:
 - JSON: `--output=json`
 - [TAP](https://testanything.org/): `--output=tap`
 - Table `--output=table`
-
-## Multi input type
-
-Conftest supports different types of input file type.
-
-```console
-$ conftest parse examples/ini/grafana.ini examples/kubernetes/deployment.yaml
-```
 
 #### Example Output
 
