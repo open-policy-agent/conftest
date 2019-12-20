@@ -94,8 +94,7 @@ conftest parse examples/hcl2/terraform.tf -i hcl2
 
 #### Multi input type
 
-Conftest supports different types of input file type in a single call.
-This does not assume all file types are the same.
+`conftest` supports multiple different input types in a single call.
 
 ```console
 $ conftest test examples/multitype/grafana.ini examples/multitype/kubernetes.yaml -p examples/multitype
