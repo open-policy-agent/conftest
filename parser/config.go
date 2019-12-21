@@ -13,40 +13,47 @@ import (
 
 // GetConfigurations parses and returns the configurations given in the file list
 func GetConfigurations(ctx context.Context, input string, fileList []string) (map[string]interface{}, error) {
-	var configFiles []ConfigDoc
-	var fileType string
+	totalCfgs := make(map[string]interface{})
+	fileSchema := make(map[string][]ConfigDoc)
 
 	for _, fileName := range fileList {
 		var err error
-		var config io.ReadCloser
+		var cfg io.ReadCloser
 
-		fileType, err = getFileType(input, fileName)
+		fileType, err := getFileType(input, fileName)
 		if err != nil {
 			return nil, fmt.Errorf("get file type: %w", err)
 		}
 
-		config, err = getConfig(fileName)
+		cfg, err = getConfig(fileName)
 		if err != nil {
 			return nil, fmt.Errorf("get config: %w", err)
 		}
 
-		configFiles = append(configFiles, ConfigDoc{
-			ReadCloser: config,
+		fileSchema[fileType] = append(fileSchema[fileType], ConfigDoc{
+			ReadCloser: cfg,
 			Filepath:   fileName,
 		})
 	}
 
-	configManager, err := NewConfigManager(fileType)
-	if err != nil {
-		return nil, fmt.Errorf("create config manager: %w", err)
+	for fileType, cfgFiles := range fileSchema {
+		cfgManager, err := NewConfigManager(fileType)
+		if err != nil {
+			return nil, fmt.Errorf("create config manager: %w", err)
+		}
+
+		cfgs, err := cfgManager.BulkUnmarshal(cfgFiles)
+		if err != nil {
+			return nil, fmt.Errorf("bulk unmarshal: %w", err)
+		}
+
+		// concatenate configurations
+		for k, v := range cfgs {
+			totalCfgs[k] = v
+		}
 	}
 
-	configurations, err := configManager.BulkUnmarshal(configFiles)
-	if err != nil {
-		return nil, fmt.Errorf("bulk unmarshal: %w", err)
-	}
-
-	return configurations, nil
+	return totalCfgs, nil
 
 }
 

@@ -92,6 +92,14 @@ The `--input` flag can also be a good way to see how different input types would
 conftest parse examples/hcl2/terraform.tf -i hcl2
 ```
 
+#### Multi input type
+
+`conftest` supports multiple different input types in a single call.
+
+```console
+$ conftest test examples/multitype/grafana.ini examples/multitype/kubernetes.yaml -p examples/multitype
+```
+
 ### --combine flag
 
 This flag introduces *BREAKING CHANGES* in how `conftest` provides input to rego policies. However, you may find it useful to as you can now compare multiple values from different configurations simultaneously.
@@ -232,6 +240,7 @@ You can find examples using various other tools in the `examples` directory, inc
 * [GitLab](examples/ci)
 * [Kubernetes](examples/kubernetes)
 * [Kustomize](examples/kustomize)
+* [Multitype](examples/multitype)
 * [Serverless Framework](examples/serverless)
 * [Tekton](examples/tekton)
 * [Terraform](examples/terraform)

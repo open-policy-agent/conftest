@@ -52,6 +52,12 @@
   [ "$status" -eq 0 ]
 }
 
+@test "Test command with multiple input type" {
+  run ./conftest test examples/traefik/traefik.toml examples/kubernetes/service.yaml -p examples/kubernetes/policy 
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "Found service hello-kubernetes but services are not allowed" ]]
+}
+
 @test "Test command has trace flag" {
   run ./conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml --trace
   [ "$status" -eq 0 ]
@@ -117,6 +123,12 @@
   run ./conftest test -p examples/xml/policy examples/xml/pom.xml
   [ "$status" -eq 1 ]
   [[ "$output" =~ "--- maven-plugin must have the version: 3.6.1" ]]
+}
+
+@test "Can parse multi-type files" {
+  run ./conftest test -p examples/multitype/policy examples/multitype/deployment.yaml examples/multitype/grafana.ini
+  [ "$status" -eq  1 ]
+  [[ "$output" =~ "Port should be" ]]
 }
 
 @test "Can parse nested files with name overlap (first)" {
