@@ -125,6 +125,12 @@
   [[ "$output" =~ "--- maven-plugin must have the version: 3.6.1" ]]
 }
 
+@test "Can parse hocon files" {
+  run ./conftest test -p examples/hocon/policy examples/hocon/hocon.conf -i hocon
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "Play http server port should be 9000" ]]
+}
+
 @test "Can parse multi-type files" {
   run ./conftest test -p examples/multitype/policy examples/multitype/deployment.yaml examples/multitype/grafana.ini
   [ "$status" -eq  1 ]

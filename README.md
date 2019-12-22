@@ -25,6 +25,7 @@ As of today `conftest` supports:
 * JSON
 * INI
 * TOML
+* HOCON
 * HCL
 * CUE
 * Dockerfile
@@ -236,6 +237,7 @@ You can find examples using various other tools in the `examples` directory, inc
 * [Dockerfile](examples/docker)
 * [EDN](examples/edn)
 * [HCL2](examples/hcl2)
+* [HOCON](examples/hocon)
 * [INI](examples/ini)
 * [GitLab](examples/ci)
 * [Kubernetes](examples/kubernetes)
