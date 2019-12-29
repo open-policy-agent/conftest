@@ -13,6 +13,7 @@ import (
 	"github.com/instrumenta/conftest/policy"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/rego"
+	"github.com/open-policy-agent/opa/storage"
 	"github.com/open-policy-agent/opa/topdown"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -47,7 +48,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 		Short: "Test your configuration files using Open Policy Agent",
 		Args:  cobra.MinimumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			flagNames := []string{"fail-on-warn", "update", combineConfigFlagName, "trace", "output", "input", "namespace"}
+			flagNames := []string{"fail-on-warn", "update", combineConfigFlagName, "trace", "output", "input", "namespace", "data"}
 			for _, name := range flagNames {
 				if err := viper.BindPFlag(name, cmd.Flags().Lookup(name)); err != nil {
 					return fmt.Errorf("bind flag: %w", err)
@@ -100,11 +101,17 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("build compiler: %w", err)
 			}
 
+			dataPaths := viper.GetStringSlice("data")
+			store, err := policy.StoreFromDataFiles(dataPaths)
+			if err != nil {
+				return fmt.Errorf("build store: %w", err)
+			}
+
 			namespace := viper.GetString("namespace")
 
 			var failures int
 			if viper.GetBool(combineConfigFlagName) {
-				result, err := GetResult(ctx, namespace, configurations, compiler)
+				result, err := GetResult(ctx, namespace, configurations, compiler, store)
 				if err != nil {
 					return fmt.Errorf("get combined test result: %w", err)
 				}
@@ -119,7 +126,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				}
 			} else {
 				for fileName, config := range configurations {
-					result, err := GetResult(ctx, namespace, config, compiler)
+					result, err := GetResult(ctx, namespace, config, compiler, store)
 					if err != nil {
 						return fmt.Errorf("get test result: %w", err)
 					}
@@ -155,20 +162,21 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", ValidOutputs()))
 	cmd.Flags().StringP("input", "i", "", fmt.Sprintf("input type for given source, especially useful when using conftest with stdin, valid options are: %s", parser.ValidInputs()))
 	cmd.Flags().StringP("namespace", "", "main", "namespace in which to find deny and warn rules")
+	cmd.Flags().StringSliceP("data", "d", []string{}, "A list of paths from which data for the rego policies will be recursively loaded")
 
 	return &cmd
 }
 
 // GetResult returns the result of testing the structured data against their policies
-func GetResult(ctx context.Context, namespace string, input interface{}, compiler *ast.Compiler) (CheckResult, error) {
+func GetResult(ctx context.Context, namespace string, input interface{}, compiler *ast.Compiler, store storage.Store) (CheckResult, error) {
 	var totalSuccesses []Result
-	warnings, successes, err := runRules(ctx, namespace, input, warnQ, compiler)
+	warnings, successes, err := runRules(ctx, namespace, input, warnQ, compiler, store)
 	if err != nil {
 		return CheckResult{}, err
 	}
 	totalSuccesses = append(totalSuccesses, successes...)
 
-	failures, successes, err := runRules(ctx, namespace, input, denyQ, compiler)
+	failures, successes, err := runRules(ctx, namespace, input, denyQ, compiler, store)
 	if err != nil {
 		return CheckResult{}, err
 	}
@@ -187,7 +195,7 @@ func isResultFailure(result CheckResult) bool {
 	return len(result.Failures) > 0 || (len(result.Warnings) > 0 && viper.GetBool("fail-on-warn"))
 }
 
-func runRules(ctx context.Context, namespace string, input interface{}, regex *regexp.Regexp, compiler *ast.Compiler) ([]Result, []Result, error) {
+func runRules(ctx context.Context, namespace string, input interface{}, regex *regexp.Regexp, compiler *ast.Compiler, store storage.Store) ([]Result, []Result, error) {
 	var totalErrors []Result
 	var totalSuccesses []Result
 	var successes []Result
@@ -207,9 +215,9 @@ func runRules(ctx context.Context, namespace string, input interface{}, regex *r
 
 		switch input.(type) {
 		case []interface{}:
-			errors, successes, err = runMultipleQueries(ctx, query, input, compiler)
+			errors, successes, err = runMultipleQueries(ctx, query, input, compiler, store)
 		default:
-			errors, successes, err = runQuery(ctx, query, input, compiler)
+			errors, successes, err = runQuery(ctx, query, input, compiler, store)
 		}
 
 		if err != nil {
@@ -250,11 +258,11 @@ func stringInSlice(a string, list []string) bool {
 	return false
 }
 
-func runMultipleQueries(ctx context.Context, query string, inputs interface{}, compiler *ast.Compiler) ([]Result, []Result, error) {
+func runMultipleQueries(ctx context.Context, query string, inputs interface{}, compiler *ast.Compiler, store storage.Store) ([]Result, []Result, error) {
 	var totalViolations []Result
 	var totalSuccesses []Result
 	for _, input := range inputs.([]interface{}) {
-		violations, successes, err := runQuery(ctx, query, input, compiler)
+		violations, successes, err := runQuery(ctx, query, input, compiler, store)
 		if err != nil {
 			return nil, nil, fmt.Errorf("run query: %w", err)
 		}
@@ -266,8 +274,8 @@ func runMultipleQueries(ctx context.Context, query string, inputs interface{}, c
 	return totalViolations, totalSuccesses, nil
 }
 
-func runQuery(ctx context.Context, query string, input interface{}, compiler *ast.Compiler) ([]Result, []Result, error) {
-	rego, stdout := buildRego(viper.GetBool("trace"), query, input, compiler)
+func runQuery(ctx context.Context, query string, input interface{}, compiler *ast.Compiler, store storage.Store) ([]Result, []Result, error) {
+	rego, stdout := buildRego(viper.GetBool("trace"), query, input, compiler, store)
 	resultSet, err := rego.Eval(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("evaluating policy: %w", err)
@@ -314,12 +322,12 @@ func runQuery(ctx context.Context, query string, input interface{}, compiler *as
 	return errs, successes, nil
 }
 
-func buildRego(trace bool, query string, input interface{}, compiler *ast.Compiler) (*rego.Rego, *topdown.BufferTracer) {
+func buildRego(trace bool, query string, input interface{}, compiler *ast.Compiler, store storage.Store) (*rego.Rego, *topdown.BufferTracer) {
 	var regoObj *rego.Rego
 	var regoFunc []func(r *rego.Rego)
 	buf := topdown.NewBufferTracer()
 
-	regoFunc = append(regoFunc, rego.Query(query), rego.Compiler(compiler), rego.Input(input))
+	regoFunc = append(regoFunc, rego.Query(query), rego.Compiler(compiler), rego.Input(input), rego.Store(store))
 	if trace {
 		regoFunc = append(regoFunc, rego.Tracer(buf))
 	}
