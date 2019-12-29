@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/instrumenta/conftest/parser/docker"
+	"github.com/open-policy-agent/opa/storage/inmem"
 	"github.com/instrumenta/conftest/parser/yaml"
 	"github.com/instrumenta/conftest/policy"
 )
@@ -89,8 +90,9 @@ metadata:
 		t.Fatalf("could not build rego compiler: %s", err)
 	}
 
+	store := inmem.New()
 	const defaultNamespace = "main"
-	results, err := GetResult(ctx, defaultNamespace, jsonConfig, compiler)
+	results, err := GetResult(ctx, defaultNamespace, jsonConfig, compiler, store)
 	if err != nil {
 		t.Fatalf("could not process policy file: %s", err)
 	}
@@ -135,8 +137,9 @@ ENTRYPOINT ["java","-cp","app:app/lib/*","hello.Application"]`
 		t.Fatalf("could not build rego compiler: %s", err)
 	}
 
+	store := inmem.New()
 	const defaultNamespace = "main"
-	results, err := GetResult(ctx, defaultNamespace, jsonConfig, compiler)
+	results, err := GetResult(ctx, defaultNamespace, jsonConfig, compiler, store)
 	if err != nil {
 		t.Fatalf("could not process policy file: %s", err)
 	}
