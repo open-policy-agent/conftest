@@ -13,4 +13,3 @@ deny[msg] {
 
   msg = sprintf("Cannot expose one of the following ports on a LoadBalancer %s", [services.ports])
 }
-
