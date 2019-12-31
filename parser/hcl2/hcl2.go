@@ -14,7 +14,13 @@ func (h *Parser) Unmarshal(p []byte, v interface{}) error {
 	file, diags := hclsyntax.ParseConfig(p, "", hcl.Pos{Byte: 0, Line: 1, Column: 1})
 
 	if diags.HasErrors() {
-		return fmt.Errorf("parse hcl2 config: %s", diags.Error())
+		var details []error
+		for _, each := range diags.Errs() {
+			each = fmt.Errorf("%s \n", each)
+			details = append(details, each)
+		}
+
+		return fmt.Errorf("parse hcl2 config: \n %s", details)
 	}
 
 	content, err := convertFile(file)
