@@ -9,6 +9,7 @@ require (
 	github.com/containerd/containerd v1.3.2
 	github.com/deislabs/oras v0.8.0
 	github.com/ghodss/yaml v1.0.0
+	github.com/go-akka/configuration v0.0.0-20190919102339-a31c845c4b1b
 	github.com/go-ini/ini v1.51.0
 	github.com/hashicorp/go-getter v1.4.0
 	github.com/hashicorp/hcl v1.0.0
