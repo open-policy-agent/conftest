@@ -456,7 +456,7 @@ $ sudo mv conftest /usr/local/bin
 
 ### Brew
 
-If you're on a Mac and using Homebrew you can use:
+Install with Homebrew on macOS or Linux:
 
 ```console
 brew tap instrumenta/instrumenta
