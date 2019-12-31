@@ -242,6 +242,19 @@
   [ "$status" -eq 1 ]
 }
 
+@test "Can load data along with rego policies" {
+  run ./conftest test -p examples/data/policy -d examples/data/exclusions examples/data/service.yaml
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "Cannot expose one of the following ports" ]]
+}
+
+@test "Can load data in unit tests" {
+  run ./conftest verify -p examples/data/policy -d examples/data/exclusions examples/data/service.yaml
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "PASS" ]]
+}
+
+
 @test "Can update policies in test command" {
   run ./conftest test --update https://raw.githubusercontent.com/instrumenta/conftest/master/examples/compose/policy/deny.rego examples/compose/docker-compose.yml
   [ "$status" -eq 1 ]

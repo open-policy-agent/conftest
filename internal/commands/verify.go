@@ -23,7 +23,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 		Use:   "verify",
 		Short: "Verify Rego unit tests",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			flagNames := []string{"output", "trace"}
+			flagNames := []string{"output", "trace", "data"}
 			for _, name := range flagNames {
 				if err := viper.BindPFlag(name, cmd.Flags().Lookup(name)); err != nil {
 					return fmt.Errorf("bind flag: %w", err)
@@ -67,6 +67,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 
 	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", ValidOutputs()))
 	cmd.Flags().BoolP("trace", "", false, "enable more verbose trace output for rego queries")
+	cmd.Flags().StringSliceP("data", "d", []string{}, "A list of paths from which data for the rego policies will be recursively loaded")
 
 	return &cmd
 }
@@ -86,7 +87,13 @@ func runVerification(ctx context.Context, path string, trace bool) ([]CheckResul
 		return nil, fmt.Errorf("build compiler: %w", err)
 	}
 
-	runner := tester.NewRunner().SetCompiler(compiler).EnableTracing(trace)
+	dataPaths := viper.GetStringSlice("data")
+	store, err := policy.StoreFromDataFiles(dataPaths)
+	if err != nil {
+		return nil, fmt.Errorf("build store: %w", err)
+	}
+
+	runner := tester.NewRunner().SetCompiler(compiler).SetStore(store).EnableTracing(trace)
 	ch, err := runner.RunTests(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("running tests: %w", err)

@@ -165,6 +165,32 @@ FAIL - Combined-configs (multi-file) - Expected these values to be the same but 
 
 This is just the tip of the iceberg. Now you can ensure that duplicate values match across the entirety of your configuration files.
 
+### --data flag
+
+Sometimes policies require additional data in order to determine an answer. For example, a whitelist of allowed resources that can be created. Instead of hardcoding this information inside of your policy, conftest allows passing paths to data files with the `--data` flag, e.g.
+
+```console
+conftest test -p examples/data/policy -d examples/data/exclusions examples/data/service.yaml
+```
+
+The paths at the flag are recursively searched for JSON and YAML files. Data can be imported as follows:
+
+Given the following yaml file:
+
+```yaml
+services:
+  ports:
+  - 22
+```
+
+This can be imported into your policy:
+
+```rego
+import data.services
+
+ports := services.ports
+```
+
 ### --output flag
 
 The output of `conftest` can be configured using the `--output` flag (`-o`).
