@@ -131,6 +131,12 @@
   [[ "$output" =~ "Play http server port should be 9000" ]]
 }
 
+@test "Can parse vcl files" {
+  run ./conftest test -p examples/vcl/policy examples/vcl/varnish.vcl
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "default backend port should be 8080" ]]
+}
+
 @test "Can parse multi-type files" {
   run ./conftest test -p examples/multitype/policy examples/multitype/deployment.yaml examples/multitype/grafana.ini
   [ "$status" -eq  1 ]

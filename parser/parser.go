@@ -8,11 +8,12 @@ import (
 	"github.com/instrumenta/conftest/parser/cue"
 	"github.com/instrumenta/conftest/parser/docker"
 	"github.com/instrumenta/conftest/parser/edn"
-	"github.com/instrumenta/conftest/parser/hocon"
 	"github.com/instrumenta/conftest/parser/hcl2"
+	"github.com/instrumenta/conftest/parser/hocon"
 	"github.com/instrumenta/conftest/parser/ini"
 	"github.com/instrumenta/conftest/parser/terraform"
 	"github.com/instrumenta/conftest/parser/toml"
+	"github.com/instrumenta/conftest/parser/vcl"
 	"github.com/instrumenta/conftest/parser/xml"
 	"github.com/instrumenta/conftest/parser/yaml"
 )
@@ -28,6 +29,7 @@ func ValidInputs() []string {
 		"yml|yaml|json",
 		"Dockerfile",
 		"edn",
+		"vcl",
 		"xml",
 	}
 }
@@ -112,7 +114,7 @@ func GetParser(fileType string) (Parser, error) {
 	case "ini":
 		return &ini.Parser{}, nil
 	case "hocon":
-		return &hocon.Parser{},nil
+		return &hocon.Parser{}, nil
 	case "hcl2":
 		return &hcl2.Parser{}, nil
 	case "Dockerfile", "dockerfile":
@@ -121,6 +123,8 @@ func GetParser(fileType string) (Parser, error) {
 		return &yaml.Parser{}, nil
 	case "edn":
 		return &edn.Parser{}, nil
+	case "vcl":
+		return &vcl.Parser{}, nil
 	case "xml":
 		return &xml.Parser{}, nil
 	default:
