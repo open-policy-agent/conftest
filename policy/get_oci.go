@@ -24,6 +24,11 @@ func (g *OCIGetter) ClientMode(u *url.URL) (getter.ClientMode, error) {
 
 func (g *OCIGetter) Get(path string, u *url.URL) error {
 	ctx := g.Context()
+
+	if !pathContainsTag(u.Path) {
+		u.Path = u.Path + ":latest"
+	}
+
 	err := os.MkdirAll(path, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("make policy directory: %w", err)

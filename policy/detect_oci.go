@@ -14,7 +14,7 @@ func (d *OCIDetector) Detect(src, _ string) (string, bool, error) {
 		return "", false, nil
 	}
 
-	if strings.Contains(src, "azurecr.io/") {
+	if strings.Contains(src, "azurecr.io/") || strings.Contains(src, "127.0.0.1:5000") {
 		url, err := d.detectHTTP(src)
 		if err != nil {
 			return "", false, err
@@ -46,6 +46,10 @@ func getRepositoryFromURL(url string) string {
 }
 
 func repositoryContainsTag(repository string) bool {
-	split := strings.Split(repository, "/")
-	return strings.Contains(split[len(split)-1], ":")
+	path := strings.Split(repository, "/")
+	return pathContainsTag(path[len(path)-1])
+}
+
+func pathContainsTag(path string) bool {
+	return strings.Contains(path, ":")
 }

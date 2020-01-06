@@ -18,6 +18,16 @@ func TestOCIDetector_Detect(t *testing.T) {
 			"user.azurecr.io/policies",
 			"oci://user.azurecr.io/policies:latest",
 		},
+		{
+			"should detect 127.0.0.1:5000 as most likely being an OCI registry",
+			"127.0.0.1:5000/policies:tag",
+			"oci://127.0.0.1:5000/policies:tag",
+		},
+		{
+			"should detect 127.0.0.1:5000 as most likely being an OCI registry and tag it properly if no tag is supplied",
+			"127.0.0.1:5000/policies",
+			"oci://127.0.0.1:5000/policies:latest",
+		},
 	}
 	pwd := "/pwd"
 	d := &OCIDetector{}
