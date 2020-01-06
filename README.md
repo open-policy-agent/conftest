@@ -302,7 +302,19 @@ If you have a compatible OCI registry you can also push new policy bundles like 
 
 ```console
 conftest push instrumenta.azurecr.io/test
+conftest push 127.0.0.1:5000/test
+conftest push <some-other-supported-registry>/test
 ```
+
+OCI bundles can be pulled as well:
+
+```console
+conftest pull instrumenta.azurecr.io/test
+conftest pull 127.0.0.1:5000/test
+conftest pull oci://<some-other-supported-registry>/test
+```
+
+The Azure registy and 127.0.0.1:5000 (The local [Docker Registry](https://github.com/docker/distribution)) are special cases where the URL does not need to be prefixed with the scheme `oci://`, in all other cases the scheme needs to be provided in the URL.
 
 If you want to download the latest policies and run the tests in one go, you can do so with:
 
