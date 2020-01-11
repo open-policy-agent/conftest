@@ -19,6 +19,59 @@ import (
 	"github.com/spf13/viper"
 )
 
+const testDesc = `
+This command tests your configuration files using the Open Policy Agent.
+
+The test command expects a one or more input files that will be evaluated against
+Open Policy Agent policies. Policies are written in the Rego language. For more
+information on how to write Rego policies, see the documentation:
+https://www.openpolicyagent.org/docs/latest/policy-language/
+
+The policy location defaults to the policy directory in the local folder.
+The location can be overridden with the '--policy' flag, e.g.:
+
+	$ conftest test --policy <my-directory> <input-file>
+
+Some policies are dependant on external data. This data is loaded in seperatly 
+from policies. The location of any data directory or file can be specified with 
+the '--data' flag. If a directory is specified, it will be recursively searched for 
+any data files. Right now any '.json' or '.yaml' file will be loaded in 
+and made available in the Rego policies. Data will be made available in Rego based on 
+the file path where the data was found. For example, if data is stored 
+under 'policy/exceptions/my_data.yaml', and we execute the following command:
+
+	$ conftest test --data policy <input-file>
+
+The data is available under 'import data.exceptions'.
+
+The test command supports the '--output' flag to specify the type, e.g.:
+
+	$ conftest test -o table -p examples/kubernetes/policy examples/kubernetes/deployment.yaml
+
+Which will return the following output:
++---------+----------------------------------+--------------------------------+
+| RESULT  |               FILE               |            MESSAGE             |
++---------+----------------------------------+--------------------------------+
+| success | examples/kubernetes/service.yaml |                                |
+| warning | examples/kubernetes/service.yaml | Found service hello-kubernetes |
+|         |                                  | but services are not allowed   |
++---------+----------------------------------+--------------------------------+
+
+By default, it will use the regular stdout output. For a full list of available output types, see the of the '--output' flag.
+
+The test command supports the '--update' flag to fetch the latest version of the policy at the given url.
+It expects one or more urls to fetch the latest policies from, e.g.:
+
+	$ conftest test --update instrumenta.azurecr.io/test
+
+See the pull command for more details on supported protocols for fetching policies.
+
+When debugging policies it can be useful to use a more verbose policy evaluation output. By using the '--trace' flag
+the output will include a detailed trace of how the policy was evaluated, e.g.
+
+	$ conftest test --trace <input-file>
+`
+
 var (
 	denyQ                 = regexp.MustCompile("^(deny|violation)(_[a-zA-Z]+)*$")
 	warnQ                 = regexp.MustCompile("^warn(_[a-zA-Z]+)*$")
@@ -45,7 +98,7 @@ type CheckResult struct {
 func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "test <file> [file...]",
-		Short: "Test your configuration files using Open Policy Agent",
+		Short: testDesc,
 		Args:  cobra.MinimumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			flagNames := []string{"fail-on-warn", "update", combineConfigFlagName, "trace", "output", "input", "namespace", "data"}

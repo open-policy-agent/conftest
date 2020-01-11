@@ -17,6 +17,37 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const pushDesc = `
+This command uploads Open Policy Agent bundles to an OCI registry
+
+Storing policies in OCI registries is similar to how Docker containers are stored.
+With conftest, Rego policies are bundled and pushed to the OCI registry e.g.:
+
+	$ conftest push instrumenta.azurecr.io/my-registry
+
+Optionally, a tag can be specified, e.g.:
+
+	$ conftest push instrumenta.azurecr.io/my-registry:v1
+
+If no tag is passed, by default, conftest uses the 'latest' tag. The policies can be retrieved
+using the pull command, e.g.:
+
+	$ conftest pull instrumenta.azurecr.io/my-registry:v1
+
+Alternatively, the policies can be pulled as part of running the test command:
+
+	$ conftest test --update instrumenta.azurecr.io/my-registry:v1 <my-input-file>
+
+Conftest leverages the ORAS library under the hood. This allows arbitrary artifacts to 
+be stored in compatible OCI registries. Currently open policy agent bundles are supported by 
+the docker/distribution (https://github.com/docker/distribution) registry and by Azure.
+
+The policy location defaults to the policy directory in the local folder.
+The location can be overridden with the '--policy' flag, e.g.:
+
+	$ conftest push --policy <my-directory> <oci-url>
+`
+
 const (
 	openPolicyAgentConfigMediaType      = "application/vnd.cncf.openpolicyagent.config.v1+json"
 	openPolicyAgentPolicyLayerMediaType = "application/vnd.cncf.openpolicyagent.policy.layer.v1+rego"
@@ -29,7 +60,7 @@ func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "push <repository> [filepath]",
 		Short: "Upload OPA bundles to an OCI registry",
-		Long:  `Upload Open Policy Agent bundles to an OCI registry`,
+		Long:  pushDesc,
 		Args:  cobra.RangeArgs(1, 2),
 
 		RunE: func(cmd *cobra.Command, args []string) error {

@@ -12,12 +12,25 @@ import (
 	"github.com/spf13/viper"
 )
 
+const parseDesc = `
+This command prints the internal representation of your input files.
+
+This can be useful in helping to write Rego policies. It is not always clear how 
+your input file will be represented in the Rego policies. The type of the input is inferred
+based on the file extension. If inference is not possible (e.g. due to the file coming from stdin)
+the '--input' flag can be used to explicitly set the input type, e.g.:
+
+	$ conftest parse --input toml <input-file(s)>
+
+See the documentation of the '--input' flag for the supported input types.
+`
 // NewParseCommand creates a parse command.
 // This command can be used for printing structured inputs from unstructured configuration inputs.
 func NewParseCommand(ctx context.Context) *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "parse [file...]",
 		Short: "Print out structured data from your input files",
+		Long: parseDesc,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			err := viper.BindPFlag("input", cmd.Flags().Lookup("input"))
 			if err != nil {
