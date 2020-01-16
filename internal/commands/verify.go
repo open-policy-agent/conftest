@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/instrumenta/conftest/policy"
@@ -59,7 +58,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "verify",
 		Short: "Verify Rego unit tests",
-		Long: verifyDesc,
+		Long:  verifyDesc,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			flagNames := []string{"output", "trace", "data"}
 			for _, name := range flagNames {
@@ -140,7 +139,6 @@ func runVerification(ctx context.Context, path string, trace bool) ([]CheckResul
 	var results []CheckResult
 	for result := range ch {
 		msg := fmt.Errorf("%s", result.Package+"."+result.Name)
-		fileName := filepath.Join(path, result.Location.File)
 
 		var failure []Result
 		var success []Result
@@ -167,7 +165,7 @@ func runVerification(ctx context.Context, path string, trace bool) ([]CheckResul
 		}
 
 		result := CheckResult{
-			FileName:  fileName,
+			FileName:  result.Location.File,
 			Successes: success,
 			Failures:  failure,
 		}
