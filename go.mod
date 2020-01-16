@@ -5,6 +5,7 @@ go 1.13
 require (
 	cuelang.org/go v0.0.15
 	github.com/BurntSushi/toml v0.3.1
+	github.com/KeisukeYamashita/go-vcl v0.4.0
 	github.com/basgys/goxml2json v1.1.0
 	github.com/containerd/containerd v1.3.2
 	github.com/deislabs/oras v0.8.0

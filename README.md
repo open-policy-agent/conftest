@@ -31,6 +31,7 @@ As of today `conftest` supports:
 * Dockerfile
 * HCL2 (Experimental)
 * EDN
+* VCL
 * XML
 
 Policies by default should be placed in a directory
@@ -274,6 +275,7 @@ You can find examples using various other tools in the `examples` directory, inc
 * [Terraform](examples/terraform)
 * [Traefik](examples/traefik)
 * [Typescript](examples/ts)
+* [VCL](examples/vcl)
 * [XML](examples/xml)
 
 ## Configuration and external policies

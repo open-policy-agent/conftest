@@ -13,6 +13,7 @@ import (
 	"github.com/instrumenta/conftest/parser/ini"
 	"github.com/instrumenta/conftest/parser/terraform"
 	"github.com/instrumenta/conftest/parser/toml"
+	"github.com/instrumenta/conftest/parser/vcl"
 	"github.com/instrumenta/conftest/parser/xml"
 	"github.com/instrumenta/conftest/parser/yaml"
 )
@@ -28,6 +29,7 @@ func ValidInputs() []string {
 		"yml|yaml|json",
 		"Dockerfile",
 		"edn",
+		"vcl",
 		"xml",
 	}
 }
@@ -121,6 +123,8 @@ func GetParser(fileType string) (Parser, error) {
 		return &yaml.Parser{}, nil
 	case "edn":
 		return &edn.Parser{}, nil
+	case "vcl":
+		return &vcl.Parser{}, nil
 	case "xml":
 		return &xml.Parser{}, nil
 	default:
