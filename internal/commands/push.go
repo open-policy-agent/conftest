@@ -29,6 +29,10 @@ Optionally, a tag can be specified, e.g.:
 
 	$ conftest push instrumenta.azurecr.io/my-registry:v1
 
+Optionally, specific directory can be passed as second argument, e.g.:
+
+	$ conftest push instrumenta.azurecr.io/my-registry:v1 /path/to/dir
+
 If no tag is passed, by default, conftest uses the 'latest' tag. The policies can be retrieved
 using the pull command, e.g.:
 
