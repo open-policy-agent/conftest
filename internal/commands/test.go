@@ -73,8 +73,8 @@ the output will include a detailed trace of how the policy was evaluated, e.g.
 `
 
 var (
-	denyQ                 = regexp.MustCompile("^(deny|violation)(_[a-zA-Z]+)*$")
-	warnQ                 = regexp.MustCompile("^warn(_[a-zA-Z]+)*$")
+	denyQ                 = regexp.MustCompile("^(deny|violation)(_[a-zA-Z0-9]+)*$")
+	warnQ                 = regexp.MustCompile("^warn(_[a-zA-Z0-9]+)*$")
 	combineConfigFlagName = "combine"
 )
 

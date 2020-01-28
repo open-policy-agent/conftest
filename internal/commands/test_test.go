@@ -20,6 +20,7 @@ func TestWarnQuery(t *testing.T) {
 		{"warnXYZ", false},
 		{"warn_", false},
 		{"warn_x", true},
+		{"warn_1", true},
 		{"warn_x_y_z", true},
 	}
 
@@ -48,6 +49,8 @@ func TestFailQuery(t *testing.T) {
 		{"violation_", false},
 		{"deny_x", true},
 		{"violation_x", true},
+		{"deny_1", true},
+		{"violation_1", true},
 		{"deny_x_y_z", true},
 		{"violation_x_y_z", true},
 	}
