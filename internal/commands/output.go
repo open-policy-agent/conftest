@@ -126,7 +126,7 @@ type jsonCheckResult struct {
 type jsonOutputManager struct {
 	logger *log.Logger
 
-	data jsonCheckResult
+	data []jsonCheckResult
 }
 
 func NewDefaultJSONOutputManager() *jsonOutputManager {
@@ -156,7 +156,7 @@ func (j *jsonOutputManager) Put(cr CheckResult) error {
 		cr.FileName = ""
 	}
 
-	j.data = jsonCheckResult{
+	result := jsonCheckResult{
 		Filename:  cr.FileName,
 		Warnings:  []jsonResult{},
 		Failures:  []jsonResult{},
@@ -165,12 +165,12 @@ func (j *jsonOutputManager) Put(cr CheckResult) error {
 
 	for _, warning := range cr.Warnings {
 		if len(warning.Traces) > 0 {
-			j.data.Warnings = append(j.data.Warnings, jsonResult{
+			result.Warnings = append(result.Warnings, jsonResult{
 				Message: warning.Message.Error(),
 				Traces:  errsToStrings(warning.Traces),
 			})
 		} else {
-			j.data.Warnings = append(j.data.Warnings, jsonResult{
+			result.Warnings = append(result.Warnings, jsonResult{
 				Message: warning.Message.Error(),
 			})
 		}
@@ -178,12 +178,12 @@ func (j *jsonOutputManager) Put(cr CheckResult) error {
 
 	for _, failure := range cr.Failures {
 		if len(failure.Traces) > 0 {
-			j.data.Failures = append(j.data.Failures, jsonResult{
+			result.Failures = append(result.Failures, jsonResult{
 				Message: failure.Message.Error(),
 				Traces:  errsToStrings(failure.Traces),
 			})
 		} else {
-			j.data.Failures = append(j.data.Failures, jsonResult{
+			result.Failures = append(result.Failures, jsonResult{
 				Message: failure.Message.Error(),
 			})
 		}
@@ -191,16 +191,18 @@ func (j *jsonOutputManager) Put(cr CheckResult) error {
 
 	for _, successes := range cr.Successes {
 		if len(successes.Traces) > 0 {
-			j.data.Successes = append(j.data.Successes, jsonResult{
+			result.Successes = append(result.Successes, jsonResult{
 				Message: successes.Message.Error(),
 				Traces:  errsToStrings(successes.Traces),
 			})
 		} else {
-			j.data.Successes = append(j.data.Successes, jsonResult{
+			result.Successes = append(result.Successes, jsonResult{
 				Message: successes.Message.Error(),
 			})
 		}
 	}
+
+	j.data = append(j.data, result)
 
 	return nil
 }

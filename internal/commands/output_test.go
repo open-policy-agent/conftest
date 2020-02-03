@@ -91,12 +91,14 @@ func Test_jsonOutputManager_put(t *testing.T) {
 			args: args{
 				cr: CheckResult{FileName: "examples/kubernetes/service.yaml"},
 			},
-			exp: `{
-	"filename": "examples/kubernetes/service.yaml",
-	"warnings": [],
-	"failures": [],
-	"successes": []
-}
+			exp: `[
+	{
+		"filename": "examples/kubernetes/service.yaml",
+		"warnings": [],
+		"failures": [],
+		"successes": []
+	}
+]
 `,
 		},
 		{
@@ -114,20 +116,22 @@ func Test_jsonOutputManager_put(t *testing.T) {
 						}},
 				},
 			},
-			exp: `{
-	"filename": "examples/kubernetes/service.yaml",
-	"warnings": [
-		{
-			"message": "first warning"
-		}
-	],
-	"failures": [
-		{
-			"message": "first failure"
-		}
-	],
-	"successes": []
-}
+			exp: `[
+	{
+		"filename": "examples/kubernetes/service.yaml",
+		"warnings": [
+			{
+				"message": "first warning"
+			}
+		],
+		"failures": [
+			{
+				"message": "first failure"
+			}
+		],
+		"successes": []
+	}
+]
 `,
 		},
 		{
@@ -141,16 +145,18 @@ func Test_jsonOutputManager_put(t *testing.T) {
 						}},
 				},
 			},
-			exp: `{
-	"filename": "examples/kubernetes/service.yaml",
-	"warnings": [],
-	"failures": [
-		{
-			"message": "first failure"
-		}
-	],
-	"successes": []
-}
+			exp: `[
+	{
+		"filename": "examples/kubernetes/service.yaml",
+		"warnings": [],
+		"failures": [
+			{
+				"message": "first failure"
+			}
+		],
+		"successes": []
+	}
+]
 `,
 		},
 		{
@@ -163,16 +169,18 @@ func Test_jsonOutputManager_put(t *testing.T) {
 							Message: errors.New("first failure"),
 						}}},
 			},
-			exp: `{
-	"filename": "",
-	"warnings": [],
-	"failures": [
-		{
-			"message": "first failure"
-		}
-	],
-	"successes": []
-}
+			exp: `[
+	{
+		"filename": "",
+		"warnings": [],
+		"failures": [
+			{
+				"message": "first failure"
+			}
+		],
+		"successes": []
+	}
+]
 `,
 		},
 	}
