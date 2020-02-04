@@ -78,7 +78,7 @@ func Test_stdOutputManager_put(t *testing.T) {
 func Test_jsonOutputManager_put(t *testing.T) {
 	type args struct {
 		fileName string
-		cr       CheckResult
+		crs      []CheckResult
 	}
 
 	tests := []struct {
@@ -89,7 +89,7 @@ func Test_jsonOutputManager_put(t *testing.T) {
 		{
 			msg: "no Warnings or errors",
 			args: args{
-				cr: CheckResult{FileName: "examples/kubernetes/service.yaml"},
+				crs: []CheckResult{{FileName: "examples/kubernetes/service.yaml"}},
 			},
 			exp: `[
 	{
@@ -104,7 +104,7 @@ func Test_jsonOutputManager_put(t *testing.T) {
 		{
 			msg: "records failure and Warnings",
 			args: args{
-				cr: CheckResult{
+				crs: []CheckResult{{
 					FileName: "examples/kubernetes/service.yaml",
 					Warnings: []Result{
 						Result{
@@ -114,7 +114,7 @@ func Test_jsonOutputManager_put(t *testing.T) {
 						Result{
 							Message: errors.New("first failure"),
 						}},
-				},
+				}},
 			},
 			exp: `[
 	{
@@ -137,13 +137,13 @@ func Test_jsonOutputManager_put(t *testing.T) {
 		{
 			msg: "mixed failure and Warnings",
 			args: args{
-				cr: CheckResult{
+				crs: []CheckResult{{
 					FileName: "examples/kubernetes/service.yaml",
 					Failures: []Result{
 						Result{
 							Message: errors.New("first failure"),
 						}},
-				},
+				}},
 			},
 			exp: `[
 	{
@@ -163,11 +163,11 @@ func Test_jsonOutputManager_put(t *testing.T) {
 			msg: "handles stdin input",
 			args: args{
 				fileName: "-",
-				cr: CheckResult{
+				crs: []CheckResult{{
 					Failures: []Result{
 						Result{
 							Message: errors.New("first failure"),
-						}}},
+						}}}},
 			},
 			exp: `[
 	{
@@ -183,14 +183,40 @@ func Test_jsonOutputManager_put(t *testing.T) {
 ]
 `,
 		},
+		{
+			msg: "multiple check results",
+			args: args{
+				crs: []CheckResult{
+					{FileName: "examples/kubernetes/service.yaml"},
+					{FileName: "examples/kubernetes/deployment.yaml"},
+				},
+			},
+			exp: `[
+	{
+		"filename": "examples/kubernetes/service.yaml",
+		"warnings": [],
+		"failures": [],
+		"successes": []
+	},
+	{
+		"filename": "examples/kubernetes/deployment.yaml",
+		"warnings": [],
+		"failures": [],
+		"successes": []
+	}
+]
+`,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.msg, func(t *testing.T) {
 			buf := new(bytes.Buffer)
 			s := NewJSONOutputManager(log.New(buf, "", 0))
 
-			if err := s.Put(tt.args.cr); err != nil {
-				t.Fatalf("put output: %v", err)
+			for _, cr := range tt.args.crs {
+				if err := s.Put(cr); err != nil {
+					t.Fatalf("put output: %v", err)
+				}
 			}
 
 			if err := s.Flush(); err != nil {
