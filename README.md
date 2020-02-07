@@ -457,6 +457,11 @@ TRAC - deployment.yaml - | Redo data.main.deny = _
 
 </details>
 
+
+## Plugins
+
+Conftest supports a plugin system to allow for extensions to conftest without editing the codebase. See the [plugin documentation](docs/plugin.md) for more details
+
 ## Installation
 
 `conftest` releases are available for Windows, macOS and Linux on the [releases page](https://github.com/instrumenta/conftest/releases).

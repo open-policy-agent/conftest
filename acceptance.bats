@@ -266,3 +266,10 @@
   [ "$status" -eq 1 ]
   [[ "$output" =~ "No images tagged latest" ]]
 }
+
+@test "Can download or symlink plugins" {
+  run ./conftest plugin install examples/plugins/kubectl/
+  [ "$status" -eq 0 ]
+  run ./conftest kubectl
+  [ "$status" -eq 0 ]
+}

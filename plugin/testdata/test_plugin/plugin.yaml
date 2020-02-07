@@ -1,0 +1,6 @@
+name: "test"
+version: "0.1.0"
+usage: short description
+description: |-
+  long description
+command: command

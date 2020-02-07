@@ -54,6 +54,14 @@ func NewDefaultCommand() *cobra.Command {
 	cmd.AddCommand(NewPushCommand(ctx, logger))
 	cmd.AddCommand(NewPullCommand(ctx))
 	cmd.AddCommand(NewVerifyCommand(ctx))
+	cmd.AddCommand(NewPluginCommand(ctx))
+
+	pluginCmds, err := loadPlugins(ctx)
+	if err != nil {
+		logger.Fatalf("error loading plugins: %v", err)
+	}
+
+	cmd.AddCommand(pluginCmds...)
 
 	return &cmd
 }
