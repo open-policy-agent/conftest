@@ -1,0 +1,7 @@
+name: "kubectl"
+version: "0.1.0"
+usage: conftest kubectl (TYPE[.VERSION][.GROUP] [NAME] | TYPE[.VERSION][.GROUP]/NAME).
+description: |-
+  A Conftest plugin for using Kubectl to test objects in Kubernetes using Open Policy Agent.
+  Usage: conftest kubectl (TYPE[.VERSION][.GROUP] [NAME] | TYPE[.VERSION][.GROUP]/NAME).
+command: $CONFTEST_PLUGIN_DIR/kubectl-conftest.sh
