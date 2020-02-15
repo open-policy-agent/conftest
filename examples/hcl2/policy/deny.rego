@@ -1,26 +1,25 @@
 package main
 
-
-deny[msg] {
-  not input["resource.aws_elastic_beanstalk_environment.example"].application = "testing"
-  msg = "Application is should be `testing`"
+has_field(obj, field) {
+    obj[field]
 }
 
 deny[msg] {
-  not input["resource.aws_elastic_beanstalk_environment.example"].application = "staging_environment"
-  msg = "Application environment is should be `staging_environment`"
+    proto := input.resource.aws_alb_listener[lb].protocol
+    proto == "HTTP"
+    msg = sprintf("ALB `%v` is using HTTP rather than HTTPS", [lb])
 }
 
 deny[msg] {
-  output := sprintf("%s", [input["resource.aws_elastic_beanstalk_environment.example"].setting])
-  status = contains(output, "\"namespace\": \"aws:autoscaling:asg\"")
-  not status
-  msg = "The namespace should defined as `aws:autoscaling:asg`"
+    rule := input.resource.aws_security_group_rule[name]
+    rule.type == "ingress"
+    contains(rule.cidr_blocks, "0.0.0.0/0") 
+    msg = sprintf("ASG `%v` defines a fully open ingress", [name])
 }
 
 deny[msg] {
-  output := input["resource.aws_elastic_beanstalk_environment.example"]["dynamic.setting"].for_each
-  status = contains(output, "${data.consul_key_prefix.environment.var}")
-  not status
-  msg = "aws_elastic_beanstalk_environment dynamic.setting should contains a valid `for_each` `equals to data.consul_key_prefix.environment.var`"
+    disk = input.resource.azurerm_managed_disk[name]
+    has_field(disk, "encryption_settings")
+    disk.encryption_settings.enabled != true
+    msg = sprintf("Azure disk `%v` is not encrypted", [name])
 }

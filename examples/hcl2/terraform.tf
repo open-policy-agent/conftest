@@ -1,34 +1,19 @@
-data "consul_key_prefix" "environment" {
-  path = "apps/example/env"
+resource "aws_security_group_rule" "my-rule" {
+    type        = "ingress"
+    cidr_blocks = ["0.0.0.0/0"]
 }
 
-resource "aws_elastic_beanstalk_environment" "example" {
-  name        = "test_environment"
-  application = "testing"
-
-  setting {
-    namespace = "aws:autoscaling:asg"
-    name      = "MinSize"
-    value     = "1"
-  }
-
-  dynamic "setting" {
-    for_each = data.consul_key_prefix.environment.var
-    content {
-      namespace = "aws:elasticbeanstalk:application:environment"
-      name      = setting.key
-      value     = setting.value
-    }
-  }
+resource "aws_alb_listener" "my-alb-listener"{
+    port     = "80"
+    protocol = "HTTP"
 }
 
-output "environment" {
-  value = {
-    id           = aws_elastic_beanstalk_environment.example.id
-    vpc_settings = {
-      for s in aws_elastic_beanstalk_environment.example.all_settings :
-      s.name => s.value
-      if s.namespace == "aws:ec2:vpc"
+resource "aws_db_security_group" "my-group" {
+
+}
+
+resource "azurerm_managed_disk" "source" {
+    encryption_settings {
+        enabled = false
     }
-  }
 }
