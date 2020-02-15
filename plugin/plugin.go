@@ -176,7 +176,8 @@ func FindPlugins() ([]*Plugin, error) {
 
 	for _, file := range files {
 		if file.IsDir() {
-			plugin, err := LoadPlugin(file.Name())
+			path := filepath.Join(pluginsCacheDirPath, file.Name())
+			plugin, err := LoadPlugin(path)
 			if err != nil {
 				return nil, fmt.Errorf("load plugin from cache directory: %w", err)
 			}
