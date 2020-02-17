@@ -168,7 +168,7 @@
 @test "Can parse hcl2 files" {
   run ./conftest test -p examples/hcl2/policy examples/hcl2/terraform.tf -i hcl2
   [ "$status" -eq 1 ]
-  [[ "$output" =~ "Application environment is should be `staging_environment`" ]]
+  [[ "$output" =~ "ALB \`my-alb-listener\` is using HTTP rather than HTTP" ]]
 }
 
 @test "Can parse stdin with input flag" {

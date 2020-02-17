@@ -54,16 +54,36 @@ func (c *converter) convertBody(body *hclsyntax.Body) (jsonObj, error) {
 
 func (c *converter) convertBlock(block *hclsyntax.Block, out jsonObj) error {
 	var key string = block.Type
-
-	for _, label := range block.Labels {
-		key = fmt.Sprintf("%s.%s", key, label)
-	}
-
 	value, err := c.convertBody(block.Body)
 	if err != nil {
 		return err
 	}
-	out[key] = value
+
+	for _, label := range block.Labels {
+		if inner, exists := out[key]; exists {
+			var ok bool
+			out, ok = inner.(jsonObj)
+			if !ok {
+				return fmt.Errorf("Unable to convert Block to JSON: %v.%v", block.Type, strings.Join(block.Labels, "."))
+			}
+		} else {
+			obj := make(jsonObj)
+			out[key] = obj
+			out = obj
+		}
+		key = label
+	}
+
+	if current, exists := out[key]; exists {
+		if list, ok := current.([]interface{}); ok {
+			out[key] = append(list, value)
+		} else {
+			out[key] = []interface{}{current, value}
+		}
+	} else {
+		out[key] = value
+	}
+
 	return nil
 }
 

@@ -85,7 +85,9 @@ For the available parsers, take a look at: [parsers](parser). For instance:
 
 ```console
 $ conftest test -p examples/hcl2/policy examples/hcl2/terraform.tf -i hcl2
-FAIL - examples/hcl2/terraform.tf - Application environment is should be `staging_environment`
+FAIL - examples/hcl2/terraform.tf - ALB `my-alb-listener` is using HTTP rather than HTTPS
+FAIL - examples/hcl2/terraform.tf - ASG `my-rule` defines a fully open ingress
+FAIL - examples/hcl2/terraform.tf - Azure disk `source` is not encrypte
 ```
 
 The `--input` flag can also be a good way to see how different input types would be parsed:
