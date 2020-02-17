@@ -98,7 +98,8 @@ type CheckResult struct {
 func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "test <file> [file...]",
-		Short: testDesc,
+		Short: "Test your configuration files using Open Policy Agent",
+		Long:  testDesc,
 		Args:  cobra.MinimumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			flagNames := []string{"fail-on-warn", "update", combineConfigFlagName, "trace", "output", "input", "namespace", "data"}
