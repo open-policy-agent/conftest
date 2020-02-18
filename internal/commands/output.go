@@ -111,8 +111,8 @@ func (s *stdOutputManager) Flush() error {
 }
 
 type jsonResult struct {
-	Message string   `json:"message"`
-	Traces  []string `json:"traces,omitempty"`
+	Message map[string]interface{} `json:"message"`
+	Traces  []string               `json:"traces,omitempty"`
 }
 
 type jsonCheckResult struct {
@@ -151,7 +151,6 @@ func errsToStrings(errs []error) []string {
 }
 
 func (j *jsonOutputManager) Put(cr CheckResult) error {
-
 	if cr.FileName == "-" {
 		cr.FileName = ""
 	}
@@ -166,12 +165,12 @@ func (j *jsonOutputManager) Put(cr CheckResult) error {
 	for _, warning := range cr.Warnings {
 		if len(warning.Traces) > 0 {
 			result.Warnings = append(result.Warnings, jsonResult{
-				Message: warning.Error(),
-				Traces:  errsToStrings(warning.Traces),
+				Message: warning.Message,
+				Traces:  errsToStrings(warning.Traces), // need json result here? create new type thing?? etcetc
 			})
 		} else {
 			result.Warnings = append(result.Warnings, jsonResult{
-				Message: warning.Error(),
+				Message: warning.Message,
 			})
 		}
 	}
@@ -179,12 +178,12 @@ func (j *jsonOutputManager) Put(cr CheckResult) error {
 	for _, failure := range cr.Failures {
 		if len(failure.Traces) > 0 {
 			result.Failures = append(result.Failures, jsonResult{
-				Message: failure.Error(),
+				Message: failure.Message,
 				Traces:  errsToStrings(failure.Traces),
 			})
 		} else {
 			result.Failures = append(result.Failures, jsonResult{
-				Message: failure.Error(),
+				Message: failure.Message,
 			})
 		}
 	}
@@ -192,12 +191,12 @@ func (j *jsonOutputManager) Put(cr CheckResult) error {
 	for _, successes := range cr.Successes {
 		if len(successes.Traces) > 0 {
 			result.Successes = append(result.Successes, jsonResult{
-				Message: successes.Error(),
+				Message: successes.Message,
 				Traces:  errsToStrings(successes.Traces),
 			})
 		} else {
 			result.Successes = append(result.Successes, jsonResult{
-				Message: successes.Error(),
+				Message: successes.Message,
 			})
 		}
 	}
@@ -311,7 +310,6 @@ func NewTableOutputManager(w io.Writer) *tableOutputManager {
 }
 
 func (s *tableOutputManager) Put(cr CheckResult) error {
-
 	printResults := func(r Result, prefix string, filename string) {
 		d := []string{prefix, filename, r.Error()}
 		s.table.Append(d)

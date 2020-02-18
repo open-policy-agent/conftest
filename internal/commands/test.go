@@ -389,6 +389,8 @@ func runQuery(ctx context.Context, query string, input interface{}, compiler *as
 						errs = append(errs, result)
 					}
 				}
+			} else {
+				successes = append(successes, NewResult(expression.Text, traces))
 			}
 		}
 	}
