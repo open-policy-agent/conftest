@@ -80,12 +80,12 @@ var (
 
 // Result describes the result of a single rule evaluation.
 type Result struct {
-	Message map[string]interface{}
-	Traces  []error
+	Info   map[string]interface{}
+	Traces []error
 }
 
 func (r Result) Error() string {
-	return r.Message["msg"].(string)
+	return r.Info["msg"].(string)
 }
 
 // CheckResult describes the result of a conftest evaluation.
@@ -100,8 +100,8 @@ type CheckResult struct {
 
 func NewResult(message string, traces []error) Result {
 	result := Result{
-		Message: map[string]interface{}{"msg": message},
-		Traces:  traces,
+		Info:   map[string]interface{}{"msg": message},
+		Traces: traces,
 	}
 
 	return result
@@ -377,14 +377,15 @@ func runQuery(ctx context.Context, query string, input interface{}, compiler *as
 						errs = append(errs, NewResult(val, traces))
 					case map[string]interface{}:
 						if _, ok := val["msg"]; !ok {
-							return nil, nil, fmt.Errorf("rule missing msg field: %w", val)
+							return nil, nil, fmt.Errorf("rule missing msg field: %v", val)
 						}
 						if _, ok := val["msg"].(string); !ok {
-							return nil, nil, fmt.Errorf("msg field must be string: %w", val)
+							return nil, nil, fmt.Errorf("msg field must be string: %v", val)
 						}
+
 						result := NewResult(val["msg"].(string), traces)
 						for k, v := range val {
-							result.Message[k] = v
+							result.Info[k] = v
 						}
 						errs = append(errs, result)
 					}

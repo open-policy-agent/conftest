@@ -2,7 +2,6 @@ package commands
 
 import (
 	"bytes"
-	"errors"
 	"log"
 	"reflect"
 	"strings"
@@ -27,14 +26,8 @@ func Test_stdOutputManager_put(t *testing.T) {
 			args: args{
 				cr: CheckResult{
 					FileName: "foo.yaml",
-					Warnings: []Result{
-						Result{
-							Message: errors.New("first warning"),
-						}},
-					Failures: []Result{
-						Result{
-							Message: errors.New("first failure"),
-						}},
+					Warnings: []Result{NewResult("first warning", []error{})},
+					Failures: []Result{NewResult("first failure", []error{})},
 				},
 			},
 			exp: []string{"WARN - foo.yaml - first warning", "FAIL - foo.yaml - first failure"},
@@ -44,14 +37,8 @@ func Test_stdOutputManager_put(t *testing.T) {
 			args: args{
 				cr: CheckResult{
 					FileName: "-",
-					Warnings: []Result{
-						Result{
-							Message: errors.New("first warning"),
-						}},
-					Failures: []Result{
-						Result{
-							Message: errors.New("first failure"),
-						}},
+					Warnings: []Result{NewResult("first warning", []error{})},
+					Failures: []Result{NewResult("first failure", []error{})},
 				},
 			},
 			exp: []string{"WARN - first warning", "FAIL - first failure"},
@@ -106,14 +93,8 @@ func Test_jsonOutputManager_put(t *testing.T) {
 			args: args{
 				crs: []CheckResult{{
 					FileName: "examples/kubernetes/service.yaml",
-					Warnings: []Result{
-						Result{
-							Message: errors.New("first warning"),
-						}},
-					Failures: []Result{
-						Result{
-							Message: errors.New("first failure"),
-						}},
+					Warnings: []Result{NewResult("first warning", []error{})},
+					Failures: []Result{NewResult("first failure", []error{})},
 				}},
 			},
 			exp: `[
@@ -121,12 +102,16 @@ func Test_jsonOutputManager_put(t *testing.T) {
 		"filename": "examples/kubernetes/service.yaml",
 		"warnings": [
 			{
-				"message": "first warning"
+				"info": {
+					"msg": "first warning"
+				}
 			}
 		],
 		"failures": [
 			{
-				"message": "first failure"
+				"info": {
+					"msg": "first failure"
+				}
 			}
 		],
 		"successes": []
@@ -139,10 +124,7 @@ func Test_jsonOutputManager_put(t *testing.T) {
 			args: args{
 				crs: []CheckResult{{
 					FileName: "examples/kubernetes/service.yaml",
-					Failures: []Result{
-						Result{
-							Message: errors.New("first failure"),
-						}},
+					Failures: []Result{NewResult("first failure", []error{})},
 				}},
 			},
 			exp: `[
@@ -151,7 +133,9 @@ func Test_jsonOutputManager_put(t *testing.T) {
 		"warnings": [],
 		"failures": [
 			{
-				"message": "first failure"
+				"info": {
+					"msg": "first failure"
+				}
 			}
 		],
 		"successes": []
@@ -164,10 +148,8 @@ func Test_jsonOutputManager_put(t *testing.T) {
 			args: args{
 				fileName: "-",
 				crs: []CheckResult{{
-					Failures: []Result{
-						Result{
-							Message: errors.New("first failure"),
-						}}}},
+					Failures: []Result{NewResult("first failure", []error{})}},
+				},
 			},
 			exp: `[
 	{
@@ -175,7 +157,9 @@ func Test_jsonOutputManager_put(t *testing.T) {
 		"warnings": [],
 		"failures": [
 			{
-				"message": "first failure"
+				"info": {
+					"msg": "first failure"
+				}
 			}
 		],
 		"successes": []
@@ -303,14 +287,8 @@ func Test_tapOutputManager_put(t *testing.T) {
 			args: args{
 				cr: CheckResult{
 					FileName: "examples/kubernetes/service.yaml",
-					Warnings: []Result{
-						Result{
-							Message: errors.New("first warning"),
-						}},
-					Failures: []Result{
-						Result{
-							Message: errors.New("first failure"),
-						}},
+					Warnings: []Result{NewResult("first warning", []error{})},
+					Failures: []Result{NewResult("first failure", []error{})},
 				},
 			},
 			exp: `1..2
@@ -324,10 +302,8 @@ not ok 2 - examples/kubernetes/service.yaml - first warning
 			args: args{
 				cr: CheckResult{
 					FileName: "examples/kubernetes/service.yaml",
-					Failures: []Result{
-						Result{
-							Message: errors.New("first failure"),
-						}}},
+					Failures: []Result{NewResult("first failure", []error{})},
+				},
 			},
 			exp: `1..1
 not ok 1 - examples/kubernetes/service.yaml - first failure
@@ -338,10 +314,8 @@ not ok 1 - examples/kubernetes/service.yaml - first failure
 			args: args{
 				cr: CheckResult{
 					FileName: "-",
-					Failures: []Result{
-						Result{
-							Message: errors.New("first failure"),
-						}}},
+					Failures: []Result{NewResult("first failure", []error{})},
+				},
 			},
 			exp: `1..1
 not ok 1 - first failure
@@ -395,14 +369,8 @@ func Test_tableOutputManager_put(t *testing.T) {
 			args: args{
 				cr: CheckResult{
 					FileName: "examples/kubernetes/service.yaml",
-					Warnings: []Result{
-						Result{
-							Message: errors.New("first warning"),
-						}},
-					Failures: []Result{
-						Result{
-							Message: errors.New("first failure"),
-						}},
+					Warnings: []Result{NewResult("first warning", []error{})},
+					Failures: []Result{NewResult("first failure", []error{})},
 				},
 			},
 			exp: `+---------+----------------------------------+---------------+

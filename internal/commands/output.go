@@ -84,7 +84,7 @@ func (s *stdOutputManager) Put(cr CheckResult) error {
 	}
 
 	printResults := func(r Result, prefix string, color aurora.Color) {
-		s.logger.Print(s.color.Colorize(prefix, color), indicator, r.Message)
+		s.logger.Print(s.color.Colorize(prefix, color), indicator, r.Info["msg"])
 		for _, t := range r.Traces {
 			s.logger.Print(s.color.Colorize("TRAC", aurora.BlueFg), indicator, t)
 		}
@@ -111,8 +111,8 @@ func (s *stdOutputManager) Flush() error {
 }
 
 type jsonResult struct {
-	Message map[string]interface{} `json:"message"`
-	Traces  []string               `json:"traces,omitempty"`
+	Info   map[string]interface{} `json:"info"`
+	Traces []string               `json:"traces,omitempty"`
 }
 
 type jsonCheckResult struct {
@@ -165,12 +165,12 @@ func (j *jsonOutputManager) Put(cr CheckResult) error {
 	for _, warning := range cr.Warnings {
 		if len(warning.Traces) > 0 {
 			result.Warnings = append(result.Warnings, jsonResult{
-				Message: warning.Message,
-				Traces:  errsToStrings(warning.Traces), // need json result here? create new type thing?? etcetc
+				Info:   warning.Info,
+				Traces: errsToStrings(warning.Traces),
 			})
 		} else {
 			result.Warnings = append(result.Warnings, jsonResult{
-				Message: warning.Message,
+				Info: warning.Info,
 			})
 		}
 	}
@@ -178,12 +178,12 @@ func (j *jsonOutputManager) Put(cr CheckResult) error {
 	for _, failure := range cr.Failures {
 		if len(failure.Traces) > 0 {
 			result.Failures = append(result.Failures, jsonResult{
-				Message: failure.Message,
-				Traces:  errsToStrings(failure.Traces),
+				Info:   failure.Info,
+				Traces: errsToStrings(failure.Traces),
 			})
 		} else {
 			result.Failures = append(result.Failures, jsonResult{
-				Message: failure.Message,
+				Info: failure.Info,
 			})
 		}
 	}
@@ -191,12 +191,12 @@ func (j *jsonOutputManager) Put(cr CheckResult) error {
 	for _, successes := range cr.Successes {
 		if len(successes.Traces) > 0 {
 			result.Successes = append(result.Successes, jsonResult{
-				Message: successes.Message,
-				Traces:  errsToStrings(successes.Traces),
+				Info:   successes.Info,
+				Traces: errsToStrings(successes.Traces),
 			})
 		} else {
 			result.Successes = append(result.Successes, jsonResult{
-				Message: successes.Message,
+				Info: successes.Info,
 			})
 		}
 	}
@@ -222,7 +222,6 @@ func (j *jsonOutputManager) Flush() error {
 	return nil
 }
 
-// tapOutputManager reports `conftest` results to stdout.
 type tapOutputManager struct {
 	logger *log.Logger
 }
@@ -242,7 +241,6 @@ func NewTAPOutputManager(l *log.Logger) *tapOutputManager {
 }
 
 func (s *tapOutputManager) Put(cr CheckResult) error {
-
 	var indicator string
 	if cr.FileName == "-" {
 		indicator = " - "
@@ -251,7 +249,7 @@ func (s *tapOutputManager) Put(cr CheckResult) error {
 	}
 
 	printResults := func(r Result, prefix string, counter int) {
-		s.logger.Print(prefix, counter, indicator, r.Message)
+		s.logger.Print(prefix, counter, indicator, r.Info["msg"])
 		if len(r.Traces) > 0 {
 			s.logger.Print("# Traces")
 			for j, t := range r.Traces {
