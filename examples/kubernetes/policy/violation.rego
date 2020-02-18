@@ -5,7 +5,6 @@ import data.kubernetes
 name = input.metadata.name
 
 violation[{"msg": msg, "details": {}}] {
-  kubernetes.is_service
-  input.spec.type == "LoadBalancer"
-  msg = sprintf("Service %s has type LoadBalancer which is not allowed", [name])
+  kubernetes.is_deployment
+  msg = sprintf("Found deployment %s but deployments are not allowed", [name])
 }
