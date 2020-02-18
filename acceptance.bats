@@ -260,9 +260,9 @@
   [[ "$output" =~ "PASS" ]]
 }
 
-
 @test "Can update policies in test command" {
   run ./conftest test --update https://raw.githubusercontent.com/instrumenta/conftest/master/examples/compose/policy/deny.rego examples/compose/docker-compose.yml
+  rm -rf policy/deny.rego
   [ "$status" -eq 1 ]
   [[ "$output" =~ "No images tagged latest" ]]
 }
