@@ -153,24 +153,18 @@ func runVerification(ctx context.Context, path string, trace bool) ([]CheckResul
 		}
 
 		if result.Fail {
-			failure = append(failure, Result{
-				Message: msg,
-				Traces:  traces,
-			})
+			failure = append(failure, NewResult(msg.Error(), traces))
 		} else {
-			success = append(success, Result{
-				Message: msg,
-				Traces:  traces,
-			})
+			success = append(success, NewResult(msg.Error(), traces))
 		}
 
-		result := CheckResult{
+		checkResult := CheckResult{
 			FileName:  result.Location.File,
 			Successes: success,
 			Failures:  failure,
 		}
 
-		results = append(results, result)
+		results = append(results, checkResult)
 	}
 
 	return results, nil
