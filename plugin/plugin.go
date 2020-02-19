@@ -163,7 +163,7 @@ func FindPlugins() ([]*Plugin, error) {
 		return nil, fmt.Errorf("fetch home path: %w", err)
 	}
 
-	pluginsCacheDirPath := filepath.Join(homePath, ConftestDir, PluginsCacheDir)
+	pluginsCacheDirPath := filepath.Join(homePath, conftestDir, pluginsCacheDir)
 	if _, err := os.Stat(pluginsCacheDirPath); os.IsNotExist(err) {
 		// No plugins, so just return the empty slice
 		return plugins, nil

@@ -12,7 +12,7 @@ import (
 func Download(ctx context.Context, url string) error {
 	homePath, err := fetchHomeDir()
 	if err != nil {
-		return fmt.Errorf("Fetch home path: %w", err)
+		return fmt.Errorf("fetch home path: %w", err)
 	}
 
 	cacheDirPath, err := createPluginCacheDir(homePath)
@@ -22,7 +22,7 @@ func Download(ctx context.Context, url string) error {
 
 	pwd, err := os.Getwd()
 	if err != nil {
-		return fmt.Errorf("detect plugin, could not fetch pwd: %w", err)
+		return fmt.Errorf("get working dir: %w", err)
 	}
 
 	sourcedURL, err := downloader.Detect(url, pwd)
@@ -32,7 +32,6 @@ func Download(ctx context.Context, url string) error {
 
 	pluginDirPath := getPluginDirPath(cacheDirPath, sourcedURL)
 	if checkIfURLInCache(pluginDirPath) {
-		// Plugin already loaded, return directly
 		return nil
 	}
 
