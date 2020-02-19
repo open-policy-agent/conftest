@@ -12,7 +12,7 @@ func TestLoadPlugin(t *testing.T) {
 	path := "testdata/test_plugin/"
 	plugin, err := LoadPlugin(path)
 	if err != nil {
-		t.Fatalf("Unexepected error loading plugin: %v", err)
+		t.Fatalf("Unexpected error loading plugin: %v", err)
 	}
 
 	expected := &MetaData{
@@ -88,13 +88,13 @@ func TestPlugin_Exec(t *testing.T) {
 			"Can execute a simple command",
 			&Plugin{
 				MetaData: &MetaData{
-					Command: Command("echo \"hello\""),
+					Command: Command("echo hello"),
 				},
 			},
 			[]string{},
 			[]string{},
 			[]string{
-				"\"hello\"",
+				"hello",
 			},
 			"",
 		},
@@ -117,7 +117,6 @@ func TestPlugin_Exec(t *testing.T) {
 				return
 			}
 
-			// Remove newlines out of stdout
 			processedStdOut := strings.Split(stdOut.String(), "\n")
 			if len(processedStdOut) > 0 {
 				processedStdOut = processedStdOut[:len(processedStdOut)-1]
