@@ -16,6 +16,7 @@ func loadPlugins(ctx context.Context) ([]*cobra.Command, error) {
 
 	var cmds []*cobra.Command
 	for _, plugin := range plugins {
+		plugin := plugin
 		metaData := plugin.MetaData
 		cmd := &cobra.Command{
 			Use:   metaData.Name,
