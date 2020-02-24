@@ -360,11 +360,3 @@ func (s *tableOutputManager) Flush() error {
 	}
 	return nil
 }
-
-func getTotalPoliciesChecked(checkResult CheckResult) int {
-	successes := len(checkResult.Successes)
-	warnings := len(checkResult.Warnings)
-	failures := len(checkResult.Failures)
-
-	return successes + warnings + failures
-}
