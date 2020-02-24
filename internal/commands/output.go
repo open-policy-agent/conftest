@@ -83,6 +83,12 @@ func (s *stdOutputManager) Put(cr CheckResult) error {
 		indicator = fmt.Sprintf(" - %s - ", cr.FileName)
 	}
 
+	totalPolicies := len(cr.Successes) + len(cr.Warnings) + len(cr.Failures)
+	if totalPolicies == 0 {
+		s.logger.Print(s.color.Colorize("?", aurora.WhiteFg), indicator, "no policies found")
+		return nil
+	}
+
 	printResults := func(r Result, prefix string, color aurora.Color) {
 		s.logger.Print(s.color.Colorize(prefix, color), indicator, r.Message)
 		for _, t := range r.Traces {
@@ -90,8 +96,18 @@ func (s *stdOutputManager) Put(cr CheckResult) error {
 		}
 	}
 
-	// print successes, warnings, errors and their traces
+	if len(cr.Successes) == 1 {
+		s.logger.Print(s.color.Colorize("PASS", aurora.GreenFg), indicator, cr.Successes[0].Message)
+	} else if len(cr.Successes) > 1 {
+		successMessage := fmt.Sprintf("%v/%v", len(cr.Successes), totalPolicies)
+		s.logger.Print(s.color.Colorize("PASS", aurora.GreenFg), indicator, successMessage)
+	}
+
 	for _, r := range cr.Successes {
+		if len(r.Traces) == 0 {
+			continue
+		}
+
 		printResults(r, "PASS", aurora.GreenFg)
 	}
 
@@ -343,4 +359,12 @@ func (s *tableOutputManager) Flush() error {
 		s.table.Render()
 	}
 	return nil
+}
+
+func getTotalPoliciesChecked(checkResult CheckResult) int {
+	successes := len(checkResult.Successes)
+	warnings := len(checkResult.Warnings)
+	failures := len(checkResult.Failures)
+
+	return successes + warnings + failures
 }
