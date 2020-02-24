@@ -96,9 +96,43 @@ func (c *converter) convertExpression(expr hclsyntax.Expression) (interface{}, e
 		return c.convertTemplate(value)
 	case *hclsyntax.TemplateWrapExpr:
 		return c.convertExpression(value.Wrapped)
+	case *hclsyntax.TupleConsExpr:
+		var list []interface{}
+		for _, ex := range value.Exprs {
+			elem, err := c.convertExpression(ex)
+			if err != nil {
+				return nil, err
+			}
+			list = append(list, elem)
+		}
+		return list, nil
+	case *hclsyntax.ObjectConsExpr:
+		m := make(jsonObj)
+		for _, item := range value.Items {
+			key, err := c.convertKey(item.KeyExpr)
+			if err != nil {
+				return nil, err
+			}
+			m[key], err = c.convertExpression(item.ValueExpr)
+			if err != nil {
+				return nil, err
+			}
+		}
+		return m, nil
 	default:
 		return c.wrapExpr(expr), nil
 	}
+}
+
+func (c *converter) convertKey(keyExpr hclsyntax.Expression) (string, error) {
+	// a key should never have dynamic input
+	if k, isKeyExpr := keyExpr.(*hclsyntax.ObjectConsKeyExpr); isKeyExpr {
+		keyExpr = k.Wrapped
+		if _, isTraversal := keyExpr.(*hclsyntax.ScopeTraversalExpr); isTraversal {
+			return c.rangeSource(keyExpr.Range()), nil
+		}
+	}
+	return c.convertStringPart(keyExpr)
 }
 
 func (c *converter) convertTemplate(t *hclsyntax.TemplateExpr) (string, error) {
