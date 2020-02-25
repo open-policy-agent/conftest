@@ -56,8 +56,9 @@ type OutputManager interface {
 }
 
 type stdOutputManager struct {
-	logger *log.Logger
-	color  aurora.Aurora
+	logger  *log.Logger
+	color   aurora.Aurora
+	results []CheckResult
 }
 
 // NewDefaultStdOutputManager instantiates a new instance of stdOutputManager
@@ -76,53 +77,64 @@ func NewStdOutputManager(l *log.Logger, color bool) *stdOutputManager {
 }
 
 func (s *stdOutputManager) Put(cr CheckResult) error {
-	var indicator string
-	if cr.FileName == "-" {
-		indicator = " - "
-	} else {
-		indicator = fmt.Sprintf(" - %s - ", cr.FileName)
-	}
-
-	totalPolicies := len(cr.Successes) + len(cr.Warnings) + len(cr.Failures)
-	if totalPolicies == 0 {
-		s.logger.Print(s.color.Colorize("?", aurora.WhiteFg), indicator, "no policies found")
-		return nil
-	}
-
-	printResults := func(r Result, prefix string, color aurora.Color) {
-		s.logger.Print(s.color.Colorize(prefix, color), indicator, r.Message)
-		for _, t := range r.Traces {
-			s.logger.Print(s.color.Colorize("TRAC", aurora.BlueFg), indicator, t)
-		}
-	}
-
-	if len(cr.Successes) == 1 {
-		s.logger.Print(s.color.Colorize("PASS", aurora.GreenFg), indicator, cr.Successes[0].Message)
-	} else if len(cr.Successes) > 1 {
-		successMessage := fmt.Sprintf("%v/%v", len(cr.Successes), totalPolicies)
-		s.logger.Print(s.color.Colorize("PASS", aurora.GreenFg), indicator, successMessage)
-	}
-
-	for _, r := range cr.Successes {
-		if len(r.Traces) == 0 {
-			continue
-		}
-
-		printResults(r, "PASS", aurora.GreenFg)
-	}
-
-	for _, r := range cr.Warnings {
-		printResults(r, "WARN", aurora.YellowFg)
-	}
-
-	for _, r := range cr.Failures {
-		printResults(r, "FAIL", aurora.RedFg)
-	}
-
+	s.results = append(s.results, cr)
 	return nil
 }
 
 func (s *stdOutputManager) Flush() error {
+	var totalPolicies int
+	var totalFailures int
+	var totalWarnings int
+	var totalSuccesses int
+
+	for _, cr := range s.results {
+		var indicator string
+		if cr.FileName == "-" {
+			indicator = " - "
+		} else {
+			indicator = fmt.Sprintf(" - %s - ", cr.FileName)
+		}
+
+		currentPolicies := len(cr.Successes) + len(cr.Warnings) + len(cr.Failures)
+		if currentPolicies == 0 {
+			s.logger.Print(s.color.Colorize("?", aurora.WhiteFg), indicator, "no policies found")
+			continue
+		}
+
+		printResults := func(r Result, prefix string, color aurora.Color) {
+			s.logger.Print(s.color.Colorize(prefix, color), indicator, r.Message)
+			for _, t := range r.Traces {
+				s.logger.Print(s.color.Colorize("TRAC", aurora.BlueFg), indicator, t)
+			}
+		}
+
+		for _, r := range cr.Successes {
+			if len(r.Traces) == 0 {
+				continue
+			}
+
+			printResults(r, "PASS", aurora.GreenFg)
+		}
+
+		for _, r := range cr.Warnings {
+			printResults(r, "WARN", aurora.YellowFg)
+		}
+
+		for _, r := range cr.Failures {
+			printResults(r, "FAIL", aurora.RedFg)
+		}
+
+		totalPolicies += currentPolicies
+		totalFailures += len(cr.Failures)
+		totalWarnings += len(cr.Warnings)
+		totalSuccesses += len(cr.Successes)
+	}
+
+	s.logger.Print("--------------------------------------------------------------------------------")
+	s.logger.Print("PASS: ", totalSuccesses, "/", totalPolicies)
+	s.logger.Print("WARN: ", totalWarnings, "/", totalPolicies)
+	s.logger.Print("FAIL: ", totalFailures, "/", totalPolicies)
+
 	return nil
 }
 
