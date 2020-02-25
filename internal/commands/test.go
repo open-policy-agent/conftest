@@ -80,12 +80,13 @@ var (
 
 // Result describes the result of a single rule evaluation.
 type Result struct {
-	Info   map[string]interface{}
-	Traces []error
+	Message  string
+	Metadata map[string]interface{}
+	Traces   []error
 }
 
 func (r Result) Error() string {
-	return r.Info["msg"].(string)
+	return r.Message
 }
 
 // CheckResult describes the result of a conftest evaluation.
@@ -100,8 +101,9 @@ type CheckResult struct {
 
 func NewResult(message string, traces []error) Result {
 	result := Result{
-		Info:   map[string]interface{}{"msg": message},
-		Traces: traces,
+		Message:  message,
+		Metadata: make(map[string]interface{}),
+		Traces:   traces,
 	}
 
 	return result
@@ -384,8 +386,12 @@ func runQuery(ctx context.Context, query string, input interface{}, compiler *as
 						}
 
 						result := NewResult(val["msg"].(string), traces)
-						for k, v := range val {
-							result.Info[k] = v
+						if len(val) > 1 {
+							for k, v := range val {
+								if k != "msg" {
+									result.Metadata[k] = v
+								}
+							}
 						}
 						errs = append(errs, result)
 					}

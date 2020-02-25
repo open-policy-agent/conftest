@@ -56,8 +56,9 @@ type OutputManager interface {
 }
 
 type stdOutputManager struct {
-	logger *log.Logger
-	color  aurora.Aurora
+	logger  *log.Logger
+	color   aurora.Aurora
+	results []CheckResult
 }
 
 // NewDefaultStdOutputManager instantiates a new instance of stdOutputManager
@@ -76,43 +77,71 @@ func NewStdOutputManager(l *log.Logger, color bool) *stdOutputManager {
 }
 
 func (s *stdOutputManager) Put(cr CheckResult) error {
-	var indicator string
-	if cr.FileName == "-" {
-		indicator = " - "
-	} else {
-		indicator = fmt.Sprintf(" - %s - ", cr.FileName)
-	}
-
-	printResults := func(r Result, prefix string, color aurora.Color) {
-		s.logger.Print(s.color.Colorize(prefix, color), indicator, r.Info["msg"])
-		for _, t := range r.Traces {
-			s.logger.Print(s.color.Colorize("TRAC", aurora.BlueFg), indicator, t)
-		}
-	}
-
-	// print successes, warnings, errors and their traces
-	for _, r := range cr.Successes {
-		printResults(r, "PASS", aurora.GreenFg)
-	}
-
-	for _, r := range cr.Warnings {
-		printResults(r, "WARN", aurora.YellowFg)
-	}
-
-	for _, r := range cr.Failures {
-		printResults(r, "FAIL", aurora.RedFg)
-	}
-
+	s.results = append(s.results, cr)
 	return nil
 }
 
 func (s *stdOutputManager) Flush() error {
+	var totalPolicies int
+	var totalFailures int
+	var totalWarnings int
+	var totalSuccesses int
+
+	for _, cr := range s.results {
+		var indicator string
+		if cr.FileName == "-" {
+			indicator = " - "
+		} else {
+			indicator = fmt.Sprintf(" - %s - ", cr.FileName)
+		}
+
+		currentPolicies := len(cr.Successes) + len(cr.Warnings) + len(cr.Failures)
+		if currentPolicies == 0 {
+			s.logger.Print(s.color.Colorize("?", aurora.WhiteFg), indicator, "no policies found")
+			continue
+		}
+
+		printResults := func(r Result, prefix string, color aurora.Color) {
+			s.logger.Print(s.color.Colorize(prefix, color), indicator, r.Message)
+			for _, t := range r.Traces {
+				s.logger.Print(s.color.Colorize("TRAC", aurora.BlueFg), indicator, t)
+			}
+		}
+
+		for _, r := range cr.Successes {
+			if len(r.Traces) == 0 {
+				continue
+			}
+
+			printResults(r, "PASS", aurora.GreenFg)
+		}
+
+		for _, r := range cr.Warnings {
+			printResults(r, "WARN", aurora.YellowFg)
+		}
+
+		for _, r := range cr.Failures {
+			printResults(r, "FAIL", aurora.RedFg)
+		}
+
+		totalPolicies += currentPolicies
+		totalFailures += len(cr.Failures)
+		totalWarnings += len(cr.Warnings)
+		totalSuccesses += len(cr.Successes)
+	}
+
+	s.logger.Print("--------------------------------------------------------------------------------")
+	s.logger.Print("PASS: ", totalSuccesses, "/", totalPolicies)
+	s.logger.Print("WARN: ", totalWarnings, "/", totalPolicies)
+	s.logger.Print("FAIL: ", totalFailures, "/", totalPolicies)
+
 	return nil
 }
 
 type jsonResult struct {
-	Info   map[string]interface{} `json:"info"`
-	Traces []string               `json:"traces,omitempty"`
+	Message  string                 `json:"msg"`
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Traces   []string               `json:"traces,omitempty"`
 }
 
 type jsonCheckResult struct {
@@ -125,8 +154,7 @@ type jsonCheckResult struct {
 // jsonOutputManager reports `conftest` results to `stdout` as a json array..
 type jsonOutputManager struct {
 	logger *log.Logger
-
-	data []jsonCheckResult
+	data   []jsonCheckResult
 }
 
 func NewDefaultJSONOutputManager() *jsonOutputManager {
@@ -165,12 +193,14 @@ func (j *jsonOutputManager) Put(cr CheckResult) error {
 	for _, warning := range cr.Warnings {
 		if len(warning.Traces) > 0 {
 			result.Warnings = append(result.Warnings, jsonResult{
-				Info:   warning.Info,
-				Traces: errsToStrings(warning.Traces),
+				Message:  warning.Message,
+				Metadata: warning.Metadata,
+				Traces:   errsToStrings(warning.Traces),
 			})
 		} else {
 			result.Warnings = append(result.Warnings, jsonResult{
-				Info: warning.Info,
+				Message:  warning.Message,
+				Metadata: warning.Metadata,
 			})
 		}
 	}
@@ -178,12 +208,14 @@ func (j *jsonOutputManager) Put(cr CheckResult) error {
 	for _, failure := range cr.Failures {
 		if len(failure.Traces) > 0 {
 			result.Failures = append(result.Failures, jsonResult{
-				Info:   failure.Info,
-				Traces: errsToStrings(failure.Traces),
+				Message:  failure.Message,
+				Metadata: failure.Metadata,
+				Traces:   errsToStrings(failure.Traces),
 			})
 		} else {
 			result.Failures = append(result.Failures, jsonResult{
-				Info: failure.Info,
+				Message:  failure.Message,
+				Metadata: failure.Metadata,
 			})
 		}
 	}
@@ -191,12 +223,14 @@ func (j *jsonOutputManager) Put(cr CheckResult) error {
 	for _, successes := range cr.Successes {
 		if len(successes.Traces) > 0 {
 			result.Successes = append(result.Successes, jsonResult{
-				Info:   successes.Info,
-				Traces: errsToStrings(successes.Traces),
+				Message:  successes.Message,
+				Metadata: successes.Metadata,
+				Traces:   errsToStrings(successes.Traces),
 			})
 		} else {
 			result.Successes = append(result.Successes, jsonResult{
-				Info: successes.Info,
+				Message:  successes.Message,
+				Metadata: successes.Metadata,
 			})
 		}
 	}
@@ -249,7 +283,7 @@ func (s *tapOutputManager) Put(cr CheckResult) error {
 	}
 
 	printResults := func(r Result, prefix string, counter int) {
-		s.logger.Print(prefix, counter, indicator, r.Info["msg"])
+		s.logger.Print(prefix, counter, indicator, r.Message)
 		if len(r.Traces) > 0 {
 			s.logger.Print("# Traces")
 			for j, t := range r.Traces {

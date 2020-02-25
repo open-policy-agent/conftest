@@ -30,7 +30,14 @@ func Test_stdOutputManager_put(t *testing.T) {
 					Failures: []Result{NewResult("first failure", []error{})},
 				},
 			},
-			exp: []string{"WARN - foo.yaml - first warning", "FAIL - foo.yaml - first failure"},
+			exp: []string{
+				"WARN - foo.yaml - first warning",
+				"FAIL - foo.yaml - first failure",
+				"--------------------------------------------------------------------------------",
+				"PASS: 0/2",
+				"WARN: 1/2",
+				"FAIL: 1/2",
+			},
 		},
 		{
 			msg: "skips filenames for stdin",
@@ -41,7 +48,14 @@ func Test_stdOutputManager_put(t *testing.T) {
 					Failures: []Result{NewResult("first failure", []error{})},
 				},
 			},
-			exp: []string{"WARN - first warning", "FAIL - first failure"},
+			exp: []string{
+				"WARN - first warning",
+				"FAIL - first failure",
+				"--------------------------------------------------------------------------------",
+				"PASS: 0/2",
+				"WARN: 1/2",
+				"FAIL: 1/2",
+			},
 		},
 	}
 
@@ -52,6 +66,10 @@ func Test_stdOutputManager_put(t *testing.T) {
 
 			if err := s.Put(tt.args.cr); err != nil {
 				t.Fatalf("put output: %v", err)
+			}
+
+			if err := s.Flush(); err != nil {
+				t.Fatalf("flush output: %v", err)
 			}
 
 			actual := strings.Split(strings.TrimSuffix(buf.String(), "\n"), "\n")
@@ -102,16 +120,12 @@ func Test_jsonOutputManager_put(t *testing.T) {
 		"filename": "examples/kubernetes/service.yaml",
 		"warnings": [
 			{
-				"info": {
-					"msg": "first warning"
-				}
+				"msg": "first warning"
 			}
 		],
 		"failures": [
 			{
-				"info": {
-					"msg": "first failure"
-				}
+				"msg": "first failure"
 			}
 		],
 		"successes": []
@@ -133,9 +147,7 @@ func Test_jsonOutputManager_put(t *testing.T) {
 		"warnings": [],
 		"failures": [
 			{
-				"info": {
-					"msg": "first failure"
-				}
+				"msg": "first failure"
 			}
 		],
 		"successes": []
@@ -157,9 +169,7 @@ func Test_jsonOutputManager_put(t *testing.T) {
 		"warnings": [],
 		"failures": [
 			{
-				"info": {
-					"msg": "first failure"
-				}
+				"msg": "first failure"
 			}
 		],
 		"successes": []
