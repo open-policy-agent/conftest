@@ -7,12 +7,14 @@ import (
 	"github.com/KeisukeYamashita/go-vcl/vcl"
 )
 
+// Parser is a VCL parser
 type Parser struct{}
 
+// Unmarshal unmarshals VCL files
 func (p *Parser) Unmarshal(b []byte, v interface{}) error {
 	result := make(map[string]interface{})
 	if errs := vcl.Decode(b, &result); len(errs) > 0 {
-		return errs[0]
+		return fmt.Errorf("decode vcl: %w", errs[0])
 	}
 
 	j, err := json.Marshal(result)

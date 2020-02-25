@@ -14,8 +14,6 @@ import (
 	"github.com/ghodss/yaml"
 )
 
-const metadataFileName = "plugin.yaml"
-
 // Command is the command to be executed by conftest,
 // passed as a single string.
 type Command string
@@ -134,6 +132,8 @@ func (p *Plugin) setDirInEnv() {
 // LoadPlugin loads the plugin.yaml from the given path
 // and parses the metadata into a Plugin struct
 func LoadPlugin(path string) (*Plugin, error) {
+	const metadataFileName = "plugin.yaml"
+
 	pluginPath := filepath.Join(path, metadataFileName)
 	data, err := ioutil.ReadFile(pluginPath)
 	if err != nil {

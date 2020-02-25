@@ -3,7 +3,6 @@ package downloader
 import (
 	"context"
 
-	"github.com/containerd/containerd/log"
 	getter "github.com/hashicorp/go-getter"
 )
 
@@ -32,7 +31,6 @@ var getters = map[string]getter.Getter{
 func Download(ctx context.Context, dst string, urls []string) error {
 	opts := []getter.ClientOption{}
 	for _, url := range urls {
-		log.G(ctx).Debugf("Initializing go-getter client with url %v and dst %v", url, dst)
 		client := &getter.Client{
 			Ctx:       ctx,
 			Src:       url,

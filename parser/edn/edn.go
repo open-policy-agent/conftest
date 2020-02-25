@@ -6,10 +6,10 @@ import (
 	"olympos.io/encoding/edn"
 )
 
+// Parser is an EDN parser
 type Parser struct{}
 
-// Unmarshal parses the EDN-encoded data and stores the result
-// in the value pointed to by v.
+// Unmarshal unmarshals EDN encoded files
 func (tp *Parser) Unmarshal(p []byte, v interface{}) error {
 	var res interface{}
 

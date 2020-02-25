@@ -1,6 +1,7 @@
 package policy
 
 import (
+	"fmt"
 	"io/ioutil"
 
 	"github.com/open-policy-agent/opa/ast"
@@ -14,12 +15,12 @@ func BuildCompiler(files []string) (*ast.Compiler, error) {
 	for _, file := range files {
 		out, err := ioutil.ReadFile(file)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("read file: %w", err)
 		}
 
 		parsed, err := ast.ParseModule(file, string(out[:]))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("parse module: %w", err)
 		}
 
 		modules[file] = parsed
@@ -28,7 +29,7 @@ func BuildCompiler(files []string) (*ast.Compiler, error) {
 	compiler := ast.NewCompiler()
 	compiler.Compile(modules)
 	if compiler.Failed() {
-		return nil, compiler.Errors
+		return nil, fmt.Errorf("compiling: %w", compiler.Errors)
 	}
 
 	return compiler, nil

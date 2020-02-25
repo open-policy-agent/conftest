@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 )
 
+// Parser is a HCL2 parser
 type Parser struct{}
 
 func (h *Parser) Unmarshal(p []byte, v interface{}) error {

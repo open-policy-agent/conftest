@@ -34,6 +34,7 @@ URL does not contain a protocol.
 The plugins will be installed on disk in ~/.conftest/plugins.
 `
 
+// NewPluginInstallCommand creates the install plugin subcommand
 func NewPluginInstallCommand(ctx context.Context) *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "install <path|url>",

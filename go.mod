@@ -7,7 +7,7 @@ require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/KeisukeYamashita/go-vcl v0.4.0
 	github.com/basgys/goxml2json v1.1.0
-	github.com/containerd/containerd v1.3.2
+	github.com/containerd/containerd v1.3.2 // indirect
 	github.com/deislabs/oras v0.8.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-akka/configuration v0.0.0-20190919102339-a31c845c4b1b

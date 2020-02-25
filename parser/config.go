@@ -47,7 +47,6 @@ func GetConfigurations(ctx context.Context, input string, fileList []string) (ma
 			return nil, fmt.Errorf("bulk unmarshal: %w", err)
 		}
 
-		// concatenate configurations
 		for k, v := range cfgs {
 			totalCfgs[k] = v
 		}
