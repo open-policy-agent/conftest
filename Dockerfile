@@ -18,14 +18,16 @@ FROM base as test
 RUN go test -v ./...
 
 ## ACCEPTANCE STAGE ##
-FROM bats/bats:v1.1.0 as acceptance
-COPY --from=builder /app/conftest /
-COPY acceptance.bats /acceptance.bats
-COPY examples /examples
+FROM base as acceptance
+COPY --from=builder /app/conftest /app/conftest
+
+RUN apk add --update npm bash
+RUN npm install -g bats
+
 RUN bats acceptance.bats
 
 ## EXAMPLES STAGE ##
-FROM golang:1.13-alpine as examples
+FROM base as examples
 ENV TERRAFORM_VERSION=0.12.0-rc1 \
     KUSTOMIZE_VERSION=2.0.3
 
@@ -44,6 +46,7 @@ RUN go get -u cuelang.org/go/cmd/cue
 
 WORKDIR /examples
 
+## RELEASE ##
 FROM alpine:latest
 COPY --from=builder /app/conftest /
 RUN ln -s /conftest /usr/local/bin/conftest
