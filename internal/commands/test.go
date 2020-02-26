@@ -129,7 +129,10 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 		},
 
 		RunE: func(cmd *cobra.Command, fileList []string) error {
-			out := GetOutputManager()
+			outFmt := viper.GetString("output")
+			color := !viper.GetBool("no-color")
+
+			out := GetOutputManager(outFmt, color)
 
 			// Remove any blank files from the array
 			var nonBlankFileList []string

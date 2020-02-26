@@ -6,8 +6,6 @@ import (
 	"reflect"
 	"strings"
 	"testing"
-
-	"github.com/spf13/viper"
 )
 
 func Test_stdOutputManager_put(t *testing.T) {
@@ -258,8 +256,7 @@ func TestSupportedOutputManagers(t *testing.T) {
 			outputManager: NewDefaultStandardOutputManager(true),
 		},
 	} {
-		viper.Set("output", testunit.outputFormat)
-		outputManager := GetOutputManager()
+		outputManager := GetOutputManager(testunit.outputFormat, true)
 		if !reflect.DeepEqual(outputManager, testunit.outputManager) {
 			t.Errorf(
 				"We expected the output manager to be of type %v : %T and it was %T",
