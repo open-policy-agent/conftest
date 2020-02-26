@@ -70,7 +70,10 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			outputManager := GetOutputManager()
+			outFmt := viper.GetString("output")
+			color := !viper.GetBool("no-color")
+
+			outputManager := GetOutputManager(outFmt, color)
 			policyPath := viper.GetString("policy")
 			trace := viper.GetBool("trace")
 
