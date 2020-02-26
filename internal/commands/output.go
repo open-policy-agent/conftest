@@ -10,7 +10,6 @@ import (
 
 	"github.com/logrusorgru/aurora"
 	table "github.com/olekukonko/tablewriter"
-	"github.com/spf13/viper"
 )
 
 const (
@@ -30,10 +29,8 @@ func ValidOutputs() []string {
 	}
 }
 
-func GetOutputManager() OutputManager {
-	outFmt := viper.GetString("output")
-	color := !viper.GetBool("no-color")
-
+// GetOutputManager returns the OutputManager based on the user input
+func GetOutputManager(outFmt string, color bool) OutputManager {
 	switch outFmt {
 	case outputSTD:
 		return NewDefaultStdOutputManager(color)
