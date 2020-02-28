@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -129,24 +130,17 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 		},
 
 		RunE: func(cmd *cobra.Command, fileList []string) error {
-			outFmt := viper.GetString("output")
+			outputFormat := viper.GetString("output")
 			color := !viper.GetBool("no-color")
+			out := GetOutputManager(outputFormat, color)
+			input := viper.GetString("input")
 
-			out := GetOutputManager(outFmt, color)
-
-			// Remove any blank files from the array
-			var nonBlankFileList []string
-			for _, name := range fileList {
-				if name != "" {
-					nonBlankFileList = append(nonBlankFileList, name)
-				}
+			files, err := parseFileList(fileList, input)
+			if err != nil {
+				return fmt.Errorf("parse files: %w", err)
 			}
 
-			if len(nonBlankFileList) < 1 {
-				return fmt.Errorf("no file specified")
-			}
-
-			configurations, err := parser.GetConfigurations(ctx, viper.GetString("input"), nonBlankFileList)
+			configurations, err := parser.GetConfigurations(ctx, input, files)
 			if err != nil {
 				return fmt.Errorf("get configurations: %w", err)
 			}
@@ -422,4 +416,65 @@ func buildRego(trace bool, query string, input interface{}, compiler *ast.Compil
 	regoObj = rego.New(regoFunc...)
 
 	return regoObj, buf
+}
+
+func parseFileList(fileList []string, input string) ([]string, error) {
+	var files []string
+	for _, file := range fileList {
+		fileInfo, err := os.Stat(file)
+		if err != nil {
+			return nil, fmt.Errorf("get file info: %w", err)
+		}
+
+		if fileInfo.IsDir() {
+			directoryFiles, err := getFilesFromDirectory(file, input)
+			if err != nil {
+				return nil, fmt.Errorf("get files from directory: %w", err)
+			}
+
+			files = append(files, directoryFiles...)
+		} else {
+			files = append(files, file)
+		}
+	}
+
+	if len(files) == 0 {
+		return nil, fmt.Errorf("no files found")
+	}
+
+	return files, nil
+}
+
+func getFilesFromDirectory(directory string, input string) ([]string, error) {
+	var files []string
+	err := filepath.Walk(directory, func(currentPath string, info os.FileInfo, err error) error {
+		if err != nil {
+			return fmt.Errorf("walk path: %w", err)
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		for _, input := range parser.ValidInputs() {
+			if strings.HasSuffix(info.Name(), inputToFileExtension(input)) {
+				files = append(files, currentPath)
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return files, nil
+}
+
+func inputToFileExtension(input string) string {
+	if input == "hcl2" {
+		return "tf"
+	}
+
+	return input
 }

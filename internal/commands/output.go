@@ -121,10 +121,10 @@ func (s *StandardOutputManager) Flush() error {
 			printResults(r, "FAIL", aurora.RedFg)
 		}
 
-		totalPolicies += currentPolicies
 		totalFailures += len(cr.Failures)
 		totalWarnings += len(cr.Warnings)
 		totalSuccesses += len(cr.Successes)
+		totalPolicies += totalFailures + totalWarnings + totalSuccesses
 	}
 
 	s.logger.Print("--------------------------------------------------------------------------------")

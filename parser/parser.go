@@ -22,11 +22,14 @@ import (
 func ValidInputs() []string {
 	return []string{
 		"toml",
-		"tf|hcl",
+		"tf",
+		"hcl",
 		"hcl2",
 		"cue",
 		"ini",
-		"yml|yaml|json",
+		"yml",
+		"yaml",
+		"json",
 		"Dockerfile",
 		"edn",
 		"vcl",
