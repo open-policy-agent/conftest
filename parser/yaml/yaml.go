@@ -8,8 +8,10 @@ import (
 	"github.com/ghodss/yaml"
 )
 
+// Parser is a YAML parser
 type Parser struct{}
 
+// Unmarshal unmarshals YAML files
 func (yp *Parser) Unmarshal(p []byte, v interface{}) error {
 	subDocuments := separateSubDocuments(p)
 	if len(subDocuments) > 1 {

@@ -9,18 +9,19 @@ import (
 )
 
 func TestLoadPlugin(t *testing.T) {
-	path := "testdata/test_plugin/"
+	path := "../examples/plugins/kubectl"
 	plugin, err := LoadPlugin(path)
 	if err != nil {
 		t.Fatalf("Unexpected error loading plugin: %v", err)
 	}
 
 	expected := &MetaData{
-		Name:        "test",
-		Version:     "0.1.0",
-		Usage:       "short description",
-		Description: "long description",
-		Command:     Command("command"),
+		Name:    "kubectl",
+		Version: "0.1.0",
+		Usage:   "conftest kubectl (TYPE[.VERSION][.GROUP] [NAME] | TYPE[.VERSION][.GROUP]/NAME).",
+		Description: `A Conftest plugin for using Kubectl to test objects in Kubernetes using Open Policy Agent.
+Usage: conftest kubectl (TYPE[.VERSION][.GROUP] [NAME] | TYPE[.VERSION][.GROUP]/NAME).`,
+		Command: Command("$CONFTEST_PLUGIN_DIR/kubectl-conftest.sh"),
 	}
 
 	if !reflect.DeepEqual(expected, plugin.MetaData) {
@@ -54,18 +55,15 @@ func TestCommand_Prepare(t *testing.T) {
 			"Handle commands with arguments",
 			Command("docker inspect"),
 			"docker",
-			[]string{
-				"inspect",
-			},
+			[]string{"inspect"},
 			"",
 		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			main, args, err := tc.command.Prepare()
-			if (err != nil) && err.Error() != tc.expectedError {
+			if err != nil && err.Error() != tc.expectedError {
 				t.Errorf("Unexpected error in prepare command: %v, expected error: %v", err, tc.expectedError)
-				return
 			}
 
 			if main != tc.main && !reflect.DeepEqual(args, tc.args) {
@@ -93,9 +91,7 @@ func TestPlugin_Exec(t *testing.T) {
 			},
 			[]string{},
 			[]string{},
-			[]string{
-				"hello",
-			},
+			[]string{"hello"},
 			"",
 		},
 	}
@@ -111,8 +107,7 @@ func TestPlugin_Exec(t *testing.T) {
 			tc.plugin.SetStdIn(stdIn).SetStdOut(stdOut).SetStdErr(stdErr)
 
 			err := tc.plugin.Exec(ctx, tc.additionalArgs)
-
-			if (err != nil) && (tc.expectedError != err.Error()) {
+			if err != nil && tc.expectedError != err.Error() {
 				t.Errorf("Unexpected error in exec command: %v, expected error: %v", err, tc.expectedError)
 				return
 			}

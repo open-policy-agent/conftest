@@ -15,9 +15,6 @@ import (
 	"github.com/instrumenta/conftest/parser/yaml"
 )
 
-// array should be:
-// a map [k,v] where k is the filename and v is the document
-
 func TestUnmarshaller(t *testing.T) {
 	t.Run("error constructing an unmarshaller for a type of file", func(t *testing.T) {
 		configManager, err := parser.NewConfigManager("yml")

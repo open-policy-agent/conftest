@@ -10,6 +10,7 @@ const pluginDesc = `
 	This command manages conftest plugins
 `
 
+// NewPluginCommand creates a new plugin command
 func NewPluginCommand(ctx context.Context) *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "plugin",

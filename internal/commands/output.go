@@ -30,10 +30,10 @@ func ValidOutputs() []string {
 }
 
 // GetOutputManager returns the OutputManager based on the user input
-func GetOutputManager(outFmt string, color bool) OutputManager {
-	switch outFmt {
+func GetOutputManager(outputFormat string, color bool) OutputManager {
+	switch outputFormat {
 	case outputSTD:
-		return NewDefaultStdOutputManager(color)
+		return NewDefaultStandardOutputManager(color)
 	case outputJSON:
 		return NewDefaultJSONOutputManager()
 	case outputTAP:
@@ -41,44 +41,44 @@ func GetOutputManager(outFmt string, color bool) OutputManager {
 	case outputTable:
 		return NewDefaultTableOutputManager()
 	default:
-		return NewDefaultStdOutputManager(color)
+		return NewDefaultStandardOutputManager(color)
 	}
 }
 
-// OutputManager controls how results of the `ccheck` evaluation will be recorded
-// and reported to the end user.
+// OutputManager controls how results of an evaluation will be recorded and reported to the end user
 type OutputManager interface {
 	Put(cr CheckResult) error
 	Flush() error
 }
 
-type stdOutputManager struct {
+// StandardOutputManager writes to stdout
+type StandardOutputManager struct {
 	logger  *log.Logger
 	color   aurora.Aurora
 	results []CheckResult
 }
 
-// NewDefaultStdOutputManager instantiates a new instance of stdOutputManager
-// using the default logger.
-func NewDefaultStdOutputManager(color bool) *stdOutputManager {
-	return NewStdOutputManager(log.New(os.Stdout, "", 0), color)
+// NewDefaultStandardOutputManager creates a new StandardOutputManager using the default logger
+func NewDefaultStandardOutputManager(color bool) *StandardOutputManager {
+	return NewStandardOutputManager(log.New(os.Stdout, "", 0), color)
 }
 
-// NewStdOutputManager constructs an instance of stdOutputManager given a
-// logger instance.
-func NewStdOutputManager(l *log.Logger, color bool) *stdOutputManager {
-	return &stdOutputManager{
+// NewStandardOutputManager creates a new StandardOutputManager given a logger instance
+func NewStandardOutputManager(l *log.Logger, color bool) *StandardOutputManager {
+	return &StandardOutputManager{
 		logger: l,
 		color:  aurora.NewAurora(color),
 	}
 }
 
-func (s *stdOutputManager) Put(cr CheckResult) error {
+// Put puts the result of the check to the manager in the managers buffer
+func (s *StandardOutputManager) Put(cr CheckResult) error {
 	s.results = append(s.results, cr)
 	return nil
 }
 
-func (s *stdOutputManager) Flush() error {
+// Flush writes the contents of the managers buffer to the console
+func (s *StandardOutputManager) Flush() error {
 	var totalPolicies int
 	var totalFailures int
 	var totalWarnings int
@@ -148,25 +148,25 @@ type jsonCheckResult struct {
 	Successes []jsonResult `json:"successes"`
 }
 
-// jsonOutputManager reports `conftest` results to `stdout` as a json array..
-type jsonOutputManager struct {
+// JSONOutputManager formats its output to JSON
+type JSONOutputManager struct {
 	logger *log.Logger
 	data   []jsonCheckResult
 }
 
-func NewDefaultJSONOutputManager() *jsonOutputManager {
+// NewDefaultJSONOutputManager creates a new JSONOutputManager using the default logger
+func NewDefaultJSONOutputManager() *JSONOutputManager {
 	return NewJSONOutputManager(log.New(os.Stdout, "", 0))
 }
 
-func NewJSONOutputManager(l *log.Logger) *jsonOutputManager {
-	return &jsonOutputManager{
+// NewJSONOutputManager creates a new JSONOutputManager with a given logger instance
+func NewJSONOutputManager(l *log.Logger) *JSONOutputManager {
+	return &JSONOutputManager{
 		logger: l,
 	}
 }
 
 func errsToStrings(errs []error) []string {
-	// we explicitly use an empty slice here to ensure that this field will not be
-	// null in json
 	res := []string{}
 	for _, err := range errs {
 		res = append(res, err.Error())
@@ -175,7 +175,8 @@ func errsToStrings(errs []error) []string {
 	return res
 }
 
-func (j *jsonOutputManager) Put(cr CheckResult) error {
+// Put puts the result of the check to the manager in the managers buffer
+func (j *JSONOutputManager) Put(cr CheckResult) error {
 	if cr.FileName == "-" {
 		cr.FileName = ""
 	}
@@ -237,7 +238,8 @@ func (j *jsonOutputManager) Put(cr CheckResult) error {
 	return nil
 }
 
-func (j *jsonOutputManager) Flush() error {
+// Flush writes the contents of the managers buffer to the console
+func (j *JSONOutputManager) Flush() error {
 	b, err := json.Marshal(j.data)
 	if err != nil {
 		return err
@@ -253,25 +255,25 @@ func (j *jsonOutputManager) Flush() error {
 	return nil
 }
 
-type tapOutputManager struct {
+// TAPOutputManager formats its output in TAP format
+type TAPOutputManager struct {
 	logger *log.Logger
 }
 
-// NewDefaultTAPOutputManager instantiates a new instance of tapOutputManager
-// using the default logger.
-func NewDefaultTAPOutputManager() *tapOutputManager {
+// NewDefaultTAPOutputManager creates a new TAPOutputManager using the default logger
+func NewDefaultTAPOutputManager() *TAPOutputManager {
 	return NewTAPOutputManager(log.New(os.Stdout, "", 0))
 }
 
-// NewTAPOutputManager constructs an instance of stdOutputManager given a
-// logger instance.
-func NewTAPOutputManager(l *log.Logger) *tapOutputManager {
-	return &tapOutputManager{
+// NewTAPOutputManager creates a new TAPOutputManager with a given logger instance
+func NewTAPOutputManager(l *log.Logger) *TAPOutputManager {
+	return &TAPOutputManager{
 		logger: l,
 	}
 }
 
-func (s *tapOutputManager) Put(cr CheckResult) error {
+// Put puts the result of the check to the manager in the managers buffer
+func (t *TAPOutputManager) Put(cr CheckResult) error {
 	var indicator string
 	if cr.FileName == "-" {
 		indicator = " - "
@@ -280,31 +282,31 @@ func (s *tapOutputManager) Put(cr CheckResult) error {
 	}
 
 	printResults := func(r Result, prefix string, counter int) {
-		s.logger.Print(prefix, counter, indicator, r.Message)
+		t.logger.Print(prefix, counter, indicator, r.Message)
 		if len(r.Traces) > 0 {
-			s.logger.Print("# Traces")
-			for j, t := range r.Traces {
-				s.logger.Print("trace ", counter, j+1, indicator, t.Error())
+			t.logger.Print("# Traces")
+			for j, trace := range r.Traces {
+				t.logger.Print("trace ", counter, j+1, indicator, trace.Error())
 			}
 		}
 	}
 
 	issues := len(cr.Failures) + len(cr.Warnings) + len(cr.Successes)
 	if issues > 0 {
-		s.logger.Print(fmt.Sprintf("1..%d", issues))
+		t.logger.Print(fmt.Sprintf("1..%d", issues))
 		for i, r := range cr.Failures {
 			printResults(r, "not ok ", i+1)
 
 		}
 		if len(cr.Warnings) > 0 {
-			s.logger.Print("# Warnings")
+			t.logger.Print("# Warnings")
 			for i, r := range cr.Warnings {
 				counter := i + 1 + len(cr.Failures)
 				printResults(r, "not ok ", counter)
 			}
 		}
 		if len(cr.Successes) > 0 {
-			s.logger.Print("# Successes")
+			t.logger.Print("# Successes")
 			for i, r := range cr.Successes {
 				counter := i + 1 + len(cr.Failures) + len(cr.Warnings)
 				printResults(r, "ok ", counter)
@@ -315,36 +317,38 @@ func (s *tapOutputManager) Put(cr CheckResult) error {
 	return nil
 }
 
-func (s *tapOutputManager) Flush() error {
+// Flush is currently a NOOP
+func (t *TAPOutputManager) Flush() error {
 	return nil
 }
 
-type tableOutputManager struct {
+// TableOutputManager formats its output in a table
+type TableOutputManager struct {
 	table *table.Table
 }
 
-// NewDefaultTableOutputManager instantiates a new instance of tableOutputManager
-func NewDefaultTableOutputManager() *tableOutputManager {
+// NewDefaultTableOutputManager creates a new TableOutputManager using standard out
+func NewDefaultTableOutputManager() *TableOutputManager {
 	return NewTableOutputManager(os.Stdout)
 }
 
-// NewTableOutputManager constructs an instance of tableOutputManager given a
-// io.Writer.
-func NewTableOutputManager(w io.Writer) *tableOutputManager {
+// NewTableOutputManager creates a new TableOutputManager with a given Writer
+func NewTableOutputManager(w io.Writer) *TableOutputManager {
 	table := table.NewWriter(w)
 	table.SetHeader([]string{"result", "file", "message"})
-	return &tableOutputManager{
+	return &TableOutputManager{
 		table: table,
 	}
 }
 
-func (s *tableOutputManager) Put(cr CheckResult) error {
+// Put puts the result of the check to the manager in the managers buffer
+func (t *TableOutputManager) Put(cr CheckResult) error {
 	printResults := func(r Result, prefix string, filename string) {
 		d := []string{prefix, filename, r.Error()}
-		s.table.Append(d)
-		for _, t := range r.Traces {
-			dt := []string{"trace", filename, t.Error()}
-			s.table.Append(dt)
+		t.table.Append(d)
+		for _, trace := range r.Traces {
+			dt := []string{"trace", filename, trace.Error()}
+			t.table.Append(dt)
 		}
 	}
 
@@ -363,9 +367,11 @@ func (s *tableOutputManager) Put(cr CheckResult) error {
 	return nil
 }
 
-func (s *tableOutputManager) Flush() error {
-	if s.table.NumLines() > 0 {
-		s.table.Render()
+// Flush writes the contents of the managers buffer to the console
+func (t *TableOutputManager) Flush() error {
+	if t.table.NumLines() > 0 {
+		t.table.Render()
 	}
+
 	return nil
 }

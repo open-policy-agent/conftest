@@ -60,7 +60,7 @@ func Test_stdOutputManager_put(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.msg, func(t *testing.T) {
 			buf := new(bytes.Buffer)
-			s := NewStdOutputManager(log.New(buf, "", 0), false)
+			s := NewStandardOutputManager(log.New(buf, "", 0), false)
 
 			if err := s.Put(tt.args.cr); err != nil {
 				t.Fatalf("put output: %v", err)
@@ -233,7 +233,7 @@ func TestSupportedOutputManagers(t *testing.T) {
 		{
 			name:          "std output should exist",
 			outputFormat:  outputSTD,
-			outputManager: NewDefaultStdOutputManager(true),
+			outputManager: NewDefaultStandardOutputManager(true),
 		},
 		{
 			name:          "json output should exist",
@@ -253,7 +253,7 @@ func TestSupportedOutputManagers(t *testing.T) {
 		{
 			name:          "default output should exist",
 			outputFormat:  "somedefault",
-			outputManager: NewDefaultStdOutputManager(true),
+			outputManager: NewDefaultStandardOutputManager(true),
 		},
 	} {
 		outputManager := GetOutputManager(testunit.outputFormat, true)

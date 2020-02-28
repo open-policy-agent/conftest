@@ -3,10 +3,11 @@ package policy
 import (
 	"context"
 	"fmt"
-	"github.com/instrumenta/conftest/downloader"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/instrumenta/conftest/downloader"
 )
 
 // Download downloads the given policies into the given destination
@@ -52,7 +53,6 @@ func getPolicyFiles(path string) ([]string, error) {
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, err
 	}

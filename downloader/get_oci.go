@@ -7,21 +7,23 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/containerd/containerd/log"
 	auth "github.com/deislabs/oras/pkg/auth/docker"
 	"github.com/deislabs/oras/pkg/content"
 	"github.com/deislabs/oras/pkg/oras"
 	getter "github.com/hashicorp/go-getter"
 )
 
+// OCIGetter is responsible for handling OCI repositories
 type OCIGetter struct {
 	client *getter.Client
 }
 
+// ClientMode returns the client mode directory
 func (g *OCIGetter) ClientMode(u *url.URL) (getter.ClientMode, error) {
 	return getter.ClientModeDir, nil
 }
 
+// Get gets the repository as the specified url
 func (g *OCIGetter) Get(path string, u *url.URL) error {
 	ctx := g.Context()
 
@@ -48,7 +50,6 @@ func (g *OCIGetter) Get(path string, u *url.URL) error {
 	defer fileStore.Close()
 
 	repository := u.Host + u.Path
-	log.G(ctx).Infof("Downloading: %s\n", repository)
 	_, _, err = oras.Pull(ctx, resolver, repository, fileStore)
 	if err != nil {
 		return fmt.Errorf("pulling policy: %w", err)
@@ -57,12 +58,13 @@ func (g *OCIGetter) Get(path string, u *url.URL) error {
 	return nil
 }
 
+// GetFile is currently a NOOP
 func (g *OCIGetter) GetFile(dst string, u *url.URL) error {
-	// NOOP for now
 	return nil
 }
 
-//These methods are normally handled by the base getter in go-getter but
+// SetClient sets the client for the OCIGetter
+// NOTE: These methods are normally handled by the base getter in go-getter but
 // the base getter is not exported
 func (g *OCIGetter) SetClient(c *getter.Client) { g.client = c }
 

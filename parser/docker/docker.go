@@ -8,8 +8,10 @@ import (
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
 )
 
+// Parser is a Dockerfile parser
 type Parser struct{}
 
+// Command represents a command in a Dockerfile
 type Command struct {
 	Cmd    string   // lowercased command name (ex: `from`)
 	SubCmd string   // for ONBUILD only this holds the sub-command
@@ -18,6 +20,7 @@ type Command struct {
 	Value  []string // The contents of the command (ex: `ubuntu:xenial`)
 }
 
+// Unmarshal unmarshals Dockerfiles
 func (dp *Parser) Unmarshal(p []byte, v interface{}) error {
 	r := bytes.NewReader(p)
 	res, err := parser.Parse(r)

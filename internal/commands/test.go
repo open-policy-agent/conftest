@@ -99,6 +99,7 @@ type CheckResult struct {
 	Successes []Result
 }
 
+// NewResult creates a new result from the given message
 func NewResult(message string, traces []error) Result {
 	result := Result{
 		Message:  message,
