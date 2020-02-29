@@ -1,0 +1,14 @@
+site_name: Conftest
+theme:
+  name: "material"
+repo_url: https://github.com/instrumenta/conftest
+nav:
+    - "Home": "index.md"
+    - "Options": "options.md"
+    - "Installation": "install.md"
+    - "Examples": "examples.md"
+    - "Sharing policies": "sharing.md"
+    - "Debugging policies": "debug.md"
+    - "Plugins": "plugins.md"
+markdown_extensions:
+    - codehilite

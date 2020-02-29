@@ -1,0 +1,36 @@
+# Installation
+
+Conftest is  available for Windows, macOS and Linux on the [releases page](https://github.com/instrumenta/conftest/releases). On Linux and macOS you can download as follows:
+
+```console
+$ wget https://github.com/instrumenta/conftest/releases/download/v0.17.1/conftest_0.17.1_Linux_x86_64.tar.gz
+$ tar xzf conftest_0.17.1_Linux_x86_64.tar.gz
+$ sudo mv conftest /usr/local/bin
+```
+
+## Brew
+
+Install with Homebrew on macOS or Linux:
+
+```console
+brew tap instrumenta/instrumenta
+brew install conftest
+```
+
+## Scoop
+
+You can also install using [Scoop](https://scoop.sh/) on Windows:
+
+```console
+scoop bucket add instrumenta https://github.com/instrumenta/scoop-instrumenta
+scoop install conftest
+```
+
+## Docker
+
+Conftest Docker images are also available. Simply mount your configuration and policy at `/project` and specify the relevant command like so:
+
+```console
+$ docker run --rm -v $(pwd):/project instrumenta/conftest test deployment.yaml
+FAIL - deployment.yaml - Containers must not run as root in Deployment hello-kubernetes
+```
