@@ -129,5 +129,5 @@ func getFileType(fileName string, input string) string {
 
 	fileExtension := filepath.Ext(fileName)
 
-	return fileExtension[1:len(fileExtension)]
+	return fileExtension[1:]
 }
