@@ -79,7 +79,6 @@ func (s *StandardOutputManager) Put(cr CheckResult) error {
 
 // Flush writes the contents of the managers buffer to the console
 func (s *StandardOutputManager) Flush() error {
-	var totalPolicies int
 	var totalFailures int
 	var totalWarnings int
 	var totalSuccesses int
@@ -124,8 +123,9 @@ func (s *StandardOutputManager) Flush() error {
 		totalFailures += len(cr.Failures)
 		totalWarnings += len(cr.Warnings)
 		totalSuccesses += len(cr.Successes)
-		totalPolicies += totalFailures + totalWarnings + totalSuccesses
 	}
+
+	totalPolicies := totalFailures + totalWarnings + totalSuccesses
 
 	s.logger.Print("--------------------------------------------------------------------------------")
 	s.logger.Print("PASS: ", totalSuccesses, "/", totalPolicies)

@@ -421,6 +421,15 @@ func buildRego(trace bool, query string, input interface{}, compiler *ast.Compil
 func parseFileList(fileList []string, input string) ([]string, error) {
 	var files []string
 	for _, file := range fileList {
+		if file == "" {
+			continue
+		}
+
+		if file == "-" {
+			files = append(files, "-")
+			continue
+		}
+
 		fileInfo, err := os.Stat(file)
 		if err != nil {
 			return nil, fmt.Errorf("get file info: %w", err)
@@ -456,7 +465,13 @@ func getFilesFromDirectory(directory string, input string) ([]string, error) {
 			return nil
 		}
 
-		for _, input := range parser.ValidInputs() {
+		if input == "" {
+			for _, input := range parser.ValidInputs() {
+				if strings.HasSuffix(info.Name(), inputToFileExtension(input)) {
+					files = append(files, currentPath)
+				}
+			}
+		} else {
 			if strings.HasSuffix(info.Name(), inputToFileExtension(input)) {
 				files = append(files, currentPath)
 			}
@@ -472,7 +487,7 @@ func getFilesFromDirectory(directory string, input string) ([]string, error) {
 }
 
 func inputToFileExtension(input string) string {
-	if input == "hcl2" {
+	if input == "hcl" {
 		return "tf"
 	}
 
