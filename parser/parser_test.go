@@ -8,6 +8,7 @@ import (
 
 	"github.com/instrumenta/conftest/parser/cue"
 	"github.com/instrumenta/conftest/parser/edn"
+	"github.com/instrumenta/conftest/parser/hcl2"
 	"github.com/instrumenta/conftest/parser/ini"
 	"github.com/instrumenta/conftest/parser/terraform"
 	"github.com/instrumenta/conftest/parser/toml"
@@ -181,15 +182,15 @@ func TestGetParser(t *testing.T) {
 		expectError bool
 	}{
 		{
-			name:        "Test getting Terraform parser from HCL input",
-			fileType:    "hcl",
+			name:        "Test getting Terraform parser from HCL1 input",
+			fileType:    "hcl1",
 			expected:    new(terraform.Parser),
 			expectError: false,
 		},
 		{
-			name:        "Test getting Terraform parser from .tf input",
+			name:        "Test getting HCL2 parser from .tf input",
 			fileType:    "tf",
-			expected:    new(terraform.Parser),
+			expected:    new(hcl2.Parser),
 			expectError: false,
 		},
 		{

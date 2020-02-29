@@ -68,16 +68,6 @@ func BulkUnmarshal(configList []ConfigDoc, input string) (map[string]interface{}
 	for filePath, config := range configContents {
 		fileType := getFileType(filePath, input)
 
-		if (fileType == "tf" || fileType == "hcl") && input == "" {
-			hclContent, err := unmarshalHCL(config)
-			if err != nil {
-				return nil, fmt.Errorf("unmarshal HCL: %w", err)
-			}
-
-			allContents[filePath] = hclContent
-			continue
-		}
-
 		fileParser, err := GetParser(fileType)
 		if err != nil {
 			return nil, fmt.Errorf("get parser: %w", err)
@@ -99,7 +89,7 @@ func GetParser(fileType string) (Parser, error) {
 	switch fileType {
 	case "toml":
 		return &toml.Parser{}, nil
-	case "tf", "hcl":
+	case "hcl1":
 		return &terraform.Parser{}, nil
 	case "cue":
 		return &cue.Parser{}, nil
@@ -107,7 +97,7 @@ func GetParser(fileType string) (Parser, error) {
 		return &ini.Parser{}, nil
 	case "hocon":
 		return &hocon.Parser{}, nil
-	case "hcl2":
+	case "hcl", "tf":
 		return &hcl2.Parser{}, nil
 	case "Dockerfile", "dockerfile":
 		return &docker.Parser{}, nil
@@ -140,22 +130,4 @@ func getFileType(fileName string, input string) string {
 	fileExtension := filepath.Ext(fileName)
 
 	return fileExtension[1:len(fileExtension)]
-}
-
-func unmarshalHCL(config []byte) (interface{}, error) {
-	hcl2Parser := &hcl2.Parser{}
-
-	var content interface{}
-	err := hcl2Parser.Unmarshal(config, &content)
-	if err == nil {
-		return content, nil
-	}
-
-	terraformParser := &terraform.Parser{}
-	err = terraformParser.Unmarshal(config, &content)
-	if err == nil {
-		return content, nil
-	}
-
-	return nil, fmt.Errorf("unmarshal hcl config")
 }

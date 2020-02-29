@@ -166,7 +166,7 @@
 }
 
 @test "Can parse hcl2 files" {
-  run ./conftest test -p examples/hcl2/policy examples/hcl2/terraform.tf -i hcl2
+  run ./conftest test -p examples/hcl2/policy examples/hcl2/terraform.tf
   [ "$status" -eq 1 ]
   [[ "$output" =~ "ALB \`my-alb-listener\` is using HTTP rather than HTTP" ]]
 }
@@ -184,7 +184,7 @@
 }
 
 @test "Can combine configs and reference by file" {
-  run ./conftest test -p examples/terraform/policy/gke_combine.rego examples/terraform/gke.tf --combine
+  run ./conftest test -p examples/terraform/policy/gke_combine.rego examples/terraform/gke.tf --combine -i hcl1
   [ "$status" -eq 0 ]
 }
 

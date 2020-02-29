@@ -153,7 +153,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 					return fmt.Errorf("detect policies: %w", err)
 				}
 
-				if err = policy.Download(ctx, policyPath, []string{sourcedURL}); err != nil {
+				if err := policy.Download(ctx, policyPath, []string{sourcedURL}); err != nil {
 					return fmt.Errorf("update policies: %w", err)
 				}
 			}
@@ -176,7 +176,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 
 			namespace := viper.GetString("namespace")
 
-			var failures int
+			var failureFound bool
 			if viper.GetBool(combineConfigFlagName) {
 				result, err := GetResult(ctx, namespace, configurations, compiler, store)
 				if err != nil {
@@ -184,7 +184,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				}
 
 				if isResultFailure(result) {
-					failures++
+					failureFound = true
 				}
 
 				result.FileName = "Combined"
@@ -199,7 +199,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 					}
 
 					if isResultFailure(result) {
-						failures++
+						failureFound = true
 					}
 
 					result.FileName = fileName
@@ -213,7 +213,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("flushing output: %w", err)
 			}
 
-			if failures > 0 {
+			if failureFound {
 				os.Exit(1)
 			}
 
@@ -221,14 +221,14 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().BoolP("fail-on-warn", "", false, "return a non-zero exit code if only warnings are found")
+	cmd.Flags().Bool("fail-on-warn", false, "return a non-zero exit code if only warnings are found")
 	cmd.Flags().BoolP(combineConfigFlagName, "", false, "combine all given config files to be evaluated together")
-	cmd.Flags().BoolP("trace", "", false, "enable more verbose trace output for rego queries")
+	cmd.Flags().Bool("trace", false, "enable more verbose trace output for rego queries")
 
 	cmd.Flags().StringSliceP("update", "u", []string{}, "a list of urls can be provided to the update flag, which will download before the tests run")
 	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", ValidOutputs()))
 	cmd.Flags().StringP("input", "i", "", fmt.Sprintf("input type for given source, especially useful when using conftest with stdin, valid options are: %s", parser.ValidInputs()))
-	cmd.Flags().StringP("namespace", "", "main", "namespace in which to find deny and warn rules")
+	cmd.Flags().String("namespace", "main", "namespace in which to find deny and warn rules")
 	cmd.Flags().StringSliceP("data", "d", []string{}, "A list of paths from which data for the rego policies will be recursively loaded")
 
 	return &cmd
@@ -241,12 +241,14 @@ func GetResult(ctx context.Context, namespace string, input interface{}, compile
 	if err != nil {
 		return CheckResult{}, err
 	}
+
 	totalSuccesses = append(totalSuccesses, successes...)
 
 	failures, successes, err := runRules(ctx, namespace, input, denyQ, compiler, store)
 	if err != nil {
 		return CheckResult{}, err
 	}
+
 	totalSuccesses = append(totalSuccesses, successes...)
 
 	result := CheckResult{
@@ -384,12 +386,11 @@ func runQuery(ctx context.Context, query string, input interface{}, compiler *as
 						}
 
 						result := NewResult(val["msg"].(string), traces)
-						if len(val) > 1 {
-							for k, v := range val {
-								if k != "msg" {
-									result.Metadata[k] = v
-								}
+						for k, v := range val {
+							if k != "msg" {
+								result.Metadata[k] = v
 							}
+
 						}
 						errs = append(errs, result)
 					}
@@ -487,7 +488,7 @@ func getFilesFromDirectory(directory string, input string) ([]string, error) {
 }
 
 func inputToFileExtension(input string) string {
-	if input == "hcl" {
+	if input == "hcl1" {
 		return "tf"
 	}
 
