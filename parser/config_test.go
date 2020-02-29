@@ -44,7 +44,7 @@ func TestGetFileType(t *testing.T) {
 	testTable := []struct {
 		name             string
 		inputFileType    string
-		filename         string
+		fileName         string
 		expectedFileType string
 	}{
 		{"Test YAML file", "", "example/kubernetes/deployment.yaml", "yaml"},
@@ -54,11 +54,7 @@ func TestGetFileType(t *testing.T) {
 
 	for _, testUnit := range testTable {
 		t.Run(testUnit.name, func(t *testing.T) {
-			fileType, err := getFileType(testUnit.inputFileType, testUnit.filename)
-			if err != nil {
-				t.Fatalf("errors getting filetype: %v", err)
-			}
-
+			fileType := getFileType(testUnit.fileName, testUnit.inputFileType)
 			if fileType != testUnit.expectedFileType {
 				t.Fatalf("got wrong filetype got:%s want:%s", fileType, testUnit.expectedFileType)
 			}

@@ -1,4 +1,4 @@
-package parser_test
+package parser
 
 import (
 	"io/ioutil"
@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/instrumenta/conftest/parser"
 	"github.com/instrumenta/conftest/parser/cue"
 	"github.com/instrumenta/conftest/parser/edn"
 	"github.com/instrumenta/conftest/parser/ini"
@@ -17,22 +16,17 @@ import (
 
 func TestUnmarshaller(t *testing.T) {
 	t.Run("error constructing an unmarshaller for a type of file", func(t *testing.T) {
-		configManager, err := parser.NewConfigManager("yml")
-		if err != nil {
-			t.Fatalf("create config parser: %v", err)
-		}
-
 		t.Run("which can be used to BulkUnmarshal file contents into an object", func(t *testing.T) {
 			testTable := []struct {
 				name           string
-				controlReaders []parser.ConfigDoc
+				controlReaders []ConfigDoc
 				expectedResult map[string]interface{}
 				shouldError    bool
 			}{
 				{
 					name: "a single reader",
-					controlReaders: []parser.ConfigDoc{
-						parser.ConfigDoc{
+					controlReaders: []ConfigDoc{
+						ConfigDoc{
 							ReadCloser: ioutil.NopCloser(strings.NewReader("sample: true")),
 							Filepath:   "sample.yml",
 						},
@@ -46,16 +40,16 @@ func TestUnmarshaller(t *testing.T) {
 				},
 				{
 					name: "multiple readers",
-					controlReaders: []parser.ConfigDoc{
-						parser.ConfigDoc{
+					controlReaders: []ConfigDoc{
+						ConfigDoc{
 							ReadCloser: ioutil.NopCloser(strings.NewReader("sample: true")),
 							Filepath:   "sample.yml",
 						},
-						parser.ConfigDoc{
+						ConfigDoc{
 							ReadCloser: ioutil.NopCloser(strings.NewReader("hello: true")),
 							Filepath:   "hello.yml",
 						},
-						parser.ConfigDoc{
+						ConfigDoc{
 							ReadCloser: ioutil.NopCloser(strings.NewReader("nice: true")),
 							Filepath:   "nice.yml",
 						},
@@ -75,8 +69,8 @@ func TestUnmarshaller(t *testing.T) {
 				},
 				{
 					name: "a single reader with multiple yaml subdocs",
-					controlReaders: []parser.ConfigDoc{
-						parser.ConfigDoc{
+					controlReaders: []ConfigDoc{
+						ConfigDoc{
 							ReadCloser: ioutil.NopCloser(strings.NewReader(`---
 sample: true
 ---
@@ -103,8 +97,8 @@ nice: true`)),
 				},
 				{
 					name: "multiple readers with multiple subdocs",
-					controlReaders: []parser.ConfigDoc{
-						parser.ConfigDoc{
+					controlReaders: []ConfigDoc{
+						ConfigDoc{
 							ReadCloser: ioutil.NopCloser(strings.NewReader(`---
 sample: true
 ---
@@ -113,7 +107,7 @@ hello: true
 nice: true`)),
 							Filepath: "sample.yml",
 						},
-						parser.ConfigDoc{
+						ConfigDoc{
 							ReadCloser: ioutil.NopCloser(strings.NewReader(`---
 sample: true
 ---
@@ -122,7 +116,7 @@ hello: true
 nice: true`)),
 							Filepath: "hello.yml",
 						},
-						parser.ConfigDoc{
+						ConfigDoc{
 							ReadCloser: ioutil.NopCloser(strings.NewReader("nice: true")),
 							Filepath:   "nice.yml",
 						},
@@ -161,7 +155,7 @@ nice: true`)),
 			for _, test := range testTable {
 				t.Run(test.name, func(t *testing.T) {
 					var unmarshalledConfigs map[string]interface{}
-					unmarshalledConfigs, err := configManager.BulkUnmarshal(test.controlReaders)
+					unmarshalledConfigs, err := BulkUnmarshal(test.controlReaders, "")
 					if err != nil {
 						t.Errorf("errors unmarshalling: %v", err)
 					}
@@ -183,7 +177,7 @@ func TestGetParser(t *testing.T) {
 	testTable := []struct {
 		name        string
 		fileType    string
-		expected    parser.Parser
+		expected    Parser
 		expectError bool
 	}{
 		{
@@ -244,7 +238,7 @@ func TestGetParser(t *testing.T) {
 
 	for _, testUnit := range testTable {
 		t.Run(testUnit.name, func(t *testing.T) {
-			received, err := parser.GetParser(testUnit.fileType)
+			received, err := GetParser(testUnit.fileType)
 
 			if !reflect.DeepEqual(received, testUnit.expected) {
 				t.Errorf("expected: %T \n got this: %T", testUnit.expected, received)

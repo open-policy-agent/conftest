@@ -8,52 +8,34 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 // GetConfigurations parses and returns the configurations given in the file list
 func GetConfigurations(ctx context.Context, input string, fileList []string) (map[string]interface{}, error) {
-	totalCfgs := make(map[string]interface{})
-	fileSchema := make(map[string][]ConfigDoc)
-
+	var fileConfigs []ConfigDoc
 	for _, fileName := range fileList {
 		var err error
-		var cfg io.ReadCloser
+		var config io.ReadCloser
 
-		fileType, err := getFileType(input, fileName)
-		if err != nil {
-			return nil, fmt.Errorf("get file type: %w", err)
-		}
-
-		cfg, err = getConfig(fileName)
+		config, err = getConfig(fileName)
 		if err != nil {
 			return nil, fmt.Errorf("get config: %w", err)
 		}
 
-		fileSchema[fileType] = append(fileSchema[fileType], ConfigDoc{
-			ReadCloser: cfg,
+		configDoc := ConfigDoc{
+			ReadCloser: config,
 			Filepath:   fileName,
-		})
+		}
+
+		fileConfigs = append(fileConfigs, configDoc)
 	}
 
-	for fileType, cfgFiles := range fileSchema {
-		cfgManager, err := NewConfigManager(fileType)
-		if err != nil {
-			return nil, fmt.Errorf("create config manager: %w", err)
-		}
-
-		cfgs, err := cfgManager.BulkUnmarshal(cfgFiles)
-		if err != nil {
-			return nil, fmt.Errorf("bulk unmarshal: %w", err)
-		}
-
-		for k, v := range cfgs {
-			totalCfgs[k] = v
-		}
+	unmarshaledConfigs, err := BulkUnmarshal(fileConfigs, input)
+	if err != nil {
+		return nil, fmt.Errorf("bulk unmarshal: %w", err)
 	}
 
-	return totalCfgs, nil
-
+	return unmarshaledConfigs, nil
 }
 
 func getConfig(fileName string) (io.ReadCloser, error) {
@@ -73,28 +55,4 @@ func getConfig(fileName string) (io.ReadCloser, error) {
 	}
 
 	return config, nil
-}
-
-func getFileType(inputFileType, fileName string) (string, error) {
-	if inputFileType != "" {
-		return inputFileType, nil
-	}
-
-	if fileName == "-" && inputFileType == "" {
-		return "yaml", nil
-	}
-
-	if fileName != "-" {
-		fileType := ""
-		if strings.Contains(fileName, ".") {
-			fileType = strings.TrimPrefix(filepath.Ext(fileName), ".")
-		} else {
-			ss := strings.SplitAfter(fileName, "/")
-			fileType = ss[len(ss)-1]
-		}
-
-		return fileType, nil
-	}
-
-	return "", fmt.Errorf("unsupported file type")
 }

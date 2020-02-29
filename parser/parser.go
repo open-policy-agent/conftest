@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"path/filepath"
 
 	"github.com/instrumenta/conftest/parser/cue"
 	"github.com/instrumenta/conftest/parser/docker"
@@ -49,63 +50,51 @@ type ConfigDoc struct {
 	Filepath   string
 }
 
-// ConfigManager the implementation of ReadUnmarshaller and io.Reader
-// byte storage.
-type ConfigManager struct {
-	parser         Parser
-	configContents map[string][]byte
-}
-
 // BulkUnmarshal iterates through the given cached io.Readers and
 // runs the requested parser on the data.
-func (s *ConfigManager) BulkUnmarshal(configList []ConfigDoc) (map[string]interface{}, error) {
-	if err := s.setConfigs(configList); err != nil {
-		return nil, fmt.Errorf("set configuration: %w", err)
+func BulkUnmarshal(configList []ConfigDoc, input string) (map[string]interface{}, error) {
+	configContents := make(map[string][]byte)
+	for _, config := range configList {
+		contents, err := ioutil.ReadAll(config.ReadCloser)
+		if err != nil {
+			return nil, fmt.Errorf("read config: %w", err)
+		}
+
+		configContents[config.Filepath] = contents
+		config.ReadCloser.Close()
 	}
 
 	var allContents = make(map[string]interface{})
-	for filepath, config := range s.configContents {
+	for filePath, config := range configContents {
+		fileType := getFileType(filePath, input)
+
+		if (fileType == "tf" || fileType == "hcl") && input == "" {
+			hclContent, err := unmarshalHCL(config)
+			if err != nil {
+				return nil, fmt.Errorf("unmarshal HCL: %w", err)
+			}
+
+			allContents[filePath] = hclContent
+			continue
+		}
+
+		fileParser, err := GetParser(fileType)
+		if err != nil {
+			return nil, fmt.Errorf("get parser: %w", err)
+		}
+
 		var singleContent interface{}
-		if err := s.parser.Unmarshal(config, &singleContent); err != nil {
+		if err := fileParser.Unmarshal(config, &singleContent); err != nil {
 			return nil, fmt.Errorf("parser unmarshal: %w", err)
 		}
 
-		allContents[filepath] = singleContent
+		allContents[filePath] = singleContent
 	}
 
 	return allContents, nil
 }
 
-func (s *ConfigManager) setConfigs(configList []ConfigDoc) error {
-	s.configContents = make(map[string][]byte)
-	for _, config := range configList {
-		contents, err := ioutil.ReadAll(config.ReadCloser)
-		defer config.ReadCloser.Close()
-		if err != nil {
-			return fmt.Errorf("read config: %w", err)
-		}
-
-		s.configContents[config.Filepath] = contents
-	}
-
-	return nil
-}
-
-// NewConfigManager is the instatiation function for ConfigManager
-func NewConfigManager(fileType string) (*ConfigManager, error) {
-	parser, err := GetParser(fileType)
-	if err != nil {
-		return nil, fmt.Errorf("get parser: %w", err)
-	}
-
-	config := ConfigManager{
-		parser: parser,
-	}
-
-	return &config, nil
-}
-
-// GetParser gets a parser that works on a given fileType
+// GetParser gets a file parser based on the file type and input
 func GetParser(fileType string) (Parser, error) {
 	switch fileType {
 	case "toml":
@@ -133,4 +122,40 @@ func GetParser(fileType string) (Parser, error) {
 	default:
 		return nil, fmt.Errorf("unknown filetype given: %v", fileType)
 	}
+}
+
+func getFileType(fileName string, input string) string {
+	if input != "" {
+		return input
+	}
+
+	if fileName == "-" {
+		return "yaml"
+	}
+
+	if filepath.Ext(fileName) == "" {
+		return filepath.Base(fileName)
+	}
+
+	fileExtension := filepath.Ext(fileName)
+
+	return fileExtension[1:len(fileExtension)]
+}
+
+func unmarshalHCL(config []byte) (interface{}, error) {
+	hcl2Parser := &hcl2.Parser{}
+
+	var content interface{}
+	err := hcl2Parser.Unmarshal(config, &content)
+	if err == nil {
+		return content, nil
+	}
+
+	terraformParser := &terraform.Parser{}
+	err = terraformParser.Unmarshal(config, &content)
+	if err == nil {
+		return content, nil
+	}
+
+	return nil, fmt.Errorf("unmarshal hcl config")
 }
