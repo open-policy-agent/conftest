@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -22,8 +23,11 @@ import (
 const testDesc = `
 This command tests your configuration files using the Open Policy Agent.
 
-The test command expects a one or more input files that will be evaluated against
-Open Policy Agent policies. Policies are written in the Rego language. For more
+The test command expects one or more input files that will be evaluated 
+against Open Policy Agent policies. Directories are also supported as valid
+inputs. 
+
+Policies are written in the Rego language. For more
 information on how to write Rego policies, see the documentation:
 https://www.openpolicyagent.org/docs/latest/policy-language/
 
@@ -129,24 +133,17 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 		},
 
 		RunE: func(cmd *cobra.Command, fileList []string) error {
-			outFmt := viper.GetString("output")
+			outputFormat := viper.GetString("output")
 			color := !viper.GetBool("no-color")
+			out := GetOutputManager(outputFormat, color)
+			input := viper.GetString("input")
 
-			out := GetOutputManager(outFmt, color)
-
-			// Remove any blank files from the array
-			var nonBlankFileList []string
-			for _, name := range fileList {
-				if name != "" {
-					nonBlankFileList = append(nonBlankFileList, name)
-				}
+			files, err := parseFileList(fileList)
+			if err != nil {
+				return fmt.Errorf("parse files: %w", err)
 			}
 
-			if len(nonBlankFileList) < 1 {
-				return fmt.Errorf("no file specified")
-			}
-
-			configurations, err := parser.GetConfigurations(ctx, viper.GetString("input"), nonBlankFileList)
+			configurations, err := parser.GetConfigurations(ctx, input, files)
 			if err != nil {
 				return fmt.Errorf("get configurations: %w", err)
 			}
@@ -159,7 +156,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 					return fmt.Errorf("detect policies: %w", err)
 				}
 
-				if err = policy.Download(ctx, policyPath, []string{sourcedURL}); err != nil {
+				if err := policy.Download(ctx, policyPath, []string{sourcedURL}); err != nil {
 					return fmt.Errorf("update policies: %w", err)
 				}
 			}
@@ -182,7 +179,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 
 			namespace := viper.GetString("namespace")
 
-			var failures int
+			var failureFound bool
 			if viper.GetBool(combineConfigFlagName) {
 				result, err := GetResult(ctx, namespace, configurations, compiler, store)
 				if err != nil {
@@ -190,7 +187,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				}
 
 				if isResultFailure(result) {
-					failures++
+					failureFound = true
 				}
 
 				result.FileName = "Combined"
@@ -205,7 +202,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 					}
 
 					if isResultFailure(result) {
-						failures++
+						failureFound = true
 					}
 
 					result.FileName = fileName
@@ -219,7 +216,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("flushing output: %w", err)
 			}
 
-			if failures > 0 {
+			if failureFound {
 				os.Exit(1)
 			}
 
@@ -227,14 +224,14 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().BoolP("fail-on-warn", "", false, "return a non-zero exit code if only warnings are found")
+	cmd.Flags().Bool("fail-on-warn", false, "return a non-zero exit code if only warnings are found")
 	cmd.Flags().BoolP(combineConfigFlagName, "", false, "combine all given config files to be evaluated together")
-	cmd.Flags().BoolP("trace", "", false, "enable more verbose trace output for rego queries")
+	cmd.Flags().Bool("trace", false, "enable more verbose trace output for rego queries")
 
 	cmd.Flags().StringSliceP("update", "u", []string{}, "a list of urls can be provided to the update flag, which will download before the tests run")
 	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", ValidOutputs()))
 	cmd.Flags().StringP("input", "i", "", fmt.Sprintf("input type for given source, especially useful when using conftest with stdin, valid options are: %s", parser.ValidInputs()))
-	cmd.Flags().StringP("namespace", "", "main", "namespace in which to find deny and warn rules")
+	cmd.Flags().String("namespace", "main", "namespace in which to find deny and warn rules")
 	cmd.Flags().StringSliceP("data", "d", []string{}, "A list of paths from which data for the rego policies will be recursively loaded")
 
 	return &cmd
@@ -247,12 +244,14 @@ func GetResult(ctx context.Context, namespace string, input interface{}, compile
 	if err != nil {
 		return CheckResult{}, err
 	}
+
 	totalSuccesses = append(totalSuccesses, successes...)
 
 	failures, successes, err := runRules(ctx, namespace, input, denyQ, compiler, store)
 	if err != nil {
 		return CheckResult{}, err
 	}
+
 	totalSuccesses = append(totalSuccesses, successes...)
 
 	result := CheckResult{
@@ -390,12 +389,11 @@ func runQuery(ctx context.Context, query string, input interface{}, compiler *as
 						}
 
 						result := NewResult(val["msg"].(string), traces)
-						if len(val) > 1 {
-							for k, v := range val {
-								if k != "msg" {
-									result.Metadata[k] = v
-								}
+						for k, v := range val {
+							if k != "msg" {
+								result.Metadata[k] = v
 							}
+
 						}
 						errs = append(errs, result)
 					}
@@ -422,4 +420,66 @@ func buildRego(trace bool, query string, input interface{}, compiler *ast.Compil
 	regoObj = rego.New(regoFunc...)
 
 	return regoObj, buf
+}
+
+func parseFileList(fileList []string) ([]string, error) {
+	var files []string
+	for _, file := range fileList {
+		if file == "" {
+			continue
+		}
+
+		if file == "-" {
+			files = append(files, "-")
+			continue
+		}
+
+		fileInfo, err := os.Stat(file)
+		if err != nil {
+			return nil, fmt.Errorf("get file info: %w", err)
+		}
+
+		if fileInfo.IsDir() {
+			directoryFiles, err := getFilesFromDirectory(file)
+			if err != nil {
+				return nil, fmt.Errorf("get files from directory: %w", err)
+			}
+
+			files = append(files, directoryFiles...)
+		} else {
+			files = append(files, file)
+		}
+	}
+
+	if len(files) == 0 {
+		return nil, fmt.Errorf("no files found")
+	}
+
+	return files, nil
+}
+
+func getFilesFromDirectory(directory string) ([]string, error) {
+	var files []string
+	err := filepath.Walk(directory, func(currentPath string, info os.FileInfo, err error) error {
+		if err != nil {
+			return fmt.Errorf("walk path: %w", err)
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		for _, input := range parser.ValidInputs() {
+			if strings.HasSuffix(info.Name(), input) {
+				files = append(files, currentPath)
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return files, nil
 }

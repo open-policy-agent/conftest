@@ -79,7 +79,6 @@ func (s *StandardOutputManager) Put(cr CheckResult) error {
 
 // Flush writes the contents of the managers buffer to the console
 func (s *StandardOutputManager) Flush() error {
-	var totalPolicies int
 	var totalFailures int
 	var totalWarnings int
 	var totalSuccesses int
@@ -121,11 +120,12 @@ func (s *StandardOutputManager) Flush() error {
 			printResults(r, "FAIL", aurora.RedFg)
 		}
 
-		totalPolicies += currentPolicies
 		totalFailures += len(cr.Failures)
 		totalWarnings += len(cr.Warnings)
 		totalSuccesses += len(cr.Successes)
 	}
+
+	totalPolicies := totalFailures + totalWarnings + totalSuccesses
 
 	s.logger.Print("--------------------------------------------------------------------------------")
 	s.logger.Print("PASS: ", totalSuccesses, "/", totalPolicies)
@@ -189,48 +189,27 @@ func (j *JSONOutputManager) Put(cr CheckResult) error {
 	}
 
 	for _, warning := range cr.Warnings {
-		if len(warning.Traces) > 0 {
-			result.Warnings = append(result.Warnings, jsonResult{
-				Message:  warning.Message,
-				Metadata: warning.Metadata,
-				Traces:   errsToStrings(warning.Traces),
-			})
-		} else {
-			result.Warnings = append(result.Warnings, jsonResult{
-				Message:  warning.Message,
-				Metadata: warning.Metadata,
-			})
-		}
+		result.Warnings = append(result.Warnings, jsonResult{
+			Message:  warning.Message,
+			Metadata: warning.Metadata,
+			Traces:   errsToStrings(warning.Traces),
+		})
 	}
 
 	for _, failure := range cr.Failures {
-		if len(failure.Traces) > 0 {
-			result.Failures = append(result.Failures, jsonResult{
-				Message:  failure.Message,
-				Metadata: failure.Metadata,
-				Traces:   errsToStrings(failure.Traces),
-			})
-		} else {
-			result.Failures = append(result.Failures, jsonResult{
-				Message:  failure.Message,
-				Metadata: failure.Metadata,
-			})
-		}
+		result.Failures = append(result.Failures, jsonResult{
+			Message:  failure.Message,
+			Metadata: failure.Metadata,
+			Traces:   errsToStrings(failure.Traces),
+		})
 	}
 
 	for _, successes := range cr.Successes {
-		if len(successes.Traces) > 0 {
-			result.Successes = append(result.Successes, jsonResult{
-				Message:  successes.Message,
-				Metadata: successes.Metadata,
-				Traces:   errsToStrings(successes.Traces),
-			})
-		} else {
-			result.Successes = append(result.Successes, jsonResult{
-				Message:  successes.Message,
-				Metadata: successes.Metadata,
-			})
-		}
+		result.Successes = append(result.Successes, jsonResult{
+			Message:  successes.Message,
+			Metadata: successes.Metadata,
+			Traces:   errsToStrings(successes.Traces),
+		})
 	}
 
 	j.data = append(j.data, result)
