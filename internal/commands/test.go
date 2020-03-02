@@ -23,8 +23,11 @@ import (
 const testDesc = `
 This command tests your configuration files using the Open Policy Agent.
 
-The test command expects a one or more input files that will be evaluated against
-Open Policy Agent policies. Policies are written in the Rego language. For more
+The test command expects one or more input files that will be evaluated 
+against Open Policy Agent policies. Directories are also supported as valid
+inputs. 
+
+Policies are written in the Rego language. For more
 information on how to write Rego policies, see the documentation:
 https://www.openpolicyagent.org/docs/latest/policy-language/
 
@@ -135,7 +138,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 			out := GetOutputManager(outputFormat, color)
 			input := viper.GetString("input")
 
-			files, err := parseFileList(fileList, input)
+			files, err := parseFileList(fileList)
 			if err != nil {
 				return fmt.Errorf("parse files: %w", err)
 			}
@@ -419,7 +422,7 @@ func buildRego(trace bool, query string, input interface{}, compiler *ast.Compil
 	return regoObj, buf
 }
 
-func parseFileList(fileList []string, input string) ([]string, error) {
+func parseFileList(fileList []string) ([]string, error) {
 	var files []string
 	for _, file := range fileList {
 		if file == "" {
@@ -437,7 +440,7 @@ func parseFileList(fileList []string, input string) ([]string, error) {
 		}
 
 		if fileInfo.IsDir() {
-			directoryFiles, err := getFilesFromDirectory(file, input)
+			directoryFiles, err := getFilesFromDirectory(file)
 			if err != nil {
 				return nil, fmt.Errorf("get files from directory: %w", err)
 			}
@@ -455,7 +458,7 @@ func parseFileList(fileList []string, input string) ([]string, error) {
 	return files, nil
 }
 
-func getFilesFromDirectory(directory string, input string) ([]string, error) {
+func getFilesFromDirectory(directory string) ([]string, error) {
 	var files []string
 	err := filepath.Walk(directory, func(currentPath string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -466,14 +469,8 @@ func getFilesFromDirectory(directory string, input string) ([]string, error) {
 			return nil
 		}
 
-		if input == "" {
-			for _, input := range parser.ValidInputs() {
-				if strings.HasSuffix(info.Name(), inputToFileExtension(input)) {
-					files = append(files, currentPath)
-				}
-			}
-		} else {
-			if strings.HasSuffix(info.Name(), inputToFileExtension(input)) {
+		for _, input := range parser.ValidInputs() {
+			if strings.HasSuffix(info.Name(), input) {
 				files = append(files, currentPath)
 			}
 		}
@@ -485,12 +482,4 @@ func getFilesFromDirectory(directory string, input string) ([]string, error) {
 	}
 
 	return files, nil
-}
-
-func inputToFileExtension(input string) string {
-	if input == "hcl1" {
-		return "tf"
-	}
-
-	return input
 }
