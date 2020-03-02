@@ -1,0 +1,10 @@
+apiVersion: example.com/v1
+kind: team
+metadata:
+  name: team-one
+  email: team-one@example.com
+spec:
+  owner:
+    - john.doe@example.com
+  member:
+    - jane.doe@example.com
