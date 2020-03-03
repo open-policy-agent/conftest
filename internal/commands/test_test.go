@@ -94,7 +94,7 @@ metadata:
 	}
 
 	store := inmem.New()
-	const defaultNamespace = "main"
+	defaultNamespace := []string{"main"}
 	results, err := GetResult(ctx, defaultNamespace, jsonConfig, compiler, store)
 	if err != nil {
 		t.Fatalf("could not process policy file: %s", err)
@@ -141,7 +141,7 @@ ENTRYPOINT ["java","-cp","app:app/lib/*","hello.Application"]`
 	}
 
 	store := inmem.New()
-	const defaultNamespace = "main"
+	defaultNamespace := []string{"main"}
 	results, err := GetResult(ctx, defaultNamespace, jsonConfig, compiler, store)
 	if err != nil {
 		t.Fatalf("could not process policy file: %s", err)
