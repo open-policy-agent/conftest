@@ -1,6 +1,6 @@
 # Conftest Plugins
 
-Conftest provides a plugin feature to allow others to extend the conftest cli without the need to change the conftest code base. This plugin system was inspired by the plugin system used in [Helm](https://github.com/helm/helm)
+Conftest provides a plugin feature to allow others to extend the conftest cli without the need to change the conftest code base. This plugin system was inspired by the plugin system used in [Helm](https://github.com/helm/helm).
 
 This guide will explain how you can use plugins and how you can create new plugins.
 
@@ -60,4 +60,4 @@ command: $CONFTEST_PLUGIN_DIR/kubectl-conftest.sh
 
 The plugin is responsible for handling flags and arguments. Any arguments are passed to the plugin from the conftest command.
 
-The exit code 1 is treated as a special exit code in the conftest cli. This indicates a test failure and no error message will be printed. In your plugin you should return an exit code other then 0 or 1 if your plugin fails for any reason other then a test failure.
+The exit code 1 is treated as a special exit code in the conftest cli. This indicates a test failure and no error message will be printed. In your plugin you should return an exit code other than 0 or 1 if your plugin fails for any reason other than a test failure.
