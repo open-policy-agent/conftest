@@ -89,7 +89,7 @@ jobs:
           version: 18.09.3
       - run:
           name: Build image
-          command: docker build --progress plain -t instrumenta/conftest .
+          command: docker build --pull --progress plain -t instrumenta/conftest .
           environment:
             DOCKER_BUILDKIT: 1
       - snyk/scan:
