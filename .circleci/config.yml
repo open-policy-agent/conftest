@@ -1,3 +1,4 @@
+---
 version: 2.1
 orbs:
   snyk: snyk/snyk@0.0.8
@@ -6,8 +7,8 @@ jobs:
     docker:
       - image: circleci/golang:1.13-node
 
-    steps: 
-      - checkout 
+    steps:
+      - checkout
       - restore_cache:
           keys:
             - go-mod-{{ checksum "go.sum" }}
@@ -28,13 +29,13 @@ jobs:
           destination: raw-test-output
       - store_test_results:
           path: /tmp/test-results
-  
+
   acceptance:
     docker:
       - image: circleci/golang:1.13-node
 
-    steps: 
-      - checkout 
+    steps:
+      - checkout
       - restore_cache:
           keys:
             - go-mod-{{ checksum "go.sum" }}
@@ -47,7 +48,7 @@ jobs:
             - "/go/pkg/mod"
       - run:
           name: Install Bats
-          command: | 
+          command: |
             cd /tmp
             curl -L https://github.com/sstephenson/bats/archive/v0.4.0.tar.gz | tar -xz
             sudo ./bats-0.4.0/install.sh /usr/local
@@ -66,8 +67,8 @@ jobs:
     docker:
       - image: circleci/golang:1.13-node
 
-    steps: 
-      - checkout 
+    steps:
+      - checkout
       - restore_cache:
           keys:
             - go-mod-{{ checksum "go.sum" }}
@@ -78,10 +79,14 @@ jobs:
       - snyk/scan:
           target-file: go.mod
 
-  
   image:
     docker:
-      - image: circleci/buildpack-deps:stretch 
+      - image: circleci/buildpack-deps:stretch
+
+    parameters:
+      with_snyk:
+        type: boolean
+        default: false
 
     steps:
       - checkout
@@ -92,10 +97,13 @@ jobs:
           command: docker build --pull --progress plain -t instrumenta/conftest .
           environment:
             DOCKER_BUILDKIT: 1
-      - snyk/scan:
-          docker-image-name: instrumenta/conftest
-          project: docker.io/instrumenta/conftest
-          target-file: Dockerfile
+      - when:
+          condition: <<parameters.with_snyk>>
+          steps:
+            - snyk/scan:
+                docker-image-name: instrumenta/conftest
+                project: docker.io/instrumenta/conftest
+                target-file: Dockerfile
 
   release:
     docker:
@@ -115,6 +123,11 @@ workflows:
             branches:
               only: master
       - image:
+          filters:
+            branches:
+              ignore: master
+      - image:
+          with_snyk: true
           filters:
             branches:
               only: master
