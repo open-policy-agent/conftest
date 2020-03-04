@@ -87,7 +87,6 @@ jobs:
       - checkout
       - setup_remote_docker:
           version: 18.09.3
-      - snyk/install_snyk
       - run:
           name: Build image
           command: docker build --progress plain -t instrumenta/conftest .
