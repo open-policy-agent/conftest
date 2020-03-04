@@ -1,6 +1,7 @@
 conftest
 conftest.exe
 dist
+site
 
 # IDEs
 .vscode
