@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-  snyk: garethr/snyk@0.3.0
+  snyk: snyk/snyk@0.0.8
 jobs:
   test:
     docker:
@@ -75,8 +75,9 @@ jobs:
           key: go-mod-{{ checksum "go.sum" }}
           paths:
             - "/go/pkg/mod"
-      - snyk/install_snyk
-      - snyk/check_code_with_snyk
+      - snyk/scan:
+          target-file: go.mod
+
   
   image:
     docker:
@@ -92,9 +93,10 @@ jobs:
           command: docker build --progress plain -t instrumenta/conftest .
           environment:
             DOCKER_BUILDKIT: 1
-      - snyk/check_docker_with_snyk:
-          image: instrumenta/conftest
+      - snyk/scan:
+          docker-image-name: instrumenta/conftest
           project: docker.io/instrumenta/conftest
+          target-file: Dockerfile
 
   release:
     docker:
