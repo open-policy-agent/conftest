@@ -82,6 +82,13 @@
   [[ "$output" =~ "| trace   | examples/kubernetes/service.yaml | Enter data.main.deny = _       |" ]]
 }
 
+@test "Test command with all namespaces flag" {
+  run ./conftest test -p examples/docker/policy examples/docker/Dockerfile --all-namespaces
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "blacklisted image found [\"openjdk:8-jdk-alpine\"]" ]]
+  [[ "$output" =~ "blacklisted commands found [\"apk add --no-cache python3 python3-dev build-base && pip3 install awscli==1.18.1\"]" ]]
+}
+
 @test "Verify command has trace flag" {
     run ./conftest verify --policy ./examples/kubernetes/policy --trace
   [ "$status" -eq 0 ]

@@ -122,7 +122,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 		Long:  testDesc,
 		Args:  cobra.MinimumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			flagNames := []string{"fail-on-warn", "update", combineConfigFlagName, "trace", "output", "input", "namespace", "data"}
+			flagNames := []string{"fail-on-warn", "update", combineConfigFlagName, "trace", "output", "input", "namespace", "all-namespaces", "data"}
 			for _, name := range flagNames {
 				if err := viper.BindPFlag(name, cmd.Flags().Lookup(name)); err != nil {
 					return fmt.Errorf("bind flag: %w", err)
@@ -177,11 +177,19 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("build store: %w", err)
 			}
 
-			namespace := viper.GetString("namespace")
+			var namespaces []string
+			if viper.GetBool("all-namespaces") {
+				namespaces, err = policy.GetNamespaces(regoFiles, compiler)
+				if err != nil {
+					return fmt.Errorf("get namespaces: %w", err)
+				}
+			} else {
+				namespaces = []string{viper.GetString("namespace")}
+			}
 
 			var failureFound bool
 			if viper.GetBool(combineConfigFlagName) {
-				result, err := GetResult(ctx, namespace, configurations, compiler, store)
+				result, err := GetResult(ctx, namespaces, configurations, compiler, store)
 				if err != nil {
 					return fmt.Errorf("get combined test result: %w", err)
 				}
@@ -196,7 +204,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				}
 			} else {
 				for fileName, config := range configurations {
-					result, err := GetResult(ctx, namespace, config, compiler, store)
+					result, err := GetResult(ctx, namespaces, config, compiler, store)
 					if err != nil {
 						return fmt.Errorf("get test result: %w", err)
 					}
@@ -232,24 +240,34 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", ValidOutputs()))
 	cmd.Flags().StringP("input", "i", "", fmt.Sprintf("input type for given source, especially useful when using conftest with stdin, valid options are: %s", parser.ValidInputs()))
 	cmd.Flags().String("namespace", "main", "namespace in which to find deny and warn rules")
+	cmd.Flags().Bool("all-namespaces", false, "find deny and warn rules in all namespaces. If set, the flag \"namespace\" is ignored")
 	cmd.Flags().StringSliceP("data", "d", []string{}, "A list of paths from which data for the rego policies will be recursively loaded")
 
 	return &cmd
 }
 
 // GetResult returns the result of testing the structured data against their policies
-func GetResult(ctx context.Context, namespace string, input interface{}, compiler *ast.Compiler, store storage.Store) (CheckResult, error) {
-	var totalSuccesses []Result
-	warnings, successes, err := runRules(ctx, namespace, input, warnQ, compiler, store)
-	if err != nil {
-		return CheckResult{}, err
+func GetResult(ctx context.Context, namespaces []string, input interface{}, compiler *ast.Compiler, store storage.Store) (CheckResult, error) {
+	var totalSuccesses, warnings, successes, failures []Result
+
+	for _, namespace := range namespaces {
+		tmpWarnings, tmpSuccesses, err := runRules(ctx, namespace, input, warnQ, compiler, store)
+		if err != nil {
+			return CheckResult{}, err
+		}
+		warnings = append(warnings, tmpWarnings...)
+		successes = append(successes, tmpSuccesses...)
 	}
 
 	totalSuccesses = append(totalSuccesses, successes...)
 
-	failures, successes, err := runRules(ctx, namespace, input, denyQ, compiler, store)
-	if err != nil {
-		return CheckResult{}, err
+	for _, namespace := range namespaces {
+		tmpFailures, tmpSuccesses, err := runRules(ctx, namespace, input, denyQ, compiler, store)
+		if err != nil {
+			return CheckResult{}, err
+		}
+		failures = append(failures, tmpFailures...)
+		successes = append(successes, tmpSuccesses...)
 	}
 
 	totalSuccesses = append(totalSuccesses, successes...)
