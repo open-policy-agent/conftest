@@ -392,7 +392,7 @@ func (t TestRun) runQuery(ctx context.Context, query string, input interface{}) 
 	for _, result := range resultSet {
 		for _, expression := range result.Expressions {
 
-			if hasResults(expression.Value) == false {
+			if !hasResults(expression.Value) {
 				successes = append(successes, NewResult(expression.Text, traces))
 				continue
 			}

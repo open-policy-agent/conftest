@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 )
 
-// ConfigDoc ...
+// ConfigDoc is an input document to be checked
 type ConfigDoc struct {
 	ReadCloser io.ReadCloser
 	Filepath   string
