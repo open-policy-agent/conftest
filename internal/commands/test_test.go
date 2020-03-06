@@ -93,9 +93,13 @@ metadata:
 		t.Fatalf("could not build rego compiler: %s", err)
 	}
 
-	store := inmem.New()
+	testRun := TestRun{
+		Compiler: compiler,
+		Store:    inmem.New(),
+	}
+
 	defaultNamespace := []string{"main"}
-	results, err := GetResult(ctx, defaultNamespace, jsonConfig, compiler, store)
+	results, err := testRun.GetResult(ctx, defaultNamespace, jsonConfig)
 	if err != nil {
 		t.Fatalf("could not process policy file: %s", err)
 	}
@@ -140,9 +144,13 @@ ENTRYPOINT ["java","-cp","app:app/lib/*","hello.Application"]`
 		t.Fatalf("could not build rego compiler: %s", err)
 	}
 
-	store := inmem.New()
+	testRun := TestRun{
+		Compiler: compiler,
+		Store:    inmem.New(),
+	}
+
 	defaultNamespace := []string{"main"}
-	results, err := GetResult(ctx, defaultNamespace, jsonConfig, compiler, store)
+	results, err := testRun.GetResult(ctx, defaultNamespace, jsonConfig)
 	if err != nil {
 		t.Fatalf("could not process policy file: %s", err)
 	}

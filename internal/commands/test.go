@@ -114,6 +114,12 @@ func NewResult(message string, traces []error) Result {
 	return result
 }
 
+// TestRun stores the compiler and store for a test run
+type TestRun struct {
+	Compiler *ast.Compiler
+	Store    storage.Store
+}
+
 // NewTestCommand creates a new test command
 func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd := cobra.Command{
@@ -177,6 +183,11 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("build store: %w", err)
 			}
 
+			testRun := TestRun{
+				Compiler: compiler,
+				Store:    store,
+			}
+
 			var namespaces []string
 			if viper.GetBool("all-namespaces") {
 				namespaces, err = policy.GetNamespaces(regoFiles, compiler)
@@ -189,7 +200,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 
 			var failureFound bool
 			if viper.GetBool(combineConfigFlagName) {
-				result, err := GetResult(ctx, namespaces, configurations, compiler, store)
+				result, err := testRun.GetResult(ctx, namespaces, configurations)
 				if err != nil {
 					return fmt.Errorf("get combined test result: %w", err)
 				}
@@ -204,7 +215,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				}
 			} else {
 				for fileName, config := range configurations {
-					result, err := GetResult(ctx, namespaces, config, compiler, store)
+					result, err := testRun.GetResult(ctx, namespaces, config)
 					if err != nil {
 						return fmt.Errorf("get test result: %w", err)
 					}
@@ -247,11 +258,11 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 }
 
 // GetResult returns the result of testing the structured data against their policies
-func GetResult(ctx context.Context, namespaces []string, input interface{}, compiler *ast.Compiler, store storage.Store) (CheckResult, error) {
+func (t TestRun) GetResult(ctx context.Context, namespaces []string, input interface{}) (CheckResult, error) {
 	var totalSuccesses, warnings, successes, failures []Result
 
 	for _, namespace := range namespaces {
-		tmpWarnings, tmpSuccesses, err := runRules(ctx, namespace, input, warnQ, compiler, store)
+		tmpWarnings, tmpSuccesses, err := t.runRules(ctx, namespace, input, warnQ)
 		if err != nil {
 			return CheckResult{}, err
 		}
@@ -262,7 +273,7 @@ func GetResult(ctx context.Context, namespaces []string, input interface{}, comp
 	totalSuccesses = append(totalSuccesses, successes...)
 
 	for _, namespace := range namespaces {
-		tmpFailures, tmpSuccesses, err := runRules(ctx, namespace, input, denyQ, compiler, store)
+		tmpFailures, tmpSuccesses, err := t.runRules(ctx, namespace, input, denyQ)
 		if err != nil {
 			return CheckResult{}, err
 		}
@@ -285,33 +296,38 @@ func isResultFailure(result CheckResult) bool {
 	return len(result.Failures) > 0 || (len(result.Warnings) > 0 && viper.GetBool("fail-on-warn"))
 }
 
-func runRules(ctx context.Context, namespace string, input interface{}, regex *regexp.Regexp, compiler *ast.Compiler, store storage.Store) ([]Result, []Result, error) {
-	var totalErrors []Result
-	var totalSuccesses []Result
+func (t TestRun) runRules(ctx context.Context, namespace string, input interface{}, regex *regexp.Regexp) ([]Result, []Result, error) {
 	var successes []Result
 	var errors []Result
-	var err error
 
 	var rules []string
-	if regex == nil {
-		rules = getRules(ctx, denyQ, compiler)
-		rules = append(rules, getRules(ctx, warnQ, compiler)...)
-	} else {
-		rules = getRules(ctx, regex, compiler)
+	for _, module := range t.Compiler.Modules {
+		for _, rule := range module.Rules {
+			ruleName := rule.Head.Name.String()
+
+			if regex.MatchString(ruleName) && !stringInSlice(ruleName, rules) {
+				rules = append(rules, ruleName)
+			}
+		}
 	}
 
+	var err error
+	var totalErrors []Result
+	var totalSuccesses []Result
 	for _, rule := range rules {
 		query := fmt.Sprintf("data.%s.%s", namespace, rule)
 
 		switch input.(type) {
 		case []interface{}:
-			errors, successes, err = runMultipleQueries(ctx, query, input, compiler, store)
+			errors, successes, err = t.runMultipleQueries(ctx, query, input)
+			if err != nil {
+				return nil, nil, fmt.Errorf("run multiple queries: %w", err)
+			}
 		default:
-			errors, successes, err = runQuery(ctx, query, input, compiler, store)
-		}
-
-		if err != nil {
-			return nil, nil, err
+			errors, successes, err = t.runQuery(ctx, query, input)
+			if err != nil {
+				return nil, nil, fmt.Errorf("run query: %w", err)
+			}
 		}
 
 		totalErrors = append(totalErrors, errors...)
@@ -319,23 +335,6 @@ func runRules(ctx context.Context, namespace string, input interface{}, regex *r
 	}
 
 	return totalErrors, totalSuccesses, nil
-}
-
-func getRules(ctx context.Context, re *regexp.Regexp, compiler *ast.Compiler) []string {
-	var rules []string
-	for _, module := range compiler.Modules {
-		for _, rule := range module.Rules {
-			ruleName := rule.Head.Name.String()
-
-			// the same rule names can be used multiple times, but
-			// we only want to run the query and report results once
-			if re.MatchString(ruleName) && !stringInSlice(ruleName, rules) {
-				rules = append(rules, ruleName)
-			}
-		}
-	}
-
-	return rules
 }
 
 func stringInSlice(a string, list []string) bool {
@@ -348,11 +347,11 @@ func stringInSlice(a string, list []string) bool {
 	return false
 }
 
-func runMultipleQueries(ctx context.Context, query string, inputs interface{}, compiler *ast.Compiler, store storage.Store) ([]Result, []Result, error) {
+func (t TestRun) runMultipleQueries(ctx context.Context, query string, inputs interface{}) ([]Result, []Result, error) {
 	var totalViolations []Result
 	var totalSuccesses []Result
 	for _, input := range inputs.([]interface{}) {
-		violations, successes, err := runQuery(ctx, query, input, compiler, store)
+		violations, successes, err := t.runQuery(ctx, query, input)
 		if err != nil {
 			return nil, nil, fmt.Errorf("run query: %w", err)
 		}
@@ -364,8 +363,8 @@ func runMultipleQueries(ctx context.Context, query string, inputs interface{}, c
 	return totalViolations, totalSuccesses, nil
 }
 
-func runQuery(ctx context.Context, query string, input interface{}, compiler *ast.Compiler, store storage.Store) ([]Result, []Result, error) {
-	rego, stdout := buildRego(viper.GetBool("trace"), query, input, compiler, store)
+func (t TestRun) runQuery(ctx context.Context, query string, input interface{}) ([]Result, []Result, error) {
+	rego, stdout := t.buildRego(viper.GetBool("trace"), query, input)
 	resultSet, err := rego.Eval(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("evaluating policy: %w", err)
@@ -392,32 +391,33 @@ func runQuery(ctx context.Context, query string, input interface{}, compiler *as
 	var successes []Result
 	for _, result := range resultSet {
 		for _, expression := range result.Expressions {
-			value := expression.Value
-			if hasResults(value) {
-				for _, v := range value.([]interface{}) {
-					switch val := v.(type) {
-					case string:
-						errs = append(errs, NewResult(val, traces))
-					case map[string]interface{}:
-						if _, ok := val["msg"]; !ok {
-							return nil, nil, fmt.Errorf("rule missing msg field: %v", val)
-						}
-						if _, ok := val["msg"].(string); !ok {
-							return nil, nil, fmt.Errorf("msg field must be string: %v", val)
-						}
 
-						result := NewResult(val["msg"].(string), traces)
-						for k, v := range val {
-							if k != "msg" {
-								result.Metadata[k] = v
-							}
-
-						}
-						errs = append(errs, result)
-					}
-				}
-			} else {
+			if hasResults(expression.Value) == false {
 				successes = append(successes, NewResult(expression.Text, traces))
+				continue
+			}
+
+			for _, v := range expression.Value.([]interface{}) {
+				switch val := v.(type) {
+				case string:
+					errs = append(errs, NewResult(val, traces))
+				case map[string]interface{}:
+					if _, ok := val["msg"]; !ok {
+						return nil, nil, fmt.Errorf("rule missing msg field: %v", val)
+					}
+					if _, ok := val["msg"].(string); !ok {
+						return nil, nil, fmt.Errorf("msg field must be string: %v", val)
+					}
+
+					result := NewResult(val["msg"].(string), traces)
+					for k, v := range val {
+						if k != "msg" {
+							result.Metadata[k] = v
+						}
+
+					}
+					errs = append(errs, result)
+				}
 			}
 		}
 	}
@@ -425,12 +425,12 @@ func runQuery(ctx context.Context, query string, input interface{}, compiler *as
 	return errs, successes, nil
 }
 
-func buildRego(trace bool, query string, input interface{}, compiler *ast.Compiler, store storage.Store) (*rego.Rego, *topdown.BufferTracer) {
+func (t TestRun) buildRego(trace bool, query string, input interface{}) (*rego.Rego, *topdown.BufferTracer) {
 	var regoObj *rego.Rego
 	var regoFunc []func(r *rego.Rego)
 	buf := topdown.NewBufferTracer()
 
-	regoFunc = append(regoFunc, rego.Query(query), rego.Compiler(compiler), rego.Input(input), rego.Store(store))
+	regoFunc = append(regoFunc, rego.Query(query), rego.Compiler(t.Compiler), rego.Input(input), rego.Store(t.Store))
 	if trace {
 		regoFunc = append(regoFunc, rego.Tracer(buf))
 	}

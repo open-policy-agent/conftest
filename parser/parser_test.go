@@ -30,6 +30,7 @@ func TestUnmarshaller(t *testing.T) {
 						ConfigDoc{
 							ReadCloser: ioutil.NopCloser(strings.NewReader("sample: true")),
 							Filepath:   "sample.yml",
+							Parser:     &yaml.Parser{},
 						},
 					},
 					expectedResult: map[string]interface{}{
@@ -45,14 +46,17 @@ func TestUnmarshaller(t *testing.T) {
 						ConfigDoc{
 							ReadCloser: ioutil.NopCloser(strings.NewReader("sample: true")),
 							Filepath:   "sample.yml",
+							Parser:     &yaml.Parser{},
 						},
 						ConfigDoc{
 							ReadCloser: ioutil.NopCloser(strings.NewReader("hello: true")),
 							Filepath:   "hello.yml",
+							Parser:     &yaml.Parser{},
 						},
 						ConfigDoc{
 							ReadCloser: ioutil.NopCloser(strings.NewReader("nice: true")),
 							Filepath:   "nice.yml",
+							Parser:     &yaml.Parser{},
 						},
 					},
 					expectedResult: map[string]interface{}{
@@ -79,6 +83,7 @@ hello: true
 ---
 nice: true`)),
 							Filepath: "sample.yml",
+							Parser:   &yaml.Parser{},
 						},
 					},
 					expectedResult: map[string]interface{}{
@@ -107,6 +112,7 @@ hello: true
 ---
 nice: true`)),
 							Filepath: "sample.yml",
+							Parser:   &yaml.Parser{},
 						},
 						ConfigDoc{
 							ReadCloser: ioutil.NopCloser(strings.NewReader(`---
@@ -116,10 +122,12 @@ hello: true
 ---
 nice: true`)),
 							Filepath: "hello.yml",
+							Parser:   &yaml.Parser{},
 						},
 						ConfigDoc{
 							ReadCloser: ioutil.NopCloser(strings.NewReader("nice: true")),
 							Filepath:   "nice.yml",
+							Parser:     &yaml.Parser{},
 						},
 					},
 					expectedResult: map[string]interface{}{
@@ -156,7 +164,7 @@ nice: true`)),
 			for _, test := range testTable {
 				t.Run(test.name, func(t *testing.T) {
 					var unmarshalledConfigs map[string]interface{}
-					unmarshalledConfigs, err := BulkUnmarshal(test.controlReaders, "")
+					unmarshalledConfigs, err := bulkUnmarshal(test.controlReaders)
 					if err != nil {
 						t.Errorf("errors unmarshalling: %v", err)
 					}
