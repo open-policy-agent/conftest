@@ -21,10 +21,9 @@ type ConfigDoc struct {
 func GetConfigurations(ctx context.Context, input string, fileList []string) (map[string]interface{}, error) {
 	var fileConfigs []ConfigDoc
 	for _, fileName := range fileList {
-		var err error
 		var config io.ReadCloser
 
-		config, err = getConfig(fileName)
+		config, err := getConfig(fileName)
 		if err != nil {
 			return nil, fmt.Errorf("get config: %w", err)
 		}

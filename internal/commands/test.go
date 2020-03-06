@@ -259,28 +259,29 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 
 // GetResult returns the result of testing the structured data against their policies
 func (t TestRun) GetResult(ctx context.Context, namespaces []string, input interface{}) (CheckResult, error) {
-	var totalSuccesses, warnings, successes, failures []Result
+	var successes []Result
+	var totalSuccesses []Result
 
+	var warnings []Result
 	for _, namespace := range namespaces {
 		tmpWarnings, tmpSuccesses, err := t.runRules(ctx, namespace, input, warnQ)
 		if err != nil {
-			return CheckResult{}, err
+			return CheckResult{}, fmt.Errorf("run rules: %w", err)
 		}
 		warnings = append(warnings, tmpWarnings...)
 		successes = append(successes, tmpSuccesses...)
 	}
-
 	totalSuccesses = append(totalSuccesses, successes...)
 
+	var failures []Result
 	for _, namespace := range namespaces {
 		tmpFailures, tmpSuccesses, err := t.runRules(ctx, namespace, input, denyQ)
 		if err != nil {
-			return CheckResult{}, err
+			return CheckResult{}, fmt.Errorf("run rules: %w", err)
 		}
 		failures = append(failures, tmpFailures...)
 		successes = append(successes, tmpSuccesses...)
 	}
-
 	totalSuccesses = append(totalSuccesses, successes...)
 
 	result := CheckResult{
