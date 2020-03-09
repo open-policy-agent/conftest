@@ -11,14 +11,14 @@ deny[msg] {
   msg = sprintf("Containers must not run as root in Deployment %s", [name])
 }
 
-labels {
+required_deployment_selectors {
   input.spec.selector.matchLabels.app
   input.spec.selector.matchLabels.release
 }
 
 deny[msg] {
   kubernetes.is_deployment
-  not labels
+  not required_deployment_selectors
 
   msg = sprintf("Deployment %s must provide app/release labels for pod selectors", [name])
 }
