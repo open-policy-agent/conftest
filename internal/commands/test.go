@@ -259,8 +259,6 @@ func GetResult(ctx context.Context, namespaces []string, input interface{}, comp
 		successes = append(successes, tmpSuccesses...)
 	}
 
-	totalSuccesses = append(totalSuccesses, successes...)
-
 	for _, namespace := range namespaces {
 		tmpFailures, tmpSuccesses, err := runRules(ctx, namespace, input, denyQ, compiler, store)
 		if err != nil {
