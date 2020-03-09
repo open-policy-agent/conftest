@@ -248,31 +248,29 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 
 // GetResult returns the result of testing the structured data against their policies
 func GetResult(ctx context.Context, namespaces []string, input interface{}, compiler *ast.Compiler, store storage.Store) (CheckResult, error) {
-	var totalSuccesses, warnings, successes, failures []Result
-
+	var totalWarnings []Result
+	var totalFailures []Result
+	var totalSuccesses []Result
 	for _, namespace := range namespaces {
-		tmpWarnings, tmpSuccesses, err := runRules(ctx, namespace, input, warnQ, compiler, store)
+		warnings, successes, err := runRules(ctx, namespace, input, warnQ, compiler, store)
 		if err != nil {
-			return CheckResult{}, err
+			return CheckResult{}, fmt.Errorf("running warn rules: %w", err)
 		}
-		warnings = append(warnings, tmpWarnings...)
-		successes = append(successes, tmpSuccesses...)
-	}
+		totalSuccesses = append(totalSuccesses, successes...)
 
-	for _, namespace := range namespaces {
-		tmpFailures, tmpSuccesses, err := runRules(ctx, namespace, input, denyQ, compiler, store)
+		failures, successes, err := runRules(ctx, namespace, input, denyQ, compiler, store)
 		if err != nil {
-			return CheckResult{}, err
+			return CheckResult{}, fmt.Errorf("running deny rules: %w", err)
 		}
-		failures = append(failures, tmpFailures...)
-		successes = append(successes, tmpSuccesses...)
-	}
+		totalSuccesses = append(totalSuccesses, successes...)
 
-	totalSuccesses = append(totalSuccesses, successes...)
+		totalFailures = append(totalFailures, failures...)
+		totalWarnings = append(totalWarnings, warnings...)
+	}
 
 	result := CheckResult{
-		Warnings:  warnings,
-		Failures:  failures,
+		Warnings:  totalWarnings,
+		Failures:  totalFailures,
 		Successes: totalSuccesses,
 	}
 
