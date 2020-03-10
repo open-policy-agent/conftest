@@ -262,15 +262,15 @@ func (t TestRun) GetResult(ctx context.Context, namespaces []string, input inter
 	var totalWarnings []Result
 	var totalFailures []Result
 	var totalSuccesses []Result
-  
+
 	for _, namespace := range namespaces {
-		warnings, successes, err := runRules(ctx, namespace, input, warnQ, compiler, store)
+		warnings, successes, err := t.runRules(ctx, namespace, input, warnQ)
 		if err != nil {
 			return CheckResult{}, fmt.Errorf("running warn rules: %w", err)
 		}
 		totalSuccesses = append(totalSuccesses, successes...)
 
-		failures, successes, err := runRules(ctx, namespace, input, denyQ, compiler, store)
+		failures, successes, err := t.runRules(ctx, namespace, input, denyQ)
 		if err != nil {
 			return CheckResult{}, fmt.Errorf("running deny rules: %w", err)
 		}
@@ -278,9 +278,9 @@ func (t TestRun) GetResult(ctx context.Context, namespaces []string, input inter
 
 		totalFailures = append(totalFailures, failures...)
 		totalWarnings = append(totalWarnings, warnings...)
-  }
-  
-  result := CheckResult{
+	}
+
+	result := CheckResult{
 		Warnings:  totalWarnings,
 		Failures:  totalFailures,
 		Successes: totalSuccesses,
