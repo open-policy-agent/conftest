@@ -2,9 +2,6 @@ package parser
 
 import (
 	"fmt"
-	"io"
-	"io/ioutil"
-	"path/filepath"
 
 	"github.com/instrumenta/conftest/parser/cue"
 	"github.com/instrumenta/conftest/parser/docker"
@@ -44,46 +41,6 @@ type Parser interface {
 	Unmarshal(p []byte, v interface{}) error
 }
 
-// ConfigDoc stores file contents and it's original filename
-type ConfigDoc struct {
-	ReadCloser io.ReadCloser
-	Filepath   string
-}
-
-// BulkUnmarshal iterates through the given cached io.Readers and
-// runs the requested parser on the data.
-func BulkUnmarshal(configList []ConfigDoc, input string) (map[string]interface{}, error) {
-	configContents := make(map[string][]byte)
-	for _, config := range configList {
-		contents, err := ioutil.ReadAll(config.ReadCloser)
-		if err != nil {
-			return nil, fmt.Errorf("read config: %w", err)
-		}
-
-		configContents[config.Filepath] = contents
-		config.ReadCloser.Close()
-	}
-
-	var allContents = make(map[string]interface{})
-	for filePath, config := range configContents {
-		fileType := getFileType(filePath, input)
-
-		fileParser, err := GetParser(fileType)
-		if err != nil {
-			return nil, fmt.Errorf("get parser: %w", err)
-		}
-
-		var singleContent interface{}
-		if err := fileParser.Unmarshal(config, &singleContent); err != nil {
-			return nil, fmt.Errorf("parser unmarshal: %w", err)
-		}
-
-		allContents[filePath] = singleContent
-	}
-
-	return allContents, nil
-}
-
 // GetParser gets a file parser based on the file type and input
 func GetParser(fileType string) (Parser, error) {
 	switch fileType {
@@ -112,22 +69,4 @@ func GetParser(fileType string) (Parser, error) {
 	default:
 		return nil, fmt.Errorf("unknown filetype given: %v", fileType)
 	}
-}
-
-func getFileType(fileName string, input string) string {
-	if input != "" {
-		return input
-	}
-
-	if fileName == "-" {
-		return "yaml"
-	}
-
-	if filepath.Ext(fileName) == "" {
-		return filepath.Base(fileName)
-	}
-
-	fileExtension := filepath.Ext(fileName)
-
-	return fileExtension[1:]
 }
