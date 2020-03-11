@@ -17,9 +17,37 @@ test_deployment_without_security_context {
 }
 
 test_deployment_with_security_context {
-  no_violations with input as {"kind": "Deployment", "metadata": {"name": "sample"}, "spec": {
-    "selector": { "matchLabels": { "app": "something", "release": "something" }},
-    "template": { "spec": { "securityContext": { "runAsNonRoot": true  }}}}}
+  input := {
+    "kind": "Deployment",
+    "metadata": {
+      "name": "sample",
+      "labels": {
+        "app.kubernetes.io/name": "name",
+        "app.kubernetes.io/instance": "instance",
+        "app.kubernetes.io/version": "version",
+        "app.kubernetes.io/component": "component",
+        "app.kubernetes.io/part-of": "part-of",
+        "app.kubernetes.io/managed-by": "managed-by"
+      }
+    },
+    "spec": {
+      "selector": {
+        "matchLabels": {
+          "app": "app",
+          "release": "release"
+        }
+      },
+      "template": {
+        "spec": {
+          "securityContext": {
+            "runAsNonRoot": true
+          }
+        }
+      }
+    }
+  }
+
+  no_violations with input as input
 }
 
 test_services_not_denied {
