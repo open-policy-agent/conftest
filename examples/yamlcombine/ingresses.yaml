@@ -1,0 +1,34 @@
+apiVersion: networking/v1beta1
+kind: Ingress
+metadata:
+  name: my-service-ingress
+spec:
+  rules:
+    - host: my-service.com
+      http:
+        paths:
+          - backend:
+              serviceName: my-service
+              servicePort: https
+            path: /
+    - host: my-service.com
+      http:
+        paths:
+          - backend:
+              serviceName: my-other-service
+              servicePort: http
+            path: /other/
+---
+  apiVersion: networking/v1beta1
+  kind: Ingress
+  metadata:
+    name: my-other-service-ingress
+  spec:
+    rules:
+      - host: my-other-service.com
+        http:
+          paths:
+            - backend:
+                serviceName: my-other-service
+                servicePort: https
+              path: /
