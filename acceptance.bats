@@ -210,13 +210,13 @@
 @test "Output results only once" {
   run ./conftest test -p examples/kubernetes/policy examples/kubernetes/deployment.yaml
   count="${#lines[@]}"
-  [ "$count" -eq 8 ]
+  [ "$count" -eq 5 ]
 }
 
 @test "Can verify rego tests" {
   run ./conftest verify --policy ./examples/kubernetes/policy
   [ "$status" -eq 0 ]
-  [[ "$output" =~ "PASS: 4/4" ]]
+  [[ "$output" =~ "4 tests, 4 passed" ]]
 }
 
 @test "Can parse inputs with 'conftest parse'" {
@@ -264,7 +264,7 @@
 @test "Can load data in unit tests" {
   run ./conftest verify -p examples/data/policy -d examples/data/exclusions examples/data/service.yaml
   [ "$status" -eq 0 ]
-  [[ "$output" =~ "PASS" ]]
+  [[ "$output" =~ "1 test, 1 passed, 0 warnings, 0 failures" ]]
 }
 
 @test "Can update policies in test command" {

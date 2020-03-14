@@ -31,10 +31,8 @@ func Test_stdOutputManager_put(t *testing.T) {
 			exp: []string{
 				"WARN - foo.yaml - first warning",
 				"FAIL - foo.yaml - first failure",
-				"--------------------------------------------------------------------------------",
-				"PASS: 0/2",
-				"WARN: 1/2",
-				"FAIL: 1/2",
+                "",
+                "2 tests, 0 passed, 1 warning, 1 failure",
 			},
 		},
 		{
@@ -49,10 +47,8 @@ func Test_stdOutputManager_put(t *testing.T) {
 			exp: []string{
 				"WARN - first warning",
 				"FAIL - first failure",
-				"--------------------------------------------------------------------------------",
-				"PASS: 0/2",
-				"WARN: 1/2",
-				"FAIL: 1/2",
+                "",
+                "2 tests, 0 passed, 1 warning, 1 failure",
 			},
 		},
 	}
