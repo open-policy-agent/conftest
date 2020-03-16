@@ -127,10 +127,33 @@ func (s *StandardOutputManager) Flush() error {
 
 	totalPolicies := totalFailures + totalWarnings + totalSuccesses
 
-	s.logger.Print("--------------------------------------------------------------------------------")
-	s.logger.Print("PASS: ", totalSuccesses, "/", totalPolicies)
-	s.logger.Print("WARN: ", totalWarnings, "/", totalPolicies)
-	s.logger.Print("FAIL: ", totalFailures, "/", totalPolicies)
+    var outputColor aurora.Color
+    if totalFailures > 0 {
+        outputColor = aurora.RedFg
+    } else if totalWarnings > 0 {
+        outputColor = aurora.YellowFg
+    } else {
+        outputColor = aurora.GreenFg
+    }
+
+    var pluralSuffixTests string
+    if totalPolicies != 1 {
+        pluralSuffixTests = "s"
+    }
+
+    var pluralSuffixWarnings string
+    if totalWarnings != 1 {
+        pluralSuffixWarnings = "s"
+    }
+
+    var pluralSuffixFailures string
+    if totalFailures != 1 {
+        pluralSuffixFailures = "s"
+    }
+
+    s.logger.Println()
+    outputText := fmt.Sprintf("%v test%s, %v passed, %v warning%s, %v failure%s", totalPolicies, pluralSuffixTests, totalSuccesses, totalWarnings, pluralSuffixWarnings, totalFailures, pluralSuffixFailures)
+    s.logger.Println(s.color.Colorize(outputText, outputColor))
 
 	return nil
 }

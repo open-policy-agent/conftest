@@ -34,6 +34,8 @@ Assuming you have a Kubernetes deployment in `deployment.yaml` you can run Conft
 $ conftest test deployment.yaml
 FAIL - deployment.yaml - Containers must not run as root
 FAIL - deployment.yaml - Deployments are not allowed
+
+2 tests, 0 passed, 0 warnings, 2 failures
 ```
 
 Conftest isn't specific to Kubernetes. It will happily let you write tests for any configuration files in a variety of different formats.

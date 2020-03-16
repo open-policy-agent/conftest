@@ -36,6 +36,8 @@ Assuming you have a Kubernetes deployment in `deployment.yaml` you can run `conf
 $ conftest test deployment.yaml
 FAIL - deployment.yaml - Containers must not run as root
 FAIL - deployment.yaml - Deployments are not allowed
+
+2 tests, 0 passed, 0 warnings, 2 failures
 ```
 
 `conftest` can also be used with stdin:
@@ -44,6 +46,8 @@ FAIL - deployment.yaml - Deployments are not allowed
 $ cat deployment.yaml | conftest test -
 FAIL - Containers must not run as root
 FAIL - Deployments are not allowed
+
+2 tests, 0 passed, 0 warnings, 2 failures
 ```
 
 Note that Conftest isn't specific to Kubernetes. It will happily let you write tests for any
