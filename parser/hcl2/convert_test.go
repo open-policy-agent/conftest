@@ -14,13 +14,13 @@ const inputa = `
 resource "aws_elastic_beanstalk_environment" "example" {
 	name        = "test_environment"
 	application = "testing"
-  
+
 	setting {
 	  namespace = "aws:autoscaling:asg"
 	  name      = "MinSize"
 	  value     = "1"
 	}
-  
+
 	dynamic "setting" {
 	  for_each = data.consul_key_prefix.environment.var
 	  content {
@@ -75,13 +75,57 @@ const outputa = `{
 	}
 }`
 
+const inputb = `
+provider "aws" {
+    version             = "=2.46.0"
+    alias                  = "one"
+}
+`
+
+const outputb = `{
+	"provider": {
+		"aws": {
+			"alias": "one",
+			"version": "=2.46.0"
+		}
+	}
+}`
+
+const inputc = `
+provider "aws" {
+    version             = "=2.46.0"
+    alias                  = "one"
+}
+provider "aws" {
+    version             = "=2.47.0"
+    alias                  = "two"
+}
+`
+
+const outputc = `{
+	"provider": {
+		"aws": [
+			{
+				"alias": "one",
+				"version": "=2.46.0"
+			},
+			{
+				"alias": "two",
+				"version": "=2.47.0"
+			}
+		]
+	}
+}`
+
 // Test that conversion works as expected
 func TestConversion(t *testing.T) {
 	testTable := map[string]struct {
 		input  string
 		output string
 	}{
-		"simple": {input: inputa, output: outputa},
+		"simple-resources": {input: inputa, output: outputa},
+		"single-provider":  {input: inputb, output: outputb},
+		"two-providers":    {input: inputc, output: outputc},
 	}
 	for name, tc := range testTable {
 		bytes := []byte(tc.input)
