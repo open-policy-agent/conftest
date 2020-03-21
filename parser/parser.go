@@ -21,8 +21,8 @@ func ValidInputs() []string {
 	return []string{
 		"toml",
 		"tf",
+		"hcl",
 		"hcl1",
-		"hcl2",
 		"cue",
 		"ini",
 		"yml",

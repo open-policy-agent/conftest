@@ -59,10 +59,9 @@ configuration files. As of today `conftest` supports:
 * TOML
 * HOCON
 * HCL
+* HCL1
 * CUE
 * Dockerfile
-* HCL2 (Experimental)
 * EDN
 * VCL
 * XML
-
