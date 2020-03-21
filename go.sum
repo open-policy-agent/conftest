@@ -23,8 +23,6 @@ github.com/Microsoft/go-winio v0.4.14/go.mod h1:qXqCSQ3Xa7+6tgxaGTIe4Kpcdsi+P8jB
 github.com/Microsoft/hcsshim v0.8.6 h1:ZfF0+zZeYdzMIVMZHKtDKJvLHj76XCuVae/jNkjj0IA=
 github.com/Microsoft/hcsshim v0.8.6/go.mod h1:Op3hHsoHPAvb6lceZHDtd9OkTew38wNoXnJs8iY7rUg=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
-github.com/OneOfOne/xxhash v1.2.3 h1:wS8NNaIgtzapuArKIAjsyXtEN/IUjQkbw90xszUdS40=
-github.com/OneOfOne/xxhash v1.2.3/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/OneOfOne/xxhash v1.2.7 h1:fzrmmkskv067ZQbd9wERNGuxckWw67dyzoMG62p7LMo=
 github.com/OneOfOne/xxhash v1.2.7/go.mod h1:eZbhyaAYD41SGSSsnmcpxVoRiQ/MPUTjUdIIOT9Um7Q=
 github.com/Shopify/logrus-bugsnag v0.0.0-20171204204709-577dee27f20d h1:UrqY+r/OJnIp5u0s1SbQ8dVfLCZJsnvazdBP5hS4iRs=
@@ -258,8 +256,8 @@ github.com/oklog/ulid v1.3.1/go.mod h1:CirwcVhetQ6Lv90oh/F+FBtV6XMibvdAFo93nm5qn
 github.com/olekukonko/tablewriter v0.0.1/go.mod h1:vsDQFd/mU46D+Z4whnwzcISnGGzXWMclvtLoiIKAKIo=
 github.com/olekukonko/tablewriter v0.0.4 h1:vHD/YYe1Wolo78koG299f7V/VAS08c6IpCLn+Ejf/w8=
 github.com/olekukonko/tablewriter v0.0.4/go.mod h1:zq6QwlOf5SlnkVbMSr5EoBv3636FWnp+qbPhuoO21uA=
-github.com/open-policy-agent/opa v0.17.3 h1:Irk+/pTpN8bipJ7/XpEbFTg82v6Cmx9+8S/uS6V8MoM=
-github.com/open-policy-agent/opa v0.17.3/go.mod h1:6pC1cMYDI92i9EY/GoA2m+HcZlcCrh3jbfny5F7JVTA=
+github.com/open-policy-agent/opa v0.18.0 h1:EC81mO3/517Kq5brJHydqKE5MLzJ+4cdJvUQKxLzHy8=
+github.com/open-policy-agent/opa v0.18.0/go.mod h1:6pC1cMYDI92i9EY/GoA2m+HcZlcCrh3jbfny5F7JVTA=
 github.com/opencontainers/go-digest v0.0.0-20170106003457-a6d0ee40d420/go.mod h1:cMLVZDEM3+U2I4VmLI6N8jQYUd2OVphdqWwCJHrFt2s=
 github.com/opencontainers/go-digest v1.0.0-rc1 h1:WzifXhOVOEOuFYOJAW6aQqW0TooG2iki3E3Ii+WN7gQ=
 github.com/opencontainers/go-digest v1.0.0-rc1/go.mod h1:cMLVZDEM3+U2I4VmLI6N8jQYUd2OVphdqWwCJHrFt2s=
