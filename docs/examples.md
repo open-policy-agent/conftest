@@ -7,7 +7,7 @@ You can find examples using various other tools in the `examples` directory, inc
 * [Docker compose](https://github.com/instrumenta/conftest/tree/master/examples/compose)
 * [Dockerfile](https://github.com/instrumenta/conftest/tree/master/examples/docker)
 * [EDN](https://github.com/instrumenta/conftest/tree/master/examples/edn)
-* [HCL2](https://github.com/instrumenta/conftest/tree/master/examples/hcl2)
+* [HCL](https://github.com/instrumenta/conftest/tree/master/examples/hcl)
 * [HOCON](https://github.com/instrumenta/conftest/tree/master/examples/hocon)
 * [INI](https://github.com/instrumenta/conftest/tree/master/examples/ini)
 * [GitLab](https://github.com/instrumenta/conftest/tree/master/examples/ci)
