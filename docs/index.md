@@ -27,7 +27,7 @@ deny[msg] {
 }
 ```
 
-By default `conftest` looks for `deny` and `warn` rules in the `main` namespace. This can be
+By default `conftest` looks for `deny`, `violation`, and `warn` rules in the `main` namespace. This can be
 altered by running `--namespace` or provided on the configuration file.
 
 Assuming you have a Kubernetes deployment in `deployment.yaml` you can run `conftest` like so:
