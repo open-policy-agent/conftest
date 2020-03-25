@@ -10,17 +10,17 @@ import (
 
 // This file is mostly attributed to https://github.com/tmccombs/hcl2json
 
-const input = `
+const inputa = `
 resource "aws_elastic_beanstalk_environment" "example" {
 	name        = "test_environment"
 	application = "testing"
-  
+
 	setting {
 	  namespace = "aws:autoscaling:asg"
 	  name      = "MinSize"
 	  value     = "1"
 	}
-  
+
 	dynamic "setting" {
 	  for_each = data.consul_key_prefix.environment.var
 	  content {
@@ -44,7 +44,7 @@ resource "aws_elastic_beanstalk_environment" "example" {
 	}
   }`
 
-const expectedJSON = `{
+const outputa = `{
 	"resource": {
 		"aws_elastic_beanstalk_environment": {
 			"example": {
@@ -75,26 +75,78 @@ const expectedJSON = `{
 	}
 }`
 
+const inputb = `
+provider "aws" {
+    version             = "=2.46.0"
+    alias                  = "one"
+}
+`
+
+const outputb = `{
+	"provider": {
+		"aws": {
+			"alias": "one",
+			"version": "=2.46.0"
+		}
+	}
+}`
+
+const inputc = `
+provider "aws" {
+    version             = "=2.46.0"
+    alias                  = "one"
+}
+provider "aws" {
+    version             = "=2.47.0"
+    alias                  = "two"
+}
+`
+
+const outputc = `{
+	"provider": {
+		"aws": [
+			{
+				"alias": "one",
+				"version": "=2.46.0"
+			},
+			{
+				"alias": "two",
+				"version": "=2.47.0"
+			}
+		]
+	}
+}`
+
 // Test that conversion works as expected
 func TestConversion(t *testing.T) {
-	bytes := []byte(input)
-	conf, diags := hclsyntax.ParseConfig(bytes, "test", hcl.Pos{Byte: 0, Line: 1, Column: 1})
-	if diags.HasErrors() {
-		t.Errorf("Failed to parse config: %v", diags)
+	testTable := map[string]struct {
+		input  string
+		output string
+	}{
+		"simple-resources": {input: inputa, output: outputa},
+		"single-provider":  {input: inputb, output: outputb},
+		"two-providers":    {input: inputc, output: outputc},
 	}
-	converted, err := convertFile(conf)
+	for name, tc := range testTable {
+		bytes := []byte(tc.input)
+		conf, diags := hclsyntax.ParseConfig(bytes, "test", hcl.Pos{Byte: 0, Line: 1, Column: 1})
+		if diags.HasErrors() {
+			t.Errorf("Failed to parse config: %v", diags)
+		}
+		converted, err := convertFile(conf)
 
-	if err != nil {
-		t.Errorf("Unable to convert from hcl: %v", err)
-	}
+		if err != nil {
+			t.Errorf("Unable to convert from hcl: %v", err)
+		}
 
-	jb, err := json.MarshalIndent(converted, "", "\t")
-	if err != nil {
-		t.Errorf("Failed to serialize to json: %v", err)
-	}
-	computedJSON := string(jb)
+		jb, err := json.MarshalIndent(converted, "", "\t")
+		if err != nil {
+			t.Errorf("Failed to serialize to json: %v", err)
+		}
+		computedJSON := string(jb)
 
-	if computedJSON != expectedJSON {
-		t.Errorf("Expected:\n%s\n\nGot:\n%s", expectedJSON, computedJSON)
+		if computedJSON != tc.output {
+			t.Errorf("For test %s\nExpected:\n%s\n\nGot:\n%s", name, tc.output, computedJSON)
+		}
 	}
 }
