@@ -61,3 +61,16 @@ nfpms:
       - rpm
     homepage: https://github.com/instrumenta/conftest
     license: Apache-2.0
+snapcrafts:
+  - summary: "Test your configuration using Open Policy Agent"
+    publish: false
+    description: |
+      Conftest helps you write tests against structured configuration data. Using Conftest you can write tests for your Kubernetes configuration, Tekton pipeline definitions, Terraform code, Serverless configs or any other config files.
+
+      Conftest uses the Rego language from Open Policy Agent for writing the assertions. You can read more about Rego in How do I write policies in the Open Policy Agent documentation
+    grade: stable
+    confinement: strict
+    license: Apache-2.0
+    apps:
+      conftest:
+        plugs: ["home", "network"]

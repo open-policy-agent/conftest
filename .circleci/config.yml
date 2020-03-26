@@ -111,6 +111,19 @@ jobs:
     steps:
       - checkout
       - run: curl -sL https://git.io/goreleaser | bash
+      - persist_to_workspace:
+          root: dist
+          paths:
+            - "*.snap"
+  release_snap:
+    docker:
+      - image: cibuilds/snapcraft:stable
+    steps:
+      # `snapcraft export-login --snaps conftest --channels stable - | base64`
+      - run: echo $SNAPCRAFT_LOGIN_FILE | base64 --decode | snapcraft login --with -
+      - attach_workspace:
+          at: .
+      - run: snapcraft push --release=stable *.snap
 
 workflows:
   version: 2
@@ -137,3 +150,6 @@ workflows:
               ignore: /.*/
             tags:
               only: /v[0-9]+(\.[0-9]+)*(-.*)*/
+      - release_snap:
+          requires:
+            - release
