@@ -81,7 +81,7 @@ func (c *converter) convertBlock(block *hclsyntax.Block, out jsonObj) error {
 			out[key] = []interface{}{current, value}
 		}
 	} else {
-		out[key] = value
+		out[key] = []interface{}{value}
 	}
 
 	return nil

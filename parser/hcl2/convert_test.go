@@ -47,30 +47,38 @@ resource "aws_elastic_beanstalk_environment" "example" {
 const outputa = `{
 	"resource": {
 		"aws_elastic_beanstalk_environment": {
-			"example": {
-				"application": "testing",
-				"dynamic": {
-					"setting": {
-						"content": {
-							"cond": "${test3 \u003e 2 ? 1: 0}",
-							"heredoc": "This is a heredoc template.\nIt references ${local.other.3}\n",
-							"heredoc2": "\t\t\tAnother heredoc, that\n\t\t\tdoesn't remove indentation\n\t\t\t${local.other.3}\n\t\t\t%{if true ? false : true}\"gotcha\"\\n%{else}4%{endif}\n",
-							"loop": "This has a for loop: %{for x in local.arr}x,%{endfor}",
-							"name": "${setting.key}",
-							"namespace": "aws:elasticbeanstalk:application:environment",
-							"simple": "${4 - 2}",
-							"value": "${setting.value}"
-						},
-						"for_each": "${data.consul_key_prefix.environment.var}"
-					}
-				},
-				"name": "test_environment",
-				"setting": {
-					"name": "MinSize",
-					"namespace": "aws:autoscaling:asg",
-					"value": "1"
+			"example": [
+				{
+					"application": "testing",
+					"dynamic": {
+						"setting": [
+							{
+								"content": [
+									{
+										"cond": "${test3 \u003e 2 ? 1: 0}",
+										"heredoc": "This is a heredoc template.\nIt references ${local.other.3}\n",
+										"heredoc2": "\t\t\tAnother heredoc, that\n\t\t\tdoesn't remove indentation\n\t\t\t${local.other.3}\n\t\t\t%{if true ? false : true}\"gotcha\"\\n%{else}4%{endif}\n",
+										"loop": "This has a for loop: %{for x in local.arr}x,%{endfor}",
+										"name": "${setting.key}",
+										"namespace": "aws:elasticbeanstalk:application:environment",
+										"simple": "${4 - 2}",
+										"value": "${setting.value}"
+									}
+								],
+								"for_each": "${data.consul_key_prefix.environment.var}"
+							}
+						]
+					},
+					"name": "test_environment",
+					"setting": [
+						{
+							"name": "MinSize",
+							"namespace": "aws:autoscaling:asg",
+							"value": "1"
+						}
+					]
 				}
-			}
+			]
 		}
 	}
 }`
@@ -84,10 +92,12 @@ provider "aws" {
 
 const outputb = `{
 	"provider": {
-		"aws": {
-			"alias": "one",
-			"version": "=2.46.0"
-		}
+		"aws": [
+			{
+				"alias": "one",
+				"version": "=2.46.0"
+			}
+		]
 	}
 }`
 

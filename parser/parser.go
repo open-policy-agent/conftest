@@ -47,6 +47,7 @@ func GetParser(fileType string) (Parser, error) {
 	case "toml":
 		return &toml.Parser{}, nil
 	case "hcl1":
+		// route old hcl parser
 		return &terraform.Parser{}, nil
 	case "cue":
 		return &cue.Parser{}, nil
@@ -54,7 +55,8 @@ func GetParser(fileType string) (Parser, error) {
 		return &ini.Parser{}, nil
 	case "hocon":
 		return &hocon.Parser{}, nil
-	case "hcl", "tf":
+	case "hcl", "tf", "hcl2":
+		// route to new hcl
 		return &hcl2.Parser{}, nil
 	case "Dockerfile", "dockerfile":
 		return &docker.Parser{}, nil
