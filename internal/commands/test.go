@@ -298,12 +298,18 @@ func (t TestRun) runRules(ctx context.Context, namespace string, input interface
 	var errors []Result
 
 	var rules []string
+	var numberRules int = 0
 	for _, module := range t.Compiler.Modules {
-		for _, rule := range module.Rules {
-			ruleName := rule.Head.Name.String()
+		if strings.Split(module.Package.Path.String(), ".")[1] == namespace {
+			for _, rule := range module.Rules {
+				ruleName := rule.Head.Name.String()
 
-			if regex.MatchString(ruleName) && !stringInSlice(ruleName, rules) {
-				rules = append(rules, ruleName)
+				if regex.MatchString(ruleName) {
+					numberRules += 1
+					if !stringInSlice(ruleName, rules) {
+						rules = append(rules, ruleName)
+					}
+				}
 			}
 		}
 	}
@@ -329,6 +335,10 @@ func (t TestRun) runRules(ctx context.Context, namespace string, input interface
 
 		totalErrors = append(totalErrors, errors...)
 		totalSuccesses = append(totalSuccesses, successes...)
+	}
+
+	for i := len(totalErrors) + len(totalSuccesses); i < numberRules; i++ {
+		totalSuccesses = append(totalSuccesses, Result{})
 	}
 
 	return totalErrors, totalSuccesses, nil

@@ -280,3 +280,9 @@
   run ./conftest kubectl
   [ "$status" -eq 0 ]
 }
+
+@test "The number of tests run is accurate" {
+  run ./conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml --no-color
+  [ "$status" -eq 0 ]
+  [ "${lines[1]}" = "5 tests, 4 passed, 1 warning, 0 failures" ]
+}
