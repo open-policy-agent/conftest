@@ -6,7 +6,7 @@ import (
 	"github.com/instrumenta/conftest/parser/cue"
 	"github.com/instrumenta/conftest/parser/docker"
 	"github.com/instrumenta/conftest/parser/edn"
-	"github.com/instrumenta/conftest/parser/hcl"
+	"github.com/instrumenta/conftest/parser/hcl1"
 	"github.com/instrumenta/conftest/parser/hcl2"
 	"github.com/instrumenta/conftest/parser/hocon"
 	"github.com/instrumenta/conftest/parser/ini"
@@ -47,7 +47,7 @@ func GetParser(fileType string) (Parser, error) {
 	case "toml":
 		return &toml.Parser{}, nil
 	case "hcl1":
-		return &hcl.Parser{}, nil
+		return &hcl1.Parser{}, nil
 	case "cue":
 		return &cue.Parser{}, nil
 	case "ini":

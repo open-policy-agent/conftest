@@ -106,13 +106,13 @@
 }
 
 @test "Allow .rego files in the policy flag" {
-  run ./conftest test -p examples/terraform/policy/base.rego examples/terraform/gke-show.json
+  run ./conftest test -p examples/hcl1/policy/base.rego examples/hcl1/gke-show.json
   [ "$status" -eq 1 ]
   [[ "$output" =~ "Terraform plan will change prohibited resources in the following namespaces: google_iam, google_container" ]]
 }
 
-@test "Can parse tf files" {
-  run ./conftest test -p examples/terraform/policy/gke.rego examples/terraform/gke.tf
+@test "Can parse hcl1 files" {
+  run ./conftest test -p examples/hcl1/policy/gke.rego examples/hcl1/gke.tf
   [ "$status" -eq 0 ]
 }
 
@@ -191,7 +191,7 @@
 }
 
 @test "Can combine configs and reference by file" {
-  run ./conftest test -p examples/terraform/policy/gke_combine.rego examples/terraform/gke.tf --combine -i hcl1
+  run ./conftest test -p examples/hcl1/policy/gke_combine.rego examples/hcl1/gke.tf --combine -i hcl1
   [ "$status" -eq 0 ]
 }
 

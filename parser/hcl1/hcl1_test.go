@@ -1,4 +1,4 @@
-package hcl
+package hcl1
 
 import (
 	"testing"
@@ -64,7 +64,7 @@ const sample = `provider "google" {
 	value = "${google_container_cluster.primary.master_auth.0.cluster_ca_certificate}"
   }`
 
-func TestHclParser(t *testing.T) {
+func TestHcl1Parser(t *testing.T) {
 	var input interface{}
 	parser := &Parser{}
 	sampleFileBytes := []byte(sample)

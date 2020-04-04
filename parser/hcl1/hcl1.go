@@ -1,4 +1,4 @@
-package hcl
+package hcl1
 
 import (
 	"fmt"
