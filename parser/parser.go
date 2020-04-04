@@ -6,10 +6,10 @@ import (
 	"github.com/instrumenta/conftest/parser/cue"
 	"github.com/instrumenta/conftest/parser/docker"
 	"github.com/instrumenta/conftest/parser/edn"
+	"github.com/instrumenta/conftest/parser/hcl"
 	"github.com/instrumenta/conftest/parser/hcl2"
 	"github.com/instrumenta/conftest/parser/hocon"
 	"github.com/instrumenta/conftest/parser/ini"
-	"github.com/instrumenta/conftest/parser/terraform"
 	"github.com/instrumenta/conftest/parser/toml"
 	"github.com/instrumenta/conftest/parser/vcl"
 	"github.com/instrumenta/conftest/parser/xml"
@@ -47,14 +47,14 @@ func GetParser(fileType string) (Parser, error) {
 	case "toml":
 		return &toml.Parser{}, nil
 	case "hcl1":
-		return &terraform.Parser{}, nil
+		return &hcl.Parser{}, nil
 	case "cue":
 		return &cue.Parser{}, nil
 	case "ini":
 		return &ini.Parser{}, nil
 	case "hocon":
 		return &hocon.Parser{}, nil
-	case "hcl", "tf":
+	case "hcl", "tf", "hcl2":
 		return &hcl2.Parser{}, nil
 	case "Dockerfile", "dockerfile":
 		return &docker.Parser{}, nil
