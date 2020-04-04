@@ -7,16 +7,18 @@
 For the available parsers, take a look at: [parsers](parser). For instance:
 
 ```console
-$ conftest test -p examples/hcl1/policy examples/hcl1/gke.tf -i hcl1
-FAIL - examples/hcl/terraform.tf - ALB `my-alb-listener` is using HTTP rather than HTTPS
-FAIL - examples/hcl/terraform.tf - ASG `my-rule` defines a fully open ingress
-FAIL - examples/hcl/terraform.tf - Azure disk `source` is not encrypted
+$ conftest test -p examples/hcl/policy examples/unknown_extension/unknown.xyz -i hcl2
+FAIL - examples/unknown_extension/unknown.xyz - ALB `my-alb-listener` is using HTTP rather than HTTPS
+FAIL - examples/unknown_extension/unknown.xyz - ASG `my-rule` defines a fully open ingress
+FAIL - examples/unknown_extension/unknown.xyz - Azure disk `source` is not encrypted
 ```
 
-The `--input` flag can also be a good way to see how different input types would be parsed:
+The `--input` flag can also be combined with `parse` command:
 
 ```console
-conftest parse examples/hcl/terraform.tf -i hcl
+# The outputs will be different since we harvest the input with different parsers
+conftest parse examples/unknown_extension/unknown.xyz -i hcl2
+conftest parse examples/unknown_extension/unknown.xyz -i hcl1
 ```
 
 ### Multi-input type
