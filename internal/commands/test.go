@@ -300,7 +300,8 @@ func (t TestRun) runRules(ctx context.Context, namespace string, input interface
 	var rules []string
 	var numberRules int = 0
 	for _, module := range t.Compiler.Modules {
-		if strings.Split(module.Package.Path.String(), ".")[1] == namespace {
+		currentNamespace := strings.Replace(module.Package.Path.String(), "data.", "", 1)
+		if currentNamespace == namespace {
 			for _, rule := range module.Rules {
 				ruleName := rule.Head.Name.String()
 
