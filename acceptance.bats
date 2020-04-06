@@ -90,7 +90,7 @@
 }
 
 @test "Test command works with nested namespaces" {
-  run ./conftest test --namespace main.gke -p examples/terraform/policy/ examples/terraform/gke.tf --no-color
+  run ./conftest test --namespace main.gke -p examples/hcl1/policy/ examples/hcl1/gke.tf --no-color
   [ "$status" -eq 1 ]
   [ "${lines[1]}" = "1 test, 0 passed, 0 warnings, 1 failure" ]
 }
