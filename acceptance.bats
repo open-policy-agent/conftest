@@ -89,6 +89,12 @@
   [[ "$output" =~ "blacklisted commands found [\"apk add --no-cache python3 python3-dev build-base && pip3 install awscli==1.18.1\"]" ]]
 }
 
+@test "Test command works with nested namespaces" {
+  run ./conftest test --namespace main.gke -p examples/terraform/policy/ examples/terraform/gke.tf --no-color
+  [ "$status" -eq 1 ]
+  [ "${lines[1]}" = "1 test, 0 passed, 0 warnings, 1 failure" ]
+}
+
 @test "Verify command has trace flag" {
     run ./conftest verify --policy ./examples/kubernetes/policy --trace
   [ "$status" -eq 0 ]

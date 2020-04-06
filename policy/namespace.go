@@ -11,12 +11,10 @@ func GetNamespaces(regoFiles []string, compiler *ast.Compiler) ([]string, error)
 	namespaces := []string{}
 	exists := map[string]bool{}
 	for _, regoFile := range regoFiles {
-		for _, path := range compiler.Modules[regoFile].Package.Path {
-			value := path.Value.String()
-			if value != "data" && !exists[value] {
-				namespaces = append(namespaces, strings.ReplaceAll(path.Value.String(), "\"", ""))
-				exists[value] = true
-			}
+		namespace := strings.Replace(compiler.Modules[regoFile].Package.Path.String(), "data.", "", 1)
+		if !exists[namespace] {
+			namespaces = append(namespaces, namespace)
+			exists[namespace] = true
 		}
 	}
 	return namespaces, nil
