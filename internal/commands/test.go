@@ -437,8 +437,9 @@ func (t TestRun) buildRego(trace bool, query string, input interface{}) (*rego.R
 	var regoObj *rego.Rego
 	var regoFunc []func(r *rego.Rego)
 	buf := topdown.NewBufferTracer()
+	runtime := policy.RuntimeTerm()
 
-	regoFunc = append(regoFunc, rego.Query(query), rego.Compiler(t.Compiler), rego.Input(input), rego.Store(t.Store))
+	regoFunc = append(regoFunc, rego.Query(query), rego.Compiler(t.Compiler), rego.Input(input), rego.Store(t.Store), rego.Runtime(runtime))
 	if trace {
 		regoFunc = append(regoFunc, rego.Tracer(buf))
 	}

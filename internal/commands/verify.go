@@ -133,7 +133,8 @@ func runVerification(ctx context.Context, path string, trace bool) ([]CheckResul
 		return nil, fmt.Errorf("build store: %w", err)
 	}
 
-	runner := tester.NewRunner().SetCompiler(compiler).SetStore(store).SetModules(compiler.Modules).EnableTracing(trace)
+	runtime := policy.RuntimeTerm()
+	runner := tester.NewRunner().SetCompiler(compiler).SetStore(store).SetModules(compiler.Modules).EnableTracing(trace).SetRuntime(runtime)
 	ch, err := runner.RunTests(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("running tests: %w", err)
