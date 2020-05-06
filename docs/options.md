@@ -7,16 +7,18 @@
 For the available parsers, take a look at: [parsers](parser). For instance:
 
 ```console
-$ conftest test -p examples/hcl2/policy examples/hcl2/terraform.tf -i hcl2
-FAIL - examples/hcl2/terraform.tf - ALB `my-alb-listener` is using HTTP rather than HTTPS
-FAIL - examples/hcl2/terraform.tf - ASG `my-rule` defines a fully open ingress
-FAIL - examples/hcl2/terraform.tf - Azure disk `source` is not encrypte
+$ conftest test -p examples/hcl/policy examples/unknown_extension/unknown.xyz -i hcl2
+FAIL - examples/unknown_extension/unknown.xyz - ALB `my-alb-listener` is using HTTP rather than HTTPS
+FAIL - examples/unknown_extension/unknown.xyz - ASG `my-rule` defines a fully open ingress
+FAIL - examples/unknown_extension/unknown.xyz - Azure disk `source` is not encrypted
 ```
 
-The `--input` flag can also be a good way to see how different input types would be parsed:
+The `--input` flag can also be combined with `parse` command:
 
 ```console
-conftest parse examples/hcl2/terraform.tf -i hcl2
+# The outputs will be different since we harvest the input with different parsers
+conftest parse examples/unknown_extension/unknown.xyz -i hcl2
+conftest parse examples/unknown_extension/unknown.xyz -i hcl1
 ```
 
 ### Multi-input type
@@ -24,7 +26,7 @@ conftest parse examples/hcl2/terraform.tf -i hcl2
 `conftest` supports multiple different input types in a single call.
 
 ```console
-$ conftest test examples/multitype/grafana.ini examples/multitype/kubernetes.yaml -p examples/multitype
+$ conftest test examples/multitype/grafana.ini examples/multitype/deployment.yaml -p examples/multitype
 ```
 
 ## `--combine`
@@ -135,6 +137,7 @@ $ conftest test -p examples/kubernetes/policy examples/kubernetes/deployment.yam
 FAIL - examples/kubernetes/deployment.yaml - Containers must not run as root in Deployment hello-kubernetes
 FAIL - examples/kubernetes/deployment.yaml - Deployment hello-kubernetes must provide app/release labels for pod selectors
 FAIL - examples/kubernetes/deployment.yaml - hello-kubernetes must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels
+FAIL - examples/kubernetes/deployment.yaml - Found deployment hello-kubernetes but deployments are not allowed
 ```
 
 ### JSON
@@ -146,9 +149,26 @@ $ conftest test -o json -p examples/kubernetes/policy examples/kubernetes/deploy
                 "filename": "examples/kubernetes/deployment.yaml",
                 "warnings": [],
                 "failures": [
-                        "hello-kubernetes must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels ",
-                        "Containers must not run as root in Deployment hello-kubernetes",
-                        "Deployment hello-kubernetes must provide app/release labels for pod selectors"
+                        {
+                                "msg": "Containers must not run as root in Deployment hello-kubernetes"
+                        },
+                        {
+                                "msg": "Deployment hello-kubernetes must provide app/release labels for pod selectors"
+                        },
+                        {
+                                "msg": "hello-kubernetes must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels"
+                        },
+                        {
+                                "msg": "Found deployment hello-kubernetes but deployments are not allowed",
+                                "metadata": {
+                                        "details": {}
+                                }
+                        }
+                ],
+                "successes": [
+                        {
+                                "msg": "data.main.warn"
+                        }
                 ]
         }
 ]
@@ -158,10 +178,13 @@ $ conftest test -o json -p examples/kubernetes/policy examples/kubernetes/deploy
 
 ```console
 $ conftest test -o tap -p examples/kubernetes/policy examples/kubernetes/deployment.yaml
-1..3
+1..5
 not ok 1 - examples/kubernetes/deployment.yaml - Containers must not run as root in Deployment hello-kubernetes
 not ok 2 - examples/kubernetes/deployment.yaml - Deployment hello-kubernetes must provide app/release labels for pod selectors
 not ok 3 - examples/kubernetes/deployment.yaml - hello-kubernetes must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels
+not ok 4 - examples/kubernetes/deployment.yaml - Found deployment hello-kubernetes but deployments are not allowed
+# Successes
+ok 5 - examples/kubernetes/deployment.yaml - data.main.warn
 ```
 
 ### Table
@@ -171,6 +194,9 @@ $ conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml -
 +---------+----------------------------------+--------------------------------+
 | RESULT  |               FILE               |            MESSAGE             |
 +---------+----------------------------------+--------------------------------+
+| success | examples/kubernetes/service.yaml | data.main.deny                 |
+| success | examples/kubernetes/service.yaml | data.main.violation            |
+| success | examples/kubernetes/service.yaml |                                |
 | success | examples/kubernetes/service.yaml |                                |
 | warning | examples/kubernetes/service.yaml | Found service hello-kubernetes |
 |         |                                  | but services are not allowed   |

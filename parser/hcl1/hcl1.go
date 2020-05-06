@@ -1,4 +1,4 @@
-package terraform
+package hcl1
 
 import (
 	"fmt"

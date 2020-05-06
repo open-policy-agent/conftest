@@ -23,7 +23,7 @@ func TestGetConfigurations(t *testing.T) {
 			[]string{
 				"../examples/kubernetes/service.yaml",
 				"../examples/traefik/traefik.toml",
-				"../examples/terraform/gke.tf",
+				"../examples/hcl1/gke.tf",
 				"../examples/edn/sample_config.edn",
 			},
 		},
