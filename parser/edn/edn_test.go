@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/instrumenta/conftest/parser/edn"
+	"github.com/open-policy-agent/conftest/parser/edn"
 )
 
 func TestEDNParser(t *testing.T) {

@@ -1,4 +1,4 @@
-module github.com/instrumenta/conftest
+module github.com/open-policy-agent/conftest
 
 go 1.13
 

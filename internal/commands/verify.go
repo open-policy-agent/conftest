@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/instrumenta/conftest/policy"
+	"github.com/open-policy-agent/conftest/policy"
 	"github.com/open-policy-agent/opa/tester"
 	"github.com/open-policy-agent/opa/topdown"
 	"github.com/spf13/cobra"

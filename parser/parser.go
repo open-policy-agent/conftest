@@ -3,17 +3,17 @@ package parser
 import (
 	"fmt"
 
-	"github.com/instrumenta/conftest/parser/cue"
-	"github.com/instrumenta/conftest/parser/docker"
-	"github.com/instrumenta/conftest/parser/edn"
-	"github.com/instrumenta/conftest/parser/hcl1"
-	"github.com/instrumenta/conftest/parser/hcl2"
-	"github.com/instrumenta/conftest/parser/hocon"
-	"github.com/instrumenta/conftest/parser/ini"
-	"github.com/instrumenta/conftest/parser/toml"
-	"github.com/instrumenta/conftest/parser/vcl"
-	"github.com/instrumenta/conftest/parser/xml"
-	"github.com/instrumenta/conftest/parser/yaml"
+	"github.com/open-policy-agent/conftest/parser/cue"
+	"github.com/open-policy-agent/conftest/parser/docker"
+	"github.com/open-policy-agent/conftest/parser/edn"
+	"github.com/open-policy-agent/conftest/parser/hcl1"
+	"github.com/open-policy-agent/conftest/parser/hcl2"
+	"github.com/open-policy-agent/conftest/parser/hocon"
+	"github.com/open-policy-agent/conftest/parser/ini"
+	"github.com/open-policy-agent/conftest/parser/toml"
+	"github.com/open-policy-agent/conftest/parser/vcl"
+	"github.com/open-policy-agent/conftest/parser/xml"
+	"github.com/open-policy-agent/conftest/parser/yaml"
 )
 
 // ValidInputs returns string array in order to passing valid input types to viper
