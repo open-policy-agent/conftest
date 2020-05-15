@@ -1,7 +1,7 @@
 site_name: Conftest
 theme:
   name: "material"
-repo_url: https://github.com/instrumenta/conftest
+repo_url: https://github.com/open-policy-agent/conftest
 nav:
     - "Home": "index.md"
     - "Options": "options.md"

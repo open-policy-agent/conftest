@@ -13,7 +13,7 @@ conftest pull instrumenta.azurecr.io/test
 Pull also supports other policy locations, such as git or https. Under the hood conftest leverages [go-getter](https://github.com/hashicorp/go-getter) to download policies. For example, to download a policy via https:
 
 ```console
-conftest pull https://raw.githubusercontent.com/instrumenta/conftest/master/examples/compose/policy/deny.rego
+conftest pull https://raw.githubusercontent.com/open-policy-agent/conftest/master/examples/compose/policy/deny.rego
 ```
 
 Policies can be stored in OCI registries that support the Artifact specification. You can read more about this idea in

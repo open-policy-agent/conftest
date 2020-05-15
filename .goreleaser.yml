@@ -8,11 +8,11 @@ builds:
   goos:
   - windows
   - linux
-  - darwin 
+  - darwin
   ignore:
   - goarch: 386
   ldflags:
-  - -s -w -X github.com/instrumenta/conftest/internal/commands.version={{.Version}} -X github.com/instrumenta/conftest/internal/commands.commit={{.ShortCommit}} -X github.com/instrumenta/conftest/internal/commands.date={{.Date}}
+  - -s -w -X github.com/open-policy-agent/conftest/internal/commands.version={{.Version}} -X github.com/open-policy-agent/conftest/internal/commands.commit={{.ShortCommit}} -X github.com/open-policy-agent/conftest/internal/commands.date={{.Date}}
 archives:
 - replacements:
     darwin: Darwin
@@ -44,7 +44,7 @@ brews:
     name: homebrew-instrumenta
   folder: Formula
   description: "Test your configuration using Open Policy Agent"
-  homepage: "https://github.com/instrumenta/conftest"
+  homepage: "https://github.com/open-policy-agent/conftest"
   test: |
     system "#{bin}/conftest --version"
 scoop:
@@ -52,12 +52,12 @@ scoop:
     owner: instrumenta
     name: scoop-instrumenta
   description: "Test your configuration using Open Policy Agent"
-  homepage: "https://github.com/instrumenta/conftest"
+  homepage: "https://github.com/open-policy-agent/conftest"
 nfpms:
   - bindir: /usr/bin
     description: "Test your configuration using Open Policy Agent"
     formats:
       - deb
       - rpm
-    homepage: https://github.com/instrumenta/conftest
+    homepage: https://github.com/open-policy-agent/conftest
     license: Apache-2.0

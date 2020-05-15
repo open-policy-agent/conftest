@@ -53,7 +53,7 @@
 }
 
 @test "Test command with multiple input type" {
-  run ./conftest test examples/traefik/traefik.toml examples/kubernetes/service.yaml -p examples/kubernetes/policy 
+  run ./conftest test examples/traefik/traefik.toml examples/kubernetes/service.yaml -p examples/kubernetes/policy
   [ "$status" -eq 0 ]
   [[ "$output" =~ "Found service hello-kubernetes but services are not allowed" ]]
 }
@@ -274,7 +274,7 @@
 }
 
 @test "Can update policies in test command" {
-  run ./conftest test --update https://raw.githubusercontent.com/instrumenta/conftest/master/examples/compose/policy/deny.rego examples/compose/docker-compose.yml
+  run ./conftest test --update https://raw.githubusercontent.com/open-policy-agent/conftest/master/examples/compose/policy/deny.rego examples/compose/docker-compose.yml
   rm -rf policy/deny.rego
   [ "$status" -eq 1 ]
   [[ "$output" =~ "No images tagged latest" ]]

@@ -29,8 +29,8 @@ func Test_convertURLToValidPath(t *testing.T) {
 	}{
 		{
 			"Should convert https url to valid path",
-			"https://raw.githubusercontent.com/instrumenta/conftest/plugin",
-			"https-raw-githubusercontent-com-instrumenta-conftest-plugin",
+			"https://raw.githubusercontent.com/open-policy-agent/conftest/plugin",
+			"https-raw-githubusercontent-com-open-policy-agent-conftest-plugin",
 		},
 	}
 	for _, tc := range tests {
