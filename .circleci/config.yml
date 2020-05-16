@@ -1,7 +1,5 @@
 ---
 version: 2.1
-orbs:
-  snyk: snyk/snyk@0.0.8
 jobs:
   test:
     docker:
@@ -63,31 +61,9 @@ jobs:
       - store_artifacts:
           path: ~/reports
 
-  security:
-    docker:
-      - image: circleci/golang:1.13-node
-
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - go-mod-{{ checksum "go.sum" }}
-      - save_cache:
-          key: go-mod-{{ checksum "go.sum" }}
-          paths:
-            - "/go/pkg/mod"
-      - snyk/scan:
-          target-file: go.mod
-
   image:
     docker:
       - image: circleci/buildpack-deps:stretch
-
-    parameters:
-      with_snyk:
-        type: boolean
-        default: false
-
     steps:
       - checkout
       - setup_remote_docker:
@@ -97,13 +73,6 @@ jobs:
           command: docker build --pull --progress plain -t instrumenta/conftest .
           environment:
             DOCKER_BUILDKIT: 1
-      - when:
-          condition: <<parameters.with_snyk>>
-          steps:
-            - snyk/scan:
-                docker-image-name: instrumenta/conftest
-                project: docker.io/instrumenta/conftest
-                target-file: Dockerfile
 
   release:
     docker:
@@ -118,16 +87,11 @@ workflows:
     jobs:
       - test
       - acceptance
-      - security:
-          filters:
-            branches:
-              only: master
       - image:
           filters:
             branches:
               ignore: master
       - image:
-          with_snyk: true
           filters:
             branches:
               only: master
