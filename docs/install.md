@@ -1,9 +1,9 @@
 # Installation
 
-Conftest is  available for Windows, macOS and Linux on the [releases page](https://github.com/instrumenta/conftest/releases). On Linux and macOS you can download as follows:
+Conftest is  available for Windows, macOS and Linux on the [releases page](https://github.com/open-policy-agent/conftest/releases). On Linux and macOS you can download as follows:
 
 ```console
-$ wget https://github.com/instrumenta/conftest/releases/download/v0.17.1/conftest_0.17.1_Linux_x86_64.tar.gz
+$ wget https://github.com/open-policy-agent/conftest/releases/download/v0.17.1/conftest_0.17.1_Linux_x86_64.tar.gz
 $ tar xzf conftest_0.17.1_Linux_x86_64.tar.gz
 $ sudo mv conftest /usr/local/bin
 ```

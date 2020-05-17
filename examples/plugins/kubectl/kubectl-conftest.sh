@@ -16,7 +16,7 @@ function check_command () {
 function usage () {
     echo "A Kubectl plugin for using Conftest to test objects in Kubernetes using Open Policy Agent"
     echo
-    echo "See https://github.com/instrumenta/conftest for more information"
+    echo "See https://github.com/open-policy-agent/conftest for more information"
     echo
     echo "Usage:"
     echo "   conftest kubectl (TYPE[.VERSION][.GROUP] [NAME] | TYPE[.VERSION][.GROUP]/NAME)"

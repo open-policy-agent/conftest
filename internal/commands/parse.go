@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/instrumenta/conftest/parser"
+	"github.com/open-policy-agent/conftest/parser"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/instrumenta/conftest/plugin"
+	"github.com/open-policy-agent/conftest/plugin"
 	"github.com/spf13/cobra"
 )
 
@@ -25,10 +25,10 @@ The  following protocols are supported for downloading plugins:
 
 The location of the plugins is specified by passing an URL, e.g.:
 
-	$ conftest plugin install https://github.com/instrumenta/conftest/examples/plugins/kubectl
+	$ conftest plugin install https://github.com/open-policy-agent/conftest/examples/plugins/kubectl
 
 Based on the protocol a different mechanism will be used to download the plugin.
-The pull command will also try to infer the protocol based on the URL if the 
+The pull command will also try to infer the protocol based on the URL if the
 URL does not contain a protocol.
 
 The plugins will be installed on disk in ~/.conftest/plugins.

@@ -20,7 +20,7 @@ Under the hood conftest leverages [go-getter](https://github.com/hashicorp/go-ge
 For example, to download the example kubernetes conftest plugin you can execute the following command:
 
 ```console
-conftest plugin install https://github.com/instrumenta/conftest/examples/plugins/kubectl
+conftest plugin install https://github.com/open-policy-agent/conftest/examples/plugins/kubectl
 ```
 
 ## Using plugins

@@ -6,13 +6,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/instrumenta/conftest/parser/cue"
-	"github.com/instrumenta/conftest/parser/edn"
-	"github.com/instrumenta/conftest/parser/hcl1"
-	"github.com/instrumenta/conftest/parser/hcl2"
-	"github.com/instrumenta/conftest/parser/ini"
-	"github.com/instrumenta/conftest/parser/toml"
-	"github.com/instrumenta/conftest/parser/yaml"
+	"github.com/open-policy-agent/conftest/parser/cue"
+	"github.com/open-policy-agent/conftest/parser/edn"
+	"github.com/open-policy-agent/conftest/parser/hcl1"
+	"github.com/open-policy-agent/conftest/parser/hcl2"
+	"github.com/open-policy-agent/conftest/parser/ini"
+	"github.com/open-policy-agent/conftest/parser/toml"
+	"github.com/open-policy-agent/conftest/parser/yaml"
 )
 
 func TestUnmarshaller(t *testing.T) {
