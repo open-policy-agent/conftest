@@ -1,6 +1,6 @@
 # Conftest
 
-[![CircleCI](https://circleci.com/gh/instrumenta/conftest.svg?style=svg)](https://circleci.com/gh/instrumenta/conftest) [![Netlify](https://api.netlify.com/api/v1/badges/6a0aee44-2654-43d5-8558-ea1b8a9e6c43/deploy-status)](https://app.netlify.com/sites/quirky-almeida-4e0967/deploys)
+[![CircleCI](https://circleci.com/gh/open-policy-agent/conftest.svg?style=svg)](https://circleci.com/gh/open-policy-agent/conftest) [![Netlify](https://api.netlify.com/api/v1/badges/6a0aee44-2654-43d5-8558-ea1b8a9e6c43/deploy-status)](https://app.netlify.com/sites/quirky-almeida-4e0967/deploys)
 
 Conftest helps you write tests against structured configuration data. Using Conftest you can
 write tests for your Kubernetes configuration, Tekton pipeline definitions, Terraform code,
