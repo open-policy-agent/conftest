@@ -34,7 +34,7 @@ https://www.openpolicyagent.org/docs/latest/policy-language/
 The policy location defaults to the policy directory in the local folder.
 The location can be overridden with the '--policy' flag, e.g.:
 
-	$ conftest test --policy <my-directory> <input-file>
+	$ conftest test --policy <my-directory> <input-file/input-folder>
 
 Some policies are dependant on external data. This data is loaded in seperatly 
 from policies. The location of any data directory or file can be specified with 
@@ -128,7 +128,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 		Long:  testDesc,
 		Args:  cobra.MinimumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			flagNames := []string{"fail-on-warn", "update", combineConfigFlagName, "trace", "output", "input", "namespace", "all-namespaces", "data"}
+			flagNames := []string{"fail-on-warn", "update", combineConfigFlagName, "trace", "output", "input", "namespace", "all-namespaces", "data", "dir-exceptions"}
 			for _, name := range flagNames {
 				if err := viper.BindPFlag(name, cmd.Flags().Lookup(name)); err != nil {
 					return fmt.Errorf("bind flag: %w", err)
@@ -144,7 +144,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 			out := GetOutputManager(outputFormat, color)
 			input := viper.GetString("input")
 
-			files, err := parseFileList(fileList)
+			files, err := parseFileList(fileList, viper.GetString("dir-exceptions"))
 			if err != nil {
 				return fmt.Errorf("parse files: %w", err)
 			}
@@ -253,6 +253,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().String("namespace", "main", "namespace in which to find deny and warn rules")
 	cmd.Flags().Bool("all-namespaces", false, "find deny and warn rules in all namespaces. If set, the flag \"namespace\" is ignored")
 	cmd.Flags().StringSliceP("data", "d", []string{}, "A list of paths from which data for the rego policies will be recursively loaded")
+	cmd.Flags().String("dir-exceptions", "", "a regex pattern which can be used for ignoring some files/directories in a given input. i.e.: ignoring yamls: --dir-exceptions=\".*.yaml\"")
 
 	return &cmd
 }
@@ -449,7 +450,7 @@ func (t TestRun) buildRego(trace bool, query string, input interface{}) (*rego.R
 	return regoObj, buf
 }
 
-func parseFileList(fileList []string) ([]string, error) {
+func parseFileList(fileList []string, exceptions string) ([]string, error) {
 	var files []string
 	for _, file := range fileList {
 		if file == "" {
@@ -467,7 +468,7 @@ func parseFileList(fileList []string) ([]string, error) {
 		}
 
 		if fileInfo.IsDir() {
-			directoryFiles, err := getFilesFromDirectory(file)
+			directoryFiles, err := getFilesFromDirectory(file, exceptions)
 			if err != nil {
 				return nil, fmt.Errorf("get files from directory: %w", err)
 			}
@@ -485,11 +486,16 @@ func parseFileList(fileList []string) ([]string, error) {
 	return files, nil
 }
 
-func getFilesFromDirectory(directory string) ([]string, error) {
+func getFilesFromDirectory(directory string, exceptions string) ([]string, error) {
 	var files []string
-	err := filepath.Walk(directory, func(currentPath string, info os.FileInfo, err error) error {
+	regexp := regexp.MustCompile(exceptions)
+	walk := func(currentPath string, info os.FileInfo, err error) error {
 		if err != nil {
 			return fmt.Errorf("walk path: %w", err)
+		}
+
+		if exceptions != "" && regexp.MatchString(currentPath) {
+			return nil
 		}
 
 		if info.IsDir() {
@@ -503,7 +509,9 @@ func getFilesFromDirectory(directory string) ([]string, error) {
 		}
 
 		return nil
-	})
+	}
+
+	err := filepath.Walk(directory, walk)
 	if err != nil {
 		return nil, err
 	}
