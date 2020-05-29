@@ -128,7 +128,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 		Long:  testDesc,
 		Args:  cobra.MinimumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			flagNames := []string{"fail-on-warn", "update", combineConfigFlagName, "trace", "output", "input", "namespace", "all-namespaces", "data", "dir-exceptions"}
+			flagNames := []string{"fail-on-warn", "update", combineConfigFlagName, "trace", "output", "input", "namespace", "all-namespaces", "data", "ignore"}
 			for _, name := range flagNames {
 				if err := viper.BindPFlag(name, cmd.Flags().Lookup(name)); err != nil {
 					return fmt.Errorf("bind flag: %w", err)
@@ -144,7 +144,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 			out := GetOutputManager(outputFormat, color)
 			input := viper.GetString("input")
 
-			files, err := parseFileList(fileList, viper.GetString("dir-exceptions"))
+			files, err := parseFileList(fileList, viper.GetString("ignore"))
 			if err != nil {
 				return fmt.Errorf("parse files: %w", err)
 			}
@@ -253,7 +253,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().String("namespace", "main", "namespace in which to find deny and warn rules")
 	cmd.Flags().Bool("all-namespaces", false, "find deny and warn rules in all namespaces. If set, the flag \"namespace\" is ignored")
 	cmd.Flags().StringSliceP("data", "d", []string{}, "A list of paths from which data for the rego policies will be recursively loaded")
-	cmd.Flags().String("dir-exceptions", "", "a regex pattern which can be used for ignoring some files/directories in a given input. i.e.: ignoring yamls: --dir-exceptions=\".*.yaml\"")
+	cmd.Flags().String("ignore", "", "a regex pattern which can be used for ignoring some files/directories in a given input. i.e.: ignoring yamls: --ignore=\".*.yaml\"")
 
 	return &cmd
 }
