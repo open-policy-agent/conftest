@@ -488,7 +488,11 @@ func parseFileList(fileList []string, exceptions string) ([]string, error) {
 
 func getFilesFromDirectory(directory string, exceptions string) ([]string, error) {
 	var files []string
-	regexp := regexp.MustCompile(exceptions)
+	regexp, err := regexp.Compile(exceptions)
+	if err != nil {
+		return nil, fmt.Errorf("given regexp for --ingore couldn't be parsed :%w", err)
+	}
+
 	walk := func(currentPath string, info os.FileInfo, err error) error {
 		if err != nil {
 			return fmt.Errorf("walk path: %w", err)
@@ -511,7 +515,7 @@ func getFilesFromDirectory(directory string, exceptions string) ([]string, error
 		return nil
 	}
 
-	err := filepath.Walk(directory, walk)
+	err = filepath.Walk(directory, walk)
 	if err != nil {
 		return nil, err
 	}

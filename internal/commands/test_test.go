@@ -177,10 +177,14 @@ func TestGetFilesFromDirectory(t *testing.T) {
 
 	createDummyFile := func(name string) {
 		d := []byte("")
-		check(ioutil.WriteFile(name, d, 0644))
+		if err := ioutil.WriteFile(name, d, 0644); err != nil {
+			t.Fatalf("cannot write to file :%v", err)
+		}
 	}
-	err := os.MkdirAll("test/parent/child", 0755)
-	check(err)
+
+	if err := os.MkdirAll("test/parent/child", 0755); err != nil {
+		t.Fatalf("cannot create testing directory structure: %v", err)
+	}
 
 	createDummyFile("test/file1.tf")
 	createDummyFile("test/file2.tf")
@@ -202,18 +206,12 @@ func TestGetFilesFromDirectory(t *testing.T) {
 		t.Run(tt.regex, func(t *testing.T) {
 			result, err := getFilesFromDirectory("test/", tt.regex)
 			if err != nil {
-				t.Errorf("getFilesFromDirectory returns err, expected nil")
+				t.Fatalf("getFilesFromDirectory returns err, expected nil")
 			}
 
 			if !reflect.DeepEqual(tt.exp, result) {
-				t.Errorf("expected: %v, got: %v", tt.exp, result)
+				t.Fatalf("expected: %v, got: %v", tt.exp, result)
 			}
 		})
-	}
-}
-
-func check(e error) {
-	if e != nil {
-		panic(e)
 	}
 }
