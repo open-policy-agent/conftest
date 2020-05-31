@@ -34,7 +34,7 @@ https://www.openpolicyagent.org/docs/latest/policy-language/
 The policy location defaults to the policy directory in the local folder.
 The location can be overridden with the '--policy' flag, e.g.:
 
-	$ conftest test --policy <my-directory> <input-file/input-folder>
+	$ conftest test --policy <my-directory> <input-file(s)/input-folder>
 
 Some policies are dependant on external data. This data is loaded in seperatly 
 from policies. The location of any data directory or file can be specified with 
@@ -490,7 +490,7 @@ func getFilesFromDirectory(directory string, exceptions string) ([]string, error
 	var files []string
 	regexp, err := regexp.Compile(exceptions)
 	if err != nil {
-		return nil, fmt.Errorf("given regexp for --ingore couldn't be parsed :%w", err)
+		return nil, fmt.Errorf("given regexp couldn't be parsed :%w", err)
 	}
 
 	walk := func(currentPath string, info os.FileInfo, err error) error {
