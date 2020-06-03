@@ -29,6 +29,18 @@ conftest parse examples/unknown_extension/unknown.xyz -i hcl1
 $ conftest test examples/multitype/grafana.ini examples/multitype/deployment.yaml -p examples/multitype
 ```
 
+## `--ignore`
+
+When the given input file lists/directories contain unwanted file extensions/folders, the `--ignore` flag helps you to filter them.
+A regexp pattern can be passed as the flag value for filtering. Here's some examples:
+
+```console
+conftest test -p examples/test/ test/ --ignore="parent/"
+conftest test -p examples/test/ test/ --ignore="child/"
+conftest test -p examples/test/ test/ --ignore=".*.yaml"
+conftest test -p examples/test/ test/ --ignore=".*.cue|.*.yaml"
+```
+
 ## `--combine`
 
 This flag introduces *BREAKING CHANGES* in how `conftest` provides input to rego policies. However, you may find it useful to as you can now compare multiple values from different configurations simultaneously.

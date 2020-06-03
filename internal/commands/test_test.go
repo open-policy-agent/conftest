@@ -2,6 +2,9 @@ package commands
 
 import (
 	"context"
+	"io/ioutil"
+	"os"
+	"reflect"
 	"testing"
 
 	"github.com/open-policy-agent/conftest/parser/docker"
@@ -165,5 +168,50 @@ ENTRYPOINT ["java","-cp","app:app/lib/*","hello.Application"]`
 	actualSuccesses := len(results.Successes)
 	if actualSuccesses != expectedSuccesses {
 		t.Errorf("Dockerfile test failure. Got %v successes, expected %v", actualSuccesses, expectedSuccesses)
+	}
+}
+
+func TestGetFilesFromDirectory(t *testing.T) {
+	os.Mkdir("test/", 0700)
+	defer os.RemoveAll("test/")
+
+	createDummyFile := func(name string) {
+		d := []byte("")
+		if err := ioutil.WriteFile(name, d, 0644); err != nil {
+			t.Fatalf("cannot write to file :%v", err)
+		}
+	}
+
+	if err := os.MkdirAll("test/parent/child", 0755); err != nil {
+		t.Fatalf("cannot create testing directory structure: %v", err)
+	}
+
+	createDummyFile("test/file1.tf")
+	createDummyFile("test/file2.tf")
+	createDummyFile("test/parent/file1.tf")
+	createDummyFile("test/parent/file1.yaml")
+	createDummyFile("test/parent/child/test.tf")
+
+	tests := []struct {
+		regex string
+		exp   []string
+	}{
+		{".*.yaml", []string{"test/file1.tf", "test/file2.tf", "test/parent/child/test.tf", "test/parent/file1.tf"}},
+		{".*.tf", []string{"test/parent/file1.yaml"}},
+		{"child/", []string{"test/file1.tf", "test/file2.tf", "test/parent/file1.tf", "test/parent/file1.yaml"}},
+		{"parent/", []string{"test/file1.tf", "test/file2.tf"}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.regex, func(t *testing.T) {
+			result, err := getFilesFromDirectory("test/", tt.regex)
+			if err != nil {
+				t.Fatalf("getFilesFromDirectory returns err, expected nil")
+			}
+
+			if !reflect.DeepEqual(tt.exp, result) {
+				t.Fatalf("expected: %v, got: %v", tt.exp, result)
+			}
+		})
 	}
 }
