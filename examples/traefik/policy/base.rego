@@ -9,6 +9,6 @@ deny[msg] {
   msg = sprintf("Following ciphers are not allowed: %v", [disallowed_ciphers])
 }
 
-check_trusted_ips(ciphers, blacklist) {
-  ciphers[_] = blacklist[_]
+check_trusted_ips(ciphers, denylist) {
+  ciphers[_] = denylist[_]
 }

@@ -85,8 +85,8 @@
 @test "Test command with all namespaces flag" {
   run ./conftest test -p examples/docker/policy examples/docker/Dockerfile --all-namespaces
   [ "$status" -eq 1 ]
-  [[ "$output" =~ "blacklisted image found [\"openjdk:8-jdk-alpine\"]" ]]
-  [[ "$output" =~ "blacklisted commands found [\"apk add --no-cache python3 python3-dev build-base && pip3 install awscli==1.18.1\"]" ]]
+  [[ "$output" =~ "unallowed image found [\"openjdk:8-jdk-alpine\"]" ]]
+  [[ "$output" =~ "unallowed commands found [\"apk add --no-cache python3 python3-dev build-base && pip3 install awscli==1.18.1\"]" ]]
 }
 
 @test "Test command works with nested namespaces" {
@@ -204,7 +204,7 @@
 @test "Can parse docker files" {
   run ./conftest test -p examples/docker/policy examples/docker/Dockerfile
   [ "$status" -eq 1 ]
-  [[ "$output" =~ "blacklisted image found [\"openjdk:8-jdk-alpine\"]" ]]
+  [[ "$output" =~ "unallowed image found [\"openjdk:8-jdk-alpine\"]" ]]
 }
 
 @test "Can disable color" {
