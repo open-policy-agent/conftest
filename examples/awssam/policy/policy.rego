@@ -1,31 +1,31 @@
 package main
 
-blacklist = [
+denylist = [
     "*"
 ]
 
-sensitive_blacklist = [
+sensitive_denylist = [
     "password",
     "Password",
     "Pass",
     "pass"
 ]
 
-runtime_blacklist = [
+runtime_denylist = [
     "python2.7",
     "node4.3"
 ]
 
-check_resources(actions, blacklist) {
-  endswith(actions[_], blacklist[_])
+check_resources(actions, denylist) {
+  endswith(actions[_], denylist[_])
 }
 
-check_sensitive(envs, blacklist) {
-  contains(envs[_], blacklist[_])
+check_sensitive(envs, denylist) {
+  contains(envs[_], denylist[_])
 }
 
-check_runtime(runtime, blacklist) {
-  contains(runtime, blacklist[_])
+check_runtime(runtime, denylist) {
+  contains(runtime, denylist[_])
 }
 
 deny[msg] {
@@ -34,12 +34,12 @@ deny[msg] {
 }
 
 deny[msg] {
-  input.Resources.LambdaFunction.Properties.Runtime = runtime; check_runtime(runtime, runtime_blacklist)
+  input.Resources.LambdaFunction.Properties.Runtime = runtime; check_runtime(runtime, runtime_denylist)
   msg = sprintf("%s runtime not allowed", [runtime])
 }
 
 deny[msg] {
-  input.Resources.LambdaFunction.Properties.Policies[_].Statement[_].Action = a; check_resources(a, blacklist)
+  input.Resources.LambdaFunction.Properties.Policies[_].Statement[_].Action = a; check_resources(a, denylist)
   input.Resources.LambdaFunction.Properties.Policies[_].Statement[_].Effect = "Allow"
   msg = "excessive Action permissions not allowed"
 }
@@ -51,7 +51,7 @@ deny[msg] {
 }
 
 deny[msg] {
-  input.Resources.LambdaFunction.Properties.Policies[_].Statement[_].Resource = a; check_resources(a, blacklist)
+  input.Resources.LambdaFunction.Properties.Policies[_].Statement[_].Resource = a; check_resources(a, denylist)
   input.Resources.LambdaFunction.Properties.Policies[_].Statement[_].Effect = "Allow"
   msg = "excessive Resource permissions not allowed"
 }
@@ -63,7 +63,7 @@ deny[msg] {
 }
 
 deny[msg] {
-  input.Resources.LambdaFunction.Properties.Environment.Variables = a; check_sensitive(a, sensitive_blacklist)
+  input.Resources.LambdaFunction.Properties.Environment.Variables = a; check_sensitive(a, sensitive_denylist)
   input.Resources.LambdaFunction.Properties.Policies[_].Statement[_].Effect = "Allow"
   msg = "Sensitive data not allowed in environment variables"
 }

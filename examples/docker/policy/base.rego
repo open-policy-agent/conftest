@@ -1,13 +1,13 @@
 package main
 
-blacklist = [
+denylist = [
   "openjdk"
 ]
 
 deny[msg] {
   input[i].Cmd == "from"
   val := input[i].Value
-  contains(val[i], blacklist[_])
+  contains(val[i], denylist[_])
 
-  msg = sprintf("blacklisted image found %s", [val])
+  msg = sprintf("unallowed image found %s", [val])
 }

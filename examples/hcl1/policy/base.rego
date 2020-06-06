@@ -1,14 +1,13 @@
 package main
 
-
-blacklist = [
+denylist = [
   "google_iam",
   "google_container"
 ]
 
 deny[msg] {
-  check_resources(input.resource_changes, blacklist)
-  banned := concat(", ", blacklist)
+  check_resources(input.resource_changes, denylist)
+  banned := concat(", ", denylist)
   msg = sprintf("Terraform plan will change prohibited resources in the following namespaces: %v", [banned])
 }
 
