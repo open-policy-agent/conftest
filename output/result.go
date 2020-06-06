@@ -31,3 +31,8 @@ func NewResult(message string, traces []error) Result {
 
 	return result
 }
+
+
+func IsResultFailure(result CheckResult, failOnWarn bool) bool {
+	return len(result.Failures) > 0 || (len(result.Warnings) > 0 && failOnWarn)
+}

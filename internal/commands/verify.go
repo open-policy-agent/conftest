@@ -1,16 +1,12 @@
 package commands
 
 import (
-	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"os"
-	"strings"
 
-	"github.com/open-policy-agent/conftest/policy"
-	"github.com/open-policy-agent/opa/tester"
-	"github.com/open-policy-agent/opa/topdown"
+	"github.com/open-policy-agent/conftest/internal/runners"
+	"github.com/open-policy-agent/conftest/output"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -72,12 +68,14 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			outFmt := viper.GetString("output")
 			color := !viper.GetBool("no-color")
+			outputManager := output.GetOutputManager(outFmt, color)
+			runner := &runners.VerifyRunner{}
+			err := viper.Unmarshal(runner)
+			if err != nil {
+				return fmt.Errorf("unmarshal parameters: %w", err)
+			}
 
-			outputManager := GetOutputManager(outFmt, color)
-			policyPath := viper.GetString("policy")
-			trace := viper.GetBool("trace")
-
-			results, err := runVerification(ctx, policyPath, trace)
+			results, err := runner.Run(ctx)
 			if err != nil {
 				return fmt.Errorf("running verification: %w", err)
 			}
@@ -88,7 +86,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 					return fmt.Errorf("put result: %w", err)
 				}
 
-				if isResultFailure(result) {
+				if output.IsResultFailure(result, viper.GetBool("fail-on-warn")) {
 					failures++
 				}
 			}
@@ -105,71 +103,9 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", ValidOutputs()))
+	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", output.ValidOutputs()))
 	cmd.Flags().BoolP("trace", "", false, "enable more verbose trace output for rego queries")
 	cmd.Flags().StringSliceP("data", "d", []string{}, "A list of paths from which data for the rego policies will be recursively loaded")
 
 	return &cmd
-}
-
-func runVerification(ctx context.Context, path string, trace bool) ([]CheckResult, error) {
-	regoFiles, err := policy.ReadFilesWithTests(path)
-	if err != nil {
-		return nil, fmt.Errorf("read rego test files: %s", err)
-	}
-
-	if len(regoFiles) < 1 {
-		return nil, fmt.Errorf("no policies found in %s", path)
-	}
-
-	compiler, err := policy.BuildCompiler(regoFiles)
-	if err != nil {
-		return nil, fmt.Errorf("build compiler: %w", err)
-	}
-
-	dataPaths := viper.GetStringSlice("data")
-	store, err := policy.StoreFromDataFiles(dataPaths)
-	if err != nil {
-		return nil, fmt.Errorf("build store: %w", err)
-	}
-
-	runtime := policy.RuntimeTerm()
-	runner := tester.NewRunner().SetCompiler(compiler).SetStore(store).SetModules(compiler.Modules).EnableTracing(trace).SetRuntime(runtime)
-	ch, err := runner.RunTests(ctx, nil)
-	if err != nil {
-		return nil, fmt.Errorf("running tests: %w", err)
-	}
-
-	var results []CheckResult
-	for result := range ch {
-		msg := fmt.Errorf("%s", result.Package+"."+result.Name)
-
-		var failure []Result
-		var success []Result
-
-		buf := new(bytes.Buffer)
-		topdown.PrettyTrace(buf, result.Trace)
-		var traces []error
-		for _, line := range strings.Split(buf.String(), "\n") {
-			if len(line) > 0 {
-				traces = append(traces, errors.New(line))
-			}
-		}
-
-		if result.Fail {
-			failure = append(failure, NewResult(msg.Error(), traces))
-		} else {
-			success = append(success, NewResult(msg.Error(), traces))
-		}
-
-		checkResult := CheckResult{
-			FileName:  result.Location.File,
-			Successes: success,
-			Failures:  failure,
-		}
-
-		results = append(results, checkResult)
-	}
-
-	return results, nil
 }
