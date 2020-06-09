@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/open-policy-agent/conftest/internal/runners"
+	"github.com/open-policy-agent/conftest/internal/runner"
 	"github.com/open-policy-agent/conftest/output"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -69,7 +69,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 			outFmt := viper.GetString("output")
 			color := !viper.GetBool("no-color")
 			outputManager := output.GetOutputManager(outFmt, color)
-			runner := &runners.VerifyRunner{}
+			runner := &runner.VerifyRunner{}
 			err := viper.Unmarshal(runner)
 			if err != nil {
 				return fmt.Errorf("unmarshal parameters: %w", err)
