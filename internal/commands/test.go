@@ -195,7 +195,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 					return fmt.Errorf("get namespaces: %w", err)
 				}
 			} else {
-				namespaces = []string{viper.GetString("namespace")}
+				namespaces = viper.GetStringSlice("namespace")
 			}
 
 			var failureFound bool
@@ -250,7 +250,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().StringSliceP("update", "u", []string{}, "a list of urls can be provided to the update flag, which will download before the tests run")
 	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", ValidOutputs()))
 	cmd.Flags().StringP("input", "i", "", fmt.Sprintf("input type for given source, especially useful when using conftest with stdin, valid options are: %s", parser.ValidInputs()))
-	cmd.Flags().String("namespace", "main", "namespace in which to find deny and warn rules")
+	cmd.Flags().StringSlice("namespace", []string{"main"}, "namespace in which to find deny and warn rules")
 	cmd.Flags().Bool("all-namespaces", false, "find deny and warn rules in all namespaces. If set, the flag \"namespace\" is ignored")
 	cmd.Flags().StringSliceP("data", "d", []string{}, "A list of paths from which data for the rego policies will be recursively loaded")
 	cmd.Flags().String("ignore", "", "a regex pattern which can be used for ignoring some files/directories in a given input. i.e.: ignoring yamls: --ignore=\".*.yaml\"")
