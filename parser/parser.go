@@ -10,6 +10,7 @@ import (
 	"github.com/open-policy-agent/conftest/parser/hcl2"
 	"github.com/open-policy-agent/conftest/parser/hocon"
 	"github.com/open-policy-agent/conftest/parser/ini"
+	"github.com/open-policy-agent/conftest/parser/json"
 	"github.com/open-policy-agent/conftest/parser/toml"
 	"github.com/open-policy-agent/conftest/parser/vcl"
 	"github.com/open-policy-agent/conftest/parser/xml"
@@ -58,8 +59,10 @@ func GetParser(fileType string) (Parser, error) {
 		return &hcl2.Parser{}, nil
 	case "Dockerfile", "dockerfile":
 		return &docker.Parser{}, nil
-	case "yml", "yaml", "json":
+	case "yml", "yaml":
 		return &yaml.Parser{}, nil
+	case "json":
+		return &json.Parser{}, nil
 	case "edn":
 		return &edn.Parser{}, nil
 	case "vcl":

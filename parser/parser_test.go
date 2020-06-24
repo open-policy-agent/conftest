@@ -11,6 +11,7 @@ import (
 	"github.com/open-policy-agent/conftest/parser/hcl1"
 	"github.com/open-policy-agent/conftest/parser/hcl2"
 	"github.com/open-policy-agent/conftest/parser/ini"
+	"github.com/open-policy-agent/conftest/parser/json"
 	"github.com/open-policy-agent/conftest/parser/toml"
 	"github.com/open-policy-agent/conftest/parser/yaml"
 )
@@ -220,9 +221,9 @@ func TestGetParser(t *testing.T) {
 			expectError: false,
 		},
 		{
-			name:        "Test getting YAML parser from JSON input",
+			name:        "Test getting JSON parser from JSON input",
 			fileType:    "json",
-			expected:    new(yaml.Parser),
+			expected:    new(json.Parser),
 			expectError: false,
 		},
 		{
