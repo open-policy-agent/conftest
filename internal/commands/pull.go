@@ -40,7 +40,7 @@ an azure registry URL is passed, e.g.
 The policy location defaults to the policy directory in the local folder.
 The location can be overridden with the '--policy' flag, e.g.:
 
-	$ conftest push --policy <my-directory> <oci-url>
+	$ conftest pull --policy <my-directory> <oci-url>
 `
 
 // NewPullCommand creates a new pull command to allow users
