@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"runtime"
+	"strings"
 
 	"github.com/jstemmer/go-junit-report/formatter"
 	"github.com/jstemmer/go-junit-report/parser"
@@ -419,9 +420,15 @@ func (j *JUnitOutputManager) Put(cr CheckResult) error {
 		return out
 	}
 	convert := func(r Result, status parser.Result) *parser.Test {
+		// We have to make sure that the name of the test is unique
+		name := fmt.Sprintf(
+			"%s - %s",
+			cr.FileName,
+			strings.Split(r.Message, "\n")[0],
+		)
+
 		return &parser.Test{
-			// We have to make sure that the name of the test is unique
-			Name:   fmt.Sprintf("%s - %s", cr.FileName, r.Message),
+			Name:   name,
 			Result: status,
 			Output: getOutput(r),
 		}
