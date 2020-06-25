@@ -12,6 +12,7 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-akka/configuration v0.0.0-20190919102339-a31c845c4b1b
 	github.com/go-ini/ini v1.51.0
+	github.com/google/go-jsonnet v0.16.0
 	github.com/hashicorp/go-getter v1.4.0
 	github.com/hashicorp/hcl v1.0.0
 	github.com/hashicorp/hcl/v2 v2.2.0

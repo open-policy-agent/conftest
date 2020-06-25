@@ -150,6 +150,12 @@
   [[ "$output" =~ "default backend port should be 8080" ]]
 }
 
+@test "Can parse jsonnet files" {
+  run ./conftest test -p examples/jsonnet/policy examples/jsonnet/arith.jsonnet
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "Concat array should be less than 3" ]]
+}
+
 @test "Can parse multi-type files" {
   run ./conftest test -p examples/multitype/policy examples/multitype/deployment.yaml examples/multitype/grafana.ini
   [ "$status" -eq  1 ]
