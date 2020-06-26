@@ -15,6 +15,7 @@ require (
 	github.com/hashicorp/go-getter v1.4.0
 	github.com/hashicorp/hcl v1.0.0
 	github.com/hashicorp/hcl/v2 v2.2.0
+	github.com/jstemmer/go-junit-report v0.0.0-20190106144839-af01ea7f8024
 	github.com/logrusorgru/aurora v0.0.0-20191116043053-66b7ad493a23
 	github.com/moby/buildkit v0.3.3
 	github.com/olekukonko/tablewriter v0.0.4
