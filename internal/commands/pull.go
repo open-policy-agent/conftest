@@ -23,7 +23,6 @@ The following protocols are supported for downloading policies:
 	- HTTP/HTTPS
 	- Mercurial
 	- Amazon S3
-	- Google Cloud Platform GCR
 
 The location of the policies is specified by passing an URL, e.g.:
 
