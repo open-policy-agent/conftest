@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cannot-run-as-root
+spec:
+  template:
+    spec:
+      containers:
+      - name: root-container
+        image: nginx
+        ports:
+        - containerPort: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: can-run-as-root
+spec:
+  template:
+    spec:
+      containers:
+      - name: root-container
+        image: nginx
+        ports:
+        - containerPort: 8080

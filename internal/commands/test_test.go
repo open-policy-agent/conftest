@@ -69,6 +69,79 @@ func TestFailQuery(t *testing.T) {
 	}
 }
 
+func TestException(t *testing.T) {
+	ctx := context.Background()
+
+	config := `apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cannot-run-as-root
+spec:
+  template:
+    spec:
+      containers:
+      - name: root-container
+        image: nginx
+        ports:
+        - containerPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: can-run-as-root
+spec:
+  template:
+    spec:
+      containers:
+      - name: root-container
+        image: nginx
+        ports:
+        - containerPort: 8080`
+
+	yaml := yaml.Parser{}
+
+	var manifests interface{}
+	err := yaml.Unmarshal([]byte(config), &manifests)
+	if err != nil {
+		t.Fatalf("could not unmarshal yaml: %s", err)
+	}
+
+	regoFiles := []string{"../../examples/exceptions/policy/policy.rego", "../../examples/exceptions/policy/exception.rego"}
+	compiler, err := policy.BuildCompiler(regoFiles)
+	if err != nil {
+		t.Fatalf("could not build rego compiler: %s", err)
+	}
+
+	testRun := TestRun{
+		Compiler: compiler,
+		Store:    inmem.New(),
+	}
+
+	defaultNamespace := []string{"main"}
+	results, err := testRun.GetResult(ctx, defaultNamespace, manifests)
+	if err != nil {
+		t.Fatalf("could not process policy file: %s", err)
+	}
+
+	const expectedFailures = 1
+	actualFailures := len(results.Failures)
+	if actualFailures != expectedFailures {
+		t.Errorf("Multifile yaml test failure. Got %v failures, expected %v", actualFailures, expectedFailures)
+	}
+
+	const expectedSuccesses = 0
+	actualSuccesses := len(results.Successes)
+	if actualSuccesses != expectedSuccesses {
+		t.Errorf("Multifile yaml test failure. Got %v success, expected %v", actualSuccesses, expectedSuccesses)
+	}
+
+	const expectedExceptions = 1
+	actualExceptions := len(results.Exceptions)
+	if actualExceptions != expectedExceptions {
+		t.Errorf("Multifile yaml test failure. Got %v exceptions, expected %v", actualExceptions, expectedExceptions)
+	}
+}
+
 func TestMultifileYaml(t *testing.T) {
 	ctx := context.Background()
 
