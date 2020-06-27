@@ -15,7 +15,7 @@ This command downloads individual policies from a remote location.
 
 Several locations are supported by the pull command. Under the hood
 conftest leverages go-getter (https://github.com/hashicorp/go-getter).
-The  following protocols are supported for downloading policies:
+The following protocols are supported for downloading policies:
 
 	- OCI Registries
 	- Local Files
@@ -23,7 +23,7 @@ The  following protocols are supported for downloading policies:
 	- HTTP/HTTPS
 	- Mercurial
 	- Amazon S3
-	- Google Cloud GCP
+	- Google Cloud Platform GCR
 
 The location of the policies is specified by passing an URL, e.g.:
 
@@ -35,7 +35,6 @@ URL does not contain a protocol. For example, the OCI mechanism will be used if
 an azure registry URL is passed, e.g.
 
 	$ conftest pull instrumenta.azurecr.io/my-registry
-
 
 The policy location defaults to the policy directory in the local folder.
 The location can be overridden with the '--policy' flag, e.g.:
