@@ -14,6 +14,16 @@ func TestOCIDetector_Detect(t *testing.T) {
 			"oci://user.azurecr.io/policies:tag",
 		},
 		{
+			"should detect grc",
+			"gcr.io/conftest/policies:tag",
+			"oci://gcr.io/conftest/policies:tag",
+		},
+		{
+			"should detect ecr",
+			"123456789012.dkr.ecr.us-east-1.amazonaws.com/conftest/policies:tag",
+			"oci://123456789012.dkr.ecr.us-east-1.amazonaws.com/conftest/policies:tag",
+		},
+		{
 			"should add latest tag",
 			"user.azurecr.io/policies",
 			"oci://user.azurecr.io/policies:latest",

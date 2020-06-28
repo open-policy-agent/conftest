@@ -2,8 +2,15 @@ package downloader
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 )
+
+var matchRegistries = []*regexp.Regexp{
+	regexp.MustCompile("azurecr.io"),
+	regexp.MustCompile("gcr.io"),
+	regexp.MustCompile("[0-9]{12}.dkr.ecr.[a-z0-9-]*.amazonaws.com"),
+}
 
 // OCIDetector implements Detector to detect OCI registry URLs and turn
 // them into URLs that the OCI getter can understand.
@@ -15,7 +22,7 @@ func (d *OCIDetector) Detect(src, _ string) (string, bool, error) {
 		return "", false, nil
 	}
 
-	if strings.Contains(src, "azurecr.io/") || strings.Contains(src, "127.0.0.1:5000") {
+	if containsOCIRegistry(src) || containsLocalRegistry(src) {
 		url, err := d.detectHTTP(src)
 		if err != nil {
 			return "", false, fmt.Errorf("detect http: %w", err)
@@ -25,6 +32,20 @@ func (d *OCIDetector) Detect(src, _ string) (string, bool, error) {
 	}
 
 	return "", false, nil
+}
+
+func containsOCIRegistry(src string) bool {
+	for _, matchRegistry := range matchRegistries {
+		if matchRegistry.MatchString(src) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func containsLocalRegistry(src string) bool {
+	return strings.Contains(src, "127.0.0.1:5000")
 }
 
 func (d *OCIDetector) detectHTTP(src string) (string, error) {
