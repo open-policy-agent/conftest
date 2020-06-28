@@ -38,6 +38,11 @@ func TestOCIDetector_Detect(t *testing.T) {
 			"127.0.0.1:5000/policies",
 			"oci://127.0.0.1:5000/policies:latest",
 		},
+		{
+			"should detect localhost:5000 as most likely being an OCI registry and tag it properly if no tag is supplied",
+			"localhost:5000/policies",
+			"oci://localhost:5000/policies:latest",
+		},
 	}
 	pwd := "/pwd"
 	d := &OCIDetector{}
