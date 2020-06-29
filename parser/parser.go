@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"github.com/open-policy-agent/conftest/parser/jsonnet"
 
 	"github.com/open-policy-agent/conftest/parser/cue"
 	"github.com/open-policy-agent/conftest/parser/docker"
@@ -29,6 +30,7 @@ func ValidInputs() []string {
 		"yml",
 		"yaml",
 		"json",
+		"jsonnet",
 		"Dockerfile",
 		"edn",
 		"vcl",
@@ -63,6 +65,8 @@ func GetParser(fileType string) (Parser, error) {
 		return &yaml.Parser{}, nil
 	case "json":
 		return &json.Parser{}, nil
+	case "jsonnet":
+		return &jsonnet.Parser{}, nil
 	case "edn":
 		return &edn.Parser{}, nil
 	case "vcl":
