@@ -14,7 +14,7 @@ func TestOCIDetector_Detect(t *testing.T) {
 			"oci://user.azurecr.io/policies:tag",
 		},
 		{
-			"should detect grc",
+			"should detect gcr",
 			"gcr.io/conftest/policies:tag",
 			"oci://gcr.io/conftest/policies:tag",
 		},
