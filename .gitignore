@@ -6,3 +6,5 @@ site
 # IDEs
 .vscode
 .DS*
+
+.idea
