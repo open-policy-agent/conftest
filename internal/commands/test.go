@@ -331,7 +331,7 @@ func (t TestRun) runRules(ctx context.Context, namespace string, input interface
 
 		switch input.(type) {
 		case []interface{}:
-			exceptionQuery := fmt.Sprintf("data.%s.exception[_][_] == %q", namespace, strings.TrimPrefix(rule, "deny_"))
+			exceptionQuery := fmt.Sprintf("data.%s.exception[_][_] == %q", namespace, removeDenyPrefix(rule))
 			errors, exceptions, successes, err = t.runMultipleQueries(ctx, query, exceptionQuery, input)
 			if err != nil {
 				return nil, nil, nil, fmt.Errorf("run multiple queries: %w", err)
@@ -353,6 +353,15 @@ func (t TestRun) runRules(ctx context.Context, namespace string, input interface
 	}
 
 	return totalErrors, totalExceptions, totalSuccesses, nil
+}
+
+func removeDenyPrefix(rule string) string {
+	if strings.HasPrefix(rule, "deny_") {
+		return strings.TrimPrefix(rule, "deny_")
+	} else if strings.HasPrefix(rule, "violation_") {
+		return strings.TrimPrefix(rule, "violation_")
+	}
+	return rule
 }
 
 func stringInSlice(a string, list []string) bool {
