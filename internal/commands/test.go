@@ -196,6 +196,27 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				}
 			} else {
 				namespaces = viper.GetStringSlice("namespace")
+				if len(namespaces) == 1 {
+					regexp, err := regexp.Compile(namespaces[0])
+					if err == nil {
+						var allNamespaces []string
+						allNamespaces, err = policy.GetNamespaces(regoFiles, compiler)
+						if err != nil {
+							return fmt.Errorf("get namespaces: %w", err)
+						}
+
+						var matchedNamespaces []string
+						for _, namespace := range allNamespaces {
+							if regexp.MatchString(namespace) {
+								matchedNamespaces = append(matchedNamespaces, namespace)
+							}
+						}
+
+						namespaces = matchedNamespaces
+					} else {
+						return fmt.Errorf("given regexp couldn't be parsed :%w", err)
+					}
+				}
 			}
 
 			var failureFound bool

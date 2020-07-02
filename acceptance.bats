@@ -298,3 +298,17 @@
   [ "$status" -eq 0 ]
   [ "${lines[1]}" = "5 tests, 4 passed, 1 warning, 0 failures" ]
 }
+
+@test "Can have multiple namespace flags" {
+  run ./conftest test -p examples/nested/policy --namespace group1 --namespace group2 examples/nested/data.json
+
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "2 tests, 0 passed, 0 warnings, 2 failures" ]]
+}
+
+@test "Can namespace contain wildcards" {
+  run ./conftest test -p examples/nested/policy --namespace "group*" examples/nested/data.json
+
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "2 tests, 0 passed, 0 warnings, 2 failures" ]]
+}
