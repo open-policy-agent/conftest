@@ -14,6 +14,16 @@ func TestOCIDetector_Detect(t *testing.T) {
 			"oci://user.azurecr.io/policies:tag",
 		},
 		{
+			"should detect gcr",
+			"gcr.io/conftest/policies:tag",
+			"oci://gcr.io/conftest/policies:tag",
+		},
+		{
+			"should detect ecr",
+			"123456789012.dkr.ecr.us-east-1.amazonaws.com/conftest/policies:tag",
+			"oci://123456789012.dkr.ecr.us-east-1.amazonaws.com/conftest/policies:tag",
+		},
+		{
 			"should add latest tag",
 			"user.azurecr.io/policies",
 			"oci://user.azurecr.io/policies:latest",
@@ -27,6 +37,11 @@ func TestOCIDetector_Detect(t *testing.T) {
 			"should detect 127.0.0.1:5000 as most likely being an OCI registry and tag it properly if no tag is supplied",
 			"127.0.0.1:5000/policies",
 			"oci://127.0.0.1:5000/policies:latest",
+		},
+		{
+			"should detect localhost:5000 as most likely being an OCI registry and tag it properly if no tag is supplied",
+			"localhost:5000/policies",
+			"oci://localhost:5000/policies:latest",
 		},
 	}
 	pwd := "/pwd"
