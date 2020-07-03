@@ -92,7 +92,7 @@
 @test "Test command works with nested namespaces" {
   run ./conftest test --namespace main.gke -p examples/hcl1/policy/ examples/hcl1/gke.tf --no-color
   [ "$status" -eq 1 ]
-  [ "${lines[1]}" = "1 test, 0 passed, 0 warnings, 1 failure" ]
+  [ "${lines[1]}" = "1 test, 0 passed, 0 warnings, 1 failure, 0 exceptions" ]
 }
 
 @test "Verify command has trace flag" {
@@ -296,5 +296,11 @@
 @test "The number of tests run is accurate" {
   run ./conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml --no-color
   [ "$status" -eq 0 ]
-  [ "${lines[1]}" = "5 tests, 4 passed, 1 warning, 0 failures" ]
+  [ "${lines[1]}" = "5 tests, 4 passed, 1 warning, 0 failures, 0 exceptions" ]
+}
+
+@test "Exceptions reported correctly" {
+  run ./conftest test -p examples/exceptions/policy examples/exceptions/deployments.yaml --no-color
+  [ "$status" -eq 1 ]
+  [ "${lines[2]}" = "2 tests, 0 passed, 0 warnings, 1 failure, 1 exception" ]
 }

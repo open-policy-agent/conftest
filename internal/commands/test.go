@@ -97,10 +97,11 @@ func (r Result) Error() string {
 // warning and failure "errors" produced by rego should be considered separate
 // from other classes of exceptions.
 type CheckResult struct {
-	FileName  string
-	Warnings  []Result
-	Failures  []Result
-	Successes []Result
+	FileName   string
+	Warnings   []Result
+	Failures   []Result
+	Exceptions []Result
+	Successes  []Result
 }
 
 // NewResult creates a new result from the given message
@@ -262,16 +263,17 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 func (t TestRun) GetResult(ctx context.Context, namespaces []string, input interface{}) (CheckResult, error) {
 	var totalWarnings []Result
 	var totalFailures []Result
+	var totalExceptions []Result
 	var totalSuccesses []Result
 
 	for _, namespace := range namespaces {
-		warnings, successes, err := t.runRules(ctx, namespace, input, warnQ)
+		warnings, warnExceptions, successes, err := t.runRules(ctx, namespace, input, warnQ)
 		if err != nil {
 			return CheckResult{}, fmt.Errorf("running warn rules: %w", err)
 		}
 		totalSuccesses = append(totalSuccesses, successes...)
 
-		failures, successes, err := t.runRules(ctx, namespace, input, denyQ)
+		failures, denyExceptions, successes, err := t.runRules(ctx, namespace, input, denyQ)
 		if err != nil {
 			return CheckResult{}, fmt.Errorf("running deny rules: %w", err)
 		}
@@ -279,12 +281,15 @@ func (t TestRun) GetResult(ctx context.Context, namespaces []string, input inter
 
 		totalFailures = append(totalFailures, failures...)
 		totalWarnings = append(totalWarnings, warnings...)
+		totalExceptions = append(totalExceptions, warnExceptions...)
+		totalExceptions = append(totalExceptions, denyExceptions...)
 	}
 
 	result := CheckResult{
-		Warnings:  totalWarnings,
-		Failures:  totalFailures,
-		Successes: totalSuccesses,
+		Warnings:   totalWarnings,
+		Failures:   totalFailures,
+		Exceptions: totalExceptions,
+		Successes:  totalSuccesses,
 	}
 
 	return result, nil
@@ -294,8 +299,9 @@ func isResultFailure(result CheckResult) bool {
 	return len(result.Failures) > 0 || (len(result.Warnings) > 0 && viper.GetBool("fail-on-warn"))
 }
 
-func (t TestRun) runRules(ctx context.Context, namespace string, input interface{}, regex *regexp.Regexp) ([]Result, []Result, error) {
+func (t TestRun) runRules(ctx context.Context, namespace string, input interface{}, regex *regexp.Regexp) ([]Result, []Result, []Result, error) {
 	var successes []Result
+	var exceptions []Result
 	var errors []Result
 
 	var rules []string
@@ -318,24 +324,27 @@ func (t TestRun) runRules(ctx context.Context, namespace string, input interface
 
 	var err error
 	var totalErrors []Result
+	var totalExceptions []Result
 	var totalSuccesses []Result
 	for _, rule := range rules {
 		query := fmt.Sprintf("data.%s.%s", namespace, rule)
 
 		switch input.(type) {
 		case []interface{}:
-			errors, successes, err = t.runMultipleQueries(ctx, query, input)
+			exceptionQuery := fmt.Sprintf("data.%s.exception[_][_] == %q", namespace, removeDenyPrefix(rule))
+			errors, exceptions, successes, err = t.runMultipleQueries(ctx, query, exceptionQuery, input)
 			if err != nil {
-				return nil, nil, fmt.Errorf("run multiple queries: %w", err)
+				return nil, nil, nil, fmt.Errorf("run multiple queries: %w", err)
 			}
 		default:
 			errors, successes, err = t.runQuery(ctx, query, input)
 			if err != nil {
-				return nil, nil, fmt.Errorf("run query: %w", err)
+				return nil, nil, nil, fmt.Errorf("run query: %w", err)
 			}
 		}
 
 		totalErrors = append(totalErrors, errors...)
+		totalExceptions = append(totalExceptions, exceptions...)
 		totalSuccesses = append(totalSuccesses, successes...)
 	}
 
@@ -343,7 +352,16 @@ func (t TestRun) runRules(ctx context.Context, namespace string, input interface
 		totalSuccesses = append(totalSuccesses, Result{})
 	}
 
-	return totalErrors, totalSuccesses, nil
+	return totalErrors, totalExceptions, totalSuccesses, nil
+}
+
+func removeDenyPrefix(rule string) string {
+	if strings.HasPrefix(rule, "deny_") {
+		return strings.TrimPrefix(rule, "deny_")
+	} else if strings.HasPrefix(rule, "violation_") {
+		return strings.TrimPrefix(rule, "violation_")
+	}
+	return rule
 }
 
 func stringInSlice(a string, list []string) bool {
@@ -356,20 +374,24 @@ func stringInSlice(a string, list []string) bool {
 	return false
 }
 
-func (t TestRun) runMultipleQueries(ctx context.Context, query string, inputs interface{}) ([]Result, []Result, error) {
+func (t TestRun) runMultipleQueries(ctx context.Context, query string, exceptionQuery string, inputs interface{}) ([]Result, []Result, []Result, error) {
 	var totalViolations []Result
+	var totalExceptions []Result
 	var totalSuccesses []Result
 	for _, input := range inputs.([]interface{}) {
 		violations, successes, err := t.runQuery(ctx, query, input)
 		if err != nil {
-			return nil, nil, fmt.Errorf("run query: %w", err)
+			return nil, nil, nil, fmt.Errorf("run query: %w", err)
 		}
-
-		totalViolations = append(totalViolations, violations...)
+		_, exceptions, err := t.runQuery(ctx, exceptionQuery, input)
+		if len(exceptions) > 0 {
+			totalExceptions = append(totalExceptions, exceptions...)
+		} else {
+			totalViolations = append(totalViolations, violations...)
+		}
 		totalSuccesses = append(totalSuccesses, successes...)
 	}
-
-	return totalViolations, totalSuccesses, nil
+	return totalViolations, totalExceptions, totalSuccesses, nil
 }
 
 func (t TestRun) runQuery(ctx context.Context, query string, input interface{}) ([]Result, []Result, error) {
@@ -400,7 +422,6 @@ func (t TestRun) runQuery(ctx context.Context, query string, input interface{}) 
 	var successes []Result
 	for _, result := range resultSet {
 		for _, expression := range result.Expressions {
-
 			if !hasResults(expression.Value) {
 				successes = append(successes, NewResult(expression.Text, traces))
 				continue

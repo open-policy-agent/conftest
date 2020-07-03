@@ -88,6 +88,7 @@ func (s *StandardOutputManager) Put(cr CheckResult) error {
 // Flush writes the contents of the managers buffer to the console
 func (s *StandardOutputManager) Flush() error {
 	var totalFailures int
+	var totalExceptions int
 	var totalWarnings int
 	var totalSuccesses int
 
@@ -128,18 +129,25 @@ func (s *StandardOutputManager) Flush() error {
 			printResults(r, "FAIL", aurora.RedFg)
 		}
 
+		for _, r := range cr.Exceptions {
+			printResults(r, "EXCP", aurora.CyanFg)
+		}
+
 		totalFailures += len(cr.Failures)
+		totalExceptions += len(cr.Exceptions)
 		totalWarnings += len(cr.Warnings)
 		totalSuccesses += len(cr.Successes)
 	}
 
-	totalPolicies := totalFailures + totalWarnings + totalSuccesses
+	totalPolicies := totalFailures + totalExceptions + totalWarnings + totalSuccesses
 
 	var outputColor aurora.Color
 	if totalFailures > 0 {
 		outputColor = aurora.RedFg
 	} else if totalWarnings > 0 {
 		outputColor = aurora.YellowFg
+	} else if totalExceptions > 0 {
+		outputColor = aurora.CyanFg
 	} else {
 		outputColor = aurora.GreenFg
 	}
@@ -159,8 +167,19 @@ func (s *StandardOutputManager) Flush() error {
 		pluralSuffixFailures = "s"
 	}
 
+	var pluralSuffixExceptions string
+	if totalExceptions != 1 {
+		pluralSuffixExceptions = "s"
+	}
+
 	s.logger.Println()
-	outputText := fmt.Sprintf("%v test%s, %v passed, %v warning%s, %v failure%s", totalPolicies, pluralSuffixTests, totalSuccesses, totalWarnings, pluralSuffixWarnings, totalFailures, pluralSuffixFailures)
+	outputText := fmt.Sprintf("%v test%s, %v passed, %v warning%s, %v failure%s, %v exception%s",
+		totalPolicies, pluralSuffixTests,
+		totalSuccesses,
+		totalWarnings, pluralSuffixWarnings,
+		totalFailures, pluralSuffixFailures,
+		totalExceptions, pluralSuffixExceptions,
+	)
 	s.logger.Println(s.color.Colorize(outputText, outputColor))
 
 	return nil
