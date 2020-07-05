@@ -37,10 +37,14 @@ func ReadDataFiles(path string) ([]string, error) {
 		}
 
 		if info.IsDir() {
+			if info.Name() == ".git" {
+				return filepath.SkipDir
+			}
+
 			return nil
 		}
 
-		if filepath.Ext(currentPath) == ".json" || filepath.Ext(currentPath) == ".yaml" {
+		if filepath.Ext(currentPath) == ".json" || filepath.Ext(currentPath) == ".yaml" || filepath.Ext(currentPath) == ".yml" {
 			data = append(data, currentPath)
 		}
 
