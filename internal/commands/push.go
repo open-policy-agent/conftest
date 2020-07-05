@@ -13,6 +13,7 @@ import (
 	auth "github.com/deislabs/oras/pkg/auth/docker"
 	"github.com/deislabs/oras/pkg/content"
 	"github.com/deislabs/oras/pkg/oras"
+	"github.com/open-policy-agent/conftest/policy"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 )
@@ -134,32 +135,17 @@ func buildLayers(memoryStore *content.Memorystore, path string) ([]ocispec.Descr
 		return nil, fmt.Errorf("get abs path: %w", err)
 	}
 
-	var policy []string
-	var data []string
-	err = filepath.Walk(root, func(currentPath string, info os.FileInfo, err error) error {
-		if err != nil {
-			return fmt.Errorf("walk path: %w", err)
-		}
-
-		if info.IsDir() {
-			return nil
-		}
-
-		if filepath.Ext(currentPath) == ".rego" {
-			policy = append(policy, currentPath)
-		}
-
-		if filepath.Ext(currentPath) == ".json" {
-			data = append(data, currentPath)
-		}
-
-		return nil
-	})
+	policies, err := policy.ReadFilesWithTests(root)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("load policy paths: %w", err)
 	}
 
-	policyLayers, err := buildLayer(policy, root, memoryStore, openPolicyAgentPolicyLayerMediaType)
+	data, err := policy.ReadDataFiles(root)
+	if err != nil {
+		return nil, fmt.Errorf("load data paths: %w", err)
+	}
+
+	policyLayers, err := buildLayer(policies, root, memoryStore, openPolicyAgentPolicyLayerMediaType)
 	if err != nil {
 		return nil, fmt.Errorf("build policy layer: %w", err)
 	}
