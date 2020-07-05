@@ -304,3 +304,10 @@
   [ "$status" -eq 1 ]
   [ "${lines[2]}" = "2 tests, 0 passed, 0 warnings, 1 failure, 1 exception" ]
 }
+
+@test "Can have multiple namespace flags" {
+  run ./conftest test -p examples/nested/policy --namespace group1 --namespace group2 examples/nested/data.json
+
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "2 tests, 0 passed, 0 warnings, 2 failures" ]]
+}
