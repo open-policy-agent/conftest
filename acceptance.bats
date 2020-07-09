@@ -311,3 +311,9 @@
   [ "$status" -eq 1 ]
   [[ "$output" =~ "2 tests, 0 passed, 0 warnings, 2 failures" ]]
 }
+
+@test "Fail when there is a Rego error in test" {
+  run ./conftest verify -p examples/div-zero/policy --no-color
+
+  [ "$status" -eq 1 ]
+}
