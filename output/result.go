@@ -20,6 +20,7 @@ type CheckResult struct {
 	Failures   []Result
 	Exceptions []Result
 	Successes  []Result
+	Errors     []Result
 }
 
 // NewResult creates a new result from the given message
@@ -34,5 +35,5 @@ func NewResult(message string, traces []error) Result {
 }
 
 func IsResultFailure(result CheckResult, failOnWarn bool) bool {
-	return len(result.Failures) > 0 || (len(result.Warnings) > 0 && failOnWarn)
+	return len(result.Failures) > 0 || len(result.Errors) > 0 || (len(result.Warnings) > 0 && failOnWarn)
 }

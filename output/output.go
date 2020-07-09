@@ -91,6 +91,7 @@ func (s *StandardOutputManager) Flush() error {
 	var totalExceptions int
 	var totalWarnings int
 	var totalSuccesses int
+	var totalErrors int
 
 	for _, cr := range s.results {
 		var indicator string
@@ -100,7 +101,7 @@ func (s *StandardOutputManager) Flush() error {
 			indicator = fmt.Sprintf(" - %s - ", cr.FileName)
 		}
 
-		currentPolicies := len(cr.Successes) + len(cr.Warnings) + len(cr.Failures)
+		currentPolicies := len(cr.Successes) + len(cr.Warnings) + len(cr.Failures) + len(cr.Errors)
 		if currentPolicies == 0 {
 			s.logger.Print(s.color.Colorize("?", aurora.WhiteFg), indicator, "no policies found")
 			continue
@@ -133,16 +134,21 @@ func (s *StandardOutputManager) Flush() error {
 			printResults(r, "EXCP", aurora.CyanFg)
 		}
 
+		for _, r := range cr.Errors {
+			printResults(r, "ERROR", aurora.RedFg)
+		}
+
 		totalFailures += len(cr.Failures)
 		totalExceptions += len(cr.Exceptions)
 		totalWarnings += len(cr.Warnings)
 		totalSuccesses += len(cr.Successes)
+		totalErrors += len(cr.Errors)
 	}
 
-	totalPolicies := totalFailures + totalExceptions + totalWarnings + totalSuccesses
+	totalPolicies := totalFailures + totalExceptions + totalWarnings + totalSuccesses + totalErrors
 
 	var outputColor aurora.Color
-	if totalFailures > 0 {
+	if totalFailures > 0 || totalErrors > 0 {
 		outputColor = aurora.RedFg
 	} else if totalWarnings > 0 {
 		outputColor = aurora.YellowFg
@@ -172,13 +178,19 @@ func (s *StandardOutputManager) Flush() error {
 		pluralSuffixExceptions = "s"
 	}
 
+	var pluralSuffixErrors string
+	if totalErrors != 1 {
+		pluralSuffixErrors = "s"
+	}
+
 	s.logger.Println()
-	outputText := fmt.Sprintf("%v test%s, %v passed, %v warning%s, %v failure%s, %v exception%s",
+	outputText := fmt.Sprintf("%v test%s, %v passed, %v warning%s, %v failure%s, %v exception%s, %v error%s",
 		totalPolicies, pluralSuffixTests,
 		totalSuccesses,
 		totalWarnings, pluralSuffixWarnings,
 		totalFailures, pluralSuffixFailures,
 		totalExceptions, pluralSuffixExceptions,
+		totalErrors, pluralSuffixErrors,
 	)
 	s.logger.Println(s.color.Colorize(outputText, outputColor))
 

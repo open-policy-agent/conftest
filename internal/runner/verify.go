@@ -55,6 +55,7 @@ func (r *VerifyRunner) Run(ctx context.Context) ([]output.CheckResult, error){
 
 		var failure []output.Result
 		var success []output.Result
+		var regoError []output.Result
 
 		buf := new(bytes.Buffer)
 		topdown.PrettyTrace(buf, result.Trace)
@@ -67,6 +68,8 @@ func (r *VerifyRunner) Run(ctx context.Context) ([]output.CheckResult, error){
 
 		if result.Fail {
 			failure = append(failure, output.NewResult(msg.Error(), traces))
+		} else if result.Error != nil {
+			regoError = append(regoError, output.NewResult(msg.Error(), traces))
 		} else {
 			success = append(success, output.NewResult(msg.Error(), traces))
 		}
@@ -75,6 +78,7 @@ func (r *VerifyRunner) Run(ctx context.Context) ([]output.CheckResult, error){
 			FileName:  result.Location.File,
 			Successes: success,
 			Failures:  failure,
+			Errors:    regoError,
 		}
 
 		results = append(results, checkResult)

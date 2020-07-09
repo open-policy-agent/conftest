@@ -34,7 +34,7 @@ func Test_stdOutputManager_put(t *testing.T) {
 				"WARN - foo.yaml - first warning",
 				"FAIL - foo.yaml - first failure",
 				"",
-				"2 tests, 0 passed, 1 warning, 1 failure, 0 exceptions",
+				"2 tests, 0 passed, 1 warning, 1 failure, 0 exceptions, 0 errors",
 			},
 		},
 		{
@@ -50,7 +50,7 @@ func Test_stdOutputManager_put(t *testing.T) {
 				"WARN - first warning",
 				"FAIL - first failure",
 				"",
-				"2 tests, 0 passed, 1 warning, 1 failure, 0 exceptions",
+				"2 tests, 0 passed, 1 warning, 1 failure, 0 exceptions, 0 errors",
 			},
 		},
 	}
