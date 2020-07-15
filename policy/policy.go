@@ -22,11 +22,19 @@ func Detect(url string, dst string) (string, error) {
 }
 
 // ReadFiles returns all of the policy files (not including tests)
-// at the given path including its subdirectories.
-func ReadFiles(path string) ([]string, error) {
-	files, err := getPolicyFiles(path)
-	if err != nil {
-		return nil, fmt.Errorf("search rego files: %w", err)
+// at the given path(s) including its subdirectories.
+func ReadFiles(paths ...string) ([]string, error) {
+	var files []string
+	for _, path := range paths {
+		fs, err := getPolicyFiles(path)
+		if err != nil {
+			return nil, fmt.Errorf("search rego files: %w", err)
+		}
+		files = append(files, fs...)
+	}
+
+	if len(files) < 1 {
+		return nil, fmt.Errorf("no policies found in %v", paths)
 	}
 
 	return files, nil
@@ -57,20 +65,20 @@ func getPolicyFiles(path string) ([]string, error) {
 		return nil, err
 	}
 
-	if len(filepaths) < 1 {
-		return nil, fmt.Errorf("no policies found in %s", path)
-	}
-
 	return filepaths, nil
 }
 
 // ReadFilesWithTests returns all of the policies and test files
-// at the given path including its subdirectories.
+// at the given path(s) including its subdirectories.
 // Test files are Rego files that have a suffix of _test.rego
-func ReadFilesWithTests(path string) ([]string, error) {
-	files, err := getTestFiles(path)
-	if err != nil {
-		return nil, fmt.Errorf("search rego test files: %w", err)
+func ReadFilesWithTests(paths ...string) ([]string, error) {
+	var files []string
+	for _, path := range paths {
+		fs, err := getTestFiles(path)
+		if err != nil {
+			return nil, fmt.Errorf("search rego test files: %w", err)
+		}
+		files = append(files, fs...)
 	}
 
 	return files, nil

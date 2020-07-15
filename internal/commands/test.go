@@ -124,20 +124,22 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("get configurations: %w", err)
 			}
 
-			policyPath := viper.GetString("policy")
+			policyPaths := viper.GetStringSlice("policy")
 			urls := viper.GetStringSlice("update")
-			for _, url := range urls {
-				sourcedURL, err := policy.Detect(url, policyPath)
-				if err != nil {
-					return fmt.Errorf("detect policies: %w", err)
-				}
+			for _, policyPath := range policyPaths {
+				for _, url := range urls {
+					sourcedURL, err := policy.Detect(url, policyPath)
+					if err != nil {
+						return fmt.Errorf("detect policies: %w", err)
+					}
 
-				if err := policy.Download(ctx, policyPath, []string{sourcedURL}); err != nil {
-					return fmt.Errorf("update policies: %w", err)
+					if err := policy.Download(ctx, policyPath, []string{sourcedURL}); err != nil {
+						return fmt.Errorf("update policies: %w", err)
+					}
 				}
 			}
 
-			regoFiles, err := policy.ReadFiles(policyPath)
+			regoFiles, err := policy.ReadFiles(policyPaths...)
 			if err != nil {
 				return fmt.Errorf("read rego files: %w", err)
 			}
