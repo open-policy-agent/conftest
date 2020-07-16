@@ -6,3 +6,4 @@ LICENSE
 contrib
 docs
 conftest
+Makefile
