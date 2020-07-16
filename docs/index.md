@@ -65,3 +65,4 @@ configuration files. As of today `conftest` supports:
 * EDN
 * VCL
 * XML
+* Jsonnet
