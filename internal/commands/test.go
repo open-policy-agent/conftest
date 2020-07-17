@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/open-policy-agent/conftest/output"
 	"github.com/open-policy-agent/conftest/parser"
 	"github.com/open-policy-agent/conftest/policy"
 	"github.com/open-policy-agent/opa/ast"
@@ -82,39 +83,6 @@ var (
 	combineConfigFlagName = "combine"
 )
 
-// Result describes the result of a single rule evaluation.
-type Result struct {
-	Message  string
-	Metadata map[string]interface{}
-	Traces   []error
-}
-
-func (r Result) Error() string {
-	return r.Message
-}
-
-// CheckResult describes the result of a conftest evaluation.
-// warning and failure "errors" produced by rego should be considered separate
-// from other classes of exceptions.
-type CheckResult struct {
-	FileName   string
-	Warnings   []Result
-	Failures   []Result
-	Exceptions []Result
-	Successes  []Result
-}
-
-// NewResult creates a new result from the given message
-func NewResult(message string, traces []error) Result {
-	result := Result{
-		Message:  message,
-		Metadata: make(map[string]interface{}),
-		Traces:   traces,
-	}
-
-	return result
-}
-
 // TestRun stores the compiler and store for a test run
 type TestRun struct {
 	Compiler *ast.Compiler
@@ -142,7 +110,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 		RunE: func(cmd *cobra.Command, fileList []string) error {
 			outputFormat := viper.GetString("output")
 			color := !viper.GetBool("no-color")
-			out := GetOutputManager(outputFormat, color)
+			out := output.GetOutputManager(outputFormat, color)
 			input := viper.GetString("input")
 
 			files, err := parseFileList(fileList, viper.GetString("ignore"))
@@ -206,7 +174,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 					return fmt.Errorf("get combined test result: %w", err)
 				}
 
-				if isResultFailure(result) {
+				if output.IsResultFailure(result, viper.GetBool("fail-on-warn")) {
 					failureFound = true
 				}
 
@@ -221,7 +189,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 						return fmt.Errorf("get test result: %w", err)
 					}
 
-					if isResultFailure(result) {
+					if output.IsResultFailure(result, viper.GetBool("fail-on-warn")) {
 						failureFound = true
 					}
 
@@ -249,7 +217,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().Bool("trace", false, "enable more verbose trace output for rego queries")
 
 	cmd.Flags().StringSliceP("update", "u", []string{}, "a list of urls can be provided to the update flag, which will download before the tests run")
-	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", ValidOutputs()))
+	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", output.ValidOutputs()))
 	cmd.Flags().StringP("input", "i", "", fmt.Sprintf("input type for given source, especially useful when using conftest with stdin, valid options are: %s", parser.ValidInputs()))
 	cmd.Flags().StringSlice("namespace", []string{"main"}, "namespace in which to find deny and warn rules")
 	cmd.Flags().Bool("all-namespaces", false, "find deny and warn rules in all namespaces. If set, the flag \"namespace\" is ignored")
@@ -260,22 +228,22 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 }
 
 // GetResult returns the result of testing the structured data against their policies
-func (t TestRun) GetResult(ctx context.Context, namespaces []string, input interface{}) (CheckResult, error) {
-	var totalWarnings []Result
-	var totalFailures []Result
-	var totalExceptions []Result
-	var totalSuccesses []Result
+func (t TestRun) GetResult(ctx context.Context, namespaces []string, input interface{}) (output.CheckResult, error) {
+	var totalWarnings []output.Result
+	var totalFailures []output.Result
+	var totalExceptions []output.Result
+	var totalSuccesses []output.Result
 
 	for _, namespace := range namespaces {
 		warnings, warnExceptions, successes, err := t.runRules(ctx, namespace, input, warnQ)
 		if err != nil {
-			return CheckResult{}, fmt.Errorf("running warn rules: %w", err)
+			return output.CheckResult{}, fmt.Errorf("running warn rules: %w", err)
 		}
 		totalSuccesses = append(totalSuccesses, successes...)
 
 		failures, denyExceptions, successes, err := t.runRules(ctx, namespace, input, denyQ)
 		if err != nil {
-			return CheckResult{}, fmt.Errorf("running deny rules: %w", err)
+			return output.CheckResult{}, fmt.Errorf("running deny rules: %w", err)
 		}
 		totalSuccesses = append(totalSuccesses, successes...)
 
@@ -285,7 +253,7 @@ func (t TestRun) GetResult(ctx context.Context, namespaces []string, input inter
 		totalExceptions = append(totalExceptions, denyExceptions...)
 	}
 
-	result := CheckResult{
+	result := output.CheckResult{
 		Warnings:   totalWarnings,
 		Failures:   totalFailures,
 		Exceptions: totalExceptions,
@@ -295,14 +263,10 @@ func (t TestRun) GetResult(ctx context.Context, namespaces []string, input inter
 	return result, nil
 }
 
-func isResultFailure(result CheckResult) bool {
-	return len(result.Failures) > 0 || (len(result.Warnings) > 0 && viper.GetBool("fail-on-warn"))
-}
-
-func (t TestRun) runRules(ctx context.Context, namespace string, input interface{}, regex *regexp.Regexp) ([]Result, []Result, []Result, error) {
-	var successes []Result
-	var exceptions []Result
-	var errors []Result
+func (t TestRun) runRules(ctx context.Context, namespace string, input interface{}, regex *regexp.Regexp) ([]output.Result, []output.Result, []output.Result, error) {
+	var successes []output.Result
+	var exceptions []output.Result
+	var errors []output.Result
 
 	var rules []string
 	var numberRules int = 0
@@ -323,9 +287,9 @@ func (t TestRun) runRules(ctx context.Context, namespace string, input interface
 	}
 
 	var err error
-	var totalErrors []Result
-	var totalExceptions []Result
-	var totalSuccesses []Result
+	var totalErrors []output.Result
+	var totalExceptions []output.Result
+	var totalSuccesses []output.Result
 	for _, rule := range rules {
 		query := fmt.Sprintf("data.%s.%s", namespace, rule)
 
@@ -349,7 +313,7 @@ func (t TestRun) runRules(ctx context.Context, namespace string, input interface
 	}
 
 	for i := len(totalErrors) + len(totalSuccesses); i < numberRules; i++ {
-		totalSuccesses = append(totalSuccesses, Result{})
+		totalSuccesses = append(totalSuccesses, output.Result{})
 	}
 
 	return totalErrors, totalExceptions, totalSuccesses, nil
@@ -374,10 +338,10 @@ func stringInSlice(a string, list []string) bool {
 	return false
 }
 
-func (t TestRun) runMultipleQueries(ctx context.Context, query string, exceptionQuery string, inputs interface{}) ([]Result, []Result, []Result, error) {
-	var totalViolations []Result
-	var totalExceptions []Result
-	var totalSuccesses []Result
+func (t TestRun) runMultipleQueries(ctx context.Context, query string, exceptionQuery string, inputs interface{}) ([]output.Result, []output.Result, []output.Result, error) {
+	var totalViolations []output.Result
+	var totalExceptions []output.Result
+	var totalSuccesses []output.Result
 	for _, input := range inputs.([]interface{}) {
 		violations, successes, err := t.runQuery(ctx, query, input)
 		if err != nil {
@@ -394,7 +358,7 @@ func (t TestRun) runMultipleQueries(ctx context.Context, query string, exception
 	return totalViolations, totalExceptions, totalSuccesses, nil
 }
 
-func (t TestRun) runQuery(ctx context.Context, query string, input interface{}) ([]Result, []Result, error) {
+func (t TestRun) runQuery(ctx context.Context, query string, input interface{}) ([]output.Result, []output.Result, error) {
 	rego, stdout := t.buildRego(viper.GetBool("trace"), query, input)
 	resultSet, err := rego.Eval(ctx)
 	if err != nil {
@@ -418,19 +382,19 @@ func (t TestRun) runQuery(ctx context.Context, query string, input interface{}) 
 		return false
 	}
 
-	var errs []Result
-	var successes []Result
+	var errs []output.Result
+	var successes []output.Result
 	for _, result := range resultSet {
 		for _, expression := range result.Expressions {
 			if !hasResults(expression.Value) {
-				successes = append(successes, NewResult(expression.Text, traces))
+				successes = append(successes, output.NewResult(expression.Text, traces))
 				continue
 			}
 
 			for _, v := range expression.Value.([]interface{}) {
 				switch val := v.(type) {
 				case string:
-					errs = append(errs, NewResult(val, traces))
+					errs = append(errs, output.NewResult(val, traces))
 				case map[string]interface{}:
 					if _, ok := val["msg"]; !ok {
 						return nil, nil, fmt.Errorf("rule missing msg field: %v", val)
@@ -439,7 +403,7 @@ func (t TestRun) runQuery(ctx context.Context, query string, input interface{}) 
 						return nil, nil, fmt.Errorf("msg field must be string: %v", val)
 					}
 
-					result := NewResult(val["msg"].(string), traces)
+					result := output.NewResult(val["msg"].(string), traces)
 					for k, v := range val {
 						if k != "msg" {
 							result.Metadata[k] = v
