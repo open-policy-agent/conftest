@@ -9,10 +9,15 @@ builds:
   - windows
   - linux
   - darwin
-  ignore:
-  - goarch: 386
+  goarch:
+  - amd64
+  - arm64
   ldflags:
-  - -s -w -X github.com/open-policy-agent/conftest/internal/commands.version={{.Version}} -X github.com/open-policy-agent/conftest/internal/commands.commit={{.ShortCommit}} -X github.com/open-policy-agent/conftest/internal/commands.date={{.Date}}
+  - "-s"
+  - "-w"
+  - "-X github.com/open-policy-agent/conftest/internal/commands.version={{.Version}}"
+  - "-X github.com/open-policy-agent/conftest/internal/commands.commit={{.ShortCommit}}"
+  - "-X github.com/open-policy-agent/conftest/internal/commands.date={{.Date}}"
 archives:
 - replacements:
     darwin: Darwin
@@ -39,7 +44,7 @@ changelog:
     - '^docs:'
     - '^test:'
 brews:
-- github:
+- tap:
     owner: instrumenta
     name: homebrew-instrumenta
   folder: Formula
