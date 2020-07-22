@@ -73,6 +73,7 @@ jobs:
           command: docker build --pull --progress plain -t instrumenta/conftest .
           environment:
             DOCKER_BUILDKIT: 1
+            DOCKER_API_VERSION: 1.39
 
   release:
     docker:
