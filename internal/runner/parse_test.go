@@ -18,7 +18,7 @@ func Test_Run_if_GetConfigurations_fails(t *testing.T) {
 
 	manager := parser.NewMockCustomConfigManager(mockCtrl)
 	manager.EXPECT().GetConfigurations(ctx, "", fileList).Return(nil, errors.New("dummy"))
-	params := ParseParams{Input: "", Combine: false}
+	params := &ParseParams{Input: "", Combine: false}
 	runner := ParseRunner{Params: params, ConfigManager: manager}
 
 	result, err := runner.Run(ctx, fileList)
@@ -48,7 +48,7 @@ func Test_Run_if_GetConfigurations_succeed(t *testing.T) {
 
 	manager := parser.NewMockCustomConfigManager(mockCtrl)
 	manager.EXPECT().GetConfigurations(ctx, "", fileList).Return(configurations, nil)
-	params := ParseParams{Input: "", Combine: false}
+	params := &ParseParams{Input: "", Combine: false}
 	runner := ParseRunner{Params: params, ConfigManager: manager}
 
 	result, err := runner.Run(ctx, fileList)
@@ -67,7 +67,7 @@ func Test_Run_if_GetConfigurations_succeed(t *testing.T) {
 }
 
 func TestParse_ByDefault_AddsIndentationAndNewline(t *testing.T) {
-	params := ParseParams{Input: "", Combine: false}
+	params := &ParseParams{Input: "", Combine: false}
 	runner := ParseRunner{Params: params, ConfigManager: nil}
 	configurations := make(map[string]interface{})
 
@@ -101,7 +101,7 @@ func TestParse_ByDefault_AddsIndentationAndNewline(t *testing.T) {
 }
 
 func TestParse_MultiFileCombineFlag(t *testing.T) {
-	params := ParseParams{Input: "", Combine: true}
+	params := &ParseParams{Input: "", Combine: true}
 	runner := ParseRunner{Params: params, ConfigManager: nil}
 	configurations := make(map[string]interface{})
 

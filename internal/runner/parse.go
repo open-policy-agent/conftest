@@ -16,7 +16,7 @@ type ParseParams struct {
 }
 
 type ParseRunner struct {
-	Params        ParseParams
+	Params        *ParseParams
 	ConfigManager parser.CustomConfigManager
 }
 
