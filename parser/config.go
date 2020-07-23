@@ -17,18 +17,24 @@ type ConfigDoc struct {
 	Parser     Parser
 }
 
+type CustomConfigManager interface {
+	GetConfigurations(ctx context.Context, input string, fileList []string) (map[string]interface{}, error)
+}
+
+type ConfigManager struct{}
+
 // GetConfigurations parses and returns the configurations given in the file list
-func GetConfigurations(ctx context.Context, input string, fileList []string) (map[string]interface{}, error) {
+func (c *ConfigManager) GetConfigurations(ctx context.Context, input string, fileList []string) (map[string]interface{}, error) {
 	var fileConfigs []ConfigDoc
 	for _, fileName := range fileList {
 		var config io.ReadCloser
 
-		config, err := getConfig(fileName)
+		config, err := c.getConfig(fileName)
 		if err != nil {
 			return nil, fmt.Errorf("get config: %w", err)
 		}
 
-		fileType := getFileType(fileName, input)
+		fileType := c.getFileType(fileName, input)
 		parser, err := GetParser(fileType)
 		if err != nil {
 			return nil, fmt.Errorf("get parser: %w", err)
@@ -43,7 +49,7 @@ func GetConfigurations(ctx context.Context, input string, fileList []string) (ma
 		fileConfigs = append(fileConfigs, configDoc)
 	}
 
-	unmarshaledConfigs, err := bulkUnmarshal(fileConfigs)
+	unmarshaledConfigs, err := c.bulkUnmarshal(fileConfigs)
 	if err != nil {
 		return nil, fmt.Errorf("bulk unmarshal: %w", err)
 	}
@@ -51,7 +57,7 @@ func GetConfigurations(ctx context.Context, input string, fileList []string) (ma
 	return unmarshaledConfigs, nil
 }
 
-func bulkUnmarshal(configList []ConfigDoc) (map[string]interface{}, error) {
+func (c *ConfigManager) bulkUnmarshal(configList []ConfigDoc) (map[string]interface{}, error) {
 	configContents := make(map[string]interface{})
 	for _, config := range configList {
 		contents, err := ioutil.ReadAll(config.ReadCloser)
@@ -71,7 +77,7 @@ func bulkUnmarshal(configList []ConfigDoc) (map[string]interface{}, error) {
 	return configContents, nil
 }
 
-func getConfig(fileName string) (io.ReadCloser, error) {
+func (c *ConfigManager) getConfig(fileName string) (io.ReadCloser, error) {
 	if fileName == "-" {
 		config := ioutil.NopCloser(bufio.NewReader(os.Stdin))
 		return config, nil
@@ -90,7 +96,7 @@ func getConfig(fileName string) (io.ReadCloser, error) {
 	return config, nil
 }
 
-func getFileType(fileName string, input string) string {
+func (c *ConfigManager) getFileType(fileName string, input string) string {
 	if input != "" {
 		return input
 	}

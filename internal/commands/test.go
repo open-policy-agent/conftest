@@ -118,7 +118,8 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("parse files: %w", err)
 			}
 
-			configurations, err := parser.GetConfigurations(ctx, input, files)
+			configManager := parser.ConfigManager{}
+			configurations, err := configManager.GetConfigurations(ctx, input, files)
 			if err != nil {
 				return fmt.Errorf("get configurations: %w", err)
 			}
