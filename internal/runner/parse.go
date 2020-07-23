@@ -26,17 +26,12 @@ func (r *ParseRunner) Run(ctx context.Context, fileList []string) (string, error
 		return "", fmt.Errorf("calling the parser method: %w", err)
 	}
 
-	return r.parseInput(ctx, r.Params.Input, r.Params.Combine, configurations)
-}
-
-func (r *ParseRunner) parseInput(ctx context.Context, input string, combine bool, configurations map[string]interface{}) (string, error) {
 	parsedConfigurations, err := r.parseConfigurations(configurations)
 	if err != nil {
 		return "", fmt.Errorf("parsing configs: %w", err)
 	}
 
 	return parsedConfigurations, nil
-
 }
 
 func (r *ParseRunner) parseConfigurations(configurations map[string]interface{}) (string, error) {
