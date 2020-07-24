@@ -10,7 +10,7 @@ import (
 	"github.com/open-policy-agent/conftest/parser"
 )
 
-func Test_Run_if_GetConfigurations_fails(t *testing.T) {
+func Test_Run_when_GetConfigurations_fails(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 	fileList := []string{"sut"}
@@ -31,7 +31,7 @@ func Test_Run_if_GetConfigurations_fails(t *testing.T) {
 	}
 }
 
-func Test_Run_if_GetConfigurations_succeed(t *testing.T) {
+func Test_Run_when_GetConfigurations_succeed(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 	fileList := []string{"sut"}

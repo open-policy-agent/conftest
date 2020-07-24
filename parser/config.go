@@ -17,6 +17,7 @@ type ConfigDoc struct {
 	Parser     Parser
 }
 
+//go:generate mockgen -destination=config_mock.go -package=$GOPACKAGE github.com/open-policy-agent/conftest/parser CustomConfigManager
 type CustomConfigManager interface {
 	GetConfigurations(ctx context.Context, input string, fileList []string) (map[string]interface{}, error)
 }
