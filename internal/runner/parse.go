@@ -10,34 +10,34 @@ import (
 	"github.com/open-policy-agent/conftest/parser"
 )
 
-type ParseRunner struct {
-	Input string
+type ParseParams struct {
+	Input   string
 	Combine bool
 }
 
-func (r *ParseRunner) Run(ctx context.Context, fileList []string) (string, error) {
-	return parseInput(ctx, r.Input,r.Combine, fileList)
+type ParseRunner struct {
+	Params        *ParseParams
+	ConfigManager parser.CustomConfigManager
 }
 
-func parseInput(ctx context.Context, input string, combine bool, fileList []string) (string, error) {
-	configurations, err := parser.GetConfigurations(ctx, input, fileList)
+func (r *ParseRunner) Run(ctx context.Context, fileList []string) (string, error) {
+	configurations, err := r.ConfigManager.GetConfigurations(ctx, r.Params.Input, fileList)
 	if err != nil {
 		return "", fmt.Errorf("calling the parser method: %w", err)
 	}
 
-	parsedConfigurations, err := parseConfigurations(configurations, combine)
+	parsedConfigurations, err := r.parseConfigurations(configurations)
 	if err != nil {
 		return "", fmt.Errorf("parsing configs: %w", err)
 	}
 
 	return parsedConfigurations, nil
-
 }
 
-func parseConfigurations(configurations map[string]interface{}, combine bool) (string, error) {
+func (r *ParseRunner) parseConfigurations(configurations map[string]interface{}) (string, error) {
 	var output string
-	if combine {
-		content, err := marshal(configurations)
+	if r.Params.Combine {
+		content, err := r.marshal(configurations)
 		if err != nil {
 			return "", fmt.Errorf("marshal output to json: %w", err)
 		}
@@ -45,7 +45,7 @@ func parseConfigurations(configurations map[string]interface{}, combine bool) (s
 		output = strings.Replace(output+"\n"+content, "\\r", "", -1)
 	} else {
 		for filename, config := range configurations {
-			content, err := marshal(config)
+			content, err := r.marshal(config)
 			if err != nil {
 				return "", fmt.Errorf("marshal output to json: %w", err)
 			}
@@ -57,7 +57,7 @@ func parseConfigurations(configurations map[string]interface{}, combine bool) (s
 	return output, nil
 }
 
-func marshal(in interface{}) (string, error) {
+func (r *ParseRunner) marshal(in interface{}) (string, error) {
 	out, err := json.Marshal(in)
 	if err != nil {
 		return "", fmt.Errorf("marshal output to json: %w", err)
