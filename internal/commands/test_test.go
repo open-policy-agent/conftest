@@ -180,13 +180,13 @@ metadata:
 		t.Fatalf("could not process policy file: %s", err)
 	}
 
-	const expectedFailures = 2
+	const expectedFailures = 3
 	actualFailures := len(results.Failures)
 	if actualFailures != expectedFailures {
 		t.Errorf("Multifile yaml test failure. Got %v failures, expected %v", actualFailures, expectedFailures)
 	}
 
-	const expectedSuccesses = 1
+	const expectedSuccesses = 2
 	actualSuccesses := len(results.Successes)
 	if actualSuccesses != expectedSuccesses {
 		t.Errorf("Multifile yaml test failure. Got %v success, expected %v", actualSuccesses, expectedSuccesses)
@@ -231,13 +231,13 @@ ENTRYPOINT ["java","-cp","app:app/lib/*","hello.Application"]`
 		t.Fatalf("could not process policy file: %s", err)
 	}
 
-	const expectedFailures = 1
+	const expectedFailures = 2
 	actualFailures := len(results.Failures)
 	if actualFailures != expectedFailures {
 		t.Errorf("Dockerfile test failure. Got %v failures, expected %v", actualFailures, expectedFailures)
 	}
 
-	const expectedSuccesses = 0
+	const expectedSuccesses = 2
 	actualSuccesses := len(results.Successes)
 	if actualSuccesses != expectedSuccesses {
 		t.Errorf("Dockerfile test failure. Got %v successes, expected %v", actualSuccesses, expectedSuccesses)
