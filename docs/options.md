@@ -1,5 +1,21 @@
 # Options
 
+## Configuration
+
+Options for Conftest can be configured on the command line as flag arguments, or as environment variables that are prefixed with `CONFTEST_`.
+
+Conftest also supports a simple configuration file which can be used to store configuration settings for the `conftest` command.
+
+Create a `conftest.toml` configuration file like the following:
+
+```toml
+# You can override the directory in which to store and look for policies
+policy = "tests"
+
+# You can override the namespace which to search for rules
+namespace = "conftest"
+```
+
 ## `--input`
 
 `conftest` normally detects input type with the file extension, but you can force to use a different one with the `--input` flag (`-i`).

@@ -43,15 +43,3 @@ If you want to download the latest policies and run the tests in one go, you can
 ```console
 conftest test --update <url(s)> <file-to-test>
 ```
-
-Conftest also supports a simple configuration file which can be used to store
-configuration settings for the `conftest` command.
-
-Create a `conftest.toml` configuration file like the following:
-
-```toml
-# You can override the directory in which to store and look for policies
-policy = "tests"
-# You can override the namespace which to search for rules
-namespace = "conftest"
-```
