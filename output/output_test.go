@@ -38,6 +38,20 @@ func Test_stdOutputManager_put(t *testing.T) {
 			},
 		},
 		{
+			msg: "records errors",
+			args: args{
+				cr: CheckResult{
+					FileName: "foo.yaml",
+					Errors: []Result{NewResult("first error", []error{})},
+				},
+			},
+			exp: []string{
+				"ERROR - foo.yaml - first error",
+				"",
+				"1 test, 0 passed, 0 warnings, 0 failures, 0 exceptions, 1 error",
+			},
+		},
+		{
 			msg: "skips filenames for stdin",
 			args: args{
 				cr: CheckResult{
@@ -88,7 +102,7 @@ func Test_jsonOutputManager_put(t *testing.T) {
 		exp  string
 	}{
 		{
-			msg: "no Warnings or errors",
+			msg: "no Warnings or failures",
 			args: args{
 				crs: []CheckResult{{FileName: "examples/kubernetes/service.yaml"}},
 			},
@@ -127,6 +141,29 @@ func Test_jsonOutputManager_put(t *testing.T) {
 		],
 		"successes": [],
 		"errors": []
+	}
+]
+`,
+		},
+		{
+			msg: "records errors",
+			args: args{
+				crs: []CheckResult{{
+					FileName: "examples/kubernetes/service.yaml",
+					Errors: []Result{NewResult("first error", []error{})},
+				}},
+			},
+			exp: `[
+	{
+		"filename": "examples/kubernetes/service.yaml",
+		"warnings": [],
+		"failures": [],
+		"successes": [],
+		"errors": [
+			{
+				"msg": "first error"
+			}
+		]
 	}
 ]
 `,
@@ -290,7 +327,7 @@ func Test_tapOutputManager_put(t *testing.T) {
 		exp  string
 	}{
 		{
-			msg: "no warnings or errors",
+			msg: "no warnings or failures",
 			args: args{
 				cr: CheckResult{
 					FileName: "examples/kubernetes/service.yaml",
@@ -311,6 +348,19 @@ func Test_tapOutputManager_put(t *testing.T) {
 not ok 1 - examples/kubernetes/service.yaml - first failure
 # Warnings
 not ok 2 - examples/kubernetes/service.yaml - first warning
+`,
+		},
+		{
+			msg: "records errors",
+			args: args{
+				cr: CheckResult{
+					FileName: "examples/kubernetes/service.yaml",
+					Errors: []Result{NewResult("first error", []error{})},
+				},
+			},
+			exp: `1..1
+# Errors
+not ok 1 - examples/kubernetes/service.yaml - first error
 `,
 		},
 		{
@@ -372,7 +422,7 @@ func Test_tableOutputManager_put(t *testing.T) {
 		exp  string
 	}{
 		{
-			msg: "no warnings or errors",
+			msg: "no warnings or failures",
 			args: args{
 				cr: CheckResult{
 					FileName: "examples/kubernetes/service.yaml",
@@ -395,6 +445,21 @@ func Test_tableOutputManager_put(t *testing.T) {
 | warning | examples/kubernetes/service.yaml | first warning |
 | failure | examples/kubernetes/service.yaml | first failure |
 +---------+----------------------------------+---------------+
+`,
+		},
+		{
+			msg: "records errors",
+			args: args{
+				cr: CheckResult{
+					FileName: "examples/kubernetes/service.yaml",
+					Errors: []Result{NewResult("first error", []error{})},
+				},
+			},
+			exp: `+--------+----------------------------------+-------------+
+| RESULT |               FILE               |   MESSAGE   |
++--------+----------------------------------+-------------+
+| error  | examples/kubernetes/service.yaml | first error |
++--------+----------------------------------+-------------+
 `,
 		},
 	}
@@ -432,7 +497,7 @@ func Test_junitOutputManager_put(t *testing.T) {
 		exp  string
 	}{
 		{
-			msg: "no warnings or errors",
+			msg: "no warnings or failures",
 			args: args{
 				cr: CheckResult{
 					FileName: "examples/kubernetes/service.yaml",
@@ -452,6 +517,16 @@ func Test_junitOutputManager_put(t *testing.T) {
 				},
 			},
 			exp: "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<testsuites>\n\t<testsuite tests=\"2\" failures=\"2\" time=\"0.000\" name=\"conftest\">\n\t\t<properties>\n\t\t\t<property name=\"go.version\" value=\"%s\"></property>\n\t\t</properties>\n\t\t<testcase classname=\"conftest\" name=\"examples/kubernetes/service.yaml - first warning\" time=\"0.000\">\n\t\t\t<failure message=\"Failed\" type=\"\">first warning</failure>\n\t\t</testcase>\n\t\t<testcase classname=\"conftest\" name=\"examples/kubernetes/service.yaml - first failure\" time=\"0.000\">\n\t\t\t<failure message=\"Failed\" type=\"\">first failure&#xA;this is an error</failure>\n\t\t</testcase>\n\t</testsuite>\n</testsuites>\n",
+		},
+		{
+			msg: "records errors",
+			args: args{
+				cr: CheckResult{
+					FileName: "examples/kubernetes/service.yaml",
+					Errors: []Result{NewResult("first error", []error{})},
+				},
+			},
+			exp: "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<testsuites>\n\t<testsuite tests=\"1\" failures=\"1\" time=\"0.000\" name=\"conftest\">\n\t\t<properties>\n\t\t\t<property name=\"go.version\" value=\"%s\"></property>\n\t\t</properties>\n\t\t<testcase classname=\"conftest\" name=\"examples/kubernetes/service.yaml - first error\" time=\"0.000\">\n\t\t\t<failure message=\"Failed\" type=\"\">first error</failure>\n\t\t</testcase>\n\t</testsuite>\n</testsuites>\n",
 		},
 		{
 			msg: "records failure with long description",
