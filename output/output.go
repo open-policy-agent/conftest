@@ -208,6 +208,7 @@ type jsonCheckResult struct {
 	Warnings  []jsonResult `json:"warnings"`
 	Failures  []jsonResult `json:"failures"`
 	Successes []jsonResult `json:"successes"`
+	Errors    []jsonResult `json:"errors"`
 }
 
 // JSONOutputManager formats its output to JSON
@@ -248,6 +249,7 @@ func (j *JSONOutputManager) Put(cr CheckResult) error {
 		Warnings:  []jsonResult{},
 		Failures:  []jsonResult{},
 		Successes: []jsonResult{},
+		Errors:    []jsonResult{},
 	}
 
 	for _, warning := range cr.Warnings {
@@ -271,6 +273,14 @@ func (j *JSONOutputManager) Put(cr CheckResult) error {
 			Message:  successes.Message,
 			Metadata: successes.Metadata,
 			Traces:   errsToStrings(successes.Traces),
+		})
+	}
+
+	for _, errors := range cr.Errors {
+		result.Errors = append(result.Errors, jsonResult{
+			Message:  errors.Message,
+			Metadata: errors.Metadata,
+			Traces:   errsToStrings(errors.Traces),
 		})
 	}
 
@@ -332,7 +342,7 @@ func (t *TAPOutputManager) Put(cr CheckResult) error {
 		}
 	}
 
-	issues := len(cr.Failures) + len(cr.Warnings) + len(cr.Successes)
+	issues := len(cr.Failures) + len(cr.Warnings) + len(cr.Successes) + len(cr.Errors)
 	if issues > 0 {
 		t.logger.Print(fmt.Sprintf("1..%d", issues))
 		for i, r := range cr.Failures {
@@ -351,6 +361,13 @@ func (t *TAPOutputManager) Put(cr CheckResult) error {
 			for i, r := range cr.Successes {
 				counter := i + 1 + len(cr.Failures) + len(cr.Warnings)
 				printResults(r, "ok ", counter)
+			}
+		}
+		if len(cr.Errors) > 0 {
+			t.logger.Print("# Errors")
+			for i, r := range cr.Errors {
+				counter := i + 1 + len(cr.Failures) + len(cr.Warnings) + len(cr.Successes)
+				printResults(r, "not ok ", counter)
 			}
 		}
 	}
@@ -403,6 +420,10 @@ func (t *TableOutputManager) Put(cr CheckResult) error {
 
 	for _, r := range cr.Failures {
 		printResults(r, "failure", cr.FileName)
+	}
+
+	for _, r := range cr.Errors {
+		printResults(r, "error", cr.FileName)
 	}
 
 	return nil
@@ -473,6 +494,9 @@ func (j *JUnitOutputManager) Put(cr CheckResult) error {
 	}
 	for _, result := range cr.Successes {
 		j.p.Tests = append(j.p.Tests, convert(result, parser.PASS))
+	}
+	for _, result := range cr.Errors {
+		j.p.Tests = append(j.p.Tests, convert(result, parser.FAIL))
 	}
 	return nil
 }
