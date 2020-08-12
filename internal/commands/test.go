@@ -126,16 +126,15 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 
 			policyPaths := viper.GetStringSlice("policy")
 			urls := viper.GetStringSlice("update")
-			for _, policyPath := range policyPaths {
-				for _, url := range urls {
-					sourcedURL, err := policy.Detect(url, policyPath)
-					if err != nil {
-						return fmt.Errorf("detect policies: %w", err)
-					}
+			// Downloaded policies are put into the first policy directory specified
+			for _, url := range urls {
+				sourcedURL, err := policy.Detect(url, policyPaths[0])
+				if err != nil {
+					return fmt.Errorf("detect policies: %w", err)
+				}
 
-					if err := policy.Download(ctx, policyPath, []string{sourcedURL}); err != nil {
-						return fmt.Errorf("update policies: %w", err)
-					}
+				if err := policy.Download(ctx, policyPaths[0], []string{sourcedURL}); err != nil {
+					return fmt.Errorf("update policies: %w", err)
 				}
 			}
 
