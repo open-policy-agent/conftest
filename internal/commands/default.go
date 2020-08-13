@@ -28,7 +28,7 @@ func NewDefaultCommand() *cobra.Command {
 
 	cmd.SetVersionTemplate(`{{.Version}}`)
 
-	cmd.PersistentFlags().StringP("policy", "p", "policy", "path to the Rego policy files directory. For the test command, specifying a specific .rego file is allowed.")
+	cmd.PersistentFlags().StringSliceP("policy", "p", []string{"policy"}, "path to the Rego policy files directory. For the test command, specifying a specific .rego file is allowed. Can be specified multiple times.")
 	cmd.PersistentFlags().Bool("no-color", false, "disable color when printing")
 
 	viper.BindPFlag("policy", cmd.PersistentFlags().Lookup("policy"))

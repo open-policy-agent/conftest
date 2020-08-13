@@ -311,3 +311,10 @@
   [ "$status" -eq 1 ]
   [[ "$output" =~ "2 tests, 0 passed, 0 warnings, 2 failures" ]]
 }
+
+@test "Can have multiple policy flags" {
+  run ./conftest test --policy examples/multidir/org --policy examples/multidir/team examples/multidir/data.json
+
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "2 tests, 0 passed, 0 warnings, 2 failures" ]]
+}

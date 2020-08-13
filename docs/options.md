@@ -1,5 +1,15 @@
 # Options
 
+## `--policy`
+
+`conftest` will by default look for policies in the subdirectory `policy`, but you can point out another directory with the `--policy` (or `-p`) flag. This flag can also be repeated, if you have multiple directories with policy files, for example one with organization-wide policies, and another one with team-specific policies. Keep in mind when using multiple directories that the rules are treated as if they'd all been read from the same directory, and make sure any rules sharing names are compatible.
+
+```console
+$ conftest test files/ # Reads rules from policy/ directory (default)
+$ conftest test -p my-policies files/ # Reads rules from my-policies/
+$ conftest test -p my-policies -p org-policies files/ # Reads rules from my-policies/ *and* org-policies/
+```
+
 ## `--input`
 
 `conftest` normally detects input type with the file extension, but you can force to use a different one with the `--input` flag (`-i`).

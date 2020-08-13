@@ -14,21 +14,21 @@ import (
 )
 
 type VerifyRunner struct {
-	Trace        bool
-	Policy   string
-	Data    []string
+	Trace  bool
+	Policy []string
+	Data   []string
 }
 
-// Run executes the Rego tests at the given PolicyPath
-func (r *VerifyRunner) Run(ctx context.Context) ([]output.CheckResult, error){
-	path := r.Policy
-	regoFiles, err := policy.ReadFilesWithTests(path)
+// Run executes the Rego tests at the given PolicyPath(s)
+func (r *VerifyRunner) Run(ctx context.Context) ([]output.CheckResult, error) {
+	paths := r.Policy
+	regoFiles, err := policy.ReadFilesWithTests(paths...)
 	if err != nil {
 		return nil, fmt.Errorf("read rego test files: %s", err)
 	}
 
 	if len(regoFiles) < 1 {
-		return nil, fmt.Errorf("no policies found in %s", path)
+		return nil, fmt.Errorf("no policies found in %s", paths)
 	}
 
 	compiler, err := policy.BuildCompiler(regoFiles)
