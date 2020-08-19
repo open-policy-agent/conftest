@@ -2,11 +2,17 @@
 
 ## Configuration
 
-Options for Conftest can be configured on the command line as flag arguments, or as environment variables that are prefixed with `CONFTEST_`.
+Options for `conftest` can be configured on the command line as flag arguments, environment variables, or a configuration file.
 
-Conftest also supports a simple configuration file which can be used to store configuration settings for the `conftest` command.
+When multiple configuration sources are present, `conftest` will process the configuration values in the following order:
 
-Create a `conftest.toml` configuration file like the following:
+1. Flag Arguments
+1. Environment Variables
+1. Configuration File
+
+When using environment variables the environment variable should be the same name as the flag, prefixed with `CONFTEST_`. For example, to set the policy directory, the environment variable would be `CONFTEST_POLICY`.
+
+When using a configuration file, the configuration file should be in the working directory for `conftest` and named `conftest.toml`. An example can be found below:
 
 ```toml
 # You can override the directory in which to store and look for policies
