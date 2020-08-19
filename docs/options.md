@@ -10,7 +10,7 @@ When multiple configuration sources are present, `conftest` will process the con
 1. Environment Variables
 1. Configuration File
 
-When using environment variables the environment variable should be the same name as the flag, prefixed with `CONFTEST_`. For example, to set the policy directory, the environment variable would be `CONFTEST_POLICY`.
+When using environment variables, the environment variable should be the same name as the flag, prefixed with `CONFTEST_`. For example, to set the policy directory, the environment variable would be `CONFTEST_POLICY`.
 
 When using a configuration file, the configuration file should be in the working directory for `conftest` and named `conftest.toml`. An example can be found below:
 
@@ -21,6 +21,15 @@ policy = "tests"
 # You can override the namespace which to search for rules
 namespace = "conftest"
 ```
+
+## `--policy`
+
+`conftest` will by default look for policies in the subdirectory `policy`, but you can point out another directory with the `--policy` (or `-p`) flag. This flag can also be repeated, if you have multiple directories with policy files, for example one with organization-wide policies, and another one with team-specific policies. Keep in mind when using multiple directories that the rules are treated as if they'd all been read from the same directory, and make sure any rules sharing names are compatible.
+
+```console
+$ conftest test files/ # Reads rules from policy/ directory (default)
+$ conftest test -p my-policies files/ # Reads rules from my-policies/
+$ conftest test -p my-policies -p org-policies files/ # Reads rules from my-policies/ *and* org-policies/
 
 ## `--input`
 
@@ -65,9 +74,9 @@ conftest test -p examples/test/ test/ --ignore=".*.cue|.*.yaml"
 
 ## `--combine`
 
-This flag introduces *BREAKING CHANGES* in how `conftest` provides input to rego policies. However, you may find it useful to as you can now compare multiple values from different configurations simultaneously.
+This flag introduces *BREAKING CHANGES* in how `conftest` provides input to rego policies. However, you may find it useful to use as it allows you to compare multiple values from different configurations simultaneously.
 
-The `--combine` flag combines files into one `input` data structure. The structure is a `map` where each indice is the file path of the file being evaluated.
+The `--combine` flag combines files into one `input` data structure. The structure is a `map` where each index is the file path of the file being evaluated.
 
 Let's try it!
 
@@ -75,7 +84,6 @@ Save the following as `policy/combine.rego`:
 
 ```rego
 package main
-
 
 deny[msg] {
   deployment := input["deployment.yaml"]["spec"]["selector"]["matchLabels"]["app"]

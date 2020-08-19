@@ -118,25 +118,27 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("parse files: %w", err)
 			}
 
-			configurations, err := parser.GetConfigurations(ctx, input, files)
+			configManager := parser.ConfigManager{}
+			configurations, err := configManager.GetConfigurations(ctx, input, files)
 			if err != nil {
 				return fmt.Errorf("get configurations: %w", err)
 			}
 
-			policyPath := viper.GetString("policy")
+			policyPaths := viper.GetStringSlice("policy")
 			urls := viper.GetStringSlice("update")
+			// Downloaded policies are put into the first policy directory specified
 			for _, url := range urls {
-				sourcedURL, err := policy.Detect(url, policyPath)
+				sourcedURL, err := policy.Detect(url, policyPaths[0])
 				if err != nil {
 					return fmt.Errorf("detect policies: %w", err)
 				}
 
-				if err := policy.Download(ctx, policyPath, []string{sourcedURL}); err != nil {
+				if err := policy.Download(ctx, policyPaths[0], []string{sourcedURL}); err != nil {
 					return fmt.Errorf("update policies: %w", err)
 				}
 			}
 
-			regoFiles, err := policy.ReadFiles(policyPath)
+			regoFiles, err := policy.ReadFiles(policyPaths...)
 			if err != nil {
 				return fmt.Errorf("read rego files: %w", err)
 			}
@@ -292,16 +294,16 @@ func (t TestRun) runRules(ctx context.Context, namespace string, input interface
 	var totalSuccesses []output.Result
 	for _, rule := range rules {
 		query := fmt.Sprintf("data.%s.%s", namespace, rule)
+		exceptionQuery := fmt.Sprintf("data.%s.exception[_][_] == %q", namespace, removeDenyPrefix(rule))
 
 		switch input.(type) {
 		case []interface{}:
-			exceptionQuery := fmt.Sprintf("data.%s.exception[_][_] == %q", namespace, removeDenyPrefix(rule))
 			errors, exceptions, successes, err = t.runMultipleQueries(ctx, query, exceptionQuery, input)
 			if err != nil {
 				return nil, nil, nil, fmt.Errorf("run multiple queries: %w", err)
 			}
 		default:
-			errors, successes, err = t.runQuery(ctx, query, input)
+			errors, exceptions, successes, err = t.filterExceptionsQuery(ctx, query, exceptionQuery, input)
 			if err != nil {
 				return nil, nil, nil, fmt.Errorf("run query: %w", err)
 			}
@@ -312,7 +314,7 @@ func (t TestRun) runRules(ctx context.Context, namespace string, input interface
 		totalSuccesses = append(totalSuccesses, successes...)
 	}
 
-	for i := len(totalErrors) + len(totalSuccesses); i < numberRules; i++ {
+	for i := len(totalErrors) + len(totalSuccesses) + len(totalExceptions); i < numberRules; i++ {
 		totalSuccesses = append(totalSuccesses, output.Result{})
 	}
 
@@ -343,18 +345,37 @@ func (t TestRun) runMultipleQueries(ctx context.Context, query string, exception
 	var totalExceptions []output.Result
 	var totalSuccesses []output.Result
 	for _, input := range inputs.([]interface{}) {
-		violations, successes, err := t.runQuery(ctx, query, input)
+		violations, exceptions, successes, err := t.filterExceptionsQuery(ctx, query, exceptionQuery, input)
 		if err != nil {
 			return nil, nil, nil, fmt.Errorf("run query: %w", err)
 		}
-		_, exceptions, err := t.runQuery(ctx, exceptionQuery, input)
-		if len(exceptions) > 0 {
-			totalExceptions = append(totalExceptions, exceptions...)
-		} else {
-			totalViolations = append(totalViolations, violations...)
-		}
+
+		totalExceptions = append(totalExceptions, exceptions...)
+		totalViolations = append(totalViolations, violations...)
 		totalSuccesses = append(totalSuccesses, successes...)
 	}
+	return totalViolations, totalExceptions, totalSuccesses, nil
+}
+
+func (t TestRun) filterExceptionsQuery(ctx context.Context, query string, exceptionQuery string, input interface{}) ([]output.Result, []output.Result, []output.Result, error) {
+	var totalViolations []output.Result
+	var totalExceptions []output.Result
+	var totalSuccesses []output.Result
+	violations, successes, err := t.runQuery(ctx, query, input)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("run query: %w", err)
+	}
+	_, exceptions, err := t.runQuery(ctx, exceptionQuery, input)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("exception query: %w", err)
+	}
+	if len(exceptions) > 0 {
+		totalExceptions = append(totalExceptions, exceptions...)
+	} else {
+		totalViolations = append(totalViolations, violations...)
+	}
+	totalSuccesses = append(totalSuccesses, successes...)
+
 	return totalViolations, totalExceptions, totalSuccesses, nil
 }
 

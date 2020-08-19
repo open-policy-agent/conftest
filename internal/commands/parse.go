@@ -41,8 +41,12 @@ func NewParseCommand(ctx context.Context) *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, fileList []string) error {
-			runner := &runner.ParseRunner{}
-			viper.Unmarshal(runner)
+			params := &runner.ParseParams{}
+			viper.Unmarshal(params)
+			runner := runner.ParseRunner{
+				Params:        params,
+				ConfigManager: &parser.ConfigManager{},
+			}
 			out, err := runner.Run(ctx, fileList)
 			if err != nil {
 				return fmt.Errorf("failed during parser process: %w", err)

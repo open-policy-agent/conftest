@@ -21,81 +21,58 @@ func Detect(url string, dst string) (string, error) {
 	return downloader.Detect(url, dst)
 }
 
+var (
+	nonTestRegoFiles = func(name string) bool {
+		return filepath.Ext(name) == ".rego" && !strings.HasSuffix(name, "_test.rego")
+	}
+	allRegoFiles = func(name string) bool {
+		return filepath.Ext(name) == ".rego"
+	}
+)
+
 // ReadFiles returns all of the policy files (not including tests)
-// at the given path including its subdirectories.
-func ReadFiles(path string) ([]string, error) {
-	files, err := getPolicyFiles(path)
-	if err != nil {
-		return nil, fmt.Errorf("search rego files: %w", err)
-	}
-
-	return files, nil
-}
-
-func getPolicyFiles(path string) ([]string, error) {
-	var filepaths []string
-	err := filepath.Walk(path, func(currentPath string, info os.FileInfo, err error) error {
-		if err != nil {
-			return fmt.Errorf("walk path: %w", err)
-		}
-
-		if info.IsDir() {
-			return nil
-		}
-
-		if filepath.Ext(currentPath) == ".rego" && !strings.HasSuffix(info.Name(), "_test.rego") {
-			if info.Size() == 0 {
-				return fmt.Errorf("empty policy found in %s", currentPath)
-			}
-
-			filepaths = append(filepaths, currentPath)
-		}
-
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if len(filepaths) < 1 {
-		return nil, fmt.Errorf("no policies found in %s", path)
-	}
-
-	return filepaths, nil
+// at the given path(s) including its subdirectories.
+func ReadFiles(paths ...string) ([]string, error) {
+	return getPolicyFiles(paths, nonTestRegoFiles)
 }
 
 // ReadFilesWithTests returns all of the policies and test files
-// at the given path including its subdirectories.
+// at the given path(s) including its subdirectories.
 // Test files are Rego files that have a suffix of _test.rego
-func ReadFilesWithTests(path string) ([]string, error) {
-	files, err := getTestFiles(path)
-	if err != nil {
-		return nil, fmt.Errorf("search rego test files: %w", err)
+func ReadFilesWithTests(paths ...string) ([]string, error) {
+	return getPolicyFiles(paths, allRegoFiles)
+}
+
+func getPolicyFiles(paths []string, filter func(string) bool) ([]string, error) {
+	var files []string
+	for _, path := range paths {
+		err := filepath.Walk(path, func(currentPath string, info os.FileInfo, err error) error {
+			if err != nil {
+				return fmt.Errorf("walk path: %w", err)
+			}
+
+			if info.IsDir() {
+				return nil
+			}
+
+			if filter(info.Name()) {
+				if info.Size() == 0 {
+					return fmt.Errorf("empty policy found in %s", currentPath)
+				}
+
+				files = append(files, currentPath)
+			}
+
+			return nil
+		})
+		if err != nil {
+			return nil, fmt.Errorf("search rego files: %w", err)
+		}
+	}
+
+	if len(files) < 1 {
+		return nil, fmt.Errorf("no policies found in %v", paths)
 	}
 
 	return files, nil
-}
-
-func getTestFiles(path string) ([]string, error) {
-	var filepaths []string
-	err := filepath.Walk(path, func(currentPath string, info os.FileInfo, err error) error {
-		if err != nil {
-			return fmt.Errorf("walk path: %w", err)
-		}
-
-		if info.IsDir() {
-			return nil
-		}
-
-		if strings.HasSuffix(info.Name(), ".rego") {
-			filepaths = append(filepaths, currentPath)
-		}
-
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return filepaths, nil
 }

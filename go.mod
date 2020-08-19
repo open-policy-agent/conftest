@@ -12,6 +12,7 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-akka/configuration v0.0.0-20190919102339-a31c845c4b1b
 	github.com/go-ini/ini v1.51.0
+	github.com/golang/mock v1.3.1
 	github.com/google/go-jsonnet v0.16.0
 	github.com/hashicorp/go-getter v1.4.0
 	github.com/hashicorp/hcl v1.0.0
@@ -24,7 +25,6 @@ require (
 	github.com/opencontainers/image-spec v1.0.1
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.7.0
-	github.com/ugorji/go v1.1.4 // indirect
 	github.com/zclconf/go-cty v1.2.0
 	gopkg.in/ini.v1 v1.52.0 // indirect
 	olympos.io/encoding/edn v0.0.0-20191103180435-78e1aef28b15
