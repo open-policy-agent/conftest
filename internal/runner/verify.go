@@ -21,25 +21,20 @@ type VerifyRunner struct {
 
 // Run executes the Rego tests at the given PolicyPath(s)
 func (r *VerifyRunner) Run(ctx context.Context) ([]output.CheckResult, error) {
-	paths := r.Policy
-	regoFiles, err := policy.ReadFilesWithTests(paths...)
-	if err != nil {
-		return nil, fmt.Errorf("read rego test files: %s", err)
+	loader := &policy.Loader{
+		DataPaths: r.Data,
+		PolicyPaths: r.Policy,
 	}
 
-	if len(regoFiles) < 1 {
-		return nil, fmt.Errorf("no policies found in %s", paths)
+	loader.SetTestLoad(true)
+	regoFiles, store, err := loader.Load(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("load failed: %w", err)
 	}
 
 	compiler, err := policy.BuildCompiler(regoFiles)
 	if err != nil {
 		return nil, fmt.Errorf("build compiler: %w", err)
-	}
-
-	dataPaths := r.Data
-	store, err := policy.StoreFromDataFiles(dataPaths)
-	if err != nil {
-		return nil, fmt.Errorf("build store: %w", err)
 	}
 
 	runtime := policy.RuntimeTerm()
