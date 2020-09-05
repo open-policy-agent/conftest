@@ -234,8 +234,11 @@ func (t *TestRunner) runRules(ctx context.Context, namespace string, input inter
 		}
 	}
 
+	// When there are multiple configurations to be tested, we multiply the number of rules
+	// by how many configurations will be tested to get the total number of tests.
+	totalTests := numberOfRules
 	if _, ok := input.([]interface{}); ok {
-		numberOfRules = numberOfRules * len(input.([]interface{}))
+		totalTests = numberOfRules * len(input.([]interface{}))
 	}
 
 	var totalErrors []output.Result
@@ -267,7 +270,7 @@ func (t *TestRunner) runRules(ctx context.Context, namespace string, input inter
 		totalSuccesses = append(totalSuccesses, successes...)
 	}
 
-	for i := len(totalErrors) + len(totalSuccesses) + len(totalExceptions); i < numberOfRules; i++ {
+	for i := len(totalErrors) + len(totalSuccesses) + len(totalExceptions); i < totalTests; i++ {
 		totalSuccesses = append(totalSuccesses, output.Result{})
 	}
 
