@@ -11,7 +11,7 @@ require (
 	github.com/deislabs/oras v0.8.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-akka/configuration v0.0.0-20190919102339-a31c845c4b1b
-	github.com/go-ini/ini v1.51.0
+	github.com/go-ini/ini v1.61.0
 	github.com/golang/mock v1.3.1
 	github.com/google/go-jsonnet v0.16.0
 	github.com/hashicorp/go-getter v1.4.0
