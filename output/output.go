@@ -231,7 +231,13 @@ func (j *JSONOutputManager) Put(cr CheckResult) error {
 		cr.FileName = ""
 	}
 
-	var result jsonCheckResult
+	result := jsonCheckResult{
+		Filename:  cr.FileName,
+		Successes: 0,
+		Warnings:  []jsonResult{},
+		Failures:  []jsonResult{},
+	}
+
 	for _, warning := range cr.Warnings {
 		result.Warnings = append(result.Warnings, jsonResult{
 			Message:  warning.Message,

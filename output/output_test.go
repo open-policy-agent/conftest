@@ -95,9 +95,9 @@ func Test_jsonOutputManager_put(t *testing.T) {
 			exp: `[
 	{
 		"filename": "examples/kubernetes/service.yaml",
+		"successes": 0,
 		"warnings": [],
-		"failures": [],
-		"successes": []
+		"failures": []
 	}
 ]
 `,
@@ -114,6 +114,7 @@ func Test_jsonOutputManager_put(t *testing.T) {
 			exp: `[
 	{
 		"filename": "examples/kubernetes/service.yaml",
+		"successes": 0,
 		"warnings": [
 			{
 				"msg": "first warning"
@@ -123,8 +124,7 @@ func Test_jsonOutputManager_put(t *testing.T) {
 			{
 				"msg": "first failure"
 			}
-		],
-		"successes": []
+		]
 	}
 ]
 `,
@@ -140,13 +140,13 @@ func Test_jsonOutputManager_put(t *testing.T) {
 			exp: `[
 	{
 		"filename": "examples/kubernetes/service.yaml",
+		"successes": 0,
 		"warnings": [],
 		"failures": [
 			{
 				"msg": "first failure"
 			}
-		],
-		"successes": []
+		]
 	}
 ]
 `,
@@ -162,13 +162,13 @@ func Test_jsonOutputManager_put(t *testing.T) {
 			exp: `[
 	{
 		"filename": "",
+		"successes": 0,
 		"warnings": [],
 		"failures": [
 			{
 				"msg": "first failure"
 			}
-		],
-		"successes": []
+		]
 	}
 ]
 `,
@@ -184,15 +184,15 @@ func Test_jsonOutputManager_put(t *testing.T) {
 			exp: `[
 	{
 		"filename": "examples/kubernetes/service.yaml",
+		"successes": 0,
 		"warnings": [],
-		"failures": [],
-		"successes": []
+		"failures": []
 	},
 	{
 		"filename": "examples/kubernetes/deployment.yaml",
+		"successes": 0,
 		"warnings": [],
-		"failures": [],
-		"successes": []
+		"failures": []
 	}
 ]
 `,
