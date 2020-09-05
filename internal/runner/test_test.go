@@ -135,7 +135,7 @@ metadata:
 		t.Errorf("Multifile yaml test failure. Got %v failures, expected %v", actualFailures, expectedFailures)
 	}
 
-	const expectedSuccesses = 1
+	const expectedSuccesses = 2
 	actualSuccesses := len(results.Successes)
 	if actualSuccesses != expectedSuccesses {
 		t.Errorf("Multifile yaml test failure. Got %v success, expected %v", actualSuccesses, expectedSuccesses)

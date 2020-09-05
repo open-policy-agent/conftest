@@ -14,22 +14,22 @@ import (
 )
 
 type TestRunner struct {
-	Trace  bool
-	Policy []string
-	Data   []string
-	Update []string
-	Ignore string
-	Input string
-	Namespace []string
+	Trace         bool
+	Policy        []string
+	Data          []string
+	Update        []string
+	Ignore        string
+	Input         string
+	Namespace     []string
 	AllNamespaces bool `mapstructure:"all-namespaces"`
-	Combine bool
+	Combine       bool
 
 	engine *policy.Engine
 }
 
 var (
-	denyQ                 = regexp.MustCompile("^(deny|violation)(_[a-zA-Z0-9]+)*$")
-	warnQ                 = regexp.MustCompile("^warn(_[a-zA-Z0-9]+)*$")
+	denyQ = regexp.MustCompile("^(deny|violation)(_[a-zA-Z0-9]+)*$")
+	warnQ = regexp.MustCompile("^warn(_[a-zA-Z0-9]+)*$")
 )
 
 // Run executes the TestRunner, verifying all Rego policies against the given
@@ -47,16 +47,15 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) ([]output.Check
 	}
 
 	loader := &policy.Loader{
-		DataPaths: t.Data,
+		DataPaths:   t.Data,
 		PolicyPaths: t.Policy,
-		URLs: t.Update,
+		URLs:        t.Update,
 	}
 
 	regoFiles, store, err := loader.Load(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("load failed: %w", err)
 	}
-
 
 	compiler, err := policy.BuildCompiler(regoFiles)
 	if err != nil {
@@ -65,19 +64,17 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) ([]output.Check
 
 	engine := &policy.Engine{
 		Compiler: compiler,
-		Store: store,
-		Trace: t.Trace,
+		Store:    store,
+		Trace:    t.Trace,
 	}
 	t.engine = engine
 
-	var namespaces []string
+	namespaces := t.Namespace
 	if t.AllNamespaces {
 		namespaces, err = policy.GetNamespaces(regoFiles, compiler)
 		if err != nil {
 			return nil, fmt.Errorf("get namespaces: %w", err)
 		}
-	} else {
-		namespaces = t.Namespace
 	}
 
 	var results []output.CheckResult
@@ -90,20 +87,20 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) ([]output.Check
 		result.FileName = "Combined"
 		results = append(results, result)
 		return results, nil
-	} else {
-		for fileName, config := range configurations {
-			result, err := t.GetResult(ctx, namespaces, config)
-			if err != nil {
-				return nil, fmt.Errorf("get test result: %w", err)
-			}
-
-			result.FileName = fileName
-			results = append(results, result)
-		}
-		return results, nil
 	}
-}
 
+	for fileName, config := range configurations {
+		result, err := t.GetResult(ctx, namespaces, config)
+		if err != nil {
+			return nil, fmt.Errorf("get test result: %w", err)
+		}
+
+		result.FileName = fileName
+		results = append(results, result)
+	}
+
+	return results, nil
+}
 
 func parseFileList(fileList []string, exceptions string) ([]string, error) {
 	var files []string
@@ -178,7 +175,6 @@ func getFilesFromDirectory(directory string, exceptions string) ([]string, error
 	return files, nil
 }
 
-
 // GetResult returns the result of testing the structured data against their policies
 func (t *TestRunner) GetResult(ctx context.Context, namespaces []string, input interface{}) (output.CheckResult, error) {
 	var totalWarnings []output.Result
@@ -215,37 +211,44 @@ func (t *TestRunner) GetResult(ctx context.Context, namespaces []string, input i
 	return result, nil
 }
 
-func (t *TestRunner) runRules(ctx context.Context, namespace string, input interface{}, regex *regexp.Regexp) ([]output.Result, []output.Result, []output.Result, error) {
-	var successes []output.Result
-	var exceptions []output.Result
-	var errors []output.Result
-
+func (t *TestRunner) runRules(ctx context.Context, namespace string, input interface{}, ruleRegex *regexp.Regexp) ([]output.Result, []output.Result, []output.Result, error) {
 	var rules []string
-	var numberRules int = 0
+	var numberOfRules int
 	for _, module := range t.engine.Compiler.Modules {
 		currentNamespace := strings.Replace(module.Package.Path.String(), "data.", "", 1)
-		if currentNamespace == namespace {
-			for _, rule := range module.Rules {
-				ruleName := rule.Head.Name.String()
+		if currentNamespace != namespace {
+			continue
+		}
 
-				if regex.MatchString(ruleName) {
-					numberRules += 1
-					if !stringInSlice(ruleName, rules) {
-						rules = append(rules, ruleName)
-					}
-				}
+		for _, rule := range module.Rules {
+			ruleName := rule.Head.Name.String()
+
+			if !ruleRegex.MatchString(ruleName) {
+				continue
+			}
+
+			numberOfRules++
+			if !stringInSlice(ruleName, rules) {
+				rules = append(rules, ruleName)
 			}
 		}
 	}
 
-	var err error
+	if _, ok := input.([]interface{}); ok {
+		numberOfRules = numberOfRules * len(input.([]interface{}))
+	}
+
 	var totalErrors []output.Result
 	var totalExceptions []output.Result
 	var totalSuccesses []output.Result
 	for _, rule := range rules {
+		var successes []output.Result
+		var exceptions []output.Result
+		var errors []output.Result
+		var err error
+
 		query := fmt.Sprintf("data.%s.%s", namespace, rule)
 		exceptionQuery := fmt.Sprintf("data.%s.exception[_][_] == %q", namespace, removeDenyPrefix(rule))
-
 		switch input.(type) {
 		case []interface{}:
 			errors, exceptions, successes, err = t.runMultipleQueries(ctx, query, exceptionQuery, input)
@@ -264,7 +267,7 @@ func (t *TestRunner) runRules(ctx context.Context, namespace string, input inter
 		totalSuccesses = append(totalSuccesses, successes...)
 	}
 
-	for i := len(totalErrors) + len(totalSuccesses) + len(totalExceptions); i < numberRules; i++ {
+	for i := len(totalErrors) + len(totalSuccesses) + len(totalExceptions); i < numberOfRules; i++ {
 		totalSuccesses = append(totalSuccesses, output.Result{})
 	}
 
@@ -277,6 +280,7 @@ func removeDenyPrefix(rule string) string {
 	} else if strings.HasPrefix(rule, "violation_") {
 		return strings.TrimPrefix(rule, "violation_")
 	}
+
 	return rule
 }
 
@@ -294,6 +298,7 @@ func (t *TestRunner) runMultipleQueries(ctx context.Context, query string, excep
 	var totalViolations []output.Result
 	var totalExceptions []output.Result
 	var totalSuccesses []output.Result
+
 	for _, input := range inputs.([]interface{}) {
 		violations, exceptions, successes, err := t.filterExceptionsQuery(ctx, query, exceptionQuery, input)
 		if err != nil {
@@ -304,27 +309,24 @@ func (t *TestRunner) runMultipleQueries(ctx context.Context, query string, excep
 		totalViolations = append(totalViolations, violations...)
 		totalSuccesses = append(totalSuccesses, successes...)
 	}
+
 	return totalViolations, totalExceptions, totalSuccesses, nil
 }
 
 func (t *TestRunner) filterExceptionsQuery(ctx context.Context, query string, exceptionQuery string, input interface{}) ([]output.Result, []output.Result, []output.Result, error) {
-	var totalViolations []output.Result
-	var totalExceptions []output.Result
-	var totalSuccesses []output.Result
 	violations, successes, err := t.engine.Query(ctx, query, input)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("run query: %w", err)
 	}
+
 	_, exceptions, err := t.engine.Query(ctx, exceptionQuery, input)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("exception query: %w", err)
 	}
-	if len(exceptions) > 0 {
-		totalExceptions = append(totalExceptions, exceptions...)
-	} else {
-		totalViolations = append(totalViolations, violations...)
-	}
-	totalSuccesses = append(totalSuccesses, successes...)
 
-	return totalViolations, totalExceptions, totalSuccesses, nil
+	if len(exceptions) > 0 {
+		violations = []output.Result{}
+	}
+
+	return violations, exceptions, successes, nil
 }

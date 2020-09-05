@@ -17,16 +17,16 @@ import (
 // Engine represents the policy engine
 type Engine struct {
 	Compiler *ast.Compiler
-	Store storage.Store
-	Trace bool
+	Store    storage.Store
+	Trace    bool
 }
 
 // NewEngine returns a new instatiated Engine
-func NewEngine(compiler *ast.Compiler, store storage.Store, trace bool) (*Engine) {
+func NewEngine(compiler *ast.Compiler, store storage.Store, trace bool) *Engine {
 	return &Engine{
 		Compiler: compiler,
-		Store: store,
-		Trace: trace,
+		Store:    store,
+		Trace:    trace,
 	}
 }
 
