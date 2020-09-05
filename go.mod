@@ -25,7 +25,7 @@ require (
 	github.com/opencontainers/image-spec v1.0.1
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.7.0
-	github.com/zclconf/go-cty v1.2.0
+	github.com/zclconf/go-cty v1.6.1
 	gopkg.in/ini.v1 v1.52.0 // indirect
 	olympos.io/encoding/edn v0.0.0-20191103180435-78e1aef28b15
 )
