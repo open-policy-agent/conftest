@@ -1,4 +1,4 @@
-package commands
+package runner
 
 import (
 	"context"
@@ -12,62 +12,6 @@ import (
 	"github.com/open-policy-agent/conftest/policy"
 	"github.com/open-policy-agent/opa/storage/inmem"
 )
-
-func TestWarnQuery(t *testing.T) {
-	tests := []struct {
-		in  string
-		exp bool
-	}{
-		{"", false},
-		{"warn", true},
-		{"warnXYZ", false},
-		{"warn_", false},
-		{"warn_x", true},
-		{"warn_1", true},
-		{"warn_x_y_z", true},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.in, func(t *testing.T) {
-			res := warnQ.MatchString(tt.in)
-
-			if tt.exp != res {
-				t.Errorf("%s recognized as `warn` query - expected: %v actual: %v", tt.in, tt.exp, res)
-			}
-		})
-	}
-}
-
-func TestFailQuery(t *testing.T) {
-	tests := []struct {
-		in  string
-		exp bool
-	}{
-		{"", false},
-		{"deny", true},
-		{"violation", true},
-		{"denyXYZ", false},
-		{"violationXYZ", false},
-		{"deny_", false},
-		{"violation_", false},
-		{"deny_x", true},
-		{"violation_x", true},
-		{"deny_1", true},
-		{"violation_1", true},
-		{"deny_x_y_z", true},
-		{"violation_x_y_z", true},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.in, func(t *testing.T) {
-			res := denyQ.MatchString(tt.in)
-
-			if tt.exp != res {
-				t.Fatalf("%s recognized as `fail` query - expected: %v actual: %v", tt.in, tt.exp, res)
-			}
-		})
-	}
-}
 
 func TestException(t *testing.T) {
 	ctx := context.Background()
@@ -112,9 +56,13 @@ spec:
 		t.Fatalf("could not build rego compiler: %s", err)
 	}
 
-	testRun := TestRun{
+	engine := &policy.Engine{
 		Compiler: compiler,
 		Store:    inmem.New(),
+	}
+
+	testRun := TestRunner{
+		engine: engine,
 	}
 
 	defaultNamespace := []string{"main"}
@@ -169,9 +117,13 @@ metadata:
 		t.Fatalf("could not build rego compiler: %s", err)
 	}
 
-	testRun := TestRun{
+	engine := &policy.Engine{
 		Compiler: compiler,
 		Store:    inmem.New(),
+	}
+
+	testRun := TestRunner{
+		engine: engine,
 	}
 
 	defaultNamespace := []string{"main"}
@@ -220,9 +172,13 @@ ENTRYPOINT ["java","-cp","app:app/lib/*","hello.Application"]`
 		t.Fatalf("could not build rego compiler: %s", err)
 	}
 
-	testRun := TestRun{
+	engine := &policy.Engine{
 		Compiler: compiler,
 		Store:    inmem.New(),
+	}
+
+	testRun := TestRunner{
+		engine: engine,
 	}
 
 	defaultNamespace := []string{"main"}
@@ -241,6 +197,63 @@ ENTRYPOINT ["java","-cp","app:app/lib/*","hello.Application"]`
 	actualSuccesses := len(results.Successes)
 	if actualSuccesses != expectedSuccesses {
 		t.Errorf("Dockerfile test failure. Got %v successes, expected %v", actualSuccesses, expectedSuccesses)
+	}
+}
+
+
+func TestWarnQuery(t *testing.T) {
+	tests := []struct {
+		in  string
+		exp bool
+	}{
+		{"", false},
+		{"warn", true},
+		{"warnXYZ", false},
+		{"warn_", false},
+		{"warn_x", true},
+		{"warn_1", true},
+		{"warn_x_y_z", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.in, func(t *testing.T) {
+			res := warnQ.MatchString(tt.in)
+
+			if tt.exp != res {
+				t.Errorf("%s recognized as `warn` query - expected: %v actual: %v", tt.in, tt.exp, res)
+			}
+		})
+	}
+}
+
+func TestFailQuery(t *testing.T) {
+	tests := []struct {
+		in  string
+		exp bool
+	}{
+		{"", false},
+		{"deny", true},
+		{"violation", true},
+		{"denyXYZ", false},
+		{"violationXYZ", false},
+		{"deny_", false},
+		{"violation_", false},
+		{"deny_x", true},
+		{"violation_x", true},
+		{"deny_1", true},
+		{"violation_1", true},
+		{"deny_x_y_z", true},
+		{"violation_x_y_z", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.in, func(t *testing.T) {
+			res := denyQ.MatchString(tt.in)
+
+			if tt.exp != res {
+				t.Fatalf("%s recognized as `fail` query - expected: %v actual: %v", tt.in, tt.exp, res)
+			}
+		})
 	}
 }
 
