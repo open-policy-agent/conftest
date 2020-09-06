@@ -14,7 +14,7 @@ require (
 	github.com/go-ini/ini v1.61.0
 	github.com/golang/mock v1.3.1
 	github.com/google/go-jsonnet v0.16.0
-	github.com/hashicorp/go-getter v1.4.0
+	github.com/hashicorp/go-getter v1.4.1
 	github.com/hashicorp/hcl v1.0.0
 	github.com/hashicorp/hcl/v2 v2.6.0
 	github.com/jstemmer/go-junit-report v0.0.0-20190106144839-af01ea7f8024
