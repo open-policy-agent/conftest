@@ -22,7 +22,7 @@ type VerifyRunner struct {
 // Run executes the Rego tests at the given PolicyPath(s)
 func (r *VerifyRunner) Run(ctx context.Context) ([]output.CheckResult, error) {
 	loader := &policy.Loader{
-		DataPaths: r.Data,
+		DataPaths:   r.Data,
 		PolicyPaths: r.Policy,
 	}
 
@@ -46,6 +46,10 @@ func (r *VerifyRunner) Run(ctx context.Context) ([]output.CheckResult, error) {
 
 	var results []output.CheckResult
 	for result := range ch {
+		if result.Error != nil {
+			return nil, fmt.Errorf("run test: %w", result.Error)
+		}
+
 		msg := fmt.Errorf("%s", result.Package+"."+result.Name)
 
 		var failure []output.Result
