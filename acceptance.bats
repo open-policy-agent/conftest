@@ -203,7 +203,7 @@
 }
 
 @test "Can combine configs and reference by file" {
-  run ./conftest test -p examples/hcl1/policy/gke_combine.rego examples/hcl1/gke.tf --combine -i hcl1
+  run ./conftest test -p examples/hcl1/policy/gke_combine.rego examples/hcl1/gke.tf --combine -i hcl1 --all-namespaces
   [ "$status" -eq 0 ]
 }
 

@@ -193,9 +193,9 @@ type jsonResult struct {
 
 type jsonCheckResult struct {
 	Filename  string       `json:"filename"`
+	Successes int          `json:"successes"`
 	Warnings  []jsonResult `json:"warnings"`
 	Failures  []jsonResult `json:"failures"`
-	Successes []jsonResult `json:"successes"`
 }
 
 // JSONOutputManager formats its output to JSON
@@ -233,9 +233,9 @@ func (j *JSONOutputManager) Put(cr CheckResult) error {
 
 	result := jsonCheckResult{
 		Filename:  cr.FileName,
+		Successes: 0,
 		Warnings:  []jsonResult{},
 		Failures:  []jsonResult{},
-		Successes: []jsonResult{},
 	}
 
 	for _, warning := range cr.Warnings {
@@ -254,14 +254,7 @@ func (j *JSONOutputManager) Put(cr CheckResult) error {
 		})
 	}
 
-	for _, successes := range cr.Successes {
-		result.Successes = append(result.Successes, jsonResult{
-			Message:  successes.Message,
-			Metadata: successes.Metadata,
-			Traces:   errsToStrings(successes.Traces),
-		})
-	}
-
+	result.Successes = len(cr.Successes)
 	j.data = append(j.data, result)
 
 	return nil

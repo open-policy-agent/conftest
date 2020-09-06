@@ -2,9 +2,6 @@ package runner
 
 import (
 	"context"
-	"io/ioutil"
-	"os"
-	"reflect"
 	"testing"
 
 	"github.com/open-policy-agent/conftest/parser/docker"
@@ -138,7 +135,7 @@ metadata:
 		t.Errorf("Multifile yaml test failure. Got %v failures, expected %v", actualFailures, expectedFailures)
 	}
 
-	const expectedSuccesses = 1
+	const expectedSuccesses = 2
 	actualSuccesses := len(results.Successes)
 	if actualSuccesses != expectedSuccesses {
 		t.Errorf("Multifile yaml test failure. Got %v success, expected %v", actualSuccesses, expectedSuccesses)
@@ -200,7 +197,6 @@ ENTRYPOINT ["java","-cp","app:app/lib/*","hello.Application"]`
 	}
 }
 
-
 func TestWarnQuery(t *testing.T) {
 	tests := []struct {
 		in  string
@@ -252,51 +248,6 @@ func TestFailQuery(t *testing.T) {
 
 			if tt.exp != res {
 				t.Fatalf("%s recognized as `fail` query - expected: %v actual: %v", tt.in, tt.exp, res)
-			}
-		})
-	}
-}
-
-func TestGetFilesFromDirectory(t *testing.T) {
-	os.Mkdir("test/", 0700)
-	defer os.RemoveAll("test/")
-
-	createDummyFile := func(name string) {
-		d := []byte("")
-		if err := ioutil.WriteFile(name, d, 0644); err != nil {
-			t.Fatalf("cannot write to file :%v", err)
-		}
-	}
-
-	if err := os.MkdirAll("test/parent/child", 0755); err != nil {
-		t.Fatalf("cannot create testing directory structure: %v", err)
-	}
-
-	createDummyFile("test/file1.tf")
-	createDummyFile("test/file2.tf")
-	createDummyFile("test/parent/file1.tf")
-	createDummyFile("test/parent/file1.yaml")
-	createDummyFile("test/parent/child/test.tf")
-
-	tests := []struct {
-		regex string
-		exp   []string
-	}{
-		{".*.yaml", []string{"test/file1.tf", "test/file2.tf", "test/parent/child/test.tf", "test/parent/file1.tf"}},
-		{".*.tf", []string{"test/parent/file1.yaml"}},
-		{"child/", []string{"test/file1.tf", "test/file2.tf", "test/parent/file1.tf", "test/parent/file1.yaml"}},
-		{"parent/", []string{"test/file1.tf", "test/file2.tf"}},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.regex, func(t *testing.T) {
-			result, err := getFilesFromDirectory("test/", tt.regex)
-			if err != nil {
-				t.Fatalf("getFilesFromDirectory returns err, expected nil")
-			}
-
-			if !reflect.DeepEqual(tt.exp, result) {
-				t.Fatalf("expected: %v, got: %v", tt.exp, result)
 			}
 		})
 	}
