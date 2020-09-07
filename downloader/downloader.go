@@ -2,6 +2,7 @@ package downloader
 
 import (
 	"context"
+	"fmt"
 
 	getter "github.com/hashicorp/go-getter"
 )
@@ -27,7 +28,7 @@ var getters = map[string]getter.Getter{
 	"https": new(getter.HttpGetter),
 }
 
-// Download downloads the given policies into the given destination
+// Download downloads the given policies into the given destination.
 func Download(ctx context.Context, dst string, urls []string) error {
 	opts := []getter.ClientOption{}
 	for _, url := range urls {
@@ -43,7 +44,7 @@ func Download(ctx context.Context, dst string, urls []string) error {
 		}
 
 		if err := client.Get(); err != nil {
-			return err
+			return fmt.Errorf("client get: %w", err)
 		}
 	}
 
@@ -55,8 +56,8 @@ func Download(ctx context.Context, dst string, urls []string) error {
 func Detect(url string, dst string) (string, error) {
 	result, err := getter.Detect(url, dst, detectors)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("detect: %w", err)
 	}
 
-	return result, err
+	return result, nil
 }

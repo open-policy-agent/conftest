@@ -4,14 +4,16 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/open-policy-agent/conftest/downloader"
+
 	"github.com/open-policy-agent/opa/storage"
 )
 
 // Loader handles the retrieval of all rego policies and related data.
 type Loader struct {
 	PolicyPaths []string
-	DataPaths []string
-	URLs []string
+	DataPaths   []string
+	URLs        []string
 
 	test bool
 }
@@ -26,17 +28,17 @@ func (l *Loader) SetTestLoad(test bool) *Loader {
 // first it checks for any remote sources of policies and downloads
 // the policies into the given policy paths.
 // After retrieving the policies from the remote sources, all .rego, .json and .yaml
-// files are recursively retrieved from disk and loaded into 
+// files are recursively retrieved from disk and loaded into
 // a rego Compiler and Store respectively.
 func (l *Loader) Load(ctx context.Context) ([]string, storage.Store, error) {
 	// Downloaded policies are put into the first policy directory specified
 	for _, url := range l.URLs {
-		sourcedURL, err := Detect(url, l.PolicyPaths[0])
+		sourcedURL, err := downloader.Detect(url, l.PolicyPaths[0])
 		if err != nil {
 			return nil, nil, fmt.Errorf("detect policies: %w", err)
 		}
 
-		if err := Download(ctx, l.PolicyPaths[0], []string{sourcedURL}); err != nil {
+		if err := downloader.Download(ctx, l.PolicyPaths[0], []string{sourcedURL}); err != nil {
 			return nil, nil, fmt.Errorf("update policies: %w", err)
 		}
 	}

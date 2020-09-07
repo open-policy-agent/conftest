@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/open-policy-agent/conftest/policy"
+	"github.com/open-policy-agent/conftest/downloader"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -54,7 +55,7 @@ func NewPullCommand(ctx context.Context) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			policyDir := filepath.Join(".", viper.GetString("policy"))
 
-			if err := policy.Download(ctx, policyDir, args); err != nil {
+			if err := downloader.Download(ctx, policyDir, args); err != nil {
 				return fmt.Errorf("download policies: %w", err)
 			}
 
