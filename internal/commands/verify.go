@@ -80,14 +80,9 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("running verification: %w", err)
 			}
 
-			var failures int
 			for _, result := range results {
 				if err := outputManager.Put(result); err != nil {
 					return fmt.Errorf("put result: %w", err)
-				}
-
-				if output.IsResultFailure(result, viper.GetBool("fail-on-warn")) {
-					failures++
 				}
 			}
 
@@ -95,8 +90,9 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("flushing output: %w", err)
 			}
 
-			if failures > 0 {
-				os.Exit(1)
+			exitCode := output.GetExitCode(results, viper.GetBool("fail-on-warn"))
+			if exitCode > 0 {
+				os.Exit(exitCode)
 			}
 
 			return nil

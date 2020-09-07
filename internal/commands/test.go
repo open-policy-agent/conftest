@@ -110,12 +110,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("running test: %w", err)
 			}
 
-			var failureFound bool
 			for _, result := range results {
-				if output.IsResultFailure(result, viper.GetBool(("fail-on-warn"))) {
-					failureFound = true
-				}
-
 				if err := out.Put(result); err != nil {
 					return fmt.Errorf("writing error: %w", err)
 				}
@@ -125,8 +120,9 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("flushing output: %w", err)
 			}
 
-			if failureFound {
-				os.Exit(1)
+			exitCode := output.GetExitCode(results, viper.GetBool("fail-on-warn"))
+			if exitCode > 0 {
+				os.Exit(exitCode)
 			}
 
 			return nil
@@ -147,4 +143,3 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 
 	return &cmd
 }
-

@@ -33,6 +33,32 @@ func NewResult(message string, traces []error) Result {
 	return result
 }
 
-func IsResultFailure(result CheckResult, failOnWarn bool) bool {
-	return len(result.Failures) > 0 || (len(result.Warnings) > 0 && failOnWarn)
+// GetExitCode returns the exit code that should be returned
+// given all of the returned results.
+func GetExitCode(results []CheckResult, failOnWarn bool) int {
+	var hasFailure bool
+	var hasWarning bool
+	for _, result := range results {
+		if len(result.Failures) > 0 {
+			hasFailure = true
+		}
+
+		if len(result.Warnings) > 0 {
+			hasWarning = true
+		}
+	}
+
+	if failOnWarn && hasFailure {
+		return 2
+	}
+
+	if failOnWarn && hasWarning {
+		return 1
+	}
+
+	if hasFailure {
+		return 1
+	}
+
+	return 0
 }
