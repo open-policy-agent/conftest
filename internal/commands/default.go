@@ -21,9 +21,10 @@ var (
 // NewDefaultCommand creates the default command
 func NewDefaultCommand() *cobra.Command {
 	cmd := cobra.Command{
-		Use:     "conftest <subcommand>",
-		Short:   "Test your configuration files using Open Policy Agent",
-		Version: fmt.Sprintf("Version: %s\nCommit: %s\nDate: %s\n", version, commit, date),
+		Use:          "conftest <subcommand>",
+		Short:        "Test your configuration files using Open Policy Agent",
+		Version:      fmt.Sprintf("Version: %s\nCommit: %s\nDate: %s\n", version, commit, date),
+		SilenceUsage: true,
 	}
 
 	cmd.SetVersionTemplate(`{{.Version}}`)
