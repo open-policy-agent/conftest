@@ -6,16 +6,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const pluginDesc = `
-	This command manages conftest plugins
-`
-
 // NewPluginCommand creates a new plugin command
 func NewPluginCommand(ctx context.Context) *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "plugin",
 		Short: "manage conftest plugins",
-		Long:  pluginDesc,
+		Long:  "This command manages conftest plugins",
 	}
 
 	cmd.AddCommand(NewPluginInstallCommand(ctx))

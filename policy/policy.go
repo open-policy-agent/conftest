@@ -1,25 +1,11 @@
 package policy
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/open-policy-agent/conftest/downloader"
 )
-
-// Download downloads the given policies into the given destination
-func Download(ctx context.Context, dst string, urls []string) error {
-	return downloader.Download(ctx, dst, urls)
-}
-
-// Detect determines whether a url is a known source url from which we can download files.
-// If a known source is found, the url is formatted, otherwise an error is returned.
-func Detect(url string, dst string) (string, error) {
-	return downloader.Detect(url, dst)
-}
 
 var (
 	nonTestRegoFiles = func(name string) bool {
