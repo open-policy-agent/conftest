@@ -3,7 +3,6 @@ package commands
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -108,7 +107,7 @@ func pushBundle(ctx context.Context, repository string, path string) (*ocispec.D
 	}
 
 	memoryStore := content.NewMemoryStore()
-	layers, err := buildLayers(memoryStore, path)
+	layers, err := buildLayers(ctx, memoryStore, path)
 	if err != nil {
 		return nil, fmt.Errorf("building layers: %w", err)
 	}
@@ -129,28 +128,28 @@ func pushBundle(ctx context.Context, repository string, path string) (*ocispec.D
 	return &manifest, nil
 }
 
-func buildLayers(memoryStore *content.Memorystore, path string) ([]ocispec.Descriptor, error) {
+func buildLayers(ctx context.Context, memoryStore *content.Memorystore, path string) ([]ocispec.Descriptor, error) {
 	root, err := filepath.Abs(path)
 	if err != nil {
 		return nil, fmt.Errorf("get abs path: %w", err)
 	}
 
-	policies, err := policy.ReadFilesWithTests(root)
-	if err != nil {
-		return nil, fmt.Errorf("load policy paths: %w", err)
+	loader := policy.Loader{
+		PolicyPaths: []string{root},
+		DataPaths:   []string{root},
 	}
 
-	data, err := policy.ReadDataFiles(root)
+	engine, err := loader.Load(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("load data paths: %w", err)
+		return nil, fmt.Errorf("load: %w", err)
 	}
 
-	policyLayers, err := buildLayer(policies, root, memoryStore, openPolicyAgentPolicyLayerMediaType)
+	policyLayers, err := buildLayer(engine.Policies(), root, memoryStore, openPolicyAgentPolicyLayerMediaType)
 	if err != nil {
 		return nil, fmt.Errorf("build policy layer: %w", err)
 	}
 
-	dataLayers, err := buildLayer(data, root, memoryStore, openPolicyAgentDataLayerMediaType)
+	dataLayers, err := buildLayer(engine.Documents(), root, memoryStore, openPolicyAgentDataLayerMediaType)
 	if err != nil {
 		return nil, fmt.Errorf("build data layer: %w", err)
 	}
@@ -159,24 +158,19 @@ func buildLayers(memoryStore *content.Memorystore, path string) ([]ocispec.Descr
 	return layers, nil
 }
 
-func buildLayer(paths []string, root string, memoryStore *content.Memorystore, mediaType string) ([]ocispec.Descriptor, error) {
+func buildLayer(files map[string]string, root string, memoryStore *content.Memorystore, mediaType string) ([]ocispec.Descriptor, error) {
 	var layer ocispec.Descriptor
 	var layers []ocispec.Descriptor
 
-	for _, file := range paths {
-		contents, err := ioutil.ReadFile(file)
-		if err != nil {
-			return nil, fmt.Errorf("read file: %w", err)
-		}
-
-		relative, err := filepath.Rel(root, file)
+	for path, contents := range files {
+		relative, err := filepath.Rel(root, path)
 		if err != nil {
 			return nil, fmt.Errorf("get relative filepath: %w", err)
 		}
 
 		path := filepath.ToSlash(relative)
 
-		layer = memoryStore.Add(path, mediaType, contents)
+		layer = memoryStore.Add(path, mediaType, []byte(contents))
 		layers = append(layers, layer)
 	}
 

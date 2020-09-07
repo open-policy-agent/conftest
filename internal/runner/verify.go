@@ -26,19 +26,12 @@ func (r *VerifyRunner) Run(ctx context.Context) ([]output.CheckResult, error) {
 		PolicyPaths: r.Policy,
 	}
 
-	loader.SetTestLoad(true)
-	regoFiles, store, err := loader.Load(ctx)
+	engine, err := loader.Load(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("load failed: %w", err)
+		return nil, fmt.Errorf("load: %w", err)
 	}
 
-	compiler, err := policy.BuildCompiler(regoFiles)
-	if err != nil {
-		return nil, fmt.Errorf("build compiler: %w", err)
-	}
-
-	runtime := policy.RuntimeTerm()
-	runner := tester.NewRunner().SetCompiler(compiler).SetStore(store).SetModules(compiler.Modules).EnableTracing(r.Trace).SetRuntime(runtime)
+	runner := tester.NewRunner().SetCompiler(engine.Compiler()).SetStore(engine.Store()).SetModules(engine.Modules()).EnableTracing(r.Trace).SetRuntime(engine.Runtime())
 	ch, err := runner.RunTests(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("running tests: %w", err)

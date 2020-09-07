@@ -7,7 +7,6 @@ import (
 	"github.com/open-policy-agent/conftest/parser/docker"
 	"github.com/open-policy-agent/conftest/parser/yaml"
 	"github.com/open-policy-agent/conftest/policy"
-	"github.com/open-policy-agent/opa/storage/inmem"
 )
 
 func TestException(t *testing.T) {
@@ -48,14 +47,13 @@ spec:
 	}
 
 	regoFiles := []string{"../../examples/exceptions/policy/policy.rego", "../../examples/exceptions/policy/exception.rego"}
-	compiler, err := policy.BuildCompiler(regoFiles)
-	if err != nil {
-		t.Fatalf("could not build rego compiler: %s", err)
+	loader := policy.Loader{
+		PolicyPaths: regoFiles,
 	}
 
-	engine := &policy.Engine{
-		Compiler: compiler,
-		Store:    inmem.New(),
+	engine, err := loader.Load(ctx)
+	if err != nil {
+		t.Fatalf("loading policies: %v", err)
 	}
 
 	testRun := TestRunner{
@@ -109,14 +107,13 @@ metadata:
 	}
 
 	regoFiles := []string{"../../examples/kubernetes/policy/kubernetes.rego", "../../examples/kubernetes/policy/deny.rego"}
-	compiler, err := policy.BuildCompiler(regoFiles)
-	if err != nil {
-		t.Fatalf("could not build rego compiler: %s", err)
+	loader := policy.Loader{
+		PolicyPaths: regoFiles,
 	}
 
-	engine := &policy.Engine{
-		Compiler: compiler,
-		Store:    inmem.New(),
+	engine, err := loader.Load(ctx)
+	if err != nil {
+		t.Fatalf("loading policies: %v", err)
 	}
 
 	testRun := TestRunner{
@@ -164,14 +161,13 @@ ENTRYPOINT ["java","-cp","app:app/lib/*","hello.Application"]`
 	}
 
 	regoFiles := []string{"../../examples/docker/policy/base.rego"}
-	compiler, err := policy.BuildCompiler(regoFiles)
-	if err != nil {
-		t.Fatalf("could not build rego compiler: %s", err)
+	loader := policy.Loader{
+		PolicyPaths: regoFiles,
 	}
 
-	engine := &policy.Engine{
-		Compiler: compiler,
-		Store:    inmem.New(),
+	engine, err := loader.Load(ctx)
+	if err != nil {
+		t.Fatalf("loading policies: %v", err)
 	}
 
 	testRun := TestRunner{

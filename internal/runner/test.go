@@ -46,35 +46,21 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) ([]output.Check
 		return nil, fmt.Errorf("get configurations: %w", err)
 	}
 
-	loader := &policy.Loader{
+	loader := policy.Loader{
 		DataPaths:   t.Data,
 		PolicyPaths: t.Policy,
 		URLs:        t.Update,
+		Tracing:     t.Trace,
 	}
-
-	regoFiles, store, err := loader.Load(ctx)
+	engine, err := loader.Load(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("load failed: %w", err)
-	}
-
-	compiler, err := policy.BuildCompiler(regoFiles)
-	if err != nil {
-		return nil, fmt.Errorf("build compiler: %w", err)
-	}
-
-	engine := &policy.Engine{
-		Compiler: compiler,
-		Store:    store,
-		Trace:    t.Trace,
+		return nil, fmt.Errorf("load: %w", err)
 	}
 	t.engine = engine
 
 	namespaces := t.Namespace
 	if t.AllNamespaces {
-		namespaces, err = policy.GetNamespaces(regoFiles, compiler)
-		if err != nil {
-			return nil, fmt.Errorf("get namespaces: %w", err)
-		}
+		namespaces = engine.Namespaces()
 	}
 
 	var results []output.CheckResult
@@ -214,7 +200,7 @@ func (t *TestRunner) GetResult(ctx context.Context, namespaces []string, input i
 func (t *TestRunner) runRules(ctx context.Context, namespace string, input interface{}, ruleRegex *regexp.Regexp) ([]output.Result, []output.Result, []output.Result, error) {
 	var rules []string
 	var numberOfRules int
-	for _, module := range t.engine.Compiler.Modules {
+	for _, module := range t.engine.Modules() {
 		currentNamespace := strings.Replace(module.Package.Path.String(), "data.", "", 1)
 		if currentNamespace != namespace {
 			continue
