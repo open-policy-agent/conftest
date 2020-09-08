@@ -40,8 +40,7 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) ([]output.Check
 		return nil, fmt.Errorf("parse files: %w", err)
 	}
 
-	configManager := parser.ConfigManager{}
-	configurations, err := configManager.GetConfigurations(ctx, t.Input, files)
+	configurations, err := parser.GetConfigurations(ctx, t.Input, files)
 	if err != nil {
 		return nil, fmt.Errorf("get configurations: %w", err)
 	}

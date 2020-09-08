@@ -1,10 +1,11 @@
 package commands
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 
-	"github.com/open-policy-agent/conftest/internal/runner"
 	"github.com/open-policy-agent/conftest/parser"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -41,13 +42,8 @@ func NewParseCommand(ctx context.Context) *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, fileList []string) error {
-			params := &runner.ParseParams{}
-			viper.Unmarshal(params)
-			runner := runner.ParseRunner{
-				Params:        params,
-				ConfigManager: &parser.ConfigManager{},
-			}
-			out, err := runner.Run(ctx, fileList)
+			input := viper.GetString("input")
+			out, err := parseConfigurations(ctx, input, fileList)
 			if err != nil {
 				return fmt.Errorf("failed during parser process: %w", err)
 			}
@@ -60,4 +56,57 @@ func NewParseCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().BoolP("combine", "", false, "combine all given config files to be evaluated together")
 	cmd.Flags().StringP("input", "i", "", fmt.Sprintf("input type for given source, especially useful when using conftest with stdin, valid options are: %s", parser.ValidInputs()))
 	return &cmd
+}
+
+func parseConfigurations(ctx context.Context, input string, fileList []string) (string, error) {
+	configurations, err := parser.GetConfigurations(ctx, input, fileList)
+	if err != nil {
+		return "", fmt.Errorf("calling the parser method: %w", err)
+	}
+
+	var output string
+	if viper.GetBool("combine") {
+		output, err = marshal(configurations)
+	} else {
+		output, err = marshalMultiple(configurations)
+	}
+	if err != nil {
+		return "", fmt.Errorf("marshal configs: %w", err)
+	}
+
+	return output, nil
+}
+
+func marshalMultiple(configurations map[string]interface{}) (string, error) {
+	output := "\n"
+	for file, config := range configurations {
+		output += file + "\n"
+
+		current, err := marshal(config)
+		if err != nil {
+			return "", fmt.Errorf("marshal output to json: %w", err)
+		}
+
+		output += current
+	}
+
+	return output, nil
+}
+
+func marshal(in interface{}) (string, error) {
+	out, err := json.Marshal(in)
+	if err != nil {
+		return "", fmt.Errorf("marshal output to json: %w", err)
+	}
+
+	var prettyJSON bytes.Buffer
+	if err = json.Indent(&prettyJSON, out, "", "\t"); err != nil {
+		return "", fmt.Errorf("indentation: %w", err)
+	}
+
+	if _, err := prettyJSON.WriteString("\n"); err != nil {
+		return "", fmt.Errorf("adding line break: %w", err)
+	}
+
+	return prettyJSON.String(), nil
 }

@@ -37,8 +37,7 @@ func TestGetConfigurations(t *testing.T) {
 	for _, testUnit := range testTabel {
 		t.Run(testUnit.name, func(t *testing.T) {
 			ctx := context.Background()
-			c := ConfigManager{}
-			_, err := c.GetConfigurations(ctx, "", testUnit.fileList)
+			_, err := GetConfigurations(ctx, "", testUnit.fileList)
 			if err != nil {
 				t.Fatalf("error while getting configurations: %v", err)
 			}
@@ -60,8 +59,7 @@ func TestGetFileType(t *testing.T) {
 
 	for _, testUnit := range testTable {
 		t.Run(testUnit.name, func(t *testing.T) {
-			c := ConfigManager{}
-			fileType := c.getFileType(testUnit.fileName, testUnit.inputFileType)
+			fileType := getFileType(testUnit.fileName, testUnit.inputFileType)
 			if fileType != testUnit.expectedFileType {
 				t.Fatalf("got wrong filetype got:%s want:%s", fileType, testUnit.expectedFileType)
 			}
@@ -218,8 +216,7 @@ nice: true`)),
 			for _, test := range testTable {
 				t.Run(test.name, func(t *testing.T) {
 					var unmarshalledConfigs map[string]interface{}
-					c := ConfigManager{}
-					unmarshalledConfigs, err := c.bulkUnmarshal(test.controlReaders)
+					unmarshalledConfigs, err := bulkUnmarshal(test.controlReaders)
 					if err != nil {
 						t.Errorf("errors unmarshalling: %v", err)
 					}

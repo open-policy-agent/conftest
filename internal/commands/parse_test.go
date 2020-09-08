@@ -1,15 +1,12 @@
-package runner
+package commands
 
 import (
 	"strings"
 	"testing"
 )
 
-func TestParse_ByDefault_AddsIndentationAndNewline(t *testing.T) {
-	params := &ParseParams{Input: "", Combine: false}
-	runner := ParseRunner{Params: params, ConfigManager: nil}
+func TestMarshal_ByDefault_AddsIndentationAndNewline(t *testing.T) {
 	configurations := make(map[string]interface{})
-
 	config := struct {
 		Property string
 	}{
@@ -19,7 +16,7 @@ func TestParse_ByDefault_AddsIndentationAndNewline(t *testing.T) {
 	const expectedFileName = "file.json"
 	configurations[expectedFileName] = config
 
-	actual, err := runner.parseConfigurations(configurations)
+	actual, err := marshalMultiple(configurations)
 	if err != nil {
 		t.Fatalf("parsing configs: %s", err)
 	}
@@ -40,10 +37,7 @@ func TestParse_ByDefault_AddsIndentationAndNewline(t *testing.T) {
 }
 
 func TestParse_MultiFileCombineFlag(t *testing.T) {
-	params := &ParseParams{Input: "", Combine: true}
-	runner := ParseRunner{Params: params, ConfigManager: nil}
 	configurations := make(map[string]interface{})
-
 	config := struct {
 		Sut string
 	}{
@@ -59,7 +53,7 @@ func TestParse_MultiFileCombineFlag(t *testing.T) {
 	configurations["file1.json"] = config
 	configurations["file2.json"] = config2
 
-	actual, err := runner.parseConfigurations(configurations)
+	actual, err := marshal(configurations)
 	if err != nil {
 		t.Fatalf("parsing configs: %s", err)
 	}
