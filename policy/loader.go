@@ -18,10 +18,10 @@ type Loader struct {
 }
 
 // Load returns an Engine after loading all of the specified policies and data paths.
-// If URLs are specified, Load will first download all of the policies at the spcified URLs.
+// If URLs are specified, Load will first download all of the policies at the specified URLs.
 func (l *Loader) Load(ctx context.Context) (*Engine, error) {
 
-	// Downloaded policies are put into the first policy directory specified
+	// Downloaded policies are put into the first policy directory specified.
 	for _, url := range l.URLs {
 		sourcedURL, err := downloader.Detect(url, l.PolicyPaths[0])
 		if err != nil {

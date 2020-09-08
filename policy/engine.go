@@ -97,22 +97,9 @@ func (e *Engine) Runtime() *ast.Term {
 
 // Query the policy engine with the given query and given input.
 func (e *Engine) Query(ctx context.Context, query string, input interface{}) ([]output.Result, []output.Result, error) {
-	var regoObj *rego.Rego
-	var regoFunc []func(r *rego.Rego)
 	stdout := topdown.NewBufferTracer()
-
-	regoFunc = append(regoFunc, rego.Query(query), rego.Compiler(e.Compiler()), rego.Input(input), rego.Store(e.Store()), rego.Runtime(e.Runtime()))
-	if e.tracing {
-		regoFunc = append(regoFunc, rego.Tracer(stdout))
-	}
-
-	regoObj = rego.New(regoFunc...)
-	resultSet, err := regoObj.Eval(ctx)
-	if err != nil {
-		return nil, nil, fmt.Errorf("evaluating policy: %w", err)
-	}
-
 	buf := new(bytes.Buffer)
+
 	topdown.PrettyTrace(buf, *stdout)
 	var traces []error
 	for _, line := range strings.Split(buf.String(), "\n") {
@@ -121,15 +108,19 @@ func (e *Engine) Query(ctx context.Context, query string, input interface{}) ([]
 		}
 	}
 
-	hasResults := func(expression interface{}) bool {
-		if v, ok := expression.([]interface{}); ok {
-			return len(v) > 0
-		}
-
-		return false
+	var regoFunc []func(r *rego.Rego)
+	regoFunc = append(regoFunc, rego.Query(query), rego.Compiler(e.Compiler()), rego.Input(input), rego.Store(e.Store()), rego.Runtime(e.Runtime()))
+	if e.tracing {
+		regoFunc = append(regoFunc, rego.Tracer(stdout))
 	}
 
-	var errs []output.Result
+	regoObj := rego.New(regoFunc...)
+	resultSet, err := regoObj.Eval(ctx)
+	if err != nil {
+		return nil, nil, fmt.Errorf("evaluating policy: %w", err)
+	}
+
+	var failures []output.Result
 	var successes []output.Result
 	for _, result := range resultSet {
 		for _, expression := range result.Expressions {
@@ -141,29 +132,46 @@ func (e *Engine) Query(ctx context.Context, query string, input interface{}) ([]
 			for _, v := range expression.Value.([]interface{}) {
 				switch val := v.(type) {
 				case string:
-					errs = append(errs, output.NewResult(val, traces))
+					failures = append(failures, output.NewResult(val, traces))
 				case map[string]interface{}:
-					if _, ok := val["msg"]; !ok {
-						return nil, nil, fmt.Errorf("rule missing msg field: %v", val)
-					}
-					if _, ok := val["msg"].(string); !ok {
-						return nil, nil, fmt.Errorf("msg field must be string: %v", val)
+					failure, err := getResult(val, traces)
+					if err != nil {
+						return nil, nil, fmt.Errorf("get result: %w", err)
 					}
 
-					result := output.NewResult(val["msg"].(string), traces)
-					for k, v := range val {
-						if k != "msg" {
-							result.Metadata[k] = v
-						}
-
-					}
-					errs = append(errs, result)
+					failures = append(failures, failure)
 				}
 			}
 		}
 	}
 
-	return errs, successes, nil
+	return failures, successes, nil
+}
+
+func getResult(val map[string]interface{}, traces []error) (output.Result, error) {
+	if _, ok := val["msg"]; !ok {
+		return output.Result{}, fmt.Errorf("rule missing msg field: %v", val)
+	}
+	if _, ok := val["msg"].(string); !ok {
+		return output.Result{}, fmt.Errorf("msg field must be string: %v", val)
+	}
+
+	result := output.NewResult(val["msg"].(string), traces)
+	for k, v := range val {
+		if k != "msg" {
+			result.Metadata[k] = v
+		}
+	}
+
+	return result, nil
+}
+
+func hasResults(expression interface{}) bool {
+	if v, ok := expression.([]interface{}); ok {
+		return len(v) > 0
+	}
+
+	return false
 }
 
 func contains(collection []string, item string) bool {

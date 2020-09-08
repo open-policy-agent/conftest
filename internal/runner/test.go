@@ -87,7 +87,7 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) ([]output.Check
 	return results, nil
 }
 
-func parseFileList(fileList []string, exceptions string) ([]string, error) {
+func parseFileList(fileList []string, ignoreRegex string) ([]string, error) {
 	var files []string
 	for _, file := range fileList {
 		if file == "" {
@@ -105,7 +105,7 @@ func parseFileList(fileList []string, exceptions string) ([]string, error) {
 		}
 
 		if fileInfo.IsDir() {
-			directoryFiles, err := getFilesFromDirectory(file, exceptions)
+			directoryFiles, err := getFilesFromDirectory(file, ignoreRegex)
 			if err != nil {
 				return nil, fmt.Errorf("get files from directory: %w", err)
 			}
@@ -123,19 +123,19 @@ func parseFileList(fileList []string, exceptions string) ([]string, error) {
 	return files, nil
 }
 
-func getFilesFromDirectory(directory string, exceptions string) ([]string, error) {
-	var files []string
-	regexp, err := regexp.Compile(exceptions)
+func getFilesFromDirectory(directory string, ignoreRegex string) ([]string, error) {
+	regexp, err := regexp.Compile(ignoreRegex)
 	if err != nil {
 		return nil, fmt.Errorf("given regexp couldn't be parsed :%w", err)
 	}
 
+	var files []string
 	walk := func(currentPath string, info os.FileInfo, err error) error {
 		if err != nil {
 			return fmt.Errorf("walk path: %w", err)
 		}
 
-		if exceptions != "" && regexp.MatchString(currentPath) {
+		if ignoreRegex != "" && regexp.MatchString(currentPath) {
 			return nil
 		}
 
@@ -160,7 +160,7 @@ func getFilesFromDirectory(directory string, exceptions string) ([]string, error
 	return files, nil
 }
 
-// GetResult returns the result of testing the structured data against their policies
+// GetResult returns the result of testing the structured data against their policies.
 func (t *TestRunner) GetResult(ctx context.Context, namespaces []string, input interface{}) (output.CheckResult, error) {
 	var totalWarnings []output.Result
 	var totalFailures []output.Result
