@@ -1,53 +1,17 @@
-package runner
+package policy
 
 import (
 	"context"
 	"testing"
 
-	"github.com/open-policy-agent/conftest/parser/docker"
-	"github.com/open-policy-agent/conftest/parser/yaml"
-	"github.com/open-policy-agent/conftest/policy"
+	"github.com/open-policy-agent/conftest/parser"
 )
 
 func TestException(t *testing.T) {
 	ctx := context.Background()
 
-	config := `apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: cannot-run-as-root
-spec:
-  template:
-    spec:
-      containers:
-      - name: root-container
-        image: nginx
-        ports:
-        - containerPort: 8080
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: can-run-as-root
-spec:
-  template:
-    spec:
-      containers:
-      - name: root-container
-        image: nginx
-        ports:
-        - containerPort: 8080`
-
-	yaml := yaml.Parser{}
-
-	var manifests interface{}
-	err := yaml.Unmarshal([]byte(config), &manifests)
-	if err != nil {
-		t.Fatalf("could not unmarshal yaml: %s", err)
-	}
-
-	regoFiles := []string{"../../examples/exceptions/policy/policy.rego", "../../examples/exceptions/policy/exception.rego"}
-	loader := policy.Loader{
+	regoFiles := []string{"../examples/exceptions/policy/policy.rego", "../examples/exceptions/policy/exception.rego"}
+	loader := Loader{
 		PolicyPaths: regoFiles,
 	}
 
@@ -56,30 +20,31 @@ spec:
 		t.Fatalf("loading policies: %v", err)
 	}
 
-	testRun := TestRunner{
-		engine: engine,
+	configFiles := []string{"../examples/exceptions/deployments.yaml"}
+	configs, err := parser.ParseConfigurations(configFiles)
+	if err != nil {
+		t.Fatalf("loading configs: %v", err)
 	}
 
-	defaultNamespace := []string{"main"}
-	results, err := testRun.GetResult(ctx, defaultNamespace, manifests)
+	results, err := engine.Check(ctx, configs, "main")
 	if err != nil {
 		t.Fatalf("could not process policy file: %s", err)
 	}
 
 	const expectedFailures = 1
-	actualFailures := len(results.Failures)
+	actualFailures := len(results[0].Failures)
 	if actualFailures != expectedFailures {
 		t.Errorf("Multifile yaml test failure. Got %v failures, expected %v", actualFailures, expectedFailures)
 	}
 
 	const expectedSuccesses = 0
-	actualSuccesses := len(results.Successes)
+	actualSuccesses := len(results[0].Successes)
 	if actualSuccesses != expectedSuccesses {
 		t.Errorf("Multifile yaml test failure. Got %v success, expected %v", actualSuccesses, expectedSuccesses)
 	}
 
 	const expectedExceptions = 1
-	actualExceptions := len(results.Exceptions)
+	actualExceptions := len(results[0].Exceptions)
 	if actualExceptions != expectedExceptions {
 		t.Errorf("Multifile yaml test failure. Got %v exceptions, expected %v", actualExceptions, expectedExceptions)
 	}
@@ -88,26 +53,8 @@ spec:
 func TestMultifileYaml(t *testing.T) {
 	ctx := context.Background()
 
-	config := `apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: hello-kubernetes
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: hello-kubernetes`
-
-	yaml := yaml.Parser{}
-
-	var jsonConfig interface{}
-	err := yaml.Unmarshal([]byte(config), &jsonConfig)
-	if err != nil {
-		t.Fatalf("could not unmarshal yaml: %s", err)
-	}
-
-	regoFiles := []string{"../../examples/kubernetes/policy/kubernetes.rego", "../../examples/kubernetes/policy/deny.rego"}
-	loader := policy.Loader{
+	regoFiles := []string{"../examples/kubernetes/policy/kubernetes.rego", "../examples/kubernetes/policy/deny.rego"}
+	loader := Loader{
 		PolicyPaths: regoFiles,
 	}
 
@@ -116,24 +63,25 @@ metadata:
 		t.Fatalf("loading policies: %v", err)
 	}
 
-	testRun := TestRunner{
-		engine: engine,
+	configFiles := []string{"../examples/kubernetes/deployment+service.yaml"}
+	configs, err := parser.ParseConfigurations(configFiles)
+	if err != nil {
+		t.Fatalf("loading configs: %v", err)
 	}
 
-	defaultNamespace := []string{"main"}
-	results, err := testRun.GetResult(ctx, defaultNamespace, jsonConfig)
+	results, err := engine.Check(ctx, configs, "main")
 	if err != nil {
 		t.Fatalf("could not process policy file: %s", err)
 	}
 
 	const expectedFailures = 2
-	actualFailures := len(results.Failures)
+	actualFailures := len(results[0].Failures)
 	if actualFailures != expectedFailures {
 		t.Errorf("Multifile yaml test failure. Got %v failures, expected %v", actualFailures, expectedFailures)
 	}
 
 	const expectedSuccesses = 2
-	actualSuccesses := len(results.Successes)
+	actualSuccesses := len(results[0].Successes)
 	if actualSuccesses != expectedSuccesses {
 		t.Errorf("Multifile yaml test failure. Got %v success, expected %v", actualSuccesses, expectedSuccesses)
 	}
@@ -142,26 +90,8 @@ metadata:
 func TestDockerfile(t *testing.T) {
 	ctx := context.Background()
 
-	config := `FROM openjdk:8-jdk-alpine
-VOLUME /tmp
-
-ARG DEPENDENCY=target/dependency
-COPY ${DEPENDENCY}/BOOT-INF/lib /app/lib
-COPY ${DEPENDENCY}/META-INF /app/META-INF
-COPY ${DEPENDENCY}/BOOT-INF/classes /app
-
-ENTRYPOINT ["java","-cp","app:app/lib/*","hello.Application"]`
-
-	parser := docker.Parser{}
-
-	var jsonConfig interface{}
-	err := parser.Unmarshal([]byte(config), &jsonConfig)
-	if err != nil {
-		t.Fatalf("could not unmarshal dockerfile: %s", err)
-	}
-
-	regoFiles := []string{"../../examples/docker/policy/base.rego"}
-	loader := policy.Loader{
+	regoFiles := []string{"../examples/docker/policy/base.rego"}
+	loader := Loader{
 		PolicyPaths: regoFiles,
 	}
 
@@ -170,24 +100,25 @@ ENTRYPOINT ["java","-cp","app:app/lib/*","hello.Application"]`
 		t.Fatalf("loading policies: %v", err)
 	}
 
-	testRun := TestRunner{
-		engine: engine,
+	configFiles := []string{"../examples/docker/Dockerfile"}
+	configs, err := parser.ParseConfigurations(configFiles)
+	if err != nil {
+		t.Fatalf("loading configs: %v", err)
 	}
 
-	defaultNamespace := []string{"main"}
-	results, err := testRun.GetResult(ctx, defaultNamespace, jsonConfig)
+	results, err := engine.Check(ctx, configs, "main")
 	if err != nil {
 		t.Fatalf("could not process policy file: %s", err)
 	}
 
 	const expectedFailures = 1
-	actualFailures := len(results.Failures)
+	actualFailures := len(results[0].Failures)
 	if actualFailures != expectedFailures {
 		t.Errorf("Dockerfile test failure. Got %v failures, expected %v", actualFailures, expectedFailures)
 	}
 
 	const expectedSuccesses = 0
-	actualSuccesses := len(results.Successes)
+	actualSuccesses := len(results[0].Successes)
 	if actualSuccesses != expectedSuccesses {
 		t.Errorf("Dockerfile test failure. Got %v successes, expected %v", actualSuccesses, expectedSuccesses)
 	}
@@ -209,8 +140,7 @@ func TestWarnQuery(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {
-			res := warnQ.MatchString(tt.in)
-
+			res := isWarning(tt.in)
 			if tt.exp != res {
 				t.Errorf("%s recognized as `warn` query - expected: %v actual: %v", tt.in, tt.exp, res)
 			}
@@ -240,7 +170,7 @@ func TestFailQuery(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {
-			res := denyQ.MatchString(tt.in)
+			res := isFailure(tt.in)
 
 			if tt.exp != res {
 				t.Fatalf("%s recognized as `fail` query - expected: %v actual: %v", tt.in, tt.exp, res)

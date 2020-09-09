@@ -2,6 +2,8 @@ package parser
 
 import (
 	"fmt"
+	"path/filepath"
+
 	"github.com/open-policy-agent/conftest/parser/jsonnet"
 
 	"github.com/open-policy-agent/conftest/parser/cue"
@@ -44,7 +46,16 @@ type Parser interface {
 	Unmarshal(p []byte, v interface{}) error
 }
 
-// GetParser gets a file parser based on the file type and input
+// GetParserFromPath returns a file parser based on the file type
+// that exists at the given path.
+func GetParserFromPath(path string) (Parser, error) {
+	fileType := getFileType(path)
+	return GetParser(fileType)
+}
+
+// GetParser returns a specific file parser based on the given
+// file type. The input should be the file extension without the
+// period.
 func GetParser(fileType string) (Parser, error) {
 	switch fileType {
 	case "toml":
@@ -76,4 +87,17 @@ func GetParser(fileType string) (Parser, error) {
 	default:
 		return nil, fmt.Errorf("unknown filetype given: %v", fileType)
 	}
+}
+
+func getFileType(fileName string) string {
+	if fileName == "-" {
+		return "yaml"
+	}
+
+	if filepath.Ext(fileName) == "" {
+		return filepath.Base(fileName)
+	}
+
+	fileExtension := filepath.Ext(fileName)
+	return fileExtension[1:]
 }

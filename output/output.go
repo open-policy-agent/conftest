@@ -23,6 +23,7 @@ func ValidOutputs() []string {
 type OutputManager interface {
 	Put(cr CheckResult) error
 	Flush() error
+	WithTracing() OutputManager
 }
 
 // GetOutputManager returns the OutputManager based on the user input.
