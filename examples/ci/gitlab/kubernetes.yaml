@@ -13,7 +13,7 @@ validate:
 
 conformance:
   stage: conformance
-  dependancies:
+  dependencies:
     - validate
   image:
     name: instrumenta/conftest:latest
