@@ -1,17 +1,13 @@
 package parser
 
 import (
-	"context"
-	"io/ioutil"
 	"reflect"
 	"strings"
 	"testing"
-
-	"github.com/open-policy-agent/conftest/parser/yaml"
 )
 
-func TestGetConfigurations(t *testing.T) {
-	testTabel := []struct {
+func TestParseConfigurations(t *testing.T) {
+	testTable := []struct {
 		name     string
 		fileList []string
 	}{
@@ -34,11 +30,9 @@ func TestGetConfigurations(t *testing.T) {
 		},
 	}
 
-	for _, testUnit := range testTabel {
+	for _, testUnit := range testTable {
 		t.Run(testUnit.name, func(t *testing.T) {
-			ctx := context.Background()
-			c := ConfigManager{}
-			_, err := c.GetConfigurations(ctx, "", testUnit.fileList)
+			_, err := ParseConfigurations(testUnit.fileList)
 			if err != nil {
 				t.Fatalf("error while getting configurations: %v", err)
 			}
@@ -49,19 +43,17 @@ func TestGetConfigurations(t *testing.T) {
 func TestGetFileType(t *testing.T) {
 	testTable := []struct {
 		name             string
-		inputFileType    string
 		fileName         string
 		expectedFileType string
 	}{
-		{"Test YAML file", "", "example/kubernetes/deployment.yaml", "yaml"},
-		{"Test not YAML file", "", "example/traefik/traefik.toml", "toml"},
-		{"Test default file type", "", "-", "yaml"},
+		{"Test YAML file", "example/kubernetes/deployment.yaml", "yaml"},
+		{"Test not YAML file", "example/traefik/traefik.toml", "toml"},
+		{"Test default file type", "-", "yaml"},
 	}
 
 	for _, testUnit := range testTable {
 		t.Run(testUnit.name, func(t *testing.T) {
-			c := ConfigManager{}
-			fileType := c.getFileType(testUnit.fileName, testUnit.inputFileType)
+			fileType := getFileType(testUnit.fileName)
 			if fileType != testUnit.expectedFileType {
 				t.Fatalf("got wrong filetype got:%s want:%s", fileType, testUnit.expectedFileType)
 			}
@@ -69,170 +61,131 @@ func TestGetFileType(t *testing.T) {
 	}
 }
 
-func TestUnmarshaller(t *testing.T) {
-	t.Run("error constructing an unmarshaller for a type of file", func(t *testing.T) {
-		t.Run("which can be used to BulkUnmarshal file contents into an object", func(t *testing.T) {
-			testTable := []struct {
-				name           string
-				controlReaders []ConfigDoc
-				expectedResult map[string]interface{}
-				shouldError    bool
-			}{
-				{
-					name: "a single reader",
-					controlReaders: []ConfigDoc{
-						{
-							ReadCloser: ioutil.NopCloser(strings.NewReader("sample: true")),
-							Filepath:   "sample.yml",
-							Parser:     &yaml.Parser{},
-						},
-					},
-					expectedResult: map[string]interface{}{
-						"sample.yml": map[string]interface{}{
-							"sample": true,
-						},
-					},
-					shouldError: false,
+func TestParseConfiguration(t *testing.T) {
+	testTable := []struct {
+		name           string
+		path           string
+		contents       []byte
+		expectedResult map[string]interface{}
+	}{
+		{
+			name:     "a single reader",
+			path:     "sample.yml",
+			contents: []byte("sample: true"),
+			expectedResult: map[string]interface{}{
+				"sample.yml": map[string]interface{}{
+					"sample": true,
 				},
-				{
-					name: "multiple readers",
-					controlReaders: []ConfigDoc{
-						{
-							ReadCloser: ioutil.NopCloser(strings.NewReader("sample: true")),
-							Filepath:   "sample.yml",
-							Parser:     &yaml.Parser{},
-						},
-						{
-							ReadCloser: ioutil.NopCloser(strings.NewReader("hello: true")),
-							Filepath:   "hello.yml",
-							Parser:     &yaml.Parser{},
-						},
-						{
-							ReadCloser: ioutil.NopCloser(strings.NewReader("nice: true")),
-							Filepath:   "nice.yml",
-							Parser:     &yaml.Parser{},
-						},
-					},
-					expectedResult: map[string]interface{}{
-						"sample.yml": map[string]interface{}{
-							"sample": true,
-						},
-						"hello.yml": map[string]interface{}{
-							"hello": true,
-						},
-						"nice.yml": map[string]interface{}{
-							"nice": true,
-						},
-					},
-					shouldError: false,
-				},
-				{
-					name: "a single reader with multiple yaml subdocs",
-					controlReaders: []ConfigDoc{
-						{
-							ReadCloser: ioutil.NopCloser(strings.NewReader(`---
+			},
+		},
+		{
+			name: "a single reader with multiple yaml subdocs",
+			path: "sample.yml",
+			contents: []byte(`---
 sample: true
 ---
 hello: true
 ---
-nice: true`)),
-							Filepath: "sample.yml",
-							Parser:   &yaml.Parser{},
-						},
+nice: true`),
+			expectedResult: map[string]interface{}{
+				"sample.yml": []interface{}{
+					map[string]interface{}{
+						"sample": true,
 					},
-					expectedResult: map[string]interface{}{
-						"sample.yml": []interface{}{
-							map[string]interface{}{
-								"sample": true,
-							},
-							map[string]interface{}{
-								"hello": true,
-							},
-							map[string]interface{}{
-								"nice": true,
-							},
-						},
+					map[string]interface{}{
+						"hello": true,
 					},
-					shouldError: false,
+					map[string]interface{}{
+						"nice": true,
+					},
 				},
-				{
-					name: "multiple readers with multiple subdocs",
-					controlReaders: []ConfigDoc{
-						{
-							ReadCloser: ioutil.NopCloser(strings.NewReader(`---
-sample: true
----
-hello: true
----
-nice: true`)),
-							Filepath: "sample.yml",
-							Parser:   &yaml.Parser{},
-						},
-						{
-							ReadCloser: ioutil.NopCloser(strings.NewReader(`---
-sample: true
----
-hello: true
----
-nice: true`)),
-							Filepath: "hello.yml",
-							Parser:   &yaml.Parser{},
-						},
-						{
-							ReadCloser: ioutil.NopCloser(strings.NewReader("nice: true")),
-							Filepath:   "nice.yml",
-							Parser:     &yaml.Parser{},
-						},
-					},
-					expectedResult: map[string]interface{}{
-						"sample.yml": []interface{}{
-							map[string]interface{}{
-								"sample": true,
-							},
-							map[string]interface{}{
-								"hello": true,
-							},
-							map[string]interface{}{
-								"nice": true,
-							},
-						},
-						"hello.yml": []interface{}{
-							map[string]interface{}{
-								"sample": true,
-							},
-							map[string]interface{}{
-								"hello": true,
-							},
-							map[string]interface{}{
-								"nice": true,
-							},
-						},
-						"nice.yml": map[string]interface{}{
-							"nice": true,
-						},
-					},
-					shouldError: false,
-				},
+			},
+		},
+	}
+
+	for _, test := range testTable {
+		t.Run(test.name, func(t *testing.T) {
+			var unmarshalledConfigs map[string]interface{}
+			unmarshalledConfigs, err := parseConfiguration(test.path, test.contents, "")
+			if err != nil {
+				t.Errorf("errors unmarshalling: %v", err)
 			}
 
-			for _, test := range testTable {
-				t.Run(test.name, func(t *testing.T) {
-					var unmarshalledConfigs map[string]interface{}
-					c := ConfigManager{}
-					unmarshalledConfigs, err := c.bulkUnmarshal(test.controlReaders)
-					if err != nil {
-						t.Errorf("errors unmarshalling: %v", err)
-					}
+			if unmarshalledConfigs == nil {
+				t.Error("error seeing the actual value of object, received nil")
+			}
 
-					if unmarshalledConfigs == nil {
-						t.Error("error seeing the actual value of object, received nil")
-					}
-
-					if !reflect.DeepEqual(test.expectedResult, unmarshalledConfigs) {
-						t.Errorf("\nResult\n%v\n and type %T\n Expected\n%v\n and type %T\n", unmarshalledConfigs, unmarshalledConfigs, test.expectedResult, test.expectedResult)
-					}
-				})
+			if !reflect.DeepEqual(test.expectedResult, unmarshalledConfigs) {
+				t.Errorf("\nResult\n%v\n and type %T\n Expected\n%v\n and type %T\n", unmarshalledConfigs, unmarshalledConfigs, test.expectedResult, test.expectedResult)
 			}
 		})
-	})
+	}
+}
+
+func TestFormatAll(t *testing.T) {
+	configurations := make(map[string]interface{})
+	config := struct {
+		Property string
+	}{
+		Property: "value",
+	}
+
+	const expectedFileName = "file.json"
+	configurations[expectedFileName] = config
+
+	actual, err := FormatAll(configurations)
+	if err != nil {
+		t.Fatalf("parsing configs: %s", err)
+	}
+
+	expected := `
+{
+	"Property": "value"
+}
+`
+
+	if !strings.Contains(actual, expected) {
+		t.Errorf("unexpected parsed config. expected %v actual %v", expected, actual)
+	}
+
+	if !strings.Contains(actual, expectedFileName) {
+		t.Errorf("unexpected parsed filename. expected %v actual %v", expected, actual)
+	}
+}
+
+func TestFormat(t *testing.T) {
+	configurations := make(map[string]interface{})
+	config := struct {
+		Sut string
+	}{
+		Sut: "test",
+	}
+
+	config2 := struct {
+		Foo string
+	}{
+		Foo: "bar",
+	}
+
+	configurations["file1.json"] = config
+	configurations["file2.json"] = config2
+
+	actual, err := Format(configurations)
+	if err != nil {
+		t.Fatalf("parsing configs: %s", err)
+	}
+
+	expected := `{
+	"file1.json": {
+		"Sut": "test"
+	},
+	"file2.json": {
+		"Foo": "bar"
+	}
+}
+`
+
+	if !strings.Contains(actual, expected) {
+		t.Errorf("unexpected parsed config. expected %v actual %v", expected, actual)
+	}
 }

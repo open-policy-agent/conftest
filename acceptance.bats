@@ -101,7 +101,7 @@
   [[ "$output" =~ "data.kubernetes.is_service" ]]
 }
 
-@test "Fail when verifing with no policies path" {
+@test "Fail when verifying with no policies path" {
   run ./conftest verify -p internal/
   [ "$status" -eq 1 ]
 }

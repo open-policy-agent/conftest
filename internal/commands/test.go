@@ -70,13 +70,13 @@ the output will include a detailed trace of how the policy was evaluated, e.g.
 	$ conftest test --trace <input-file>
 `
 
-// TestRun stores the compiler and store for a test run
+// TestRun stores the compiler and store for a test run.
 type TestRun struct {
 	Compiler *ast.Compiler
 	Store    storage.Store
 }
 
-// NewTestCommand creates a new test command
+// NewTestCommand creates a new test command.
 func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "test <file> [file...]",
@@ -84,7 +84,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 		Long:  testDesc,
 		Args:  cobra.MinimumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			flagNames := []string{"fail-on-warn", "update", "combine", "trace", "output", "input", "namespace", "all-namespaces", "data", "ignore"}
+			flagNames := []string{"all-namespaces", "combine", "data", "fail-on-warn", "ignore", "input", "namespace", "no-color", "output", "policy", "trace", "update"}
 			for _, name := range flagNames {
 				if err := viper.BindPFlag(name, cmd.Flags().Lookup(name)); err != nil {
 					return fmt.Errorf("bind flag: %w", err)
@@ -95,13 +95,8 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 		},
 
 		RunE: func(cmd *cobra.Command, fileList []string) error {
-			outputFormat := viper.GetString("output")
-			color := !viper.GetBool("no-color")
-			out := output.GetOutputManager(outputFormat, color)
-
-			runner := &runner.TestRunner{}
-			err := viper.Unmarshal(runner)
-			if err != nil {
+			var runner runner.TestRunner
+			if err := viper.Unmarshal(&runner); err != nil {
 				return fmt.Errorf("unmarshal parameters: %w", err)
 			}
 
@@ -110,17 +105,27 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("running test: %w", err)
 			}
 
+			outputManager := output.GetOutputManager(runner.Output, !runner.NoColor)
+			if runner.Trace {
+				outputManager = outputManager.WithTracing()
+			}
+
 			for _, result := range results {
-				if err := out.Put(result); err != nil {
-					return fmt.Errorf("writing error: %w", err)
+				if err := outputManager.Put(result); err != nil {
+					return fmt.Errorf("put: %w", err)
 				}
 			}
 
-			if err := out.Flush(); err != nil {
+			if err := outputManager.Flush(); err != nil {
 				return fmt.Errorf("flushing output: %w", err)
 			}
 
-			exitCode := output.GetExitCode(results, viper.GetBool("fail-on-warn"))
+			var exitCode int
+			if runner.FailOnWarn {
+				exitCode = output.ExitCodeFailOnWarn(results)
+			} else {
+				exitCode = output.ExitCode(results)
+			}
 			if exitCode > 0 {
 				os.Exit(exitCode)
 			}
@@ -129,17 +134,20 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().Bool("fail-on-warn", false, "return a non-zero exit code if only warnings are found")
-	cmd.Flags().BoolP("combine", "", false, "combine all given config files to be evaluated together")
-	cmd.Flags().Bool("trace", false, "enable more verbose trace output for rego queries")
+	cmd.Flags().Bool("fail-on-warn", false, "Return a non-zero exit code if warnings or errors are found")
+	cmd.Flags().BoolP("trace", "", false, "Enable more verbose trace output for Rego queries")
+	cmd.Flags().Bool("no-color", false, "Disable color when printing")
+	cmd.Flags().Bool("all-namespaces", false, "Test policies found in all namespaces")
+	cmd.Flags().BoolP("combine", "", false, "Combine all config files to be evaluated together")
 
-	cmd.Flags().StringSliceP("update", "u", []string{}, "a list of urls can be provided to the update flag, which will download before the tests run")
-	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", output.ValidOutputs()))
-	cmd.Flags().StringP("input", "i", "", fmt.Sprintf("input type for given source, especially useful when using conftest with stdin, valid options are: %s", parser.ValidInputs()))
-	cmd.Flags().StringSlice("namespace", []string{"main"}, "namespace in which to find deny and warn rules")
-	cmd.Flags().Bool("all-namespaces", false, "find deny and warn rules in all namespaces. If set, the flag \"namespace\" is ignored")
+	cmd.Flags().String("ignore", "", "A regex pattern which can be used for ignoring paths")
+	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("Output format for conftest results - valid options are: %s", output.ValidOutputs()))
+	cmd.Flags().StringP("input", "i", "", fmt.Sprintf("Input type for given source, especially useful when using conftest with stdin, valid options are: %s", parser.ValidInputs()))
+
+	cmd.Flags().StringSliceP("policy", "p", []string{"policy"}, "Path to the Rego policy files directory")
+	cmd.Flags().StringSliceP("update", "u", []string{}, "A list of URLs can be provided to the update flag, which will download before the tests run")
+	cmd.Flags().StringSliceP("namespace", "n", []string{"main"}, "Test policies in a specific namespace")
 	cmd.Flags().StringSliceP("data", "d", []string{}, "A list of paths from which data for the rego policies will be recursively loaded")
-	cmd.Flags().String("ignore", "", "a regex pattern which can be used for ignoring some files/directories in a given input. i.e.: ignoring yamls: --ignore=\".*.yaml\"")
 
 	return &cmd
 }

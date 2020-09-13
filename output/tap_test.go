@@ -8,8 +8,7 @@ import (
 
 func TestTAP(t *testing.T) {
 	type args struct {
-		fileName string
-		cr       CheckResult
+		cr CheckResult
 	}
 
 	tests := []struct {

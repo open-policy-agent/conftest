@@ -9,7 +9,8 @@ import (
 
 // TableOutputManager formats its output in a table
 type TableOutputManager struct {
-	table *table.Table
+	table   *table.Table
+	tracing bool
 }
 
 // NewDefaultTableOutputManager creates a new TableOutputManager using standard out
@@ -26,14 +27,23 @@ func NewTableOutputManager(w io.Writer) *TableOutputManager {
 	}
 }
 
+// WithTracing adds tracing to the output.
+func (t *TableOutputManager) WithTracing() OutputManager {
+	t.tracing = true
+	return t
+}
+
 // Put puts the result of the check to the manager in the managers buffer
 func (t *TableOutputManager) Put(cr CheckResult) error {
 	printResults := func(r Result, prefix string, filename string) {
-		d := []string{prefix, filename, r.Error()}
+		d := []string{prefix, filename, r.Message}
 		t.table.Append(d)
-		for _, trace := range r.Traces {
-			dt := []string{"trace", filename, trace.Error()}
-			t.table.Append(dt)
+
+		if t.tracing {
+			for _, trace := range r.Traces {
+				dt := []string{"trace", filename, trace.Error()}
+				t.table.Append(dt)
+			}
 		}
 	}
 

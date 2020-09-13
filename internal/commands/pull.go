@@ -44,7 +44,7 @@ The location can be overridden with the '--policy' flag, e.g.:
 `
 
 // NewPullCommand creates a new pull command to allow users
-// to download individual policies
+// to download individual policies.
 func NewPullCommand(ctx context.Context) *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "pull <repository>",
@@ -52,6 +52,13 @@ func NewPullCommand(ctx context.Context) *cobra.Command {
 		Long:  pullDesc,
 		Args:  cobra.MinimumNArgs(1),
 
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if err := viper.BindPFlag("policy", cmd.Flags().Lookup("policy")); err != nil {
+				return fmt.Errorf("bind flag: %w", err)
+			}
+
+			return nil
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			policyDir := filepath.Join(".", viper.GetString("policy"))
 
@@ -62,6 +69,8 @@ func NewPullCommand(ctx context.Context) *cobra.Command {
 			return nil
 		},
 	}
+
+	cmd.Flags().StringSliceP("policy", "p", []string{"policy"}, "Path to the Rego policy files directory")
 
 	return &cmd
 }

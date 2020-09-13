@@ -3,10 +3,13 @@ package policy
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 
 	"github.com/open-policy-agent/conftest/downloader"
 
-	"github.com/open-policy-agent/opa/storage"
+	"github.com/open-policy-agent/opa/loader"
 )
 
 // Loader handles the retrieval of all rego policies and related data.
@@ -14,50 +17,84 @@ type Loader struct {
 	PolicyPaths []string
 	DataPaths   []string
 	URLs        []string
-
-	test bool
 }
 
-// SetTestLoad configures the loader to load Rego test files as well
-func (l *Loader) SetTestLoad(test bool) *Loader {
-	l.test = test
-	return l
-}
-
-// Load retrieves policies from several locations:
-// first it checks for any remote sources of policies and downloads
-// the policies into the given policy paths.
-// After retrieving the policies from the remote sources, all .rego, .json and .yaml
-// files are recursively retrieved from disk and loaded into
-// a rego Compiler and Store respectively.
-func (l *Loader) Load(ctx context.Context) ([]string, storage.Store, error) {
-	// Downloaded policies are put into the first policy directory specified
+// Load returns an Engine after loading all of the specified policies and data paths.
+//
+// If URLs are specified, it will first download the policies at the specified URLs
+// and put them in the first directory that appears in the policy paths.
+func (l *Loader) Load(ctx context.Context) (*Engine, error) {
 	for _, url := range l.URLs {
 		sourcedURL, err := downloader.Detect(url, l.PolicyPaths[0])
 		if err != nil {
-			return nil, nil, fmt.Errorf("detect policies: %w", err)
+			return nil, fmt.Errorf("detect policies: %w", err)
 		}
 
 		if err := downloader.Download(ctx, l.PolicyPaths[0], []string{sourcedURL}); err != nil {
-			return nil, nil, fmt.Errorf("update policies: %w", err)
+			return nil, fmt.Errorf("update policies: %w", err)
 		}
 	}
 
-	var regoFiles []string
-	var err error
-	if l.test {
-		regoFiles, err = ReadFilesWithTests(l.PolicyPaths...)
-	} else {
-		regoFiles, err = ReadFiles(l.PolicyPaths...)
-	}
+	paths := append(l.PolicyPaths, l.DataPaths...)
+	result, err := loader.All(paths)
 	if err != nil {
-		return nil, nil, fmt.Errorf("read rego files: %w", err)
+		return nil, fmt.Errorf("load: %w", err)
 	}
 
-	store, err := StoreFromDataFiles(l.DataPaths)
-	if err != nil {
-		return nil, nil, fmt.Errorf("build store: %w", err)
+	if len(result.Modules) == 0 {
+		return nil, fmt.Errorf("no policies found in %v", l.PolicyPaths)
 	}
 
-	return regoFiles, store, nil
+	compiler, err := result.Compiler()
+	if err != nil {
+		return nil, fmt.Errorf("get compiler: %w", err)
+	}
+
+	store, err := result.Store()
+	if err != nil {
+		return nil, fmt.Errorf("get store: %w", err)
+	}
+
+	docs, err := loadDocuments(l.DataPaths)
+	if err != nil {
+		return nil, fmt.Errorf("loading docs: %w", err)
+	}
+
+	engine := Engine{
+		result:   result,
+		compiler: compiler,
+		store:    store,
+		docs:     docs,
+	}
+
+	return &engine, nil
+}
+
+// The Rego loader is able to take in any number of paths and correctly distinguish between
+// data documents (Documents) and policies (Modules).
+//
+// However, the raw text and the path of the data documents are not preserved.
+// Both the path of the data document and its original content is useful to have, especially
+// when pushing to OCI registries.
+func loadDocuments(paths []string) (map[string]string, error) {
+	ignoreFileExtensions := func(abspath string, info os.FileInfo, depth int) bool {
+		return !contains([]string{".yaml", ".yml", ".json"}, filepath.Ext(info.Name()))
+	}
+
+	documentPaths, err := loader.FilteredPaths(paths, ignoreFileExtensions)
+	if err != nil {
+		return nil, fmt.Errorf("filter data paths: %w", err)
+	}
+
+	documents := make(map[string]string)
+	for _, documentPath := range documentPaths {
+		contents, err := ioutil.ReadFile(documentPath)
+		if err != nil {
+			return nil, fmt.Errorf("read file: %w", err)
+		}
+
+		documents[documentPath] = string(contents)
+	}
+
+	return documents, nil
 }

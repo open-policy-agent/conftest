@@ -13,8 +13,9 @@ import (
 
 // JUnitOutputManager formats its output as a JUnit test result
 type JUnitOutputManager struct {
-	p      parser.Package
-	writer io.Writer
+	p       parser.Package
+	writer  io.Writer
+	tracing bool
 }
 
 // NewDefaultJUnitOutputManager creates a new JUnitOutputManager using standard out
@@ -31,6 +32,12 @@ func NewJUnitOutputManager(w io.Writer) *JUnitOutputManager {
 			Tests: []*parser.Test{},
 		},
 	}
+}
+
+// WithTracing adds tracing to the output.
+func (j *JUnitOutputManager) WithTracing() OutputManager {
+	j.tracing = true
+	return j
 }
 
 // Put puts the result of the check to the manager in the managers buffer

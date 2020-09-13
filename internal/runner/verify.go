@@ -14,31 +14,25 @@ import (
 )
 
 type VerifyRunner struct {
-	Trace  bool
-	Policy []string
-	Data   []string
+	Policy  []string
+	Data    []string
+	Output  string
+	NoColor bool `mapstructure:"no-color"`
+	Trace   bool
 }
 
 // Run executes the Rego tests at the given PolicyPath(s)
 func (r *VerifyRunner) Run(ctx context.Context) ([]output.CheckResult, error) {
-	loader := &policy.Loader{
+	loader := policy.Loader{
 		DataPaths:   r.Data,
 		PolicyPaths: r.Policy,
 	}
-
-	loader.SetTestLoad(true)
-	regoFiles, store, err := loader.Load(ctx)
+	engine, err := loader.Load(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("load failed: %w", err)
+		return nil, fmt.Errorf("load: %w", err)
 	}
 
-	compiler, err := policy.BuildCompiler(regoFiles)
-	if err != nil {
-		return nil, fmt.Errorf("build compiler: %w", err)
-	}
-
-	runtime := policy.RuntimeTerm()
-	runner := tester.NewRunner().SetCompiler(compiler).SetStore(store).SetModules(compiler.Modules).EnableTracing(r.Trace).SetRuntime(runtime)
+	runner := tester.NewRunner().SetCompiler(engine.Compiler()).SetStore(engine.Store()).SetModules(engine.Modules()).EnableTracing(true).SetRuntime(engine.Runtime())
 	ch, err := runner.RunTests(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("running tests: %w", err)
@@ -50,11 +44,6 @@ func (r *VerifyRunner) Run(ctx context.Context) ([]output.CheckResult, error) {
 			return nil, fmt.Errorf("run test: %w", result.Error)
 		}
 
-		msg := fmt.Errorf("%s", result.Package+"."+result.Name)
-
-		var failure []output.Result
-		var success []output.Result
-
 		buf := new(bytes.Buffer)
 		topdown.PrettyTrace(buf, result.Trace)
 		var traces []error
@@ -64,16 +53,15 @@ func (r *VerifyRunner) Run(ctx context.Context) ([]output.CheckResult, error) {
 			}
 		}
 
-		if result.Fail {
-			failure = append(failure, output.NewResult(msg.Error(), traces))
-		} else {
-			success = append(success, output.NewResult(msg.Error(), traces))
+		checkResult := output.CheckResult{
+			FileName: result.Location.File,
 		}
 
-		checkResult := output.CheckResult{
-			FileName:  result.Location.File,
-			Successes: success,
-			Failures:  failure,
+		resultMessage := []output.Result{output.NewResult(result.Package+"."+result.Name, traces)}
+		if result.Fail {
+			checkResult.Failures = resultMessage
+		} else {
+			checkResult.Successes = resultMessage
 		}
 
 		results = append(results, checkResult)

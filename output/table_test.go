@@ -7,8 +7,7 @@ import (
 
 func TestTable(t *testing.T) {
 	type args struct {
-		fileName string
-		cr       CheckResult
+		cr CheckResult
 	}
 
 	tests := []struct {

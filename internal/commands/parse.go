@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/open-policy-agent/conftest/internal/runner"
 	"github.com/open-policy-agent/conftest/parser"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -40,24 +39,35 @@ func NewParseCommand(ctx context.Context) *cobra.Command {
 
 			return nil
 		},
-		RunE: func(cmd *cobra.Command, fileList []string) error {
-			params := &runner.ParseParams{}
-			viper.Unmarshal(params)
-			runner := runner.ParseRunner{
-				Params:        params,
-				ConfigManager: &parser.ConfigManager{},
+		RunE: func(cmd *cobra.Command, files []string) error {
+			var configurations map[string]interface{}
+			var err error
+			if viper.GetString("input") != "" {
+				configurations, err = parser.ParseConfigurationsAs(files, viper.GetString("input"))
+			} else {
+				configurations, err = parser.ParseConfigurations(files)
 			}
-			out, err := runner.Run(ctx, fileList)
 			if err != nil {
-				return fmt.Errorf("failed during parser process: %w", err)
+				return fmt.Errorf("get configurations: %w", err)
 			}
 
-			fmt.Println(out)
+			var output string
+			if viper.GetBool("combine") {
+				output, err = parser.Format(configurations)
+			} else {
+				output, err = parser.FormatAll(configurations)
+			}
+			if err != nil {
+				return fmt.Errorf("format output: %w", err)
+			}
+
+			fmt.Println(output)
 			return nil
 		},
 	}
 
-	cmd.Flags().BoolP("combine", "", false, "combine all given config files to be evaluated together")
-	cmd.Flags().StringP("input", "i", "", fmt.Sprintf("input type for given source, especially useful when using conftest with stdin, valid options are: %s", parser.ValidInputs()))
+	cmd.Flags().BoolP("combine", "", false, "Combine all config files to be evaluated together")
+	cmd.Flags().StringP("input", "i", "", fmt.Sprintf("Input type for given source, especially useful when using conftest with stdin, valid options are: %s", parser.ValidInputs()))
+
 	return &cmd
 }

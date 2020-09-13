@@ -8,7 +8,8 @@ import (
 
 // TAPOutputManager formats its output in TAP format
 type TAPOutputManager struct {
-	logger *log.Logger
+	logger  *log.Logger
+	tracing bool
 }
 
 // NewDefaultTAPOutputManager creates a new TAPOutputManager using the default logger
@@ -23,6 +24,12 @@ func NewTAPOutputManager(l *log.Logger) *TAPOutputManager {
 	}
 }
 
+// WithTracing adds tracing to the output.
+func (t *TAPOutputManager) WithTracing() OutputManager {
+	t.tracing = true
+	return t
+}
+
 // Put puts the result of the check to the manager in the managers buffer
 func (t *TAPOutputManager) Put(cr CheckResult) error {
 	var indicator string
@@ -34,7 +41,7 @@ func (t *TAPOutputManager) Put(cr CheckResult) error {
 
 	printResults := func(r Result, prefix string, counter int) {
 		t.logger.Print(prefix, counter, indicator, r.Message)
-		if len(r.Traces) > 0 {
+		if len(r.Traces) > 0 && t.tracing {
 			t.logger.Print("# Traces")
 			for j, trace := range r.Traces {
 				t.logger.Print("trace ", counter, j+1, indicator, trace.Error())

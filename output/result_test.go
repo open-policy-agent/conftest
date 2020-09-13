@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestGetExitCode(t *testing.T) {
+func TestExitCode(t *testing.T) {
 	warning := CheckResult{
 		Warnings: []Result{{}},
 	}
@@ -24,7 +24,7 @@ func TestGetExitCode(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		actual := GetExitCode(testCase.results, false)
+		actual := ExitCode(testCase.results)
 
 		if actual != testCase.expected {
 			t.Errorf("Unexpected error code. expected %v, actual %v", testCase.expected, actual)
@@ -32,7 +32,7 @@ func TestGetExitCode(t *testing.T) {
 	}
 }
 
-func TestGetExitCode_FailOnWarn(t *testing.T) {
+func TestExitCodeFailOnWarn(t *testing.T) {
 	warning := CheckResult{
 		Warnings: []Result{{}},
 	}
@@ -52,7 +52,7 @@ func TestGetExitCode_FailOnWarn(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		actual := GetExitCode(testCase.results, true)
+		actual := ExitCodeFailOnWarn(testCase.results)
 
 		if actual != testCase.expected {
 			t.Errorf("Unexpected error code. expected %v, actual %v", testCase.expected, actual)

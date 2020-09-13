@@ -49,14 +49,14 @@ the output will include a detailed trace of how the policy was evaluated, e.g.
 `
 
 // NewVerifyCommand creates a new verify command which allows users
-// to validate their rego unit tests
+// to validate their rego unit tests.
 func NewVerifyCommand(ctx context.Context) *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "verify",
 		Short: "Verify Rego unit tests",
 		Long:  verifyDesc,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			flagNames := []string{"output", "trace", "data"}
+			flagNames := []string{"data", "no-color", "output", "policy", "trace"}
 			for _, name := range flagNames {
 				if err := viper.BindPFlag(name, cmd.Flags().Lookup(name)); err != nil {
 					return fmt.Errorf("bind flag: %w", err)
@@ -66,18 +66,19 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			outFmt := viper.GetString("output")
-			color := !viper.GetBool("no-color")
-			outputManager := output.GetOutputManager(outFmt, color)
-			runner := &runner.VerifyRunner{}
-			err := viper.Unmarshal(runner)
-			if err != nil {
+			var runner runner.VerifyRunner
+			if err := viper.Unmarshal(&runner); err != nil {
 				return fmt.Errorf("unmarshal parameters: %w", err)
 			}
 
 			results, err := runner.Run(ctx)
 			if err != nil {
 				return fmt.Errorf("running verification: %w", err)
+			}
+
+			outputManager := output.GetOutputManager(runner.Output, !runner.NoColor)
+			if runner.Trace {
+				outputManager = outputManager.WithTracing()
 			}
 
 			for _, result := range results {
@@ -90,7 +91,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("flushing output: %w", err)
 			}
 
-			exitCode := output.GetExitCode(results, viper.GetBool("fail-on-warn"))
+			exitCode := output.ExitCode(results)
 			if exitCode > 0 {
 				os.Exit(exitCode)
 			}
@@ -99,9 +100,13 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("output format for conftest results - valid options are: %s", output.ValidOutputs()))
-	cmd.Flags().BoolP("trace", "", false, "enable more verbose trace output for rego queries")
+	cmd.Flags().Bool("no-color", false, "Disable color when printing")
+	cmd.Flags().BoolP("trace", "", false, "Enable more verbose trace output for Rego queries")
+
+	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("Output format for conftest results - valid options are: %s", output.ValidOutputs()))
+
 	cmd.Flags().StringSliceP("data", "d", []string{}, "A list of paths from which data for the rego policies will be recursively loaded")
+	cmd.Flags().StringSliceP("policy", "p", []string{"policy"}, "Path to the Rego policy files directory")
 
 	return &cmd
 }

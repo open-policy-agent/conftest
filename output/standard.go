@@ -12,6 +12,7 @@ import (
 type StandardOutputManager struct {
 	logger  *log.Logger
 	color   aurora.Aurora
+	tracing bool
 	results []CheckResult
 }
 
@@ -26,6 +27,12 @@ func NewStandardOutputManager(l *log.Logger, color bool) *StandardOutputManager 
 		logger: l,
 		color:  aurora.NewAurora(color),
 	}
+}
+
+// WithTracing adds tracing to the output.
+func (s *StandardOutputManager) WithTracing() OutputManager {
+	s.tracing = true
+	return s
 }
 
 // Put puts the result of the check to the manager in the managers buffer
@@ -49,7 +56,7 @@ func (s *StandardOutputManager) Flush() error {
 			indicator = fmt.Sprintf(" - %s - ", cr.FileName)
 		}
 
-		currentPolicies := len(cr.Successes) + len(cr.Warnings) + len(cr.Failures)
+		currentPolicies := len(cr.Successes) + len(cr.Warnings) + len(cr.Failures) + len(cr.Exceptions)
 		if currentPolicies == 0 {
 			s.logger.Print(s.color.Colorize("?", aurora.WhiteFg), indicator, "no policies found")
 			continue
@@ -57,17 +64,18 @@ func (s *StandardOutputManager) Flush() error {
 
 		printResults := func(r Result, prefix string, color aurora.Color) {
 			s.logger.Print(s.color.Colorize(prefix, color), indicator, r.Message)
-			for _, t := range r.Traces {
-				s.logger.Print(s.color.Colorize("TRAC", aurora.BlueFg), indicator, t)
+			if s.tracing {
+				for _, t := range r.Traces {
+					s.logger.Print(s.color.Colorize("TRAC", aurora.BlueFg), indicator, t)
+				}
 			}
+
 		}
 
 		for _, r := range cr.Successes {
-			if len(r.Traces) == 0 {
-				continue
+			if s.tracing && len(r.Traces) > 0 {
+				printResults(r, "PASS", aurora.GreenFg)
 			}
-
-			printResults(r, "PASS", aurora.GreenFg)
 		}
 
 		for _, r := range cr.Warnings {
