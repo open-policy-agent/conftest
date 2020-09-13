@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # kubectl-conftest allows for testing resources in your cluster using Open Policy Agent
 # It uses the conftest utility and expects to find associated policy files in
@@ -30,15 +30,10 @@ if [[ ($# -eq 0) || ($1 == "--help") || ($1 == "-h") ]]; then
     # No commands or the --help flag passed and we'll show the usage instructions
     usage
 elif [[ ($# -eq 1) && $1 =~ ^[a-z\.]+$ ]]; then
-    # If we have one argument we get the list of objects from kubectl
-    # parse our the individual items and then pass those one by one into conftest
+    # If we have one argument we get the list of objects from kubectl and pass the items to conftest
     check_command "jq"
     if output=$(kubectl get "$1" -o json); then
-        while IFS= read -r -d $'\0' json; do
-            name=$(echo "$json" | jq -cj .metadata.name)
-            echo "Testing $1/$name"
-            echo "$json" | conftest test -
-        done < <(echo "$output" | jq -cj '.items[] | tostring+"\u0000"')
+        echo "$output" | jq .items | conftest test -
     fi
 elif [[ ($# -eq 1 ) ]]; then
     # Support the / variant for getting an individual resource
