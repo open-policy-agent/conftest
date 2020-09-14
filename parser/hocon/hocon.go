@@ -9,10 +9,10 @@ import (
 	"github.com/go-akka/configuration/hocon"
 )
 
-// Parser is a HOCON parser
+// Parser is a HOCON parser.
 type Parser struct{}
 
-// Unmarshal unmarshals HOCON files
+// Unmarshal unmarshals HOCON files.
 func (i *Parser) Unmarshal(p []byte, v interface{}) error {
 	rootCfg := configuration.ParseString(string(p))
 	result := make(map[string]interface{})

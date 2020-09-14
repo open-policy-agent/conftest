@@ -8,11 +8,11 @@ import (
 	cformat "cuelang.org/go/cue/format"
 )
 
-// Parser is a cue parser
+// Parser is a CUE parser.
 type Parser struct{}
 
-// Unmarshal unmarshals CUE files
-func (c *Parser) Unmarshal(p []byte, v interface{}) error {
+// Unmarshal unmarshals CUE files.
+func (*Parser) Unmarshal(p []byte, v interface{}) error {
 	out, err := cformat.Source(p)
 	if err != nil {
 		return fmt.Errorf("format cue: %w", err)
@@ -29,8 +29,7 @@ func (c *Parser) Unmarshal(p []byte, v interface{}) error {
 		return fmt.Errorf("marshal cue to json: %w", err)
 	}
 
-	err = json.Unmarshal(j, v)
-	if err != nil {
+	if err := json.Unmarshal(j, v); err != nil {
 		return fmt.Errorf("unmarshal cue json: %w", err)
 	}
 

@@ -7,7 +7,6 @@ import (
 func TestCueParser(t *testing.T) {
 	p := `package kubernetes
 
-
 	deployment "hello-kubernetes": {
 		apiVersion: "apps/v1"
 		spec: {
@@ -21,8 +20,9 @@ func TestCueParser(t *testing.T) {
 		}
 	}`
 
-	var input interface{}
 	parser := &Parser{}
+
+	var input interface{}
 	if err := parser.Unmarshal([]byte(p), &input); err != nil {
 		t.Fatalf("parser should not have thrown an error: %v", err)
 	}

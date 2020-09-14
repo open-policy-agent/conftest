@@ -53,9 +53,9 @@ func NewParseCommand(ctx context.Context) *cobra.Command {
 
 			var output string
 			if viper.GetBool("combine") {
-				output, err = parser.Format(configurations)
+				output, err = parser.FormatCombined(configurations)
 			} else {
-				output, err = parser.FormatAll(configurations)
+				output, err = parser.Format(configurations)
 			}
 			if err != nil {
 				return fmt.Errorf("format output: %w", err)
