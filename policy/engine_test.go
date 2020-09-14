@@ -10,7 +10,7 @@ import (
 func TestException(t *testing.T) {
 	ctx := context.Background()
 
-	regoFiles := []string{"../examples/exceptions/policy/policy.rego", "../examples/exceptions/policy/exception.rego"}
+	regoFiles := []string{"../examples/exceptions/policy"}
 	loader := Loader{
 		PolicyPaths: regoFiles,
 	}
@@ -53,11 +53,10 @@ func TestException(t *testing.T) {
 func TestMultifileYaml(t *testing.T) {
 	ctx := context.Background()
 
-	regoFiles := []string{"../examples/kubernetes/policy/kubernetes.rego", "../examples/kubernetes/policy/deny.rego"}
+	regoFiles := []string{"../examples/kubernetes/policy"}
 	loader := Loader{
 		PolicyPaths: regoFiles,
 	}
-
 	engine, err := loader.Load(ctx)
 	if err != nil {
 		t.Fatalf("loading policies: %v", err)
@@ -74,23 +73,29 @@ func TestMultifileYaml(t *testing.T) {
 		t.Fatalf("could not process policy file: %s", err)
 	}
 
-	const expectedFailures = 2
+	const expectedFailures = 4
 	actualFailures := len(results[0].Failures)
 	if actualFailures != expectedFailures {
 		t.Errorf("Multifile yaml test failure. Got %v failures, expected %v", actualFailures, expectedFailures)
 	}
 
-	const expectedSuccesses = 2
+	const expectedWarnings = 1
+	actualWarnings := len(results[0].Warnings)
+	if actualWarnings != expectedWarnings {
+		t.Errorf("Multifile yaml test failure. Got %v warnings, expected %v", actualWarnings, expectedWarnings)
+	}
+
+	const expectedSuccesses = 5
 	actualSuccesses := len(results[0].Successes)
 	if actualSuccesses != expectedSuccesses {
-		t.Errorf("Multifile yaml test failure. Got %v success, expected %v", actualSuccesses, expectedSuccesses)
+		t.Errorf("Multifile yaml test failure. Got %v successes, expected %v", actualSuccesses, expectedSuccesses)
 	}
 }
 
 func TestDockerfile(t *testing.T) {
 	ctx := context.Background()
 
-	regoFiles := []string{"../examples/docker/policy/base.rego"}
+	regoFiles := []string{"../examples/docker/policy"}
 	loader := Loader{
 		PolicyPaths: regoFiles,
 	}
@@ -124,7 +129,7 @@ func TestDockerfile(t *testing.T) {
 	}
 }
 
-func TestWarnQuery(t *testing.T) {
+func TestIsWarning(t *testing.T) {
 	tests := []struct {
 		in  string
 		exp bool
@@ -148,7 +153,7 @@ func TestWarnQuery(t *testing.T) {
 	}
 }
 
-func TestFailQuery(t *testing.T) {
+func TestIsFailure(t *testing.T) {
 	tests := []struct {
 		in  string
 		exp bool

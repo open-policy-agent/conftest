@@ -37,7 +37,7 @@ func (e *Engine) Check(ctx context.Context, configs map[string]interface{}, name
 		//
 		// If the current configuration contains multiple configurations, evaluate each policy
 		// independent from one another and aggregate the results under the same file name.
-		if subconfigs, ok := config.([]interface{}); ok {
+		if subconfigs, exist := config.([]interface{}); exist {
 
 			checkResult := output.CheckResult{
 				FileName: path,
@@ -47,8 +47,10 @@ func (e *Engine) Check(ctx context.Context, configs map[string]interface{}, name
 				if err != nil {
 					return nil, fmt.Errorf("check: %w", err)
 				}
+
 				checkResult.Successes = append(checkResult.Successes, result.Successes...)
 				checkResult.Failures = append(checkResult.Failures, result.Failures...)
+				checkResult.Warnings = append(checkResult.Warnings, result.Warnings...)
 				checkResult.Exceptions = append(checkResult.Exceptions, result.Exceptions...)
 			}
 			checkResults = append(checkResults, checkResult)
@@ -68,16 +70,15 @@ func (e *Engine) Check(ctx context.Context, configs map[string]interface{}, name
 
 // CheckCombined combines the input and evaluates the policies against the combined result.
 func (e *Engine) CheckCombined(ctx context.Context, configs map[string]interface{}, namespace string) (output.CheckResult, error) {
-	result, err := e.check(ctx, "", configs, namespace)
+	result, err := e.check(ctx, "Combined", configs, namespace)
 	if err != nil {
 		return output.CheckResult{}, fmt.Errorf("combined query: %w", err)
 	}
 
-	result.FileName = "Combined"
 	return result, nil
 }
 
-// Namespaces returns all of the namespaces in the Engine.
+// Namespaces returns all of the namespaces in the engine.
 func (e *Engine) Namespaces() []string {
 	var namespaces []string
 	for _, module := range e.Modules() {
