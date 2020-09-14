@@ -71,9 +71,13 @@ func (e *Engine) Check(ctx context.Context, configs map[string]interface{}, name
 
 // CheckCombined combines the input and evaluates the policies against the combined result.
 func (e *Engine) CheckCombined(ctx context.Context, configs map[string]interface{}, namespace string) (output.CheckResult, error) {
+<<<<<<< HEAD
 	combinedConfigs := parser.CombineConfigurations(configs)
 
 	result, err := e.check(ctx, "Combined", combinedConfigs["Combined"], namespace)
+=======
+	result, err := e.check(ctx, "Combined", configs, namespace)
+>>>>>>> 9a80b55332d74888c4d6687b3773dcb4f53e7fb1
 	if err != nil {
 		return output.CheckResult{}, fmt.Errorf("check: %w", err)
 	}
