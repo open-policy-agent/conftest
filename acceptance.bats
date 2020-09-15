@@ -79,7 +79,7 @@
 @test "Test command with table output and trace flag" {
   run ./conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml -o table --trace
   [ "$status" -eq 0 ]
-  [[ "$output" =~ "| trace   | examples/kubernetes/service.yaml | Enter data.main.deny = _       |" ]]
+  [[ "$output" =~ "| fail    | examples/kubernetes/service.yaml | data.main.warn                 | | | Enter data.main.name       |" ]]
 }
 
 @test "Test command with all namespaces flag" {

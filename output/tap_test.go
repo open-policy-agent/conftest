@@ -7,70 +7,56 @@ import (
 )
 
 func TestTAP(t *testing.T) {
-	type args struct {
-		cr CheckResult
-	}
-
 	tests := []struct {
-		msg  string
-		args args
-		exp  string
+		name     string
+		input    CheckResult
+		expected string
 	}{
 		{
-			msg: "no warnings or errors",
-			args: args{
-				cr: CheckResult{
-					FileName: "examples/kubernetes/service.yaml",
-				},
-			},
-			exp: "",
+			name:     "no warnings or errors",
+			input:    CheckResult{FileName: "examples/kubernetes/service.yaml"},
+			expected: "",
 		},
 		{
-			msg: "records failure and warnings",
-			args: args{
-				cr: CheckResult{
-					FileName: "examples/kubernetes/service.yaml",
-					Warnings: []Result{NewResult("first warning", []error{})},
-					Failures: []Result{NewResult("first failure", []error{})},
-				},
+			name: "records failure and warnings",
+			input: CheckResult{
+				FileName: "examples/kubernetes/service.yaml",
+				Warnings: []Result{{Message: "first warning"}},
+				Failures: []Result{{Message: "first failure"}},
 			},
-			exp: `1..2
+			expected: `1..2
 not ok 1 - examples/kubernetes/service.yaml - first failure
-# Warnings
+# warnings
 not ok 2 - examples/kubernetes/service.yaml - first warning
 `,
 		},
 		{
-			msg: "mixed failure and warnings",
-			args: args{
-				cr: CheckResult{
-					FileName: "examples/kubernetes/service.yaml",
-					Failures: []Result{NewResult("first failure", []error{})},
-				},
+			name: "mixed failure and warnings",
+			input: CheckResult{
+				FileName: "examples/kubernetes/service.yaml",
+				Failures: []Result{{Message: "first failure"}},
 			},
-			exp: `1..1
+			expected: `1..1
 not ok 1 - examples/kubernetes/service.yaml - first failure
 `,
 		},
 		{
-			msg: "handles stdin input",
-			args: args{
-				cr: CheckResult{
-					FileName: "-",
-					Failures: []Result{NewResult("first failure", []error{})},
-				},
+			name: "handles stdin input",
+			input: CheckResult{
+				FileName: "-",
+				Failures: []Result{{Message: "first failure"}},
 			},
-			exp: `1..1
+			expected: `1..1
 not ok 1 - first failure
 `,
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.msg, func(t *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			buf := new(bytes.Buffer)
 			s := NewTAPOutputManager(log.New(buf, "", 0))
 
-			if err := s.Put(tt.args.cr); err != nil {
+			if err := s.Put(tt.input); err != nil {
 				t.Fatalf("put output: %v", err)
 			}
 
@@ -79,9 +65,8 @@ not ok 1 - first failure
 			}
 
 			actual := buf.String()
-
-			if tt.exp != actual {
-				t.Errorf("unexpected output. expected %v actual %v", tt.exp, actual)
+			if tt.expected != actual {
+				t.Errorf("unexpected output. expected %v actual %v", tt.expected, actual)
 			}
 		})
 	}

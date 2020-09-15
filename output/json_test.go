@@ -7,41 +7,34 @@ import (
 )
 
 func TestJSON(t *testing.T) {
-	type args struct {
-		fileName string
-		crs      []CheckResult
-	}
-
 	tests := []struct {
-		msg  string
-		args args
-		exp  string
+		name     string
+		input    []CheckResult
+		expected string
 	}{
 		{
-			msg: "no Warnings or errors",
-			args: args{
-				crs: []CheckResult{{FileName: "examples/kubernetes/service.yaml"}},
+			name: "no warnings or errors",
+			input: []CheckResult{
+				{FileName: "examples/kubernetes/service.yaml"},
 			},
-			exp: `[
+			expected: `[
 	{
 		"filename": "examples/kubernetes/service.yaml",
-		"successes": 0,
-		"warnings": [],
-		"failures": []
+		"successes": 0
 	}
 ]
 `,
 		},
 		{
-			msg: "records failure and Warnings",
-			args: args{
-				crs: []CheckResult{{
+			name: "records failures and warnings",
+			input: []CheckResult{
+				{
 					FileName: "examples/kubernetes/service.yaml",
-					Warnings: []Result{NewResult("first warning", []error{})},
-					Failures: []Result{NewResult("first failure", []error{})},
-				}},
+					Warnings: []Result{{Message: "first warning"}},
+					Failures: []Result{{Message: "first failure"}},
+				},
 			},
-			exp: `[
+			expected: `[
 	{
 		"filename": "examples/kubernetes/service.yaml",
 		"successes": 0,
@@ -60,18 +53,17 @@ func TestJSON(t *testing.T) {
 `,
 		},
 		{
-			msg: "mixed failure and Warnings",
-			args: args{
-				crs: []CheckResult{{
+			name: "mixed failure and Warnings",
+			input: []CheckResult{
+				{
 					FileName: "examples/kubernetes/service.yaml",
-					Failures: []Result{NewResult("first failure", []error{})},
-				}},
+					Failures: []Result{{Message: "first failure"}},
+				},
 			},
-			exp: `[
+			expected: `[
 	{
 		"filename": "examples/kubernetes/service.yaml",
 		"successes": 0,
-		"warnings": [],
 		"failures": [
 			{
 				"msg": "first failure"
@@ -82,18 +74,17 @@ func TestJSON(t *testing.T) {
 `,
 		},
 		{
-			msg: "handles stdin input",
-			args: args{
-				fileName: "-",
-				crs: []CheckResult{{
-					Failures: []Result{NewResult("first failure", []error{})}},
+			name: "handles stdin input",
+			input: []CheckResult{
+				{
+					FileName: "-",
+					Failures: []Result{{Message: "first failure"}},
 				},
 			},
-			exp: `[
+			expected: `[
 	{
 		"filename": "",
 		"successes": 0,
-		"warnings": [],
 		"failures": [
 			{
 				"msg": "first failure"
@@ -104,36 +95,31 @@ func TestJSON(t *testing.T) {
 `,
 		},
 		{
-			msg: "multiple check results",
-			args: args{
-				crs: []CheckResult{
-					{FileName: "examples/kubernetes/service.yaml"},
-					{FileName: "examples/kubernetes/deployment.yaml"},
-				},
+			name: "multiple check results",
+			input: []CheckResult{
+				{FileName: "examples/kubernetes/service.yaml"},
+				{FileName: "examples/kubernetes/deployment.yaml"},
 			},
-			exp: `[
+			expected: `[
 	{
 		"filename": "examples/kubernetes/service.yaml",
-		"successes": 0,
-		"warnings": [],
-		"failures": []
+		"successes": 0
 	},
 	{
 		"filename": "examples/kubernetes/deployment.yaml",
-		"successes": 0,
-		"warnings": [],
-		"failures": []
+		"successes": 0
 	}
 ]
 `,
 		},
 	}
+
 	for _, tt := range tests {
-		t.Run(tt.msg, func(t *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			buf := new(bytes.Buffer)
 			s := NewJSONOutputManager(log.New(buf, "", 0))
 
-			for _, cr := range tt.args.crs {
+			for _, cr := range tt.input {
 				if err := s.Put(cr); err != nil {
 					t.Fatalf("put output: %v", err)
 				}
@@ -144,9 +130,8 @@ func TestJSON(t *testing.T) {
 			}
 
 			actual := buf.String()
-
-			if tt.exp != actual {
-				t.Errorf("unexpected output. expected %v got %v", tt.exp, actual)
+			if tt.expected != actual {
+				t.Errorf("unexpected output. expected %v got %v", tt.expected, actual)
 			}
 		})
 	}

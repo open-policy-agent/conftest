@@ -38,7 +38,7 @@ func TestException(t *testing.T) {
 	}
 
 	const expectedSuccesses = 0
-	actualSuccesses := len(results[0].Successes)
+	actualSuccesses := results[0].Successes
 	if actualSuccesses != expectedSuccesses {
 		t.Errorf("Multifile yaml test failure. Got %v success, expected %v", actualSuccesses, expectedSuccesses)
 	}
@@ -86,7 +86,7 @@ func TestMultifileYaml(t *testing.T) {
 	}
 
 	const expectedSuccesses = 5
-	actualSuccesses := len(results[0].Successes)
+	actualSuccesses := results[0].Successes
 	if actualSuccesses != expectedSuccesses {
 		t.Errorf("Multifile yaml test failure. Got %v successes, expected %v", actualSuccesses, expectedSuccesses)
 	}
@@ -123,7 +123,7 @@ func TestDockerfile(t *testing.T) {
 	}
 
 	const expectedSuccesses = 0
-	actualSuccesses := len(results[0].Successes)
+	actualSuccesses := results[0].Successes
 	if actualSuccesses != expectedSuccesses {
 		t.Errorf("Dockerfile test failure. Got %v successes, expected %v", actualSuccesses, expectedSuccesses)
 	}

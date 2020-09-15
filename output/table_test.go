@@ -6,34 +6,26 @@ import (
 )
 
 func TestTable(t *testing.T) {
-	type args struct {
-		cr CheckResult
-	}
-
 	tests := []struct {
-		msg  string
-		args args
-		exp  string
+		name     string
+		input    CheckResult
+		expected string
 	}{
 		{
-			msg: "no warnings or errors",
-			args: args{
-				cr: CheckResult{
-					FileName: "examples/kubernetes/service.yaml",
-				},
+			name: "no warnings or errors",
+			input: CheckResult{
+				FileName: "examples/kubernetes/service.yaml",
 			},
-			exp: "",
+			expected: "",
 		},
 		{
-			msg: "records failure and warnings",
-			args: args{
-				cr: CheckResult{
-					FileName: "examples/kubernetes/service.yaml",
-					Warnings: []Result{NewResult("first warning", []error{})},
-					Failures: []Result{NewResult("first failure", []error{})},
-				},
+			name: "records failure and warnings",
+			input: CheckResult{
+				FileName: "examples/kubernetes/service.yaml",
+				Warnings: []Result{{Message: "first warning"}},
+				Failures: []Result{{Message: "first failure"}},
 			},
-			exp: `+---------+----------------------------------+---------------+
+			expected: `+---------+----------------------------------+---------------+
 | RESULT  |               FILE               |    MESSAGE    |
 +---------+----------------------------------+---------------+
 | warning | examples/kubernetes/service.yaml | first warning |
@@ -43,11 +35,11 @@ func TestTable(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.msg, func(t *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			buf := new(bytes.Buffer)
 			s := NewTableOutputManager(buf)
 
-			if err := s.Put(tt.args.cr); err != nil {
+			if err := s.Put(tt.input); err != nil {
 				t.Fatalf("put output: %v", err)
 			}
 
@@ -57,8 +49,8 @@ func TestTable(t *testing.T) {
 
 			actual := buf.String()
 
-			if tt.exp != actual {
-				t.Errorf("unexpected output. expected %v actual %v", tt.exp, actual)
+			if tt.expected != actual {
+				t.Errorf("unexpected output. expected %v actual %v", tt.expected, actual)
 			}
 		})
 	}
