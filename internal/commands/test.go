@@ -138,7 +138,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().BoolP("trace", "", false, "Enable more verbose trace output for Rego queries")
 	cmd.Flags().Bool("no-color", false, "Disable color when printing")
 	cmd.Flags().Bool("all-namespaces", false, "Test policies found in all namespaces")
-	cmd.Flags().BoolP("combine", "", false, "Combine all config files to be evaluated together")
+	cmd.Flags().Bool("combine", false, "Combine all config files to be evaluated together")
 
 	cmd.Flags().String("ignore", "", "A regex pattern which can be used for ignoring paths")
 	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("Output format for conftest results - valid options are: %s", output.ValidOutputs()))

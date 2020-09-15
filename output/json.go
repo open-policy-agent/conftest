@@ -7,23 +7,27 @@ import (
 	"os"
 )
 
-type jsonResult struct {
+// JSONResult represents the result of a single policy evaluation
+// represented in JSON.
+type JSONResult struct {
 	Message  string                 `json:"msg"`
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
 	Traces   []string               `json:"traces,omitempty"`
 }
 
-type jsonCheckResult struct {
+// JSONCheckResult represents the result of checking a
+// given configuration for policy violations.
+type JSONCheckResult struct {
 	Filename  string       `json:"filename"`
 	Successes int          `json:"successes"`
-	Warnings  []jsonResult `json:"warnings"`
-	Failures  []jsonResult `json:"failures"`
+	Warnings  []JSONResult `json:"warnings"`
+	Failures  []JSONResult `json:"failures"`
 }
 
 // JSONOutputManager formats its output to JSON.
 type JSONOutputManager struct {
 	logger  *log.Logger
-	data    []jsonCheckResult
+	data    []JSONCheckResult
 	tracing bool
 }
 
@@ -51,15 +55,15 @@ func (j *JSONOutputManager) Put(cr CheckResult) error {
 		cr.FileName = ""
 	}
 
-	result := jsonCheckResult{
+	result := JSONCheckResult{
 		Filename:  cr.FileName,
 		Successes: 0,
-		Warnings:  []jsonResult{},
-		Failures:  []jsonResult{},
+		Warnings:  []JSONResult{},
+		Failures:  []JSONResult{},
 	}
 
 	for _, warning := range cr.Warnings {
-		jsonResult := jsonResult{
+		jsonResult := JSONResult{
 			Message:  warning.Message,
 			Metadata: warning.Metadata,
 		}
@@ -72,7 +76,7 @@ func (j *JSONOutputManager) Put(cr CheckResult) error {
 	}
 
 	for _, failure := range cr.Failures {
-		jsonResult := jsonResult{
+		jsonResult := JSONResult{
 			Message:  failure.Message,
 			Metadata: failure.Metadata,
 		}
