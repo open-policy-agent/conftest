@@ -48,7 +48,7 @@ func (e *Engine) Check(ctx context.Context, configs map[string]interface{}, name
 					return nil, fmt.Errorf("check: %w", err)
 				}
 
-				checkResult.Successes++
+				checkResult.Successes = checkResult.Successes + result.Successes
 				checkResult.Failures = append(checkResult.Failures, result.Failures...)
 				checkResult.Warnings = append(checkResult.Warnings, result.Warnings...)
 				checkResult.Exceptions = append(checkResult.Exceptions, result.Exceptions...)
@@ -197,12 +197,12 @@ func (e *Engine) check(ctx context.Context, path string, config interface{}, nam
 			return output.CheckResult{}, fmt.Errorf("query input: %w", err)
 		}
 
-		var successes []output.Result
+		var successes int
 		var failures []output.Result
 		var warnings []output.Result
 		for _, ruleResult := range ruleResults {
 			if ruleResult.Message == "" {
-				successes = append(successes, ruleResult)
+				successes++
 				continue
 			}
 
@@ -223,11 +223,11 @@ func (e *Engine) check(ctx context.Context, path string, config interface{}, nam
 		// To get the true number of successes, add up the total number of evaluations
 		// that exist and add success results until the number of evaluations is the
 		// same as the number of evaluated rules.
-		for i := len(successes) + len(failures) + len(warnings) + len(exceptions); i < count; i++ {
-			successes = append(successes, output.Result{})
+		for i := successes + len(failures) + len(warnings) + len(exceptions); i < count; i++ {
+			successes++
 		}
 
-		checkResult.Successes++
+		checkResult.Successes = checkResult.Successes + successes
 		checkResult.Failures = append(checkResult.Failures, failures...)
 		checkResult.Warnings = append(checkResult.Warnings, warnings...)
 		checkResult.Exceptions = append(checkResult.Exceptions, exceptions...)
