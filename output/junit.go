@@ -46,8 +46,8 @@ func (j *JUnitOutputManager) Put(cr CheckResult) error {
 		out := []string{
 			r.Message,
 		}
-		for _, err := range r.Traces {
-			out = append(out, err.Error())
+		for _, trace := range r.Traces {
+			out = append(out, trace)
 		}
 		return out
 	}

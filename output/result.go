@@ -6,7 +6,7 @@ import "fmt"
 type Result struct {
 	Message  string                 `json:"msg"`
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
-	Traces   []error                `json:"traces,omitempty"`
+	Traces   []string               `json:"traces,omitempty"`
 }
 
 // CheckResult describes the result of a conftest policy evaluation.
@@ -25,7 +25,7 @@ func NewResult(message string, traces []error) Result {
 	result := Result{
 		Message:  message,
 		Metadata: make(map[string]interface{}),
-		Traces:   traces,
+		Traces:   errsToStrings(traces),
 	}
 
 	return result
@@ -93,4 +93,13 @@ func ExitCodeFailOnWarn(results []CheckResult) int {
 	}
 
 	return 0
+}
+
+func errsToStrings(errs []error) []string {
+	res := []string{}
+	for _, err := range errs {
+		res = append(res, err.Error())
+	}
+
+	return res
 }

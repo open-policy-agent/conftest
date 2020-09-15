@@ -44,7 +44,7 @@ func (t *TAPOutputManager) Put(cr CheckResult) error {
 		if len(r.Traces) > 0 && t.tracing {
 			t.logger.Print("# Traces")
 			for j, trace := range r.Traces {
-				t.logger.Print("trace ", counter, j+1, indicator, trace.Error())
+				t.logger.Print("trace ", counter, j+1, indicator, trace)
 			}
 		}
 	}

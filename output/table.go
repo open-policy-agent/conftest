@@ -41,7 +41,7 @@ func (t *TableOutputManager) Put(cr CheckResult) error {
 
 		if t.tracing {
 			for _, trace := range r.Traces {
-				dt := []string{"trace", filename, trace.Error()}
+				dt := []string{"trace", filename, trace}
 				t.table.Append(dt)
 			}
 		}
