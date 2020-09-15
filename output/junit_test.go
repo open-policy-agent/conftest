@@ -21,7 +21,7 @@ func TestJUnit(t *testing.T) {
 			msg: "no warnings or errors",
 			args: args{
 				cr: CheckResult{
-					FileName: "examples/kubernetes/service.yaml",
+					Filename: "examples/kubernetes/service.yaml",
 				},
 			},
 			exp: "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<testsuites>\n\t<testsuite tests=\"0\" failures=\"0\" time=\"0.000\" name=\"conftest\">\n\t\t<properties>\n\t\t\t<property name=\"go.version\" value=\"%s\"></property>\n\t\t</properties>\n\t</testsuite>\n</testsuites>\n",
@@ -30,7 +30,7 @@ func TestJUnit(t *testing.T) {
 			msg: "records failure and warnings",
 			args: args{
 				cr: CheckResult{
-					FileName: "examples/kubernetes/service.yaml",
+					Filename: "examples/kubernetes/service.yaml",
 					Warnings: []Result{NewResult("first warning", []error{})},
 					Failures: []Result{NewResult("first failure", []error{
 						fmt.Errorf("this is an error"),
@@ -43,7 +43,7 @@ func TestJUnit(t *testing.T) {
 			msg: "records failure with long description",
 			args: args{
 				cr: CheckResult{
-					FileName: "examples/kubernetes/service.yaml",
+					Filename: "examples/kubernetes/service.yaml",
 					Warnings: []Result{NewResult("first warning", []error{})},
 					Failures: []Result{NewResult(`failure with long message
 

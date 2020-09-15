@@ -20,7 +20,7 @@ func TestTAP(t *testing.T) {
 			msg: "no warnings or errors",
 			args: args{
 				cr: CheckResult{
-					FileName: "examples/kubernetes/service.yaml",
+					Filename: "examples/kubernetes/service.yaml",
 				},
 			},
 			exp: "",
@@ -29,7 +29,7 @@ func TestTAP(t *testing.T) {
 			msg: "records failure and warnings",
 			args: args{
 				cr: CheckResult{
-					FileName: "examples/kubernetes/service.yaml",
+					Filename: "examples/kubernetes/service.yaml",
 					Warnings: []Result{NewResult("first warning", []error{})},
 					Failures: []Result{NewResult("first failure", []error{})},
 				},
@@ -44,7 +44,7 @@ not ok 2 - examples/kubernetes/service.yaml - first warning
 			msg: "mixed failure and warnings",
 			args: args{
 				cr: CheckResult{
-					FileName: "examples/kubernetes/service.yaml",
+					Filename: "examples/kubernetes/service.yaml",
 					Failures: []Result{NewResult("first failure", []error{})},
 				},
 			},
@@ -56,7 +56,7 @@ not ok 1 - examples/kubernetes/service.yaml - first failure
 			msg: "handles stdin input",
 			args: args{
 				cr: CheckResult{
-					FileName: "-",
+					Filename: "-",
 					Failures: []Result{NewResult("first failure", []error{})},
 				},
 			},

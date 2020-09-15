@@ -7,27 +7,10 @@ import (
 	"os"
 )
 
-// JSONResult represents the result of a single policy evaluation
-// represented in JSON.
-type JSONResult struct {
-	Message  string                 `json:"msg"`
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
-	Traces   []string               `json:"traces,omitempty"`
-}
-
-// JSONCheckResult represents the result of checking a
-// given configuration for policy violations.
-type JSONCheckResult struct {
-	Filename  string       `json:"filename"`
-	Successes int          `json:"successes"`
-	Warnings  []JSONResult `json:"warnings"`
-	Failures  []JSONResult `json:"failures"`
-}
-
 // JSONOutputManager formats its output to JSON.
 type JSONOutputManager struct {
 	logger  *log.Logger
-	data    []JSONCheckResult
+	data    []CheckResult
 	tracing bool
 }
 
@@ -51,45 +34,59 @@ func (j *JSONOutputManager) WithTracing() OutputManager {
 
 // Put puts the result of the check to the manager in the managers buffer.
 func (j *JSONOutputManager) Put(cr CheckResult) error {
-	if cr.FileName == "-" {
-		cr.FileName = ""
+	if cr.Filename == "-" {
+		cr.Filename = ""
 	}
 
-	result := JSONCheckResult{
-		Filename:  cr.FileName,
-		Successes: 0,
-		Warnings:  []JSONResult{},
-		Failures:  []JSONResult{},
+	checkResult := CheckResult{
+		Filename:   cr.Filename,
+		Successes:  0,
+		Warnings:   []Result{},
+		Failures:   []Result{},
+		Exceptions: []Result{},
 	}
 
 	for _, warning := range cr.Warnings {
-		jsonResult := JSONResult{
+		result := Result{
 			Message:  warning.Message,
 			Metadata: warning.Metadata,
 		}
 
 		if j.tracing {
-			jsonResult.Traces = errsToStrings(warning.Traces)
+			result.Traces = warning.Traces
 		}
 
-		result.Warnings = append(result.Warnings, jsonResult)
+		checkResult.Warnings = append(checkResult.Warnings, result)
 	}
 
 	for _, failure := range cr.Failures {
-		jsonResult := JSONResult{
+		result := Result{
 			Message:  failure.Message,
 			Metadata: failure.Metadata,
 		}
 
 		if j.tracing {
-			jsonResult.Traces = errsToStrings(failure.Traces)
+			result.Traces = failure.Traces
 		}
 
-		result.Failures = append(result.Failures, jsonResult)
+		checkResult.Failures = append(checkResult.Failures, result)
 	}
 
-	result.Successes = len(cr.Successes)
-	j.data = append(j.data, result)
+	for _, exception := range cr.Exceptions {
+		result := Result{
+			Message:  exception.Message,
+			Metadata: exception.Metadata,
+		}
+
+		if j.tracing {
+			result.Traces = exception.Traces
+		}
+
+		checkResult.Exceptions = append(checkResult.Exceptions, result)
+	}
+
+	checkResult.Successes = cr.Successes
+	j.data = append(j.data, checkResult)
 
 	return nil
 }
@@ -109,13 +106,4 @@ func (j *JSONOutputManager) Flush() error {
 
 	j.logger.Print(out.String())
 	return nil
-}
-
-func errsToStrings(errs []error) []string {
-	res := []string{}
-	for _, err := range errs {
-		res = append(res, err.Error())
-	}
-
-	return res
 }

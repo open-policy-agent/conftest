@@ -47,16 +47,16 @@ func (t *TableOutputManager) Put(cr CheckResult) error {
 		}
 	}
 
-	for _, r := range cr.Successes {
-		printResults(r, "success", cr.FileName)
+	for i := 0; i < cr.Successes; i++ {
+		printResults(Result{}, "success", cr.Filename)
 	}
 
 	for _, r := range cr.Warnings {
-		printResults(r, "warning", cr.FileName)
+		printResults(r, "warning", cr.Filename)
 	}
 
 	for _, r := range cr.Failures {
-		printResults(r, "failure", cr.FileName)
+		printResults(r, "failure", cr.Filename)
 	}
 
 	return nil

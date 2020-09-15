@@ -54,14 +54,12 @@ func (r *VerifyRunner) Run(ctx context.Context) ([]output.CheckResult, error) {
 		}
 
 		checkResult := output.CheckResult{
-			FileName: result.Location.File,
+			Filename: result.Location.File,
 		}
-
-		resultMessage := []output.Result{output.NewResult(result.Package+"."+result.Name, traces)}
 		if result.Fail {
-			checkResult.Failures = resultMessage
+			checkResult.Failures = []output.Result{output.NewResult(result.Package+"."+result.Name, traces)}
 		} else {
-			checkResult.Successes = resultMessage
+			checkResult.Successes++
 		}
 
 		results = append(results, checkResult)

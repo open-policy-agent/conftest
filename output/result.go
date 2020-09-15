@@ -2,11 +2,22 @@ package output
 
 import "fmt"
 
-// Result describes the result of a single rule evaluation.
+// Result represents the result of a single policy evaluation.
 type Result struct {
-	Message  string
-	Metadata map[string]interface{}
-	Traces   []error
+	Message  string                 `json:"msg"`
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Traces   []error                `json:"traces,omitempty"`
+}
+
+// CheckResult describes the result of a conftest policy evaluation.
+// Errors produced by rego should be considered separate
+// from other classes of exceptions.
+type CheckResult struct {
+	Filename   string   `json:"filename"`
+	Successes  int      `json:"successes"`
+	Warnings   []Result `json:"warnings"`
+	Failures   []Result `json:"failures"`
+	Exceptions []Result `json:"exceptions"`
 }
 
 // NewResult creates a new result from the given message.
@@ -38,17 +49,6 @@ func NewResultWithMetadata(metadata map[string]interface{}, traces []error) (Res
 	}
 
 	return result, nil
-}
-
-// CheckResult describes the result of a conftest policy evaluation.
-// Errors produced by rego should be considered separate
-// from other classes of exceptions.
-type CheckResult struct {
-	FileName   string
-	Warnings   []Result
-	Failures   []Result
-	Exceptions []Result
-	Successes  []Result
 }
 
 // ExitCode returns the exit code that should be returned

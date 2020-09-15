@@ -51,11 +51,12 @@ func (j *JUnitOutputManager) Put(cr CheckResult) error {
 		}
 		return out
 	}
+
 	convert := func(r Result, status parser.Result) *parser.Test {
 		// We have to make sure that the name of the test is unique
 		name := fmt.Sprintf(
 			"%s - %s",
-			cr.FileName,
+			cr.Filename,
 			strings.Split(r.Message, "\n")[0],
 		)
 
@@ -69,12 +70,15 @@ func (j *JUnitOutputManager) Put(cr CheckResult) error {
 	for _, result := range cr.Warnings {
 		j.p.Tests = append(j.p.Tests, convert(result, parser.FAIL))
 	}
+
 	for _, result := range cr.Failures {
 		j.p.Tests = append(j.p.Tests, convert(result, parser.FAIL))
 	}
-	for _, result := range cr.Successes {
-		j.p.Tests = append(j.p.Tests, convert(result, parser.PASS))
+
+	for i := 0; i < cr.Successes; i++ {
+		j.p.Tests = append(j.p.Tests, convert(Result{}, parser.PASS))
 	}
+
 	return nil
 }
 

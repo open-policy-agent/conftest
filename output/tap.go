@@ -33,10 +33,10 @@ func (t *TAPOutputManager) WithTracing() OutputManager {
 // Put puts the result of the check to the manager in the managers buffer
 func (t *TAPOutputManager) Put(cr CheckResult) error {
 	var indicator string
-	if cr.FileName == "-" {
+	if cr.Filename == "-" {
 		indicator = " - "
 	} else {
-		indicator = fmt.Sprintf(" - %s - ", cr.FileName)
+		indicator = fmt.Sprintf(" - %s - ", cr.Filename)
 	}
 
 	printResults := func(r Result, prefix string, counter int) {
@@ -49,13 +49,14 @@ func (t *TAPOutputManager) Put(cr CheckResult) error {
 		}
 	}
 
-	issues := len(cr.Failures) + len(cr.Warnings) + len(cr.Successes)
+	issues := len(cr.Failures) + len(cr.Warnings) + cr.Successes
 	if issues > 0 {
 		t.logger.Print(fmt.Sprintf("1..%d", issues))
 		for i, r := range cr.Failures {
 			printResults(r, "not ok ", i+1)
 
 		}
+
 		if len(cr.Warnings) > 0 {
 			t.logger.Print("# Warnings")
 			for i, r := range cr.Warnings {
@@ -63,11 +64,12 @@ func (t *TAPOutputManager) Put(cr CheckResult) error {
 				printResults(r, "not ok ", counter)
 			}
 		}
-		if len(cr.Successes) > 0 {
+
+		if cr.Successes > 0 {
 			t.logger.Print("# Successes")
-			for i, r := range cr.Successes {
+			for i := 0; i < cr.Successes; i++ {
 				counter := i + 1 + len(cr.Failures) + len(cr.Warnings)
-				printResults(r, "ok ", counter)
+				printResults(Result{}, "not ok ", counter)
 			}
 		}
 	}

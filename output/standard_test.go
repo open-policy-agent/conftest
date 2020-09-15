@@ -23,7 +23,7 @@ func TestStandard(t *testing.T) {
 			msg: "records failure and Warnings",
 			args: args{
 				cr: CheckResult{
-					FileName: "foo.yaml",
+					Filename: "foo.yaml",
 					Warnings: []Result{NewResult("first warning", []error{})},
 					Failures: []Result{NewResult("first failure", []error{})},
 				},
@@ -39,7 +39,7 @@ func TestStandard(t *testing.T) {
 			msg: "skips filenames for stdin",
 			args: args{
 				cr: CheckResult{
-					FileName: "-",
+					Filename: "-",
 					Warnings: []Result{NewResult("first warning", []error{})},
 					Failures: []Result{NewResult("first failure", []error{})},
 				},

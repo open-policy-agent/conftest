@@ -50,13 +50,13 @@ func (s *StandardOutputManager) Flush() error {
 
 	for _, cr := range s.results {
 		var indicator string
-		if cr.FileName == "-" {
+		if cr.Filename == "-" {
 			indicator = " - "
 		} else {
-			indicator = fmt.Sprintf(" - %s - ", cr.FileName)
+			indicator = fmt.Sprintf(" - %s - ", cr.Filename)
 		}
 
-		currentPolicies := len(cr.Successes) + len(cr.Warnings) + len(cr.Failures) + len(cr.Exceptions)
+		currentPolicies := cr.Successes + len(cr.Warnings) + len(cr.Failures) + len(cr.Exceptions)
 		if currentPolicies == 0 {
 			s.logger.Print(s.color.Colorize("?", aurora.WhiteFg), indicator, "no policies found")
 			continue
@@ -72,9 +72,9 @@ func (s *StandardOutputManager) Flush() error {
 
 		}
 
-		for _, r := range cr.Successes {
-			if s.tracing && len(r.Traces) > 0 {
-				printResults(r, "PASS", aurora.GreenFg)
+		for i := 0; i < cr.Successes; i++ {
+			if s.tracing {
+				printResults(Result{}, "PASS", aurora.GreenFg)
 			}
 		}
 
@@ -93,7 +93,7 @@ func (s *StandardOutputManager) Flush() error {
 		totalFailures += len(cr.Failures)
 		totalExceptions += len(cr.Exceptions)
 		totalWarnings += len(cr.Warnings)
-		totalSuccesses += len(cr.Successes)
+		totalSuccesses += cr.Successes
 	}
 
 	totalPolicies := totalFailures + totalExceptions + totalWarnings + totalSuccesses

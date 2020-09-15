@@ -19,7 +19,7 @@ func TestTable(t *testing.T) {
 			msg: "no warnings or errors",
 			args: args{
 				cr: CheckResult{
-					FileName: "examples/kubernetes/service.yaml",
+					Filename: "examples/kubernetes/service.yaml",
 				},
 			},
 			exp: "",
@@ -28,7 +28,7 @@ func TestTable(t *testing.T) {
 			msg: "records failure and warnings",
 			args: args{
 				cr: CheckResult{
-					FileName: "examples/kubernetes/service.yaml",
+					Filename: "examples/kubernetes/service.yaml",
 					Warnings: []Result{NewResult("first warning", []error{})},
 					Failures: []Result{NewResult("first failure", []error{})},
 				},

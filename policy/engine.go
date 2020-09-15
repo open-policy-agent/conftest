@@ -40,7 +40,7 @@ func (e *Engine) Check(ctx context.Context, configs map[string]interface{}, name
 		if subconfigs, exist := config.([]interface{}); exist {
 
 			checkResult := output.CheckResult{
-				FileName: path,
+				Filename: path,
 			}
 			for _, subconfig := range subconfigs {
 				result, err := e.check(ctx, path, subconfig, namespace)
@@ -48,7 +48,7 @@ func (e *Engine) Check(ctx context.Context, configs map[string]interface{}, name
 					return nil, fmt.Errorf("check: %w", err)
 				}
 
-				checkResult.Successes = append(checkResult.Successes, result.Successes...)
+				checkResult.Successes++
 				checkResult.Failures = append(checkResult.Failures, result.Failures...)
 				checkResult.Warnings = append(checkResult.Warnings, result.Warnings...)
 				checkResult.Exceptions = append(checkResult.Exceptions, result.Exceptions...)
@@ -168,7 +168,7 @@ func (e *Engine) check(ctx context.Context, path string, config interface{}, nam
 	}
 
 	checkResult := output.CheckResult{
-		FileName: path,
+		Filename: path,
 	}
 	for rule, count := range rules {
 		exceptionQuery := fmt.Sprintf("data.%s.exception[_][_] == %q", namespace, removeFailurePrefix(rule))
@@ -227,7 +227,7 @@ func (e *Engine) check(ctx context.Context, path string, config interface{}, nam
 			successes = append(successes, output.Result{})
 		}
 
-		checkResult.Successes = append(checkResult.Successes, successes...)
+		checkResult.Successes++
 		checkResult.Failures = append(checkResult.Failures, failures...)
 		checkResult.Warnings = append(checkResult.Warnings, warnings...)
 		checkResult.Exceptions = append(checkResult.Exceptions, exceptions...)
