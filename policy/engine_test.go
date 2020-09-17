@@ -10,7 +10,7 @@ import (
 func TestException(t *testing.T) {
 	ctx := context.Background()
 
-	regoFiles := []string{"../examples/exceptions/policy"}
+	regoFiles := []string{"../testdata/exceptions/policy"}
 	loader := Loader{
 		PolicyPaths: regoFiles,
 	}
@@ -20,7 +20,7 @@ func TestException(t *testing.T) {
 		t.Fatalf("loading policies: %v", err)
 	}
 
-	configFiles := []string{"../examples/exceptions/deployments.yaml"}
+	configFiles := []string{"../testdata/exceptions/deployments.yaml"}
 	configs, err := parser.ParseConfigurations(configFiles)
 	if err != nil {
 		t.Fatalf("loading configs: %v", err)
@@ -53,7 +53,7 @@ func TestException(t *testing.T) {
 func TestMultifileYaml(t *testing.T) {
 	ctx := context.Background()
 
-	regoFiles := []string{"../examples/kubernetes/policy"}
+	regoFiles := []string{"../testdata/kubernetes/policy"}
 	loader := Loader{
 		PolicyPaths: regoFiles,
 	}
@@ -62,7 +62,7 @@ func TestMultifileYaml(t *testing.T) {
 		t.Fatalf("loading policies: %v", err)
 	}
 
-	configFiles := []string{"../examples/kubernetes/deployment+service.yaml"}
+	configFiles := []string{"../testdata/kubernetes/deployment+service.yaml"}
 	configs, err := parser.ParseConfigurations(configFiles)
 	if err != nil {
 		t.Fatalf("loading configs: %v", err)
@@ -95,7 +95,7 @@ func TestMultifileYaml(t *testing.T) {
 func TestDockerfile(t *testing.T) {
 	ctx := context.Background()
 
-	regoFiles := []string{"../examples/docker/policy"}
+	regoFiles := []string{"../testdata/docker/policy"}
 	loader := Loader{
 		PolicyPaths: regoFiles,
 	}
@@ -105,7 +105,7 @@ func TestDockerfile(t *testing.T) {
 		t.Fatalf("loading policies: %v", err)
 	}
 
-	configFiles := []string{"../examples/docker/Dockerfile"}
+	configFiles := []string{"../testdata/docker/Dockerfile"}
 	configs, err := parser.ParseConfigurations(configFiles)
 	if err != nil {
 		t.Fatalf("loading configs: %v", err)
