@@ -13,7 +13,6 @@ import (
 	"github.com/open-policy-agent/conftest/parser"
 
 	"github.com/open-policy-agent/opa/ast"
-	"github.com/open-policy-agent/opa/loader"
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/storage"
 	"github.com/open-policy-agent/opa/topdown"
@@ -22,7 +21,7 @@ import (
 
 // Engine represents the policy engine.
 type Engine struct {
-	result   *loader.Result
+	modules  map[string]*ast.Module
 	compiler *ast.Compiler
 	store    storage.Store
 	docs     map[string]string
@@ -108,8 +107,8 @@ func (e *Engine) Documents() map[string]string {
 // and its value is the raw contents of the loaded policy.
 func (e *Engine) Policies() map[string]string {
 	policies := make(map[string]string)
-	for m := range e.result.Modules {
-		policies[e.result.Modules[m].Name] = string(e.result.Modules[m].Raw)
+	for path, module := range e.Modules() {
+		policies[path] = module.String()
 	}
 
 	return policies
@@ -127,7 +126,7 @@ func (e *Engine) Store() storage.Store {
 
 // Modules returns the modules from the loaded policies.
 func (e *Engine) Modules() map[string]*ast.Module {
-	return e.result.ParsedModules()
+	return e.modules
 }
 
 // Runtime returns the runtime of the engine.
