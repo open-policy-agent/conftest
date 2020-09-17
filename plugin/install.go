@@ -105,7 +105,7 @@ func installFromURL(ctx context.Context, url string) error {
 		return fmt.Errorf("remove old plugin: %w", err)
 	}
 	if err := os.Rename(tempDirectory, plugin.Directory()); err != nil {
-		return fmt.Errorf("create plugin dir: %w", err)
+		return fmt.Errorf("rename temp dir: %w", err)
 	}
 
 	return nil

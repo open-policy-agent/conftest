@@ -8,10 +8,10 @@ import (
 	"github.com/go-ini/ini"
 )
 
-// Parser is an INI parser
+// Parser is an INI parser.
 type Parser struct{}
 
-// Unmarshal unmarshals INI files
+// Unmarshal unmarshals INI files.
 func (i *Parser) Unmarshal(p []byte, v interface{}) error {
 	cfg, err := ini.Load(p)
 	if err != nil {

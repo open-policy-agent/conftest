@@ -6,10 +6,10 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-// Parser is a TOML parser
+// Parser is a TOML parser.
 type Parser struct{}
 
-// Unmarshal unmarshals TOML files
+// Unmarshal unmarshals TOML files.
 func (tp *Parser) Unmarshal(p []byte, v interface{}) error {
 	if err := toml.Unmarshal(p, v); err != nil {
 		return fmt.Errorf("unmarshal toml: %w", err)

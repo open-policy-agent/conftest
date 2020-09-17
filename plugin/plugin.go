@@ -54,20 +54,21 @@ func FindAll() ([]*Plugin, error) {
 
 	var plugins []*Plugin
 	for _, file := range files {
-
-		// When installing a plugin from a URL
-		// the result will be a directory in the cache.
-		//
-		// When installing a plugin from a directory
-		// the directory will be added to the cache as a symlink.
-		if file.IsDir() || file.Mode()&os.ModeSymlink != 0 {
-			plugin, err := Load(file.Name())
-			if err != nil {
-				return nil, fmt.Errorf("load plugin: %w", err)
-			}
-
-			plugins = append(plugins, plugin)
+		plugin := Plugin{
+			Name: file.Name(),
 		}
+
+		// While it should not be possible for invalid plugins to be added to
+		// the cache, if it does occur, remove the plugin from the cache so it
+		// does not prevent valid plugins from being loaded.
+		foundPlugin, err := FromDirectory(plugin.Directory())
+		if err != nil {
+			os.RemoveAll(plugin.Directory())
+			continue
+		}
+
+		plugins = append(plugins, foundPlugin)
+
 	}
 
 	return plugins, nil
@@ -86,20 +87,18 @@ func (p *Plugin) Exec(ctx context.Context, args []string) error {
 	expandedCommand := os.ExpandEnv(string(p.Command))
 
 	var command string
-	var configArguments []string
+	var arguments []string
 	var err error
 	if runtime.GOOS == "windows" {
-		command, configArguments, err = parseWindowsCommand(expandedCommand)
+		command, arguments, err = parseWindowsCommand(expandedCommand, args)
 	} else {
-		command, configArguments, err = parseCommand(expandedCommand)
+		command, arguments, err = parseCommand(expandedCommand, args)
 	}
 	if err != nil {
 		return fmt.Errorf("parse command: %w", err)
 	}
 
-	allArguments := append(configArguments, args...)
-
-	cmd := exec.CommandContext(ctx, command, allArguments...)
+	cmd := exec.CommandContext(ctx, command, arguments...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -171,7 +170,7 @@ func FromDirectory(directory string) (*Plugin, error) {
 	return &plugin, nil
 }
 
-func parseCommand(command string) (string, []string, error) {
+func parseCommand(command string, extraArgs []string) (string, []string, error) {
 	args := strings.Split(command, " ")
 	if len(args) == 0 || args[0] == "" {
 		return "", nil, fmt.Errorf("prepare plugin command: no command found")
@@ -184,11 +183,15 @@ func parseCommand(command string) (string, []string, error) {
 		configArguments = args[1:]
 	}
 
+	if len(extraArgs) > 0 {
+		configArguments = append(configArguments, extraArgs...)
+	}
+
 	return executable, configArguments, nil
 }
 
-func parseWindowsCommand(command string) (string, []string, error) {
-	executable, arguments, err := parseCommand(command)
+func parseWindowsCommand(command string, extraArgs []string) (string, []string, error) {
+	executable, arguments, err := parseCommand(command, extraArgs)
 	if err != nil {
 		return "", nil, fmt.Errorf("parse command: %w", err)
 	}

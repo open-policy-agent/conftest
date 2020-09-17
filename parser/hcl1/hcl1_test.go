@@ -8,8 +8,6 @@ const sample = `provider "google" {
 	version = "2.5.0"
 	project = "instrumenta"
 	region = "europe-west2"
-  
-  
   }
   
   resource "google_container_cluster" "primary" {

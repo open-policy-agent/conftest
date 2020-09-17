@@ -70,7 +70,7 @@ func NewPullCommand(ctx context.Context) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringSliceP("policy", "p", []string{"policy"}, "Path to the Rego policy files directory")
+	cmd.Flags().StringP("policy", "p", "policy", "Path to download the policies to")
 
 	return &cmd
 }

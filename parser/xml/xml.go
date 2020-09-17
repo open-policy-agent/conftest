@@ -8,10 +8,10 @@ import (
 	x "github.com/basgys/goxml2json"
 )
 
-// Parser is an XML parser
+// Parser is an XML parser.
 type Parser struct{}
 
-// Unmarshal unmarshals XML files
+// Unmarshal unmarshals XML files.
 func (xml *Parser) Unmarshal(p []byte, v interface{}) error {
 	res, err := x.Convert(bytes.NewReader(p))
 	if err != nil {
