@@ -9,7 +9,7 @@ import (
 )
 
 func TestLoadPlugin(t *testing.T) {
-	path := "../examples/plugins/kubectl"
+	path := "../testdata/plugins/kubectl"
 	plugin, err := LoadPlugin(path)
 	if err != nil {
 		t.Fatalf("Unexpected error loading plugin: %v", err)
