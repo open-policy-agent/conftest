@@ -314,14 +314,14 @@
 }
 
 @test "Can combine yaml files" {
-  run ./conftest test -p examples/combine/policy examples/combine/team.yaml examples/combine/user1.yaml examples/combine/user2.yaml --combine 
+  run ./conftest test -p testdata/combine/policy testdata/combine/team.yaml testdata/combine/user1.yaml testdata/combine/user2.yaml --combine
 
   [ "$status" -eq 1 ]
   [[ "$output" =~ "2 tests, 1 passed, 0 warnings, 1 failure" ]]
 }
 
 @test "Combining multi-document yaml file has same result" {
-  run ./conftest test -p examples/combine/policy examples/combine/team.yaml examples/combine/users.yaml --combine 
+  run ./conftest test -p testdata/combine/policy testdata/combine/team.yaml testdata/combine/users.yaml --combine
 
   [ "$status" -eq 1 ]
   [[ "$output" =~ "2 tests, 1 passed, 0 warnings, 1 failure" ]]

@@ -1,0 +1,5 @@
+apiVersion: example.com/v1
+kind: user
+metadata:
+  name: jane.doe
+  email: jan.doe@example.com
