@@ -15,11 +15,11 @@ func TestJSON(t *testing.T) {
 		{
 			name: "no warnings or errors",
 			input: []CheckResult{
-				{FileName: "examples/kubernetes/service.yaml"},
+				{FileName: "testdata/kubernetes/service.yaml"},
 			},
 			expected: `[
 	{
-		"filename": "examples/kubernetes/service.yaml",
+		"filename": "testdata/kubernetes/service.yaml",
 		"successes": 0
 	}
 ]
@@ -29,14 +29,14 @@ func TestJSON(t *testing.T) {
 			name: "records failures and warnings",
 			input: []CheckResult{
 				{
-					FileName: "examples/kubernetes/service.yaml",
+					FileName: "testdata/kubernetes/service.yaml",
 					Warnings: []Result{{Message: "first warning"}},
 					Failures: []Result{{Message: "first failure"}},
 				},
 			},
 			expected: `[
 	{
-		"filename": "examples/kubernetes/service.yaml",
+		"filename": "testdata/kubernetes/service.yaml",
 		"successes": 0,
 		"warnings": [
 			{
@@ -56,13 +56,13 @@ func TestJSON(t *testing.T) {
 			name: "mixed failure and Warnings",
 			input: []CheckResult{
 				{
-					FileName: "examples/kubernetes/service.yaml",
+					FileName: "testdata/kubernetes/service.yaml",
 					Failures: []Result{{Message: "first failure"}},
 				},
 			},
 			expected: `[
 	{
-		"filename": "examples/kubernetes/service.yaml",
+		"filename": "testdata/kubernetes/service.yaml",
 		"successes": 0,
 		"failures": [
 			{
@@ -97,16 +97,16 @@ func TestJSON(t *testing.T) {
 		{
 			name: "multiple check results",
 			input: []CheckResult{
-				{FileName: "examples/kubernetes/service.yaml"},
-				{FileName: "examples/kubernetes/deployment.yaml"},
+				{FileName: "testdata/kubernetes/service.yaml"},
+				{FileName: "testdata/kubernetes/deployment.yaml"},
 			},
 			expected: `[
 	{
-		"filename": "examples/kubernetes/service.yaml",
+		"filename": "testdata/kubernetes/service.yaml",
 		"successes": 0
 	},
 	{
-		"filename": "examples/kubernetes/deployment.yaml",
+		"filename": "testdata/kubernetes/deployment.yaml",
 		"successes": 0
 	}
 ]

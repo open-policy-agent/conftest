@@ -16,29 +16,29 @@ func TestJUnit(t *testing.T) {
 		{
 			name: "no warnings or errors",
 			input: CheckResult{
-				FileName: "examples/kubernetes/service.yaml",
+				FileName: "testdata/kubernetes/service.yaml",
 			},
 			expected: "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<testsuites>\n\t<testsuite tests=\"0\" failures=\"0\" time=\"0.000\" name=\"conftest\">\n\t\t<properties>\n\t\t\t<property name=\"go.version\" value=\"%s\"></property>\n\t\t</properties>\n\t</testsuite>\n</testsuites>\n",
 		},
 		{
 			name: "records failure and warnings",
 			input: CheckResult{
-				FileName: "examples/kubernetes/service.yaml",
+				FileName: "testdata/kubernetes/service.yaml",
 				Warnings: []Result{{Message: "first warning"}},
 				Failures: []Result{{Message: "first failure"}},
 			},
-			expected: "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<testsuites>\n\t<testsuite tests=\"2\" failures=\"2\" time=\"0.000\" name=\"conftest\">\n\t\t<properties>\n\t\t\t<property name=\"go.version\" value=\"%s\"></property>\n\t\t</properties>\n\t\t<testcase classname=\"conftest\" name=\"examples/kubernetes/service.yaml - first warning\" time=\"0.000\">\n\t\t\t<failure message=\"Failed\" type=\"\">first warning</failure>\n\t\t</testcase>\n\t\t<testcase classname=\"conftest\" name=\"examples/kubernetes/service.yaml - first failure\" time=\"0.000\">\n\t\t\t<failure message=\"Failed\" type=\"\">first failure</failure>\n\t\t</testcase>\n\t</testsuite>\n</testsuites>\n",
+			expected: "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<testsuites>\n\t<testsuite tests=\"2\" failures=\"2\" time=\"0.000\" name=\"conftest\">\n\t\t<properties>\n\t\t\t<property name=\"go.version\" value=\"%s\"></property>\n\t\t</properties>\n\t\t<testcase classname=\"conftest\" name=\"testdata/kubernetes/service.yaml - first warning\" time=\"0.000\">\n\t\t\t<failure message=\"Failed\" type=\"\">first warning</failure>\n\t\t</testcase>\n\t\t<testcase classname=\"conftest\" name=\"testdata/kubernetes/service.yaml - first failure\" time=\"0.000\">\n\t\t\t<failure message=\"Failed\" type=\"\">first failure</failure>\n\t\t</testcase>\n\t</testsuite>\n</testsuites>\n",
 		},
 		{
 			name: "records failure with long description",
 			input: CheckResult{
-				FileName: "examples/kubernetes/service.yaml",
+				FileName: "testdata/kubernetes/service.yaml",
 				Warnings: []Result{{Message: "first warning"}},
 				Failures: []Result{{Message: `failure with long message
 
 This is the rest of the description of the failed test`},
 				}},
-			expected: "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<testsuites>\n\t<testsuite tests=\"2\" failures=\"2\" time=\"0.000\" name=\"conftest\">\n\t\t<properties>\n\t\t\t<property name=\"go.version\" value=\"%s\"></property>\n\t\t</properties>\n\t\t<testcase classname=\"conftest\" name=\"examples/kubernetes/service.yaml - first warning\" time=\"0.000\">\n\t\t\t<failure message=\"Failed\" type=\"\">first warning</failure>\n\t\t</testcase>\n\t\t<testcase classname=\"conftest\" name=\"examples/kubernetes/service.yaml - failure with long message\" time=\"0.000\">\n\t\t\t<failure message=\"Failed\" type=\"\">failure with long message&#xA;&#xA;This is the rest of the description of the failed test</failure>\n\t\t</testcase>\n\t</testsuite>\n</testsuites>\n",
+			expected: "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<testsuites>\n\t<testsuite tests=\"2\" failures=\"2\" time=\"0.000\" name=\"conftest\">\n\t\t<properties>\n\t\t\t<property name=\"go.version\" value=\"%s\"></property>\n\t\t</properties>\n\t\t<testcase classname=\"conftest\" name=\"testdata/kubernetes/service.yaml - first warning\" time=\"0.000\">\n\t\t\t<failure message=\"Failed\" type=\"\">first warning</failure>\n\t\t</testcase>\n\t\t<testcase classname=\"conftest\" name=\"testdata/kubernetes/service.yaml - failure with long message\" time=\"0.000\">\n\t\t\t<failure message=\"Failed\" type=\"\">failure with long message&#xA;&#xA;This is the rest of the description of the failed test</failure>\n\t\t</testcase>\n\t</testsuite>\n</testsuites>\n",
 		},
 	}
 

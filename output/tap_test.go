@@ -14,30 +14,30 @@ func TestTAP(t *testing.T) {
 	}{
 		{
 			name:     "no warnings or errors",
-			input:    CheckResult{FileName: "examples/kubernetes/service.yaml"},
+			input:    CheckResult{FileName: "testdata/kubernetes/service.yaml"},
 			expected: "",
 		},
 		{
 			name: "records failure and warnings",
 			input: CheckResult{
-				FileName: "examples/kubernetes/service.yaml",
+				FileName: "testdata/kubernetes/service.yaml",
 				Warnings: []Result{{Message: "first warning"}},
 				Failures: []Result{{Message: "first failure"}},
 			},
 			expected: `1..2
-not ok 1 - examples/kubernetes/service.yaml - first failure
+not ok 1 - testdata/kubernetes/service.yaml - first failure
 # warnings
-not ok 2 - examples/kubernetes/service.yaml - first warning
+not ok 2 - testdata/kubernetes/service.yaml - first warning
 `,
 		},
 		{
 			name: "mixed failure and warnings",
 			input: CheckResult{
-				FileName: "examples/kubernetes/service.yaml",
+				FileName: "testdata/kubernetes/service.yaml",
 				Failures: []Result{{Message: "first failure"}},
 			},
 			expected: `1..1
-not ok 1 - examples/kubernetes/service.yaml - first failure
+not ok 1 - testdata/kubernetes/service.yaml - first failure
 `,
 		},
 		{

@@ -14,22 +14,22 @@ func TestTable(t *testing.T) {
 		{
 			name: "no warnings or errors",
 			input: CheckResult{
-				FileName: "examples/kubernetes/service.yaml",
+				FileName: "testdata/kubernetes/service.yaml",
 			},
 			expected: "",
 		},
 		{
 			name: "records failure and warnings",
 			input: CheckResult{
-				FileName: "examples/kubernetes/service.yaml",
+				FileName: "testdata/kubernetes/service.yaml",
 				Warnings: []Result{{Message: "first warning"}},
 				Failures: []Result{{Message: "first failure"}},
 			},
 			expected: `+---------+----------------------------------+---------------+
 | RESULT  |               FILE               |    MESSAGE    |
 +---------+----------------------------------+---------------+
-| warning | examples/kubernetes/service.yaml | first warning |
-| failure | examples/kubernetes/service.yaml | first failure |
+| warning | testdata/kubernetes/service.yaml | first warning |
+| failure | testdata/kubernetes/service.yaml | first failure |
 +---------+----------------------------------+---------------+
 `,
 		},
