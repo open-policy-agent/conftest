@@ -3,119 +3,126 @@ package plugin
 import (
 	"context"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"syscall"
 
 	"github.com/ghodss/yaml"
 )
 
-// Command is the command to be executed by conftest,
-// passed as a single string.
-type Command string
-
-// Prepare prepares the plugin command and parses out the
-// main and args
-func (c Command) Prepare() (string, []string, error) {
-	args := strings.Split(os.ExpandEnv(string(c)), " ")
-	if len(args) == 0 || args[0] == "" {
-		return "", nil, fmt.Errorf("prepare plugin command: no command found")
-	}
-
-	main := args[0]
-	var cmdArgs []string
-	if len(args) > 1 {
-		cmdArgs = args[1:]
-	}
-
-	return main, cmdArgs, nil
-}
-
-// MetaData contains the required metadata for conftest plugins
-type MetaData struct {
-	// Name is the name of the plugin
-	Name string `yaml:"name"`
-
-	// Version is a SemVer 2 version of the plugin.
-	Version string `yaml:"version"`
-
-	// Usage provides a short description
-	// of what the plugin does
-	Usage string `yaml:"usage"`
-
-	// Description provides a long description
-	// of what the plugin does
-	Description string `yaml:"description"`
-
-	// Command is the command to add to conftest
-	Command Command `yaml:"command"`
-}
-
-// Plugin represents a conftest plugin
+// Plugin represents a plugin.
 type Plugin struct {
-	// Metadata contains the contents of the plugin.yaml metatdata file
-	MetaData *MetaData
-
-	// Dir contains the full path to the plugin
-	Dir string
-
-	stdIn  io.Reader
-	stdOut io.Writer
-	stdErr io.Writer
-	env    []string
+	Name        string `yaml:"name"`
+	Version     string `yaml:"version"`
+	Usage       string `yaml:"usage"`
+	Description string `yaml:"description"`
+	Command     string `yaml:"command"`
 }
 
-// SetStdIn configures where the plugin reads from
-// when the command is executed
-func (p *Plugin) SetStdIn(r io.Reader) *Plugin {
-	p.stdIn = r
-	return p
-}
-
-// SetStdOut configures to where the plugin writes to
-// when the command is executed
-func (p *Plugin) SetStdOut(w io.Writer) *Plugin {
-	p.stdOut = w
-	return p
-}
-
-// SetStdErr configures to where the plugin writes errors to
-// when the command is executed
-func (p *Plugin) SetStdErr(w io.Writer) *Plugin {
-	p.stdErr = w
-	return p
-}
-
-// Exec executes the plugin command
-func (p *Plugin) Exec(ctx context.Context, args []string) error {
-	// Prepare env so plugin has Dir available
-	p.setDirInEnv()
-	main, cmdArgs, err := p.MetaData.Command.Prepare()
-	if err != nil {
-		return fmt.Errorf("plugin exec prepare: %w", err)
+// Load loads a plugin given the name of the plugin.
+// The name of the plugin is defined in the plugin
+// configuration and is stored in a folder with the name
+// of the plugin.
+func Load(name string) (*Plugin, error) {
+	plugin := Plugin{
+		Name: name,
 	}
 
-	execArgs := append(cmdArgs, args...)
-	cmd := exec.CommandContext(ctx, main, execArgs...)
-	cmd.Stdin = p.stdIn
-	cmd.Stdout = p.stdOut
-	cmd.Stderr = p.stdErr
-	cmd.Env = p.env
+	loadedPlugin, err := FromDirectory(plugin.Directory())
+	if err != nil {
+		return nil, fmt.Errorf("from directory: %w", err)
+	}
 
-	if err = cmd.Run(); err != nil {
-		// Check for a 1 exit status to check if it is a conftest test failure
-		if exiterr, ok := err.(*exec.ExitError); ok {
-			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
-				if status.ExitStatus() == 1 {
-					return nil
-				}
+	return loadedPlugin, nil
+}
 
-				return fmt.Errorf("plugin exec: %w", err)
+// FindAll finds all of the plugins available on the
+// local file system.
+func FindAll() ([]*Plugin, error) {
+	if _, err := os.Stat(CacheDirectory()); os.IsNotExist(err) {
+		return []*Plugin{}, nil
+	}
+
+	files, err := ioutil.ReadDir(CacheDirectory())
+	if err != nil {
+		return nil, fmt.Errorf("read plugin cache: %w", err)
+	}
+
+	var plugins []*Plugin
+	for _, file := range files {
+
+		// When installing a plugin from a URL
+		// the result will be a directory in the cache.
+		//
+		// When installing a plugin from a directory
+		// the directory will be added to the cache as a symlink.
+		if file.IsDir() || file.Mode()&os.ModeSymlink != 0 {
+			plugin, err := Load(file.Name())
+			if err != nil {
+				return nil, fmt.Errorf("load plugin: %w", err)
 			}
+
+			plugins = append(plugins, plugin)
+		}
+	}
+
+	return plugins, nil
+}
+
+// Exec executes the command defined by the plugin along with any
+// arguments.
+//
+// Arguments that are passed into Exec will be added after
+// any arguments that are defined in the plugins configuration.
+func (p *Plugin) Exec(ctx context.Context, args []string) error {
+
+	// Plugin configurations reference the CONFTEST_PLUGIN_DIR
+	// environment to be able to call the plugin.
+	os.Setenv("CONFTEST_PLUGIN_DIR", p.Directory())
+	expandedCommand := os.ExpandEnv(string(p.Command))
+
+	var command string
+	var configArguments []string
+	var err error
+	if runtime.GOOS == "windows" {
+		command, configArguments, err = parseWindowsCommand(expandedCommand)
+	} else {
+		command, configArguments, err = parseCommand(expandedCommand)
+	}
+	if err != nil {
+		return fmt.Errorf("parse command: %w", err)
+	}
+
+	allArguments := append(configArguments, args...)
+
+	cmd := exec.CommandContext(ctx, command, allArguments...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Env = os.Environ()
+
+	// If an error is found during the execution of the plugin, figure
+	// out if the error was from not being able to execute the plugin or
+	// an error set by the plugin itself.
+	if err := cmd.Run(); err != nil {
+		exiterr, ok := err.(*exec.ExitError)
+		if !ok {
+			return fmt.Errorf("exit: %w", err)
+		}
+
+		status, ok := exiterr.Sys().(syscall.WaitStatus)
+		if !ok {
+			return fmt.Errorf("status: %w", err)
+		}
+
+		// Conftest can either return 1 or 2 for an error. If Conftest
+		// returns an error, let it handle its own error.
+		if status.ExitStatus() == 1 || status.ExitStatus() == 2 {
+			return nil
 		}
 
 		return fmt.Errorf("plugin exec: %w", err)
@@ -124,81 +131,74 @@ func (p *Plugin) Exec(ctx context.Context, args []string) error {
 	return nil
 }
 
-func (p *Plugin) setDirInEnv() {
-	// Use os.SetEnv as the plugin needs access to this environment variable
-	os.Setenv("CONFTEST_PLUGIN_DIR", p.Dir)
+// Directory returns the full path of the directory where the
+// plugin is stored in the plugin cache.
+func (p *Plugin) Directory() string {
+	return filepath.Join(CacheDirectory(), p.Name)
 }
 
-// LoadPlugin loads the plugin.yaml from the given path
-// and parses the metadata into a Plugin struct
-func LoadPlugin(path string) (*Plugin, error) {
-	const metadataFileName = "plugin.yaml"
+// CacheDirectory returns the full path to the
+// cache directory where all of the plugins are stored.
+func CacheDirectory() string {
+	const cacheDir = ".conftest/plugins"
 
-	pluginPath := filepath.Join(path, metadataFileName)
-	data, err := ioutil.ReadFile(pluginPath)
-	if err != nil {
-		return nil, fmt.Errorf("read plugin file: %w", err)
-	}
+	homeDir, _ := os.UserHomeDir()
 
-	plugin := &Plugin{
-		Dir:    path,
-		stdIn:  os.Stdin,
-		stdOut: os.Stdout,
-		stdErr: os.Stderr,
-		env:    os.Environ(),
-	}
+	directory := filepath.Join(homeDir, cacheDir)
+	directory = filepath.ToSlash(directory)
 
-	if err := yaml.Unmarshal(data, &plugin.MetaData); err != nil {
-		return nil, fmt.Errorf("parse plugin file: %w", err)
-	}
-
-	return plugin, nil
+	return directory
 }
 
-// FindPlugins returns a list of all plugins available on the local file system.
-func FindPlugins() ([]*Plugin, error) {
-	var plugins []*Plugin
-	homePath, err := fetchHomeDir()
+// FromDirectory returns a plugin from a specific directory.
+//
+// The given directory must contain a plugin configuration file
+// in order to return successfully.
+func FromDirectory(directory string) (*Plugin, error) {
+	const configurationFileName = "plugin.yaml"
+
+	configPath := filepath.Join(directory, configurationFileName)
+	data, err := ioutil.ReadFile(configPath)
 	if err != nil {
-		return nil, fmt.Errorf("fetch home path: %w", err)
+		return nil, fmt.Errorf("read config: %w", err)
 	}
 
-	pluginsCacheDirPath := filepath.Join(homePath, conftestDir, pluginsCacheDir)
-	if _, err := os.Stat(pluginsCacheDirPath); os.IsNotExist(err) {
-		// No plugins, so just return the empty slice
-		return plugins, nil
+	var plugin Plugin
+	if err := yaml.Unmarshal(data, &plugin); err != nil {
+		return nil, fmt.Errorf("unmarshal plugin: %w", err)
 	}
 
-	files, err := ioutil.ReadDir(pluginsCacheDirPath)
+	return &plugin, nil
+}
+
+func parseCommand(command string) (string, []string, error) {
+	args := strings.Split(command, " ")
+	if len(args) == 0 || args[0] == "" {
+		return "", nil, fmt.Errorf("prepare plugin command: no command found")
+	}
+
+	executable := args[0]
+
+	var configArguments []string
+	if len(args) > 1 {
+		configArguments = args[1:]
+	}
+
+	return executable, configArguments, nil
+}
+
+func parseWindowsCommand(command string) (string, []string, error) {
+	executable, arguments, err := parseCommand(command)
 	if err != nil {
-		return nil, fmt.Errorf("read plugin cache directory: %w", err)
+		return "", nil, fmt.Errorf("parse command: %w", err)
 	}
 
-	for _, file := range files {
-		if file.IsDir() {
-			path := filepath.Join(pluginsCacheDirPath, file.Name())
-			plugin, err := LoadPlugin(path)
-			if err != nil {
-				return nil, fmt.Errorf("load plugin from cache directory: %w", err)
-			}
-
-			plugins = append(plugins, plugin)
-		} else if file.Mode()&os.ModeSymlink != 0 {
-			// go-getter symlinks if it is a plugin on the local file system.
-			symlinkPath := filepath.Join(pluginsCacheDirPath, file.Name())
-			path, err := os.Readlink(symlinkPath)
-			if err != nil {
-				return nil, fmt.Errorf("resolve plugin symlink: %w", err)
-			}
-
-			plugin, err := LoadPlugin(path)
-			if err != nil {
-				return nil, fmt.Errorf("load plugin from cache directory: %w", err)
-			}
-
-			plugins = append(plugins, plugin)
-		}
+	// When executing shell scripts on Windows, the sh
+	// program needs to be used to run the script.
+	if strings.HasSuffix(executable, ".sh") {
+		arguments = append([]string{executable}, arguments...)
+		return "sh", arguments, nil
 	}
 
-	return plugins, nil
+	return executable, arguments, nil
 }

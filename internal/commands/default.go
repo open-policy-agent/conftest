@@ -63,19 +63,17 @@ func NewDefaultCommand() *cobra.Command {
 }
 
 func loadPlugins(ctx context.Context) ([]*cobra.Command, error) {
-	plugins, err := plugin.FindPlugins()
+	plugins, err := plugin.FindAll()
 	if err != nil {
-		return nil, fmt.Errorf("loading plugins: %v", err)
+		return nil, fmt.Errorf("find plugins: %v", err)
 	}
 
 	var cmds []*cobra.Command
 	for _, plugin := range plugins {
-		plugin := plugin
-		metaData := plugin.MetaData
-		cmd := &cobra.Command{
-			Use:   metaData.Name,
-			Short: metaData.Usage,
-			Long:  metaData.Description,
+		cmd := cobra.Command{
+			Use:   plugin.Name,
+			Short: plugin.Usage,
+			Long:  plugin.Description,
 			RunE: func(cmd *cobra.Command, args []string) error {
 				if err := plugin.Exec(ctx, args); err != nil {
 					return fmt.Errorf("execute plugin: %v", err)
@@ -86,7 +84,7 @@ func loadPlugins(ctx context.Context) ([]*cobra.Command, error) {
 			DisableFlagParsing: true,
 		}
 
-		cmds = append(cmds, cmd)
+		cmds = append(cmds, &cmd)
 	}
 
 	return cmds, nil

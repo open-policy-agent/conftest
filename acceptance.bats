@@ -286,13 +286,6 @@
   [[ "$output" =~ "No images tagged latest" ]]
 }
 
-@test "Can download or symlink plugins" {
-  run ./conftest plugin install examples/plugins/kubectl/
-  [ "$status" -eq 0 ]
-  run ./conftest kubectl
-  [ "$status" -eq 0 ]
-}
-
 @test "The number of tests run is accurate" {
   run ./conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml --no-color
   [ "$status" -eq 0 ]
@@ -318,3 +311,20 @@
   [ "$status" -eq 1 ]
   [[ "$output" =~ "2 tests, 0 passed, 0 warnings, 2 failures" ]]
 }
+
+@test "Can install plugin from directory" {
+  run ./conftest plugin install contrib/plugins/kubectl
+  [ "$status" -eq 0 ]
+
+  run ./conftest kubectl
+  [ "$status" -eq 0 ]
+}
+
+# Uncomment test when the plugin exists on GitHub
+#@test "Can install plugin from URL" {
+#  run ./conftest plugin install github.com/open-policy-agent/conftest/contrib/plugins/kubectl
+#  [ "$status" -eq 0 ]
+#
+#  run ./conftest kubectl
+#  [ "$status" -eq 0 ]
+#}

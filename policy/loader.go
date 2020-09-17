@@ -25,12 +25,7 @@ type Loader struct {
 // and put them in the first directory that appears in the policy paths.
 func (l *Loader) Load(ctx context.Context) (*Engine, error) {
 	for _, url := range l.URLs {
-		sourcedURL, err := downloader.Detect(url, l.PolicyPaths[0])
-		if err != nil {
-			return nil, fmt.Errorf("detect policies: %w", err)
-		}
-
-		if err := downloader.Download(ctx, l.PolicyPaths[0], []string{sourcedURL}); err != nil {
+		if err := downloader.Download(ctx, l.PolicyPaths[0], []string{url}); err != nil {
 			return nil, fmt.Errorf("update policies: %w", err)
 		}
 	}

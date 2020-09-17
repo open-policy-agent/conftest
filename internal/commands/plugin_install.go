@@ -11,10 +11,9 @@ import (
 const installDesc = `
 This command installs a plugin from the given path or url
 
-
 Several locations are supported by the plugin install command. Under the hood
 conftest leverages go-getter (https://github.com/hashicorp/go-getter).
-The  following protocols are supported for downloading plugins:
+The following protocols are supported for downloading plugins:
 
 	- Local Files
 	- Git
@@ -23,9 +22,10 @@ The  following protocols are supported for downloading plugins:
 	- Amazon S3
 	- Google Cloud GCP
 
-The location of the plugins is specified by passing an URL, e.g.:
+The location of the plugins is specified by passing a path or URL, e.g.:
 
-	$ conftest plugin install https://github.com/open-policy-agent/conftest/examples/plugins/kubectl
+	$ conftest plugin install github.com/open-policy-agent/conftest/examples/plugins/kubectl
+	$ conftest plugin install contrib/plugins/kubectl
 
 Based on the protocol a different mechanism will be used to download the plugin.
 The pull command will also try to infer the protocol based on the URL if the
@@ -43,8 +43,8 @@ func NewPluginInstallCommand(ctx context.Context) *cobra.Command {
 		Args:  cobra.MinimumNArgs(1),
 
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := plugin.Download(ctx, args[0]); err != nil {
-				return fmt.Errorf("install plugin: %v", err)
+			if err := plugin.Install(ctx, args[0]); err != nil {
+				return fmt.Errorf("install: %v", err)
 			}
 
 			return nil
