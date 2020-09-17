@@ -35,66 +35,58 @@ func (l *Loader) Load(ctx context.Context) (*Engine, error) {
 		}
 	}
 
-	paths := append(l.PolicyPaths, l.DataPaths...)
-	result, err := loader.All(paths)
+	policies, err := loader.AllRegos(l.PolicyPaths)
 	if err != nil {
 		return nil, fmt.Errorf("load: %w", err)
-	}
-
-	if len(result.Modules) == 0 {
+	} else if len(policies.Modules) == 0 {
 		return nil, fmt.Errorf("no policies found in %v", l.PolicyPaths)
 	}
 
-	compiler, err := result.Compiler()
+	compiler, err := policies.Compiler()
 	if err != nil {
 		return nil, fmt.Errorf("get compiler: %w", err)
 	}
 
-	store, err := result.Store()
-	if err != nil {
-		return nil, fmt.Errorf("get store: %w", err)
-	}
-
-	docs, err := loadDocuments(l.DataPaths)
-	if err != nil {
-		return nil, fmt.Errorf("loading docs: %w", err)
-	}
-
-	engine := Engine{
-		result:   result,
-		compiler: compiler,
-		store:    store,
-		docs:     docs,
-	}
-
-	return &engine, nil
-}
-
-// The Rego loader is able to take in any number of paths and correctly distinguish between
-// data documents (Documents) and policies (Modules).
-//
-// However, the raw text and the path of the data documents are not preserved.
-// Both the path of the data document and its original content is useful to have, especially
-// when pushing to OCI registries.
-func loadDocuments(paths []string) (map[string]string, error) {
-	ignoreFileExtensions := func(abspath string, info os.FileInfo, depth int) bool {
+	// FilteredPaths will recursively find all file paths that contain a valid document
+	// extension from the given list of data paths.
+	allDocumentPaths, err := loader.FilteredPaths(l.DataPaths, func(abspath string, info os.FileInfo, depth int) bool {
+		if info.IsDir() {
+			return false
+		}
 		return !contains([]string{".yaml", ".yml", ".json"}, filepath.Ext(info.Name()))
-	}
-
-	documentPaths, err := loader.FilteredPaths(paths, ignoreFileExtensions)
+	})
 	if err != nil {
 		return nil, fmt.Errorf("filter data paths: %w", err)
 	}
 
-	documents := make(map[string]string)
-	for _, documentPath := range documentPaths {
+	documents, err := loader.NewFileLoader().All(allDocumentPaths)
+	if err != nil {
+		return nil, fmt.Errorf("load documents: %w", err)
+	}
+	store, err := documents.Store()
+	if err != nil {
+		return nil, fmt.Errorf("get documents store: %w", err)
+	}
+
+	// The raw text and the path of the data documents are not preserved in the loader.
+	// Both the path of the data document and its original contents are useful to have
+	// especially when pushing to OCI registries.
+	documentContents := make(map[string]string)
+	for _, documentPath := range allDocumentPaths {
 		contents, err := ioutil.ReadFile(documentPath)
 		if err != nil {
 			return nil, fmt.Errorf("read file: %w", err)
 		}
 
-		documents[documentPath] = string(contents)
+		documentContents[documentPath] = string(contents)
 	}
 
-	return documents, nil
+	engine := Engine{
+		modules:  policies.ParsedModules(),
+		compiler: compiler,
+		store:    store,
+		docs:     documentContents,
+	}
+
+	return &engine, nil
 }

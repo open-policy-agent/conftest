@@ -76,12 +76,6 @@
   [[ "$output" =~ "data.kubernetes.is_service" ]]
 }
 
-@test "Test command with table output and trace flag" {
-  run ./conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml -o table --trace
-  [ "$status" -eq 0 ]
-  [[ "$output" =~ "| fail    | examples/kubernetes/service.yaml | data.main.warn                 | | | Enter data.main.name       |" ]]
-}
-
 @test "Test command with all namespaces flag" {
   run ./conftest test -p examples/docker/policy examples/docker/Dockerfile --all-namespaces
   [ "$status" -eq 1 ]
@@ -317,4 +311,18 @@
 
   [ "$status" -eq 1 ]
   [[ "$output" =~ "2 tests, 0 passed, 0 warnings, 2 failures" ]]
+}
+
+@test "Can combine yaml files" {
+  run ./conftest test -p examples/combine/policy examples/combine/team.yaml examples/combine/user1.yaml examples/combine/user2.yaml --combine 
+
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "2 tests, 1 passed, 0 warnings, 1 failure" ]]
+}
+
+@test "Combining multi-document yaml file has same result" {
+  run ./conftest test -p examples/combine/policy examples/combine/team.yaml examples/combine/users.yaml --combine 
+
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "2 tests, 1 passed, 0 warnings, 1 failure" ]]
 }

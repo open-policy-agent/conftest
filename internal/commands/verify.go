@@ -24,10 +24,10 @@ The location can be overridden with the '--policy' flag, e.g.:
 
 	$ conftest verify --policy <my-directory>
 
-Some policies are dependant on external data. This data is loaded in seperatly 
+Some policies are dependant on external data. This data is loaded in separately 
 from policies. The location of any data directory or file can be specified with 
 the '--data' flag. If a directory is specified, it will be recursively searched for 
-any data files. Right now any '.json' or '.yaml' file will be loaded in 
+any data files. Right now any JSON or YAML file will be loaded in 
 and made available in the Rego policies. Data will be made available in Rego based on 
 the file path where the data was found. For example, if data is stored 
 under 'policy/exceptions/my_data.yaml', and we execute the following command:
@@ -40,12 +40,12 @@ As with the test command, verify supports the '--output' flag to specify the typ
 
 	$ conftest verify --output json
 
-For a full list of available output types, see the of the '--output' flag.
+For a full list of available output types, see the use of the '--output' flag.
 
 When debugging policies it can be useful to use a more verbose policy evaluation output. By using the '--trace' flag
 the output will include a detailed trace of how the policy was evaluated, e.g.
 
-	$ conftest verify --trace <input-file>
+	$ conftest verify --trace
 `
 
 // NewVerifyCommand creates a new verify command which allows users

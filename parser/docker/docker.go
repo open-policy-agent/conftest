@@ -8,10 +8,10 @@ import (
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
 )
 
-// Parser is a Dockerfile parser
+// Parser is a Dockerfile parser.
 type Parser struct{}
 
-// Command represents a command in a Dockerfile
+// Command represents a command in a Dockerfile.
 type Command struct {
 	Cmd    string   // lowercased command name (ex: `from`)
 	SubCmd string   // for ONBUILD only this holds the sub-command

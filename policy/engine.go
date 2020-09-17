@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"github.com/open-policy-agent/conftest/output"
+	"github.com/open-policy-agent/conftest/parser"
 
 	"github.com/open-policy-agent/opa/ast"
-	"github.com/open-policy-agent/opa/loader"
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/storage"
 	"github.com/open-policy-agent/opa/topdown"
@@ -20,7 +20,7 @@ import (
 
 // Engine represents the policy engine.
 type Engine struct {
-	result   *loader.Result
+	modules  map[string]*ast.Module
 	compiler *ast.Compiler
 	store    storage.Store
 	docs     map[string]string
@@ -69,9 +69,11 @@ func (e *Engine) Check(ctx context.Context, configs map[string]interface{}, name
 
 // CheckCombined combines the input and evaluates the policies against the combined result.
 func (e *Engine) CheckCombined(ctx context.Context, configs map[string]interface{}, namespace string) (output.CheckResult, error) {
-	result, err := e.check(ctx, "Combined", configs, namespace)
+	combinedConfigs := parser.CombineConfigurations(configs)
+
+	result, err := e.check(ctx, "Combined", combinedConfigs["Combined"], namespace)
 	if err != nil {
-		return output.CheckResult{}, fmt.Errorf("combined query: %w", err)
+		return output.CheckResult{}, fmt.Errorf("check: %w", err)
 	}
 
 	return result, nil
@@ -104,8 +106,8 @@ func (e *Engine) Documents() map[string]string {
 // and its value is the raw contents of the loaded policy.
 func (e *Engine) Policies() map[string]string {
 	policies := make(map[string]string)
-	for m := range e.result.Modules {
-		policies[e.result.Modules[m].Name] = string(e.result.Modules[m].Raw)
+	for path, module := range e.Modules() {
+		policies[path] = module.String()
 	}
 
 	return policies
@@ -123,7 +125,7 @@ func (e *Engine) Store() storage.Store {
 
 // Modules returns the modules from the loaded policies.
 func (e *Engine) Modules() map[string]*ast.Module {
-	return e.result.ParsedModules()
+	return e.modules
 }
 
 // Runtime returns the runtime of the engine.

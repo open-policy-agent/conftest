@@ -140,7 +140,9 @@ func getFilesFromDirectory(directory string, ignoreRegex string) ([]string, erro
 		}
 
 		for _, input := range parser.ValidInputs() {
-			if strings.HasSuffix(info.Name(), input) {
+			currentInput := strings.ToLower(input)
+
+			if strings.HasSuffix(info.Name(), currentInput) {
 				files = append(files, currentPath)
 			}
 		}

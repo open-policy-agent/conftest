@@ -6,10 +6,11 @@ import (
 	"github.com/hashicorp/hcl"
 )
 
-// Parser is a parser for TF and HCL files
+// Parser is an HCL parser.
 type Parser struct{}
 
-// Unmarshal unmarshals TF and HCL files
+// Unmarshal unmarshals HCL files that are using version 1 of
+// the HCL language.
 func (s *Parser) Unmarshal(p []byte, v interface{}) error {
 	if err := hcl.Unmarshal(p, v); err != nil {
 		return fmt.Errorf("unmarshal hcl: %w", err)
