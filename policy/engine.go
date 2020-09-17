@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/open-policy-agent/conftest/output"
+	"github.com/open-policy-agent/conftest/parser"
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/loader"
@@ -70,9 +71,11 @@ func (e *Engine) Check(ctx context.Context, configs map[string]interface{}, name
 
 // CheckCombined combines the input and evaluates the policies against the combined result.
 func (e *Engine) CheckCombined(ctx context.Context, configs map[string]interface{}, namespace string) (output.CheckResult, error) {
-	result, err := e.check(ctx, "Combined", configs, namespace)
+	combinedConfigs := parser.CombineConfigurations(configs)
+
+	result, err := e.check(ctx, "Combined", combinedConfigs["Combined"], namespace)
 	if err != nil {
-		return output.CheckResult{}, fmt.Errorf("combined query: %w", err)
+		return output.CheckResult{}, fmt.Errorf("check: %w", err)
 	}
 
 	return result, nil

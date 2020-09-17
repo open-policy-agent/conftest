@@ -3,14 +3,14 @@ package jsonnet
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/google/go-jsonnet"
 )
 
-// Parser is a Jsonnet parse
+// Parser is a Jsonnet parser.
 type Parser struct{}
 
-
-// Unmarshal unmarshals Jsonnet files
+// Unmarshal unmarshals Jsonnet files.
 func (p *Parser) Unmarshal(data []byte, v interface{}) error {
 	vm := jsonnet.MakeVM()
 	snippetStream, err := vm.EvaluateSnippet("", string(data))
