@@ -2,120 +2,86 @@ package output
 
 import (
 	"fmt"
-	"log"
-	"os"
+	"io"
 
 	"github.com/logrusorgru/aurora"
 )
 
-// StandardOutputManager writes to stdout
-type StandardOutputManager struct {
-	logger  *log.Logger
-	color   aurora.Aurora
-	tracing bool
-	results []CheckResult
+// Standard represents an Outputter that outputs
+// results in a human readable format.
+type Standard struct {
+	Writer io.Writer
+
+	// Tracing will render the trace results of the
+	// queries when set to true.
+	Tracing bool
+
+	// NoColor will disable all coloring when
+	// set to true.
+	NoColor bool
 }
 
-// NewDefaultStandardOutputManager creates a new StandardOutputManager using the default logger
-func NewDefaultStandardOutputManager(color bool) *StandardOutputManager {
-	return NewStandardOutputManager(log.New(os.Stdout, "", 0), color)
-}
-
-// NewStandardOutputManager creates a new StandardOutputManager given a logger instance
-func NewStandardOutputManager(l *log.Logger, color bool) *StandardOutputManager {
-	return &StandardOutputManager{
-		logger: l,
-		color:  aurora.NewAurora(color),
+// NewStandard creates a new Standard with the given writer.
+func NewStandard(w io.Writer) *Standard {
+	standard := Standard{
+		Writer: w,
 	}
+
+	return &standard
 }
 
-// WithTracing adds tracing to the output.
-func (s *StandardOutputManager) WithTracing() OutputManager {
-	s.tracing = true
-	return s
-}
+// Output outputs the results.
+func (s *Standard) Output(results []CheckResult) error {
+	colorizer := aurora.NewAurora(true)
+	if s.NoColor {
+		colorizer = aurora.NewAurora(false)
+	}
 
-// Put puts the result of the check to the manager in the managers buffer
-func (s *StandardOutputManager) Put(cr CheckResult) error {
-	s.results = append(s.results, cr)
-	return nil
-}
+	if s.Tracing {
+		s.outputTrace(results, colorizer)
+		return nil
+	}
 
-// Flush writes the contents of the managers buffer to the console
-func (s *StandardOutputManager) Flush() error {
 	var totalFailures int
 	var totalExceptions int
 	var totalWarnings int
 	var totalSuccesses int
-
-	if s.tracing {
-		for _, result := range s.results {
-			for _, q := range result.Queries {
-				var color aurora.Color
-				if q.Passed() {
-					color = aurora.GreenFg
-				} else {
-					color = aurora.RedFg
-				}
-
-				s.logger.Print(s.color.Colorize("file: "+result.FileName+" | query: "+q.Query, color))
-
-				for _, t := range q.Traces {
-					s.logger.Print(s.color.Colorize("TRAC ", aurora.BlueFg), "", t)
-				}
-				s.logger.Println("")
-			}
-		}
-		return nil
-	}
-
-	for _, cr := range s.results {
+	for _, result := range results {
 		var indicator string
-		if cr.FileName == "-" {
-			indicator = " - "
+		if result.FileName == "-" {
+			indicator = "-"
 		} else {
-			indicator = fmt.Sprintf(" - %s - ", cr.FileName)
+			indicator = fmt.Sprintf("- %s -", result.FileName)
 		}
 
-		currentPolicies := cr.Successes + len(cr.Warnings) + len(cr.Failures) + len(cr.Exceptions)
-		if currentPolicies == 0 {
-			s.logger.Print(s.color.Colorize("?", aurora.WhiteFg), indicator, "no policies found")
+		totalPolicies := result.Successes + len(result.Warnings) + len(result.Failures) + len(result.Exceptions)
+		if totalPolicies == 0 {
+			fmt.Fprintln(s.Writer, colorizer.Colorize("?", aurora.WhiteFg), indicator, "no policies found")
 			continue
 		}
 
-		for _, r := range cr.Warnings {
-			s.logger.Print(s.color.Colorize("WARN", aurora.YellowFg), indicator, r.Message)
+		for _, warning := range result.Warnings {
+			fmt.Fprintln(s.Writer, colorizer.Colorize("WARN", aurora.YellowFg), indicator, warning.Message)
 		}
 
-		for _, r := range cr.Failures {
-			s.logger.Print(s.color.Colorize("FAIL", aurora.RedFg), indicator, r.Message)
+		for _, failure := range result.Failures {
+			fmt.Fprintln(s.Writer, colorizer.Colorize("FAIL", aurora.RedFg), indicator, failure.Message)
 		}
 
-		for _, r := range cr.Exceptions {
-			s.logger.Print(s.color.Colorize("EXCP", aurora.CyanFg), indicator, r.Message)
+		for _, exception := range result.Exceptions {
+			fmt.Fprintln(s.Writer, colorizer.Colorize("EXCP", aurora.CyanFg), indicator, exception.Message)
 		}
 
-		totalFailures += len(cr.Failures)
-		totalExceptions += len(cr.Exceptions)
-		totalWarnings += len(cr.Warnings)
-		totalSuccesses += cr.Successes
+		totalFailures += len(result.Failures)
+		totalExceptions += len(result.Exceptions)
+		totalWarnings += len(result.Warnings)
+		totalSuccesses += result.Successes
 	}
 
-	totalPolicies := totalFailures + totalExceptions + totalWarnings + totalSuccesses
-
-	var outputColor aurora.Color
-	if totalFailures > 0 {
-		outputColor = aurora.RedFg
-	} else if totalWarnings > 0 {
-		outputColor = aurora.YellowFg
-	} else if totalExceptions > 0 {
-		outputColor = aurora.CyanFg
-	} else {
-		outputColor = aurora.GreenFg
-	}
+	totalTests := totalFailures + totalExceptions + totalWarnings + totalSuccesses
 
 	var pluralSuffixTests string
-	if totalPolicies != 1 {
+	if totalTests != 1 {
 		pluralSuffixTests = "s"
 	}
 
@@ -134,15 +100,45 @@ func (s *StandardOutputManager) Flush() error {
 		pluralSuffixExceptions = "s"
 	}
 
-	s.logger.Println()
 	outputText := fmt.Sprintf("%v test%s, %v passed, %v warning%s, %v failure%s, %v exception%s",
-		totalPolicies, pluralSuffixTests,
+		totalTests, pluralSuffixTests,
 		totalSuccesses,
 		totalWarnings, pluralSuffixWarnings,
 		totalFailures, pluralSuffixFailures,
 		totalExceptions, pluralSuffixExceptions,
 	)
-	s.logger.Println(s.color.Colorize(outputText, outputColor))
 
+	var outputColor aurora.Color
+	if totalFailures > 0 {
+		outputColor = aurora.RedFg
+	} else if totalWarnings > 0 {
+		outputColor = aurora.YellowFg
+	} else if totalExceptions > 0 {
+		outputColor = aurora.CyanFg
+	} else {
+		outputColor = aurora.GreenFg
+	}
+
+	fmt.Fprintln(s.Writer)
+	fmt.Fprintln(s.Writer, colorizer.Colorize(outputText, outputColor))
 	return nil
+}
+
+func (s *Standard) outputTrace(results []CheckResult, colorizer aurora.Aurora) {
+	for _, result := range results {
+		for _, query := range result.Queries {
+			var color aurora.Color
+			if query.Passed() {
+				color = aurora.GreenFg
+			} else {
+				color = aurora.RedFg
+			}
+
+			fmt.Fprintln(s.Writer, colorizer.Colorize("file: "+result.FileName+" | query: "+query.Query, color))
+
+			for _, t := range query.Traces {
+				fmt.Fprintln(s.Writer, colorizer.Colorize("TRAC ", aurora.BlueFg), "", t)
+			}
+		}
+	}
 }
