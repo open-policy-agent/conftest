@@ -3,7 +3,6 @@ package runner
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 
@@ -46,22 +45,32 @@ func (r *VerifyRunner) Run(ctx context.Context) ([]output.CheckResult, error) {
 
 		buf := new(bytes.Buffer)
 		topdown.PrettyTrace(buf, result.Trace)
-		var traces []error
+		var traces []string
 		for _, line := range strings.Split(buf.String(), "\n") {
 			if len(line) > 0 {
-				traces = append(traces, errors.New(line))
+				traces = append(traces, line)
 			}
+		}
+
+		var outputResult output.Result
+		if result.Fail {
+			outputResult.Message = result.Package + "." + result.Name
+		}
+
+		queryResult := output.QueryResult{
+			Query:   result.Name,
+			Results: []output.Result{outputResult},
+			Traces:  traces,
 		}
 
 		checkResult := output.CheckResult{
 			FileName: result.Location.File,
+			Queries:  []output.QueryResult{queryResult},
 		}
-
-		resultMessage := []output.Result{output.NewResult(result.Package+"."+result.Name, traces)}
 		if result.Fail {
-			checkResult.Failures = resultMessage
+			checkResult.Failures = []output.Result{outputResult}
 		} else {
-			checkResult.Successes = resultMessage
+			checkResult.Successes++
 		}
 
 		results = append(results, checkResult)

@@ -9,26 +9,19 @@ import (
 )
 
 func TestStandard(t *testing.T) {
-	type args struct {
-		cr CheckResult
-	}
-
 	tests := []struct {
-		msg    string
-		args   args
-		exp    []string
-		expErr error
+		name     string
+		input    CheckResult
+		expected []string
 	}{
 		{
-			msg: "records failure and Warnings",
-			args: args{
-				cr: CheckResult{
-					FileName: "foo.yaml",
-					Warnings: []Result{NewResult("first warning", []error{})},
-					Failures: []Result{NewResult("first failure", []error{})},
-				},
+			name: "records failure and Warnings",
+			input: CheckResult{
+				FileName: "foo.yaml",
+				Warnings: []Result{{Message: "first warning"}},
+				Failures: []Result{{Message: "first failure"}},
 			},
-			exp: []string{
+			expected: []string{
 				"WARN - foo.yaml - first warning",
 				"FAIL - foo.yaml - first failure",
 				"",
@@ -36,15 +29,13 @@ func TestStandard(t *testing.T) {
 			},
 		},
 		{
-			msg: "skips filenames for stdin",
-			args: args{
-				cr: CheckResult{
-					FileName: "-",
-					Warnings: []Result{NewResult("first warning", []error{})},
-					Failures: []Result{NewResult("first failure", []error{})},
-				},
+			name: "skips filenames for stdin",
+			input: CheckResult{
+				FileName: "-",
+				Warnings: []Result{{Message: "first warning"}},
+				Failures: []Result{{Message: "first failure"}},
 			},
-			exp: []string{
+			expected: []string{
 				"WARN - first warning",
 				"FAIL - first failure",
 				"",
@@ -54,11 +45,11 @@ func TestStandard(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.msg, func(t *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			buf := new(bytes.Buffer)
 			s := NewStandardOutputManager(log.New(buf, "", 0), false)
 
-			if err := s.Put(tt.args.cr); err != nil {
+			if err := s.Put(tt.input); err != nil {
 				t.Fatalf("put output: %v", err)
 			}
 
@@ -67,8 +58,8 @@ func TestStandard(t *testing.T) {
 			}
 
 			actual := strings.Split(strings.TrimSuffix(buf.String(), "\n"), "\n")
-			if !reflect.DeepEqual(tt.exp, actual) {
-				t.Errorf("unexpected output. expected %v actual %v", tt.exp, actual)
+			if !reflect.DeepEqual(tt.expected, actual) {
+				t.Errorf("unexpected output. expected %v actual %v", tt.expected, actual)
 			}
 		})
 	}

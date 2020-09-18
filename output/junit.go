@@ -46,9 +46,7 @@ func (j *JUnitOutputManager) Put(cr CheckResult) error {
 		out := []string{
 			r.Message,
 		}
-		for _, err := range r.Traces {
-			out = append(out, err.Error())
-		}
+
 		return out
 	}
 	convert := func(r Result, status parser.Result) *parser.Test {
@@ -69,12 +67,15 @@ func (j *JUnitOutputManager) Put(cr CheckResult) error {
 	for _, result := range cr.Warnings {
 		j.p.Tests = append(j.p.Tests, convert(result, parser.FAIL))
 	}
+
 	for _, result := range cr.Failures {
 		j.p.Tests = append(j.p.Tests, convert(result, parser.FAIL))
 	}
-	for _, result := range cr.Successes {
-		j.p.Tests = append(j.p.Tests, convert(result, parser.PASS))
+
+	for s := 0; s < cr.Successes; s++ {
+		j.p.Tests = append(j.p.Tests, convert(Result{}, parser.PASS))
 	}
+
 	return nil
 }
 

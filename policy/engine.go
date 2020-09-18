@@ -3,7 +3,6 @@ package policy
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -48,7 +47,7 @@ func (e *Engine) Check(ctx context.Context, configs map[string]interface{}, name
 					return nil, fmt.Errorf("check: %w", err)
 				}
 
-				checkResult.Successes = append(checkResult.Successes, result.Successes...)
+				checkResult.Successes = checkResult.Successes + result.Successes
 				checkResult.Failures = append(checkResult.Failures, result.Failures...)
 				checkResult.Warnings = append(checkResult.Warnings, result.Warnings...)
 				checkResult.Exceptions = append(checkResult.Exceptions, result.Exceptions...)
@@ -174,41 +173,33 @@ func (e *Engine) check(ctx context.Context, path string, config interface{}, nam
 	}
 	for rule, count := range rules {
 		exceptionQuery := fmt.Sprintf("data.%s.exception[_][_] == %q", namespace, removeFailurePrefix(rule))
-		exceptionResults, err := e.query(ctx, config, exceptionQuery)
+		exceptionQueryResult, err := e.query(ctx, config, exceptionQuery)
 		if err != nil {
 			return output.CheckResult{}, fmt.Errorf("query exception: %w", err)
 		}
 
 		var exceptions []output.Result
-		for _, exceptionResult := range exceptionResults {
+		for _, exceptionResult := range exceptionQueryResult.Results {
 
-			// Exceptions, like successes, do not contain a message
-			// when an exception has occured.
-			//
-			// When an exception is found, set the message of the
-			// exception to the rule that triggered the exception.
-			if exceptionResult.Message == "" {
+			// When an exception is found, set the message of the exception
+			// to the query that triggered the exception so that it is known
+			// which exception was trigged.
+			if exceptionResult.Passed() {
 				exceptionResult.Message = exceptionQuery
 				exceptions = append(exceptions, exceptionResult)
 			}
 		}
 
-		query := fmt.Sprintf("data.%s.%s", namespace, rule)
-		ruleResults, err := e.query(ctx, config, query)
+		ruleQuery := fmt.Sprintf("data.%s.%s", namespace, rule)
+		ruleQueryResult, err := e.query(ctx, config, ruleQuery)
 		if err != nil {
-			return output.CheckResult{}, fmt.Errorf("query input: %w", err)
+			return output.CheckResult{}, fmt.Errorf("query rule: %w", err)
 		}
 
-		var successes []output.Result
 		var failures []output.Result
 		var warnings []output.Result
-		for _, ruleResult := range ruleResults {
-			if ruleResult.Message == "" {
-				successes = append(successes, ruleResult)
-				continue
-			}
-
-			if len(exceptions) > 0 {
+		for _, ruleResult := range ruleQueryResult.Results {
+			if ruleResult.Passed() || len(exceptions) > 0 {
 				continue
 			}
 
@@ -222,25 +213,29 @@ func (e *Engine) check(ctx context.Context, path string, config interface{}, nam
 		// Only a single success result is returned when a given rule succeeds, even
 		// if there are multiple occurances of that rule.
 		//
-		// To get the true number of successes, add up the total number of evaluations
-		// that exist and add success results until the number of evaluations is the
-		// same as the number of evaluated rules.
-		for i := len(successes) + len(failures) + len(warnings) + len(exceptions); i < count; i++ {
-			successes = append(successes, output.Result{})
-		}
+		// The actual number of successes will be the difference between the total number
+		// of evaluations that have been performed and the total number of expected evaluations.
+		successes := count - (len(failures) + len(warnings) + len(exceptions))
 
-		checkResult.Successes = append(checkResult.Successes, successes...)
+		checkResult.Successes += successes
 		checkResult.Failures = append(checkResult.Failures, failures...)
 		checkResult.Warnings = append(checkResult.Warnings, warnings...)
 		checkResult.Exceptions = append(checkResult.Exceptions, exceptions...)
+
+		checkResult.Queries = append(checkResult.Queries, exceptionQueryResult)
+		checkResult.Queries = append(checkResult.Queries, ruleQueryResult)
 	}
 
 	return checkResult, nil
 }
 
 // query is a low-level method that has no notion of a failed policy or successful policy.
-// It only returns the result of executing the query against the input.
-func (e *Engine) query(ctx context.Context, input interface{}, query string) ([]output.Result, error) {
+// It only returns the result of executing a single query against the input.
+//
+// Example queries could include:
+// data.main.deny to query the deny rule in the main namespace
+// data.main.warn to query the warn rule in the main namespace
+func (e *Engine) query(ctx context.Context, input interface{}, query string) (output.QueryResult, error) {
 	stdout := topdown.NewBufferTracer()
 	options := []func(r *rego.Rego){
 		rego.Input(input),
@@ -250,20 +245,19 @@ func (e *Engine) query(ctx context.Context, input interface{}, query string) ([]
 		rego.Runtime(e.Runtime()),
 		rego.QueryTracer(stdout),
 	}
-
 	resultSet, err := rego.New(options...).Eval(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("evaluating policy: %w", err)
+		return output.QueryResult{}, fmt.Errorf("evaluating policy: %w", err)
 	}
 
-	// After the evaluation of the policy, the buffer tracer (stdout) will be populated.
-	// Once populated, format the trace results into a human readable format.
+	// After the evaluation of the policy, the results of the trace (stdout) will be populated
+	// for the query. Once populated, format the trace results into a human readable format.
 	buf := new(bytes.Buffer)
 	topdown.PrettyTrace(buf, *stdout)
-	var traces []error
+	var traces []string
 	for _, line := range strings.Split(buf.String(), "\n") {
 		if len(line) > 0 {
-			traces = append(traces, errors.New(line))
+			traces = append(traces, line)
 		}
 	}
 
@@ -275,13 +269,13 @@ func (e *Engine) query(ctx context.Context, input interface{}, query string) ([]
 			// For example, deny[msg] or violation[{"msg": msg}].
 			//
 			// When an expression does not have a slice of values, the expression did not
-			// evaluate to true, no message was returned, and the policy succeeded (empty message).
+			// evaluate to true, and no message was returned.
 			var expressionValues []interface{}
 			if _, ok := expression.Value.([]interface{}); ok {
 				expressionValues = expression.Value.([]interface{})
 			}
 			if len(expressionValues) == 0 {
-				results = append(results, output.NewResult("", traces))
+				results = append(results, output.Result{})
 				continue
 			}
 
@@ -290,13 +284,16 @@ func (e *Engine) query(ctx context.Context, input interface{}, query string) ([]
 
 				// Policies that only return a single string (e.g. deny[msg])
 				case string:
-					results = append(results, output.NewResult(val, traces))
+					result := output.Result{
+						Message: val,
+					}
+					results = append(results, result)
 
 				// Policies that return metadata (e.g. deny[{"msg": msg}])
 				case map[string]interface{}:
-					result, err := output.NewResultWithMetadata(val, traces)
+					result, err := output.NewResult(val)
 					if err != nil {
-						return nil, fmt.Errorf("metadata result: %w", err)
+						return output.QueryResult{}, fmt.Errorf("new result: %w", err)
 					}
 
 					results = append(results, result)
@@ -305,7 +302,13 @@ func (e *Engine) query(ctx context.Context, input interface{}, query string) ([]
 		}
 	}
 
-	return results, nil
+	queryResult := output.QueryResult{
+		Query:   query,
+		Results: results,
+		Traces:  traces,
+	}
+
+	return queryResult, nil
 }
 
 func isWarning(rule string) bool {
