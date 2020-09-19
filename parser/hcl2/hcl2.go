@@ -4,38 +4,22 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/hashicorp/hcl/v2"
-	"github.com/hashicorp/hcl/v2/hclsyntax"
+	"github.com/tmccombs/hcl2json/convert"
 )
 
-// Parser is a HCL2 parser
+// Parser is an HCL2 parser.
 type Parser struct{}
 
-func (h *Parser) Unmarshal(p []byte, v interface{}) error {
-	file, diags := hclsyntax.ParseConfig(p, "", hcl.Pos{Byte: 0, Line: 1, Column: 1})
-
-	if diags.HasErrors() {
-		var details []error
-		for _, each := range diags.Errs() {
-			each = fmt.Errorf("%s \n", each)
-			details = append(details, each)
-		}
-
-		return fmt.Errorf("parse hcl2 config: \n %s", details)
-	}
-
-	content, err := convertFile(file)
+// Unmarshal unmarshals HCL files that are written using
+// version 2 of the HCL language.
+func (Parser) Unmarshal(p []byte, v interface{}) error {
+	hclBytes, err := convert.Bytes(p, "", convert.Options{})
 	if err != nil {
-		return fmt.Errorf("convert hcl2 to json: %w", err)
+		return fmt.Errorf("convert to bytes: %w", err)
 	}
 
-	j, err := json.Marshal(content)
-	if err != nil {
-		return fmt.Errorf("marshal hcl2 to json: %w", err)
-	}
-
-	if err := json.Unmarshal(j, v); err != nil {
-		return fmt.Errorf("unmarshal hcl2 json: %w", err)
+	if err := json.Unmarshal(hclBytes, v); err != nil {
+		return fmt.Errorf("unmarshal hcl2: %w", err)
 	}
 
 	return nil
