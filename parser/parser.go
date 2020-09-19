@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/open-policy-agent/conftest/parser/jsonnet"
@@ -97,7 +98,8 @@ func GetParserFromPath(path string) (Parser, error) {
 }
 
 // ParseConfigurations parses and returns the configurations from the given
-// list of files.
+// list of files. The result will be a map where the key is the file name of
+// the configuration.
 func ParseConfigurations(files []string) (map[string]interface{}, error) {
 	configurations, err := parseConfigurations(files, "")
 	if err != nil {
@@ -108,7 +110,8 @@ func ParseConfigurations(files []string) (map[string]interface{}, error) {
 }
 
 // ParseConfigurationsAs parses the files as the given file type and returns the
-// configurations given in the file list.
+// configurations given in the file list. The result will be a map where the key
+// is the file name of the configuration.
 func ParseConfigurationsAs(files []string, fileExtension string) (map[string]interface{}, error) {
 	configurations, err := parseConfigurations(files, fileExtension)
 	if err != nil {
@@ -119,7 +122,8 @@ func ParseConfigurationsAs(files []string, fileExtension string) (map[string]int
 }
 
 // CombineConfigurations takes the given configurations and combines them into a single
-// configuration.
+// configuration. The result will be a map that contains a single key with a value of
+// Combined.
 func CombineConfigurations(configs map[string]interface{}) map[string]interface{} {
 	type configuration struct {
 		Path     string      `json:"path"`
@@ -147,6 +151,12 @@ func CombineConfigurations(configs map[string]interface{}) map[string]interface{
 
 		allConfigurations = append(allConfigurations, configuration)
 	}
+
+	// For consistency when printing the results, sort the configurations by
+	// their file paths.
+	sort.Slice(allConfigurations, func(i, j int) bool {
+		return allConfigurations[i].Path < allConfigurations[j].Path
+	})
 
 	combinedConfigurations := make(map[string]interface{})
 	combinedConfigurations["Combined"] = allConfigurations
