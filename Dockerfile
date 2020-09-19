@@ -51,6 +51,10 @@ WORKDIR /examples
 
 ## RELEASE ##
 FROM alpine:latest
+
+# Install git for protocols that depend on it when using conftest pull
+RUN apk add --no-cache git
+
 COPY --from=builder /app/conftest /
 RUN ln -s /conftest /usr/local/bin/conftest
 WORKDIR /project
