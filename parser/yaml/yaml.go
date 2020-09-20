@@ -3,7 +3,6 @@ package yaml
 import (
 	"bytes"
 	"fmt"
-	"runtime"
 
 	"github.com/ghodss/yaml"
 )
@@ -31,8 +30,7 @@ func (yp *Parser) Unmarshal(p []byte, v interface{}) error {
 
 func separateSubDocuments(data []byte) [][]byte {
 	linebreak := "\n"
-	windowsLineEnding := bytes.Contains(data, []byte("\r\n"))
-	if windowsLineEnding && runtime.GOOS == "windows" {
+	if bytes.Contains(data, []byte("\r\n---\r\n")) {
 		linebreak = "\r\n"
 	}
 
