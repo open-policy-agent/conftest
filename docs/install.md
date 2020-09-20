@@ -1,6 +1,8 @@
 # Installation
 
-Conftest is available for Windows, macOS and Linux on the [releases page](https://github.com/open-policy-agent/conftest/releases). On Linux amd64 and arm64 are supported architectures. On Linux and macOS you can download as follows:
+Conftest is available for Windows, macOS and Linux on the [releases page](https://github.com/open-policy-agent/conftest/releases). 
+
+On Linux and macOS you can download as follows:
 
 ```console
 $ wget https://github.com/open-policy-agent/conftest/releases/download/v0.21.0/conftest_0.21.0_Linux_x86_64.tar.gz
@@ -33,4 +35,6 @@ Conftest Docker images are also available. Simply mount your configuration and p
 ```console
 $ docker run --rm -v $(pwd):/project instrumenta/conftest test deployment.yaml
 FAIL - deployment.yaml - Containers must not run as root in Deployment hello-kubernetes
+
+1 test, 0 passed, 0 warnings, 1 failure, 0 exceptions
 ```
