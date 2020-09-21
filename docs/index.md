@@ -2,7 +2,7 @@
 
 Conftest is a utility to help you write tests against structured configuration data. For instance, you could write tests for your Kubernetes configurations, Tekton pipeline definitions, Terraform code, Serverless configs or any other structured data.
 
-Conftest relies on the Rego language from [Open Policy Agent](https://www.openpolicyagent.org/) for writing the assertions. You can read more about Rego in [How do I write policies](https://www.openpolicyagent.org/docs/how-do-i-write-policies.html) in the Open Policy Agent documentation.
+Conftest relies on the Rego language from [Open Policy Agent](https://www.openpolicyagent.org/) for writing policies. If you're unsure what exactly a policy is, or unfamiliar with the Rego policy language, the [Policy Language](https://www.openpolicyagent.org/docs/latest/policy-language/) documentation provided by the Open Policy Agent documentation site is a great resource to read.
 
 ## Usage
 
