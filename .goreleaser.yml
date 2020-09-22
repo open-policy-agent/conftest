@@ -65,4 +65,5 @@ nfpms:
       - deb
       - rpm
     homepage: https://github.com/open-policy-agent/conftest
+    maintainer: jpreese <john@reese.dev>
     license: Apache-2.0
