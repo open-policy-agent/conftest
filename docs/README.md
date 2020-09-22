@@ -22,5 +22,3 @@ INFO    -  Start watching changes
 [I 200229 08:22:10 handlers:64] Start detecting changes
 INFO    -  Start detecting changes
 ```
-
-

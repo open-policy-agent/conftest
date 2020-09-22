@@ -16,15 +16,17 @@ Here's a quick example. Save the following as `policy/deployment.rego`:
 package main
 
 deny[msg] {
-  input.kind = "Deployment"
-  not input.spec.template.spec.securityContext.runAsNonRoot = true
-  msg = "Containers must not run as root"
+  input.kind == "Deployment"
+  not input.spec.template.spec.securityContext.runAsNonRoot
+
+  msg := "Containers must not run as root"
 }
 
 deny[msg] {
-  input.kind = "Deployment"
+  input.kind == "Deployment"
   not input.spec.selector.matchLabels.app
-  msg = "Containers must provide app label for pod selectors"
+
+  msg := "Containers must provide app label for pod selectors"
 }
 ```
 
@@ -33,9 +35,9 @@ Assuming you have a Kubernetes deployment in `deployment.yaml` you can run Conft
 ```console
 $ conftest test deployment.yaml
 FAIL - deployment.yaml - Containers must not run as root
-FAIL - deployment.yaml - Deployments are not allowed
+FAIL - deployment.yaml - Containers must provide app label for pod selectors
 
-2 tests, 0 passed, 0 warnings, 2 failures
+2 tests, 0 passed, 0 warnings, 2 failures, 0 exceptions
 ```
 
 Conftest isn't specific to Kubernetes. It will happily let you write tests for any configuration files in a variety of different formats.
@@ -43,6 +45,3 @@ Conftest isn't specific to Kubernetes. It will happily let you write tests for a
 See the [documentation](https://www.conftest.dev/) for [installation instructions](https://www.conftest.dev/install/) and
 more details about the features. For discussions and questions join us on the [Open Policy Agent Slack](https://slack.openpolicyagent.org/)
 in the `#conftest` channel.
-
-
-
