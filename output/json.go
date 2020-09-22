@@ -3,62 +3,45 @@ package output
 import (
 	"bytes"
 	"encoding/json"
-	"log"
-	"os"
+	"fmt"
+	"io"
 )
 
-// JSONOutputManager formats its output to JSON.
-type JSONOutputManager struct {
-	logger  *log.Logger
-	data    []CheckResult
-	tracing bool
+// JSON represents an Outputter that outputs
+// results in JSON format.
+type JSON struct {
+	Writer io.Writer
 }
 
-// NewDefaultJSONOutputManager creates a new JSONOutputManager using the default logger.
-func NewDefaultJSONOutputManager() *JSONOutputManager {
-	return NewJSONOutputManager(log.New(os.Stdout, "", 0))
-}
-
-// NewJSONOutputManager creates a new JSONOutputManager with a given logger instance.
-func NewJSONOutputManager(l *log.Logger) *JSONOutputManager {
-	return &JSONOutputManager{
-		logger: l,
-	}
-}
-
-// WithTracing adds tracing to the output.
-func (j *JSONOutputManager) WithTracing() OutputManager {
-	j.tracing = true
-	return j
-}
-
-// Put puts the result of the check to the manager in the managers buffer.
-func (j *JSONOutputManager) Put(cr CheckResult) error {
-	if !j.tracing {
-		cr.Queries = nil
+// NewJSON creates a new JSON with the given writer.
+func NewJSON(w io.Writer) *JSON {
+	jsonOutput := JSON{
+		Writer: w,
 	}
 
-	if cr.FileName == "-" {
-		cr.FileName = ""
-	}
-
-	j.data = append(j.data, cr)
-	return nil
+	return &jsonOutput
 }
 
-// Flush writes the contents of the managers buffer to the console.
-func (j *JSONOutputManager) Flush() error {
-	b, err := json.Marshal(j.data)
+// Output outputs the results.
+func (j *JSON) Output(results []CheckResult) error {
+	for r := range results {
+		if results[r].FileName == "-" {
+			results[r].FileName = ""
+		}
+
+		results[r].Queries = nil
+	}
+
+	b, err := json.Marshal(results)
 	if err != nil {
-		return err
+		return fmt.Errorf("marshal json: %w", err)
 	}
 
 	var out bytes.Buffer
-	err = json.Indent(&out, b, "", "\t")
-	if err != nil {
-		return err
+	if err := json.Indent(&out, b, "", "\t"); err != nil {
+		return fmt.Errorf("indent: %w", err)
 	}
 
-	j.logger.Print(out.String())
+	fmt.Fprintln(j.Writer, out.String())
 	return nil
 }

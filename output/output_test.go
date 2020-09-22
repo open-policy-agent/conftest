@@ -1,56 +1,52 @@
 package output
 
 import (
+	"os"
 	"reflect"
 	"testing"
 )
 
-func TestSupportedOutputManagers(t *testing.T) {
-	for _, testunit := range []struct {
-		name          string
-		outputFormat  string
-		outputManager OutputManager
+func TestGetOutputter(t *testing.T) {
+	testCases := []struct {
+		input    string
+		expected Outputter
 	}{
 		{
-			name:          "std output should exist",
-			outputFormat:  outputSTD,
-			outputManager: NewDefaultStandardOutputManager(true),
+			input:    OutputStandard,
+			expected: NewStandard(os.Stdout),
 		},
 		{
-			name:          "json output should exist",
-			outputFormat:  outputJSON,
-			outputManager: NewDefaultJSONOutputManager(),
+			input:    OutputJSON,
+			expected: NewJSON(os.Stdout),
 		},
 		{
-			name:          "tap output should exist",
-			outputFormat:  outputTAP,
-			outputManager: NewDefaultTAPOutputManager(),
+			input:    OutputTAP,
+			expected: NewTAP(os.Stdout),
 		},
 		{
-			name:          "table output should exist",
-			outputFormat:  outputTable,
-			outputManager: NewDefaultTableOutputManager(),
+			input:    OutputTable,
+			expected: NewTable(os.Stdout),
 		},
 		{
-			name:          "JUnit should exist",
-			outputFormat:  outputJUnit,
-			outputManager: NewDefaultJUnitOutputManager(),
+			input:    OutputJUnit,
+			expected: NewJUnit(os.Stdout),
 		},
 		{
-			name:          "default output should exist",
-			outputFormat:  "somedefault",
-			outputManager: NewDefaultStandardOutputManager(true),
+			input:    "unknown_format",
+			expected: NewStandard(os.Stdout),
 		},
-	} {
-		outputManager := GetOutputManager(testunit.outputFormat, true)
-		if !reflect.DeepEqual(outputManager, testunit.outputManager) {
-			t.Errorf(
-				"We expected the output manager to be of type %v : %T and it was %T",
-				testunit.outputFormat,
-				testunit.outputManager,
-				outputManager,
-			)
-		}
+	}
 
+	for _, testCase := range testCases {
+		t.Run(testCase.input, func(t *testing.T) {
+			actual := Get(testCase.input, Options{NoColor: true})
+
+			actualType := reflect.TypeOf(actual)
+
+			expectedType := reflect.TypeOf(testCase.expected)
+			if expectedType != actualType {
+				t.Errorf("Unexpected outputter. expected %v actual %v", expectedType, actualType)
+			}
+		})
 	}
 }

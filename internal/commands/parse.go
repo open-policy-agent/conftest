@@ -66,7 +66,7 @@ func NewParseCommand(ctx context.Context) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().BoolP("combine", "", false, "Combine all config files to be evaluated together")
+	cmd.Flags().Bool("combine", false, "Combine all config files to be evaluated together")
 	cmd.Flags().StringP("input", "i", "", fmt.Sprintf("Input type for given source, especially useful when using conftest with stdin, valid options are: %s", parser.ValidInputs()))
 
 	return &cmd

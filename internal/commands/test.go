@@ -105,19 +105,9 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("running test: %w", err)
 			}
 
-			outputManager := output.GetOutputManager(runner.Output, !runner.NoColor)
-			if runner.Trace {
-				outputManager = outputManager.WithTracing()
-			}
-
-			for _, result := range results {
-				if err := outputManager.Put(result); err != nil {
-					return fmt.Errorf("put: %w", err)
-				}
-			}
-
-			if err := outputManager.Flush(); err != nil {
-				return fmt.Errorf("flushing output: %w", err)
+			outputter := output.Get(runner.Output, output.Options{NoColor: runner.NoColor, Tracing: runner.Trace})
+			if err := outputter.Output(results); err != nil {
+				return fmt.Errorf("output results: %w", err)
 			}
 
 			var exitCode int
@@ -141,7 +131,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().BoolP("combine", "", false, "Combine all config files to be evaluated together")
 
 	cmd.Flags().String("ignore", "", "A regex pattern which can be used for ignoring paths")
-	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("Output format for conftest results - valid options are: %s", output.ValidOutputs()))
+	cmd.Flags().StringP("output", "o", output.OutputStandard, fmt.Sprintf("Output format for conftest results - valid options are: %s", output.Outputs()))
 	cmd.Flags().StringP("input", "i", "", fmt.Sprintf("Input type for given source, especially useful when using conftest with stdin, valid options are: %s", parser.ValidInputs()))
 
 	cmd.Flags().StringSliceP("policy", "p", []string{"policy"}, "Path to the Rego policy files directory")

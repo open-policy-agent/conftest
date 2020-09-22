@@ -2,7 +2,7 @@ package output
 
 import (
 	"bytes"
-	"log"
+	"strings"
 	"testing"
 )
 
@@ -10,23 +10,50 @@ func TestJSON(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    []CheckResult
-		expected string
+		expected []string
 	}{
 		{
-			name: "no warnings or errors",
+			name: "No warnings or errors",
 			input: []CheckResult{
-				{FileName: "examples/kubernetes/service.yaml"},
+				{
+					FileName: "examples/kubernetes/service.yaml",
+				},
 			},
-			expected: `[
-	{
-		"filename": "examples/kubernetes/service.yaml",
-		"successes": 0
-	}
-]
-`,
+			expected: []string{
+				`[`,
+				`	{`,
+				`		"filename": "examples/kubernetes/service.yaml",`,
+				`		"successes": 0`,
+				`	}`,
+				`]`,
+				``,
+			},
 		},
 		{
-			name: "records failures and warnings",
+			name: "A single failure",
+			input: []CheckResult{
+				{
+					FileName: "examples/kubernetes/service.yaml",
+					Failures: []Result{{Message: "first failure"}},
+				},
+			},
+			expected: []string{
+				`[`,
+				`	{`,
+				`		"filename": "examples/kubernetes/service.yaml",`,
+				`		"successes": 0,`,
+				`		"failures": [`,
+				`			{`,
+				`				"msg": "first failure"`,
+				`			}`,
+				`		]`,
+				`	}`,
+				`]`,
+				``,
+			},
+		},
+		{
+			name: "A warning and a failure",
 			input: []CheckResult{
 				{
 					FileName: "examples/kubernetes/service.yaml",
@@ -34,104 +61,83 @@ func TestJSON(t *testing.T) {
 					Failures: []Result{{Message: "first failure"}},
 				},
 			},
-			expected: `[
-	{
-		"filename": "examples/kubernetes/service.yaml",
-		"successes": 0,
-		"warnings": [
-			{
-				"msg": "first warning"
-			}
-		],
-		"failures": [
-			{
-				"msg": "first failure"
-			}
-		]
-	}
-]
-`,
-		},
-		{
-			name: "mixed failure and Warnings",
-			input: []CheckResult{
-				{
-					FileName: "examples/kubernetes/service.yaml",
-					Failures: []Result{{Message: "first failure"}},
-				},
+			expected: []string{
+				`[`,
+				`	{`,
+				`		"filename": "examples/kubernetes/service.yaml",`,
+				`		"successes": 0,`,
+				`		"warnings": [`,
+				`			{`,
+				`				"msg": "first warning"`,
+				`			}`,
+				`		],`,
+				`		"failures": [`,
+				`			{`,
+				`				"msg": "first failure"`,
+				`			}`,
+				`		]`,
+				`	}`,
+				`]`,
+				``,
 			},
-			expected: `[
-	{
-		"filename": "examples/kubernetes/service.yaml",
-		"successes": 0,
-		"failures": [
-			{
-				"msg": "first failure"
-			}
-		]
-	}
-]
-`,
 		},
 		{
-			name: "handles stdin input",
+			name: "Renames standard input file name to empty string",
 			input: []CheckResult{
 				{
 					FileName: "-",
 					Failures: []Result{{Message: "first failure"}},
 				},
 			},
-			expected: `[
-	{
-		"filename": "",
-		"successes": 0,
-		"failures": [
-			{
-				"msg": "first failure"
-			}
-		]
-	}
-]
-`,
+			expected: []string{
+				`[`,
+				`	{`,
+				`		"filename": "",`,
+				`		"successes": 0,`,
+				`		"failures": [`,
+				`			{`,
+				`				"msg": "first failure"`,
+				`			}`,
+				`		]`,
+				`	}`,
+				`]`,
+				``,
+			},
 		},
 		{
-			name: "multiple check results",
+			name: "Multiple files",
 			input: []CheckResult{
 				{FileName: "examples/kubernetes/service.yaml"},
 				{FileName: "examples/kubernetes/deployment.yaml"},
 			},
-			expected: `[
-	{
-		"filename": "examples/kubernetes/service.yaml",
-		"successes": 0
-	},
-	{
-		"filename": "examples/kubernetes/deployment.yaml",
-		"successes": 0
-	}
-]
-`,
+			expected: []string{
+				`[`,
+				`	{`,
+				`		"filename": "examples/kubernetes/service.yaml",`,
+				`		"successes": 0`,
+				`	},`,
+				`	{`,
+				`		"filename": "examples/kubernetes/deployment.yaml",`,
+				`		"successes": 0`,
+				`	}`,
+				`]`,
+				``,
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			expected := strings.Join(tt.expected, "\n")
+
 			buf := new(bytes.Buffer)
-			s := NewJSONOutputManager(log.New(buf, "", 0))
-
-			for _, cr := range tt.input {
-				if err := s.Put(cr); err != nil {
-					t.Fatalf("put output: %v", err)
-				}
+			if err := NewJSON(buf).Output(tt.input); err != nil {
+				t.Fatal("output json:", err)
 			}
-
-			if err := s.Flush(); err != nil {
-				t.Fatalf("flush output: %v", err)
-			}
-
 			actual := buf.String()
-			if tt.expected != actual {
-				t.Errorf("unexpected output. expected %v got %v", tt.expected, actual)
+
+			if expected != actual {
+				t.Errorf("Unexpected output.expected %v actual %v", expected, actual)
 			}
 		})
 	}
