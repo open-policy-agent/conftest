@@ -76,19 +76,13 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("running verification: %w", err)
 			}
 
-			outputManager := output.GetOutputManager(runner.Output, !runner.NoColor)
-			if runner.Trace {
-				outputManager = outputManager.WithTracing()
+			outputter := output.Get(runner.Output, output.Options{NoColor: runner.NoColor, Tracing: runner.Trace})
+			if err := outputter.Output(results); err != nil {
+				return fmt.Errorf("output results: %w", err)
 			}
 
-			for _, result := range results {
-				if err := outputManager.Put(result); err != nil {
-					return fmt.Errorf("put result: %w", err)
-				}
-			}
-
-			if err := outputManager.Flush(); err != nil {
-				return fmt.Errorf("flushing output: %w", err)
+			if err := outputter.Output(results); err != nil {
+				return fmt.Errorf("output results: %w", err)
 			}
 
 			exitCode := output.ExitCode(results)
@@ -101,9 +95,9 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 	}
 
 	cmd.Flags().Bool("no-color", false, "Disable color when printing")
-	cmd.Flags().BoolP("trace", "", false, "Enable more verbose trace output for Rego queries")
+	cmd.Flags().Bool("trace", false, "Enable more verbose trace output for Rego queries")
 
-	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("Output format for conftest results - valid options are: %s", output.ValidOutputs()))
+	cmd.Flags().StringP("output", "o", output.OutputStandard, fmt.Sprintf("Output format for conftest results - valid options are: %s", output.Outputs()))
 
 	cmd.Flags().StringSliceP("data", "d", []string{}, "A list of paths from which data for the rego policies will be recursively loaded")
 	cmd.Flags().StringSliceP("policy", "p", []string{"policy"}, "Path to the Rego policy files directory")

@@ -37,7 +37,7 @@ const (
 	YAML       = "yaml"
 	JSON       = "json"
 	JSONNET    = "jsonnet"
-	EDN        = "end"
+	EDN        = "edn"
 	VCL        = "vcl"
 	XML        = "xml"
 )
@@ -106,7 +106,7 @@ func NewFromPath(path string) (Parser, error) {
 
 	parser, err := New(fileExtension)
 	if err != nil {
-		return nil, fmt.Errorf("from path: %w", err)
+		return nil, fmt.Errorf("new: %w", err)
 	}
 
 	return parser, nil
@@ -221,7 +221,7 @@ func parseConfigurations(paths []string, parser string) (map[string]interface{},
 			fileParser, err = New(parser)
 		}
 		if err != nil {
-			return nil, fmt.Errorf("get parser: %w", err)
+			return nil, fmt.Errorf("new parser: %w", err)
 		}
 
 		contents, err := getConfigurationContent(path)

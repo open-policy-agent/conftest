@@ -3,7 +3,6 @@ package output
 import (
 	"fmt"
 	"io"
-	"os"
 	"runtime"
 	"strings"
 
@@ -11,80 +10,72 @@ import (
 	"github.com/jstemmer/go-junit-report/parser"
 )
 
-// JUnitOutputManager formats its output as a JUnit test result
-type JUnitOutputManager struct {
-	p       parser.Package
-	writer  io.Writer
-	tracing bool
+// JUnit represents an Outputter that outputs
+// results in JUnit format.
+type JUnit struct {
+	Writer io.Writer
 }
 
-// NewDefaultJUnitOutputManager creates a new JUnitOutputManager using standard out
-func NewDefaultJUnitOutputManager() *JUnitOutputManager {
-	return NewJUnitOutputManager(os.Stdout)
+// NewJUnit creates a new JUnit with the given writer.
+func NewJUnit(w io.Writer) *JUnit {
+	jUnit := JUnit{
+		Writer: w,
+	}
+
+	return &jUnit
 }
 
-// NewJUnitOutputManager creates a new JUnitOutputManager with a given Writer
-func NewJUnitOutputManager(w io.Writer) *JUnitOutputManager {
-	return &JUnitOutputManager{
-		writer: w,
-		p: parser.Package{
-			Name:  "conftest",
-			Tests: []*parser.Test{},
+// Output outputs the results.
+func (j *JUnit) Output(results []CheckResult) error {
+	var tests []*parser.Test
+	for _, result := range results {
+		for _, warning := range result.Warnings {
+			warningTest := parser.Test{
+				Name:   getTestName(result.FileName, warning.Message),
+				Result: parser.FAIL,
+				Output: []string{warning.Message},
+			}
+
+			tests = append(tests, &warningTest)
+		}
+
+		for _, failure := range result.Failures {
+			failingTest := parser.Test{
+				Name:   getTestName(result.FileName, failure.Message),
+				Result: parser.FAIL,
+				Output: []string{failure.Message},
+			}
+
+			tests = append(tests, &failingTest)
+		}
+
+		for s := 0; s < result.Successes; s++ {
+			successfulTest := parser.Test{
+				Name:   getTestName(result.FileName, ""),
+				Result: parser.PASS,
+				Output: []string{},
+			}
+
+			tests = append(tests, &successfulTest)
+		}
+	}
+
+	report := parser.Report{
+		Packages: []parser.Package{
+			{
+				Name:  "conftest",
+				Tests: tests,
+			},
 		},
 	}
-}
 
-// WithTracing adds tracing to the output.
-func (j *JUnitOutputManager) WithTracing() OutputManager {
-	j.tracing = true
-	return j
-}
-
-// Put puts the result of the check to the manager in the managers buffer
-func (j *JUnitOutputManager) Put(cr CheckResult) error {
-	getOutput := func(r Result) []string {
-		out := []string{
-			r.Message,
-		}
-
-		return out
-	}
-	convert := func(r Result, status parser.Result) *parser.Test {
-		// We have to make sure that the name of the test is unique
-		name := fmt.Sprintf(
-			"%s - %s",
-			cr.FileName,
-			strings.Split(r.Message, "\n")[0],
-		)
-
-		return &parser.Test{
-			Name:   name,
-			Result: status,
-			Output: getOutput(r),
-		}
-	}
-
-	for _, result := range cr.Warnings {
-		j.p.Tests = append(j.p.Tests, convert(result, parser.FAIL))
-	}
-
-	for _, result := range cr.Failures {
-		j.p.Tests = append(j.p.Tests, convert(result, parser.FAIL))
-	}
-
-	for s := 0; s < cr.Successes; s++ {
-		j.p.Tests = append(j.p.Tests, convert(Result{}, parser.PASS))
+	if err := formatter.JUnitReportXML(&report, false, runtime.Version(), j.Writer); err != nil {
+		return fmt.Errorf("format junit: %w", err)
 	}
 
 	return nil
 }
 
-// Flush writes the contents of the managers buffer to the console
-func (j *JUnitOutputManager) Flush() error {
-	report := &parser.Report{
-		Packages: []parser.Package{
-			j.p,
-		},
-	}
-	return formatter.JUnitReportXML(report, false, runtime.Version(), j.writer)
+func getTestName(fileName string, message string) string {
+	return fmt.Sprintf("%s - %s", fileName, strings.Split(message, "\n")[0])
 }

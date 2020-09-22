@@ -64,18 +64,6 @@
   [[ "$output" =~ "data.kubernetes.is_service" ]]
 }
 
-@test "Test command with json output and trace flag" {
-  run ./conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml -o json --trace
-  [ "$status" -eq 0 ]
-  [[ "$output" =~ "data.kubernetes.is_service" ]]
-}
-
-@test "Test command with tap output and trace flag" {
-  run ./conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml -o tap --trace
-  [ "$status" -eq 0 ]
-  [[ "$output" =~ "data.kubernetes.is_service" ]]
-}
-
 @test "Test command with all namespaces flag" {
   run ./conftest test -p examples/docker/policy examples/docker/Dockerfile --all-namespaces
   [ "$status" -eq 1 ]
