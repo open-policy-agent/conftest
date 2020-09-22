@@ -4,100 +4,54 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/open-policy-agent/conftest/parser/cue"
 	"github.com/open-policy-agent/conftest/parser/docker"
-	"github.com/open-policy-agent/conftest/parser/edn"
-	"github.com/open-policy-agent/conftest/parser/hcl1"
 	"github.com/open-policy-agent/conftest/parser/hcl2"
-	"github.com/open-policy-agent/conftest/parser/ini"
-	"github.com/open-policy-agent/conftest/parser/json"
-	"github.com/open-policy-agent/conftest/parser/toml"
 	"github.com/open-policy-agent/conftest/parser/yaml"
 )
 
-func TestGetParser(t *testing.T) {
-	testTable := []struct {
-		fileType string
+func TestNewFromPath(t *testing.T) {
+	testCases := []struct {
+		path     string
 		expected Parser
 	}{
 		{
-			fileType: "hcl1",
-			expected: new(hcl1.Parser),
+			"-",
+			&yaml.Parser{},
 		},
 		{
-			fileType: "tf",
-			expected: new(hcl2.Parser),
+			"test.yaml",
+			&yaml.Parser{},
 		},
 		{
-			fileType: "hcl",
-			expected: new(hcl2.Parser),
+			"test.yml",
+			&yaml.Parser{},
 		},
 		{
-			fileType: "toml",
-			expected: new(toml.Parser),
+			"dockerfile",
+			&docker.Parser{},
 		},
 		{
-			fileType: "cue",
-			expected: new(cue.Parser),
+			"Dockerfile",
+			&docker.Parser{},
 		},
 		{
-			fileType: "ini",
-			expected: new(ini.Parser),
-		},
-		{
-			fileType: "json",
-			expected: new(json.Parser),
-		},
-		{
-			fileType: "yaml",
-			expected: new(yaml.Parser),
-		},
-		{
-			fileType: "yml",
-			expected: new(yaml.Parser),
-		},
-		{
-			fileType: "edn",
-			expected: new(edn.Parser),
-		},
-		{
-			fileType: "Dockerfile",
-			expected: new(docker.Parser),
+			"test.tf",
+			&hcl2.Parser{},
 		},
 	}
 
-	for _, testUnit := range testTable {
-		t.Run(testUnit.fileType, func(t *testing.T) {
-			actual, err := GetParser(testUnit.fileType)
+	for _, testCase := range testCases {
+		t.Run(testCase.path, func(t *testing.T) {
+			expectedType := reflect.TypeOf(testCase.expected)
+
+			actual, err := NewFromPath(testCase.path)
 			if err != nil {
-				t.Fatal("get parser failed:", err)
+				t.Fatal("from path:", err)
 			}
+			actualType := reflect.TypeOf(actual)
 
-			if !reflect.DeepEqual(actual, testUnit.expected) {
-				t.Errorf("Unexpected parser. expected %v actual %v", testUnit.expected, actual)
-			}
-		})
-	}
-}
-
-func TestGetFileType(t *testing.T) {
-	testTable := []struct {
-		path     string
-		expected string
-	}{
-		{"-", "yaml"},
-		{"test.yaml", "yaml"},
-		{"test.yml", "yml"},
-		{"some/path/test.toml", "toml"},
-		{"dockerfile", "dockerfile"},
-	}
-
-	for _, testUnit := range testTable {
-		t.Run(testUnit.path, func(t *testing.T) {
-			actual := getFileType(testUnit.path)
-
-			if actual != testUnit.expected {
-				t.Errorf("Unexpected filetype. expected %v actual %v", testUnit.expected, actual)
+			if !reflect.DeepEqual(actualType, expectedType) {
+				t.Errorf("Unexpected parser. expected %v actual %v", expectedType, actualType)
 			}
 		})
 	}

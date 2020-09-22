@@ -30,13 +30,13 @@
   [ "$status" -eq 0 ]
 }
 
-@test "when testing a YAML document via stdin, default parser should be yaml if no input flag is passed" {
+@test "when testing a YAML document via stdin, default parser should be yaml if no parser flag is passed" {
   run ./conftest test -p examples/kubernetes/policy - < examples/kubernetes/service.yaml
   [ "$status" -eq 0 ]
 }
 
 @test "Pass when testing a YAML document via stdin" {
-  run ./conftest test -i yaml -p examples/kubernetes/policy - < examples/kubernetes/service.yaml
+  run ./conftest test --parser yaml -p examples/kubernetes/policy - < examples/kubernetes/service.yaml
   [ "$status" -eq 0 ]
 }
 
@@ -133,7 +133,7 @@
 }
 
 @test "Can parse hocon files" {
-  run ./conftest test -p examples/hocon/policy examples/hocon/hocon.conf -i hocon
+  run ./conftest test -p examples/hocon/policy examples/hocon/hocon.conf --parser hocon
   [ "$status" -eq 1 ]
   [[ "$output" =~ "Play http server port should be 9000" ]]
 }
@@ -184,20 +184,20 @@
   [[ "$output" =~ "ALB \`my-alb-listener\` is using HTTP rather than HTTP" ]]
 }
 
-@test "Can parse stdin with input flag" {
-  run bash -c "cat examples/ini/grafana.ini | ./conftest test -p examples/ini/policy --input ini -"
+@test "Can parse stdin with parser flag" {
+  run bash -c "cat examples/ini/grafana.ini | ./conftest test -p examples/ini/policy --parser ini -"
   [ "$status" -eq 1 ]
   [[ "$output" =~ "Users should verify their e-mail address" ]]
   [[ "$output" != *"Basic auth should be enabled"* ]]
 }
 
-@test "Using -i/--input should force the chosen parser and fail the rego policy" {
-  run ./conftest test -p examples/terraform/policy/gke.rego examples/terraform/gke.tf -i ini
+@test "Using --parser should force the chosen parser and fail the rego policy" {
+  run ./conftest test -p examples/terraform/policy/gke.rego examples/terraform/gke.tf --parser ini
   [ "$status" -eq 1 ]
 }
 
 @test "Can combine configs and reference by file" {
-  run ./conftest test -p examples/hcl1/policy/gke_combine.rego examples/hcl1/gke.tf --combine -i hcl1 --all-namespaces
+  run ./conftest test -p examples/hcl1/policy/gke_combine.rego examples/hcl1/gke.tf --combine --parser hcl1 --all-namespaces
   [ "$status" -eq 0 ]
 }
 

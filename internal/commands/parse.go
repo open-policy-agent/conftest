@@ -30,7 +30,7 @@ func NewParseCommand(ctx context.Context) *cobra.Command {
 		Short: "Print out structured data from your input files",
 		Long:  parseDesc,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			flagNames := []string{"input", "combine"}
+			flagNames := []string{"parser", "combine"}
 			for _, name := range flagNames {
 				if err := viper.BindPFlag(name, cmd.Flags().Lookup(name)); err != nil {
 					return fmt.Errorf("bind flag: %w", err)
@@ -42,8 +42,8 @@ func NewParseCommand(ctx context.Context) *cobra.Command {
 		RunE: func(cmd *cobra.Command, files []string) error {
 			var configurations map[string]interface{}
 			var err error
-			if viper.GetString("input") != "" {
-				configurations, err = parser.ParseConfigurationsAs(files, viper.GetString("input"))
+			if viper.GetString("parser") != "" {
+				configurations, err = parser.ParseConfigurationsAs(files, viper.GetString("parser"))
 			} else {
 				configurations, err = parser.ParseConfigurations(files)
 			}
@@ -67,7 +67,7 @@ func NewParseCommand(ctx context.Context) *cobra.Command {
 	}
 
 	cmd.Flags().BoolP("combine", "", false, "Combine all config files to be evaluated together")
-	cmd.Flags().StringP("input", "i", "", fmt.Sprintf("Input type for given source, especially useful when using conftest with stdin, valid options are: %s", parser.ValidInputs()))
+	cmd.Flags().String("parser", "", fmt.Sprintf("Parser to use to parse the configurations. Valid parsers: %s", parser.Parsers()))
 
 	return &cmd
 }

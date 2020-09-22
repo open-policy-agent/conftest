@@ -84,7 +84,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 		Long:  testDesc,
 		Args:  cobra.MinimumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			flagNames := []string{"all-namespaces", "combine", "data", "fail-on-warn", "ignore", "input", "namespace", "no-color", "output", "policy", "trace", "update"}
+			flagNames := []string{"all-namespaces", "combine", "data", "fail-on-warn", "ignore", "namespace", "no-color", "output", "parser", "policy", "trace", "update"}
 			for _, name := range flagNames {
 				if err := viper.BindPFlag(name, cmd.Flags().Lookup(name)); err != nil {
 					return fmt.Errorf("bind flag: %w", err)
@@ -140,9 +140,10 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().Bool("all-namespaces", false, "Test policies found in all namespaces")
 	cmd.Flags().BoolP("combine", "", false, "Combine all config files to be evaluated together")
 
-	cmd.Flags().String("ignore", "", "A regex pattern which can be used for ignoring paths")
 	cmd.Flags().StringP("output", "o", "", fmt.Sprintf("Output format for conftest results - valid options are: %s", output.ValidOutputs()))
-	cmd.Flags().StringP("input", "i", "", fmt.Sprintf("Input type for given source, especially useful when using conftest with stdin, valid options are: %s", parser.ValidInputs()))
+
+	cmd.Flags().String("ignore", "", "A regex pattern which can be used for ignoring paths")
+	cmd.Flags().String("parser", "", fmt.Sprintf("Parser to use to parse the configurations. Valid parsers: %s", parser.Parsers()))
 
 	cmd.Flags().StringSliceP("policy", "p", []string{"policy"}, "Path to the Rego policy files directory")
 	cmd.Flags().StringSliceP("update", "u", []string{}, "A list of URLs can be provided to the update flag, which will download before the tests run")

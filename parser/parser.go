@@ -9,8 +9,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/open-policy-agent/conftest/parser/jsonnet"
-
 	"github.com/open-policy-agent/conftest/parser/cue"
 	"github.com/open-policy-agent/conftest/parser/docker"
 	"github.com/open-policy-agent/conftest/parser/edn"
@@ -19,82 +17,130 @@ import (
 	"github.com/open-policy-agent/conftest/parser/hocon"
 	"github.com/open-policy-agent/conftest/parser/ini"
 	"github.com/open-policy-agent/conftest/parser/json"
+	"github.com/open-policy-agent/conftest/parser/jsonnet"
 	"github.com/open-policy-agent/conftest/parser/toml"
 	"github.com/open-policy-agent/conftest/parser/vcl"
 	"github.com/open-policy-agent/conftest/parser/xml"
 	"github.com/open-policy-agent/conftest/parser/yaml"
 )
 
-// ValidInputs returns string array in order to passing valid input types to viper
-func ValidInputs() []string {
-	return []string{
-		"toml",
-		"tf",
-		"hcl",
-		"hcl1",
-		"cue",
-		"ini",
-		"yml",
-		"yaml",
-		"json",
-		"jsonnet",
-		"Dockerfile",
-		"edn",
-		"vcl",
-		"xml",
-	}
-}
+// The defined parsers are the parsers that are valid for
+// parsing files.
+const (
+	TOML       = "toml"
+	HCL1       = "hcl1"
+	HCL2       = "hcl2"
+	CUE        = "cue"
+	INI        = "ini"
+	HOCON      = "hocon"
+	Dockerfile = "dockerfile"
+	YAML       = "yaml"
+	JSON       = "json"
+	JSONNET    = "jsonnet"
+	EDN        = "end"
+	VCL        = "vcl"
+	XML        = "xml"
+)
 
-// Parser defines all of the methods that every parser definition
-// must implement.
+// Parser defines all of the methods that every parser
+// definition must implement.
 type Parser interface {
 	Unmarshal(p []byte, v interface{}) error
 }
 
-// GetParser returns a specific file parser based on the given
-// file extension. The input should be the file extension without the
-// period.
-func GetParser(fileExtension string) (Parser, error) {
-	fileExtension = strings.ToLower(fileExtension)
-
-	switch fileExtension {
-	case "toml":
+// New returns a new Parser.
+func New(parser string) (Parser, error) {
+	switch parser {
+	case TOML:
 		return &toml.Parser{}, nil
-	case "hcl1":
-		return &hcl1.Parser{}, nil
-	case "cue":
+	case CUE:
 		return &cue.Parser{}, nil
-	case "ini":
+	case INI:
 		return &ini.Parser{}, nil
-	case "hocon":
+	case HOCON:
 		return &hocon.Parser{}, nil
-	case "hcl", "tf", "hcl2":
+	case HCL1:
+		return &hcl1.Parser{}, nil
+	case HCL2:
 		return &hcl2.Parser{}, nil
-	case "dockerfile":
+	case Dockerfile:
 		return &docker.Parser{}, nil
-	case "yml", "yaml":
+	case YAML:
 		return &yaml.Parser{}, nil
-	case "json":
+	case JSON:
 		return &json.Parser{}, nil
-	case "jsonnet":
+	case JSONNET:
 		return &jsonnet.Parser{}, nil
-	case "edn":
+	case EDN:
 		return &edn.Parser{}, nil
-	case "vcl":
+	case VCL:
 		return &vcl.Parser{}, nil
-	case "xml":
+	case XML:
 		return &xml.Parser{}, nil
 	default:
-		return nil, fmt.Errorf("unknown file extension given: %v", fileExtension)
+		return nil, fmt.Errorf("unknown parser: %v", parser)
 	}
 }
 
-// GetParserFromPath returns a file parser based on the file type
+// NewFromPath returns a file parser based on the file type
 // that exists at the given path.
-func GetParserFromPath(path string) (Parser, error) {
-	fileType := getFileType(path)
+func NewFromPath(path string) (Parser, error) {
+	if path == "-" {
+		return New(YAML)
+	}
 
-	return GetParser(fileType)
+	if strings.EqualFold(filepath.Base(path), "dockerfile") {
+		return New(Dockerfile)
+	}
+
+	fileExtension := filepath.Ext(path)[1:]
+	if fileExtension == "yml" || fileExtension == "yaml" {
+		return New(YAML)
+	}
+
+	// When parsing Terraform files, the default parser to use
+	// should be the latest HCL parser.
+	if fileExtension == "tf" {
+		return New(HCL2)
+	}
+
+	parser, err := New(fileExtension)
+	if err != nil {
+		return nil, fmt.Errorf("from path: %w", err)
+	}
+
+	return parser, nil
+}
+
+// Parsers returns a list of the supported Parsers.
+func Parsers() []string {
+	parsers := []string{
+		TOML,
+		HCL1,
+		HCL2,
+		CUE,
+		INI,
+		HOCON,
+		Dockerfile,
+		YAML,
+		JSON,
+		JSONNET,
+		EDN,
+		VCL,
+		XML,
+	}
+
+	return parsers
+}
+
+// FileSupported returns true if the file at the given path is
+// a file that can be parsed.
+func FileSupported(path string) bool {
+	if _, err := NewFromPath(path); err != nil {
+		return false
+	}
+
+	return true
 }
 
 // ParseConfigurations parses and returns the configurations from the given
@@ -112,8 +158,8 @@ func ParseConfigurations(files []string) (map[string]interface{}, error) {
 // ParseConfigurationsAs parses the files as the given file type and returns the
 // configurations given in the file list. The result will be a map where the key
 // is the file name of the configuration.
-func ParseConfigurationsAs(files []string, fileExtension string) (map[string]interface{}, error) {
-	configurations, err := parseConfigurations(files, fileExtension)
+func ParseConfigurationsAs(files []string, parser string) (map[string]interface{}, error) {
+	configurations, err := parseConfigurations(files, parser)
 	if err != nil {
 		return nil, fmt.Errorf("parse configurations: %w", err)
 	}
@@ -164,15 +210,15 @@ func CombineConfigurations(configs map[string]interface{}) map[string]interface{
 	return combinedConfigurations
 }
 
-func parseConfigurations(paths []string, fileExtension string) (map[string]interface{}, error) {
+func parseConfigurations(paths []string, parser string) (map[string]interface{}, error) {
 	parsedConfigurations := make(map[string]interface{})
 	for _, path := range paths {
-		var parser Parser
+		var fileParser Parser
 		var err error
-		if fileExtension == "" {
-			parser, err = GetParserFromPath(path)
+		if parser == "" {
+			fileParser, err = NewFromPath(path)
 		} else {
-			parser, err = GetParser(fileExtension)
+			fileParser, err = New(parser)
 		}
 		if err != nil {
 			return nil, fmt.Errorf("get parser: %w", err)
@@ -184,7 +230,7 @@ func parseConfigurations(paths []string, fileExtension string) (map[string]inter
 		}
 
 		var parsed interface{}
-		if err := parser.Unmarshal(contents, &parsed); err != nil {
+		if err := fileParser.Unmarshal(contents, &parsed); err != nil {
 			return nil, fmt.Errorf("parser unmarshal: %w", err)
 		}
 
@@ -215,17 +261,4 @@ func getConfigurationContent(path string) ([]byte, error) {
 	}
 
 	return contents, nil
-}
-
-func getFileType(fileName string) string {
-	if fileName == "-" {
-		return "yaml"
-	}
-
-	if filepath.Ext(fileName) == "" {
-		return filepath.Base(fileName)
-	}
-
-	fileExtension := filepath.Ext(fileName)
-	return fileExtension[1:]
 }
