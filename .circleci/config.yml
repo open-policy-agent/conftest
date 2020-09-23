@@ -1,5 +1,8 @@
----
 version: 2.1
+
+orbs:
+  docker: circleci/docker@1.4.0
+
 jobs:
   test:
     docker:
@@ -61,42 +64,61 @@ jobs:
       - store_artifacts:
           path: ~/reports
 
-  image:
+  buildimage:
     docker:
-      - image: circleci/buildpack-deps:stretch
-    steps:
-      - checkout
-      - setup_remote_docker:
-          version: 18.09.3
-      - run:
-          name: Build image
-          command: docker build --pull --progress plain -t instrumenta/conftest .
-          environment:
-            DOCKER_BUILDKIT: 1
-            DOCKER_API_VERSION: 1.39
+      - image: circleci/golang:1.13-node
 
-  release:
-    docker:
-      - image: circleci/golang:1.13
     steps:
       - checkout
-      - run: curl -sL https://git.io/goreleaser | bash
+      - setup_remote_docker
+      - docker/build:
+          image: openpolicyagent/conftest
+
+  release_docker:
+    docker:
+      - image: circleci/golang:1.13-node
+
+    steps:
+      - checkout
+      - setup_remote_docker
+      - docker/check
+      - docker/build:
+          image: openpolicyagent/conftest
+          tag: $CIRCLE_TAG,latest
+      - docker/push:
+          image: openpolicyagent/conftest
+          tag: $CIRCLE_TAG,latest
+      - docker/build:
+          image: openpolicyagent/conftest
+          extra_build_args: '--target examples'
+          tag: examples
+      - docker/push:
+          image: openpolicyagent/conftest
+          tag: examples
+
+  release_binaries:
+    docker:
+      - image: circleci/golang:1.13-node
+
+    steps:
+      - checkout
+      - run: 
+          name: Publish binaries
+          command: curl -sL https://git.io/goreleaser | bash
 
 workflows:
-  version: 2
   build:
     jobs:
       - test
       - acceptance
-      - image:
+      - buildimage
+      - release_docker:
           filters:
             branches:
-              ignore: master
-      - image:
-          filters:
-            branches:
-              only: master
-      - release:
+              ignore: /.*/
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*(-.*)*/
+      - release_binaries:
           filters:
             branches:
               ignore: /.*/
