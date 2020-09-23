@@ -10,7 +10,7 @@ import (
 func NewPluginCommand(ctx context.Context) *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "plugin",
-		Short: "manage conftest plugins",
+		Short: "Manage conftest plugins",
 		Long:  "This command manages conftest plugins",
 	}
 
