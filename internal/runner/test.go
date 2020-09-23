@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
 
 	"github.com/open-policy-agent/conftest/output"
 	"github.com/open-policy-agent/conftest/parser"
@@ -19,7 +18,7 @@ type TestRunner struct {
 	Data          []string
 	Update        []string
 	Ignore        string
-	Input         string
+	Parser        string
 	Namespace     []string
 	AllNamespaces bool `mapstructure:"all-namespaces"`
 	FailOnWarn    bool `mapstructure:"fail-on-warn"`
@@ -37,8 +36,8 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) ([]output.Check
 	}
 
 	var configurations map[string]interface{}
-	if t.Input != "" {
-		configurations, err = parser.ParseConfigurationsAs(files, t.Input)
+	if t.Parser != "" {
+		configurations, err = parser.ParseConfigurationsAs(files, t.Parser)
 	} else {
 		configurations, err = parser.ParseConfigurations(files)
 	}
@@ -139,12 +138,8 @@ func getFilesFromDirectory(directory string, ignoreRegex string) ([]string, erro
 			return nil
 		}
 
-		for _, input := range parser.ValidInputs() {
-			currentInput := strings.ToLower(input)
-
-			if strings.HasSuffix(info.Name(), currentInput) {
-				files = append(files, currentPath)
-			}
+		if parser.FileSupported(currentPath) {
+			files = append(files, currentPath)
 		}
 
 		return nil
