@@ -52,8 +52,7 @@ func containsLocalRegistry(src string) bool {
 func (d *OCIDetector) detectHTTP(src string) (string, error) {
 	parts := strings.Split(src, "/")
 	if len(parts) < 2 {
-		return "", fmt.Errorf(
-			"URL is not a valid Azure registry URL")
+		return "", fmt.Errorf("URL is not a valid Azure registry URL")
 	}
 
 	return "oci://" + getRepositoryFromURL(src), nil

@@ -76,10 +76,17 @@ func (l *Loader) Load(ctx context.Context) (*Engine, error) {
 		documentContents[documentPath] = string(contents)
 	}
 
+	policyContents := make(map[string]string)
+	for path, module := range policies.ParsedModules() {
+		path = filepath.ToSlash(path)
+		policyContents[path] = module.String()
+	}
+
 	engine := Engine{
 		modules:  policies.ParsedModules(),
 		compiler: compiler,
 		store:    store,
+		policies: policyContents,
 		docs:     documentContents,
 	}
 

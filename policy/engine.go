@@ -23,6 +23,7 @@ type Engine struct {
 	modules  map[string]*ast.Module
 	compiler *ast.Compiler
 	store    storage.Store
+	policies map[string]string
 	docs     map[string]string
 }
 
@@ -105,12 +106,7 @@ func (e *Engine) Documents() map[string]string {
 // The result is a map where the key is the filepath of the policy
 // and its value is the raw contents of the loaded policy.
 func (e *Engine) Policies() map[string]string {
-	policies := make(map[string]string)
-	for path, module := range e.Modules() {
-		policies[path] = module.String()
-	}
-
-	return policies
+	return e.policies
 }
 
 // Compiler returns the compiler from the loaded policies.
