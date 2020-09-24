@@ -172,7 +172,7 @@ func (e *Engine) check(ctx context.Context, path string, config interface{}, nam
 		FileName: path,
 	}
 	for rule, count := range rules {
-		exceptionQuery := fmt.Sprintf("data.%s.exception[_][_] == %q", namespace, removeFailurePrefix(rule))
+		exceptionQuery := fmt.Sprintf("data.%s.exception[_][_] == %q", namespace, removeRulePrefix(rule))
 		exceptionQueryResult, err := e.query(ctx, config, exceptionQuery)
 		if err != nil {
 			return output.CheckResult{}, fmt.Errorf("query exception: %w", err)
@@ -331,12 +331,12 @@ func contains(collection []string, item string) bool {
 	return false
 }
 
-func removeFailurePrefix(rule string) string {
-	if strings.HasPrefix(rule, "deny_") {
-		return strings.TrimPrefix(rule, "deny_")
-	} else if strings.HasPrefix(rule, "violation_") {
-		return strings.TrimPrefix(rule, "violation_")
-	}
+// When matching rules for exceptions, only the name of the rule
+// is queried, so the severity prefix must be removed.
+func removeRulePrefix(rule string) string {
+	rule = strings.TrimPrefix(rule, "violation_")
+	rule = strings.TrimPrefix(rule, "deny_")
+	rule = strings.TrimPrefix(rule, "warn_")
 
 	return rule
 }
