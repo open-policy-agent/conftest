@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"regexp"
 
+	"github.com/open-policy-agent/conftest/downloader"
 	"github.com/open-policy-agent/conftest/output"
 	"github.com/open-policy-agent/conftest/parser"
 	"github.com/open-policy-agent/conftest/policy"
@@ -45,12 +46,15 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) ([]output.Check
 		return nil, fmt.Errorf("get configurations: %w", err)
 	}
 
-	loader := policy.Loader{
-		DataPaths:   t.Data,
-		PolicyPaths: t.Policy,
-		URLs:        t.Update,
+	// When there are policies to download, they are currently placed in the first
+	// directory that appears in the list of policies.
+	if len(t.Update) > 0 {
+		if err := downloader.Download(ctx, t.Policy[0], t.Update); err != nil {
+			return nil, fmt.Errorf("update policies: %w", err)
+		}
 	}
-	engine, err := loader.Load(ctx)
+
+	engine, err := policy.LoadWithData(ctx, t.Policy, t.Data)
 	if err != nil {
 		return nil, fmt.Errorf("load: %w", err)
 	}

@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -30,7 +31,7 @@ Optionally, a tag can be specified, e.g.:
 
 Optionally, specific directory can be passed as a second argument, e.g.:
 
-	$ conftest push instrumenta.azurecr.io/my-registry:v1 /path/to/dir
+	$ conftest push instrumenta.azurecr.io/my-registry:v1 path/to/dir
 
 Conftest leverages the ORAS library under the hood. This allows arbitrary artifacts to 
 be stored in compatible OCI registries. Currently open policy agent bundles are supported by 
@@ -39,7 +40,7 @@ the docker/distribution (https://github.com/docker/distribution) registry and by
 The policy location defaults to the policy directory in the local folder.
 The location can be overridden with the '--policy' flag, e.g.:
 
-	$ conftest push --policy <my-directory> <oci-url>
+	$ conftest push --policy <my-directory> url
 `
 
 const (
@@ -52,10 +53,10 @@ const (
 // bundles to an OCI registry.
 func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 	cmd := cobra.Command{
-		Use:   "push <repository> [filepath]",
-		Short: "Upload OPA bundles to an OCI registry",
+		Use:   "push <repository>",
+		Short: "Push OPA bundles to an OCI registry",
 		Long:  pushDesc,
-		Args:  cobra.RangeArgs(1, 2),
+		Args:  cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if err := viper.BindPFlag("policy", cmd.Flags().Lookup("policy")); err != nil {
 				return fmt.Errorf("bind flag: %w", err)
@@ -65,7 +66,20 @@ func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 		},
 
 		RunE: func(cmd *cobra.Command, args []string) error {
+
 			repository := args[0]
+			if !strings.Contains(repository, "/") {
+				return errors.New("destination url missing repository")
+			}
+
+			// When the destination repository to push to does not contain a
+			// tag, append the latest tag so the bundle is not pushed without
+			// a tag.
+			pathParts := strings.Split(repository, "/")
+			lastPathPart := pathParts[len(pathParts)-1]
+			if !strings.Contains(lastPathPart, ":") {
+				repository = repository + ":latest"
+			}
 
 			logger.Printf("pushing bundle to: %s", repository)
 			manifest, err := pushBundle(ctx, repository, viper.GetString("policy"))
@@ -100,15 +114,8 @@ func pushBundle(ctx context.Context, repository string, path string) (*ocispec.D
 		return nil, fmt.Errorf("building layers: %w", err)
 	}
 
-	var repositoryWithTag string
-	if strings.Contains(repository, ":") {
-		repositoryWithTag = repository
-	} else {
-		repositoryWithTag = repository + ":latest"
-	}
-
 	extraOpts := []oras.PushOpt{oras.WithConfigMediaType(openPolicyAgentConfigMediaType)}
-	manifest, err := oras.Push(ctx, resolver, repositoryWithTag, memoryStore, layers, extraOpts...)
+	manifest, err := oras.Push(ctx, resolver, repository, memoryStore, layers, extraOpts...)
 	if err != nil {
 		return nil, fmt.Errorf("pushing manifest: %w", err)
 	}
@@ -117,11 +124,7 @@ func pushBundle(ctx context.Context, repository string, path string) (*ocispec.D
 }
 
 func buildLayers(ctx context.Context, memoryStore *content.Memorystore, path string) ([]ocispec.Descriptor, error) {
-	loader := policy.Loader{
-		PolicyPaths: []string{path},
-		DataPaths:   []string{path},
-	}
-	engine, err := loader.Load(ctx)
+	engine, err := policy.LoadWithData(ctx, []string{path}, []string{path})
 	if err != nil {
 		return nil, fmt.Errorf("load: %w", err)
 	}

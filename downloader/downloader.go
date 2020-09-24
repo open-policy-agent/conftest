@@ -3,6 +3,7 @@ package downloader
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	getter "github.com/hashicorp/go-getter"
 )
@@ -32,9 +33,14 @@ var getters = map[string]getter.Getter{
 func Download(ctx context.Context, dst string, urls []string) error {
 	opts := []getter.ClientOption{}
 	for _, url := range urls {
+		detectedURL, err := Detect(url, dst)
+		if err != nil {
+			return fmt.Errorf("detecting url: %w", err)
+		}
+
 		client := &getter.Client{
 			Ctx:       ctx,
-			Src:       url,
+			Src:       detectedURL,
 			Dst:       dst,
 			Pwd:       dst,
 			Mode:      getter.ClientModeAny,
@@ -54,6 +60,16 @@ func Download(ctx context.Context, dst string, urls []string) error {
 // Detect determines whether a url is a known source url from which we can download files.
 // If a known source is found, the url is formatted, otherwise an error is returned.
 func Detect(url string, dst string) (string, error) {
+
+	// localhost is not considered a valid scheme for the detector which
+	// causes pull commands that reference localhost to error.
+	//
+	// To allow for localhost to be used, replace the localhost reference
+	// with the IP address.
+	if strings.Contains(url, "localhost") {
+		url = strings.ReplaceAll(url, "localhost", "127.0.0.1")
+	}
+
 	result, err := getter.Detect(url, dst, detectors)
 	if err != nil {
 		return "", fmt.Errorf("detect: %w", err)

@@ -323,7 +323,3 @@
   run ./conftest kubectl
   [ "$status" -eq 0 ]
 }
-
-@test "Can push to registry" {
-  run docker run -p 5000:5000 registry --name conftest-registry-test
-}
