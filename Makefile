@@ -1,38 +1,34 @@
+## DEVELOPMENT
+.PHONY: build
+build: 
+	@go build
 
+.PHONY: test
+test: 
+	@go test -v ./...
+
+.PHONY: acceptance
+acceptance: 
+	@bats acceptance.bats
+
+.PHONY: all
+all: build test acceptance
+
+## RELEASES
 TAG=$(shell git describe --abbrev=0 --tags)
+IMAGE=openpolicyagent/conftest
 
-NAME=conftest
-IMAGE=openpolicyagent/$(NAME)
-ALT_IMAGE=instrumenta/$(NAME)
+.PHONY: image
+image:
+	@docker build . -t $(IMAGE):$(TAG)
+	@docker build tag $(IMAGE):$(TAG) $(IMAGE):latest
 
-COMMAND=docker
-BUILD=DOCKER_BUILDKIT=1 $(COMMAND) build --pull
-PUSH=$(COMMAND) push
-
-all: push
-
+.PHONY: examples
 examples:
-	$(BUILD) --target examples -t $(IMAGE):examples .
-	$(COMMAND) tag $(IMAGE):examples $(ALT_IMAGE):examples
+	@docker build . --target examples -t $(IMAGE):examples
 
-acceptance:
-	$(BUILD) --target acceptance .
-
-conftest:
-	$(BUILD) -t $(IMAGE):$(TAG) .
-	$(COMMAND) tag $(IMAGE):$(TAG) $(IMAGE):latest
-	$(COMMAND) tag $(IMAGE):$(TAG) $(ALT_IMAGE):latest
-	$(COMMAND) tag $(IMAGE):$(TAG) $(ALT_IMAGE):$(TAG)
-
-test: conftest
-	$(BUILD) --target test .
-
-push: examples conftest
-	$(PUSH) $(IMAGE):$(TAG)
-	$(PUSH) $(IMAGE):latest
-	$(PUSH) $(ALT_IMAGE):$(TAG)
-	$(PUSH) $(ALT_IMAGE):latest
-	$(PUSH) $(IMAGE):examples
-	$(PUSH) $(ALT_IMAGE):examples
-
-.PHONY: examples acceptance conftest push all
+.PHONY: push
+push: examples image
+	@docker push $(IMAGE):$(TAG)
+	@docker push $(IMAGE):latest
+	@docker push $(IMAGE):examples

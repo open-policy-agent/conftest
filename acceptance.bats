@@ -167,7 +167,7 @@
 }
 
 @test "Can parse hcl files" {
-  run ./conftest test -p examples/hcl/policy examples/hcl/terraform.tf
+  run ./conftest test -p examples/hcl2/policy examples/hcl2/terraform.tf
   [ "$status" -eq 1 ]
   [[ "$output" =~ "ALB \`my-alb-listener\` is using HTTP rather than HTTP" ]]
 }

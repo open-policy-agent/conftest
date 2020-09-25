@@ -16,10 +16,6 @@ COPY . .
 FROM base as builder
 RUN go build -o conftest -ldflags="-w -s" main.go
 
-## TEST STAGE ##
-FROM base as test
-RUN go test -v ./...
-
 ## ACCEPTANCE STAGE ##
 FROM base as acceptance
 COPY --from=builder /app/conftest /app/conftest
