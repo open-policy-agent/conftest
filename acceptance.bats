@@ -316,11 +316,10 @@
   [ "$status" -eq 0 ]
 }
 
-# Uncomment test when the plugin exists on GitHub
-#@test "Can install plugin from URL" {
-#  run ./conftest plugin install github.com/open-policy-agent/conftest/contrib/plugins/kubectl
-#  [ "$status" -eq 0 ]
-#
-#  run ./conftest kubectl
-#  [ "$status" -eq 0 ]
-#}
+@test "Can install plugin from URL" {
+  run ./conftest plugin install github.com/open-policy-agent/conftest/contrib/plugins/kubectl
+  [ "$status" -eq 0 ]
+
+  run ./conftest kubectl
+  [ "$status" -eq 0 ]
+}

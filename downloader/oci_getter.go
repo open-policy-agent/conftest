@@ -27,12 +27,7 @@ func (g *OCIGetter) ClientMode(u *url.URL) (getter.ClientMode, error) {
 func (g *OCIGetter) Get(path string, u *url.URL) error {
 	ctx := g.Context()
 
-	if !pathContainsTag(u.Path) {
-		u.Path = u.Path + ":latest"
-	}
-
-	err := os.MkdirAll(path, os.ModePerm)
-	if err != nil {
+	if err := os.MkdirAll(path, os.ModePerm); err != nil {
 		return fmt.Errorf("make policy directory: %w", err)
 	}
 
@@ -49,8 +44,10 @@ func (g *OCIGetter) Get(path string, u *url.URL) error {
 	fileStore := content.NewFileStore(path)
 	defer fileStore.Close()
 
-	repository := u.Host + u.Path
-	_, _, err = oras.Pull(ctx, resolver, repository, fileStore)
+	repository := getRepositoryFromURL(u.Path)
+	pullURL := u.Host + repository
+
+	_, _, err = oras.Pull(ctx, resolver, pullURL, fileStore)
 	if err != nil {
 		return fmt.Errorf("pulling policy: %w", err)
 	}

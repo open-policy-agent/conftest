@@ -81,10 +81,6 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("output results: %w", err)
 			}
 
-			if err := outputter.Output(results); err != nil {
-				return fmt.Errorf("output results: %w", err)
-			}
-
 			exitCode := output.ExitCode(results)
 			if exitCode > 0 {
 				os.Exit(exitCode)

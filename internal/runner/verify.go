@@ -20,13 +20,9 @@ type VerifyRunner struct {
 	Trace   bool
 }
 
-// Run executes the Rego tests at the given PolicyPath(s)
+// Run executes the Rego tests for the given policies.
 func (r *VerifyRunner) Run(ctx context.Context) ([]output.CheckResult, error) {
-	loader := policy.Loader{
-		DataPaths:   r.Data,
-		PolicyPaths: r.Policy,
-	}
-	engine, err := loader.Load(ctx)
+	engine, err := policy.LoadWithData(ctx, r.Policy, r.Data)
 	if err != nil {
 		return nil, fmt.Errorf("load: %w", err)
 	}
