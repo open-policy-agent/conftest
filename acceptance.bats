@@ -222,7 +222,7 @@
 @test "Output results only once" {
   run ./conftest test -p examples/kubernetes/policy examples/kubernetes/deployment.yaml
   count="${#lines[@]}"
-  [ "$count" -eq 5 ]
+  [ "$count" -eq 8 ]
 }
 
 @test "Can verify rego tests" {
