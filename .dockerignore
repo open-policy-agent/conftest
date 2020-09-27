@@ -2,8 +2,6 @@
 dist
 README.md
 CODE_OF_CONDUCT.md
-LICENSE
-contrib
 docs
 conftest*
 Makefile
