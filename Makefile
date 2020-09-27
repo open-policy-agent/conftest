@@ -27,6 +27,17 @@ conftest:
 test: conftest
 	$(BUILD) --target test .
 
+check: check-fmt check-vet check-lint
+
+check-fmt:
+	./scripts/check-fmt.sh
+
+check-vet:
+	./scripts/check-vet.sh
+
+check-lint:
+	./scripts/check-lint.sh
+
 push: examples conftest
 	$(PUSH) $(IMAGE):$(TAG)
 	$(PUSH) $(IMAGE):latest

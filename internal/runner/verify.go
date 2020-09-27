@@ -12,6 +12,8 @@ import (
 	"github.com/open-policy-agent/opa/topdown"
 )
 
+// VerifyRunner is the runner for the Verify command, executing
+// Rego policy unit-tests.
 type VerifyRunner struct {
 	Policy  []string
 	Data    []string

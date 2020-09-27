@@ -13,6 +13,8 @@ import (
 	"github.com/open-policy-agent/conftest/policy"
 )
 
+// TestRunner is the runner for the Test command, executing
+// Rego policy checks against configuration files.
 type TestRunner struct {
 	Trace         bool
 	Policy        []string
