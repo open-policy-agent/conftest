@@ -97,7 +97,7 @@
 
 @test "Verify command has trace flag" {
     run ./conftest verify --policy ./examples/kubernetes/policy --trace
-  [ "$status" -eq 1 ]
+  [ "$status" -eq 0 ]
   [[ "$output" =~ "data.kubernetes.is_service" ]]
 }
 
@@ -222,13 +222,13 @@
 @test "Output results only once" {
   run ./conftest test -p examples/kubernetes/policy examples/kubernetes/deployment.yaml
   count="${#lines[@]}"
-  [ "$count" -eq 8 ]
+  [ "$count" -eq 5 ]
 }
 
 @test "Can verify rego tests" {
   run ./conftest verify --policy ./examples/kubernetes/policy
-  [ "$status" -eq 1 ]
-  [[ "$output" =~ "4 tests, 3 passed" ]]
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "4 tests, 4 passed" ]]
 }
 
 @test "Can parse inputs with 'conftest parse'" {

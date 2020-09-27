@@ -39,13 +39,26 @@ test_deployment_with_security_context {
       },
       "template": {
         "spec": {
-          "securityContext": {
-            "runAsNonRoot": true
-          }
+		  "automountServiceAccountToken": false,
+		  "securityContext": {
+		    "runAsNonRoot": true
+		  },
+		  "containers": [
+		    {
+			"securityContext": {
+			  "allowPrivilegeEscalation": false,
+			  "capabilities": {
+			    "drop": ["AUDIT_WRITE", "CHOWN", "DAC_OVERRIDE", "FOWNER", "FSETID", "KILL", "MKNOD", "NET_BIND_SERVICE", "NET_RAW", "SETFCAP", "SETGID", "SETPCAP", "SETUID", "SYS_CHROOT"]
+			  }
+            }
+			}
+		  ]
         }
       }
     }
   }
+
+
 
   no_violations with input as input
 }
