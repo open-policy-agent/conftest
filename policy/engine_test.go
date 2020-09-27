@@ -10,12 +10,8 @@ import (
 func TestException(t *testing.T) {
 	ctx := context.Background()
 
-	regoFiles := []string{"../examples/exceptions/policy"}
-	loader := Loader{
-		PolicyPaths: regoFiles,
-	}
-
-	engine, err := loader.Load(ctx)
+	policies := []string{"../examples/exceptions/policy"}
+	engine, err := Load(ctx, policies)
 	if err != nil {
 		t.Fatalf("loading policies: %v", err)
 	}
@@ -53,11 +49,8 @@ func TestException(t *testing.T) {
 func TestMultifileYaml(t *testing.T) {
 	ctx := context.Background()
 
-	regoFiles := []string{"../examples/kubernetes/policy"}
-	loader := Loader{
-		PolicyPaths: regoFiles,
-	}
-	engine, err := loader.Load(ctx)
+	policies := []string{"../examples/kubernetes/policy"}
+	engine, err := Load(ctx, policies)
 	if err != nil {
 		t.Fatalf("loading policies: %v", err)
 	}
@@ -95,12 +88,8 @@ func TestMultifileYaml(t *testing.T) {
 func TestDockerfile(t *testing.T) {
 	ctx := context.Background()
 
-	regoFiles := []string{"../examples/docker/policy"}
-	loader := Loader{
-		PolicyPaths: regoFiles,
-	}
-
-	engine, err := loader.Load(ctx)
+	policies := []string{"../examples/docker/policy"}
+	engine, err := Load(ctx, policies)
 	if err != nil {
 		t.Fatalf("loading policies: %v", err)
 	}

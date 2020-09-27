@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -12,6 +14,7 @@ import (
 	"github.com/open-policy-agent/conftest/parser"
 
 	"github.com/open-policy-agent/opa/ast"
+	"github.com/open-policy-agent/opa/loader"
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/storage"
 	"github.com/open-policy-agent/opa/topdown"
@@ -23,7 +26,85 @@ type Engine struct {
 	modules  map[string]*ast.Module
 	compiler *ast.Compiler
 	store    storage.Store
+	policies map[string]string
 	docs     map[string]string
+}
+
+// Load returns an Engine after loading all of the specified policies.
+func Load(ctx context.Context, policyPaths []string) (*Engine, error) {
+	policies, err := loader.AllRegos(policyPaths)
+	if err != nil {
+		return nil, fmt.Errorf("load: %w", err)
+	} else if len(policies.Modules) == 0 {
+		return nil, fmt.Errorf("no policies found in %v", policyPaths)
+	}
+
+	compiler, err := policies.Compiler()
+	if err != nil {
+		return nil, fmt.Errorf("get compiler: %w", err)
+	}
+
+	policyContents := make(map[string]string)
+	for path, module := range policies.ParsedModules() {
+		path = filepath.Clean(path)
+		path = filepath.ToSlash(path)
+
+		policyContents[path] = module.String()
+	}
+
+	engine := Engine{
+		modules:  policies.ParsedModules(),
+		compiler: compiler,
+		policies: policyContents,
+	}
+
+	return &engine, nil
+}
+
+// Load returns an Engine after loading all of the specified policies and data paths.
+func LoadWithData(ctx context.Context, policyPaths []string, dataPaths []string) (*Engine, error) {
+	engine, err := Load(ctx, policyPaths)
+	if err != nil {
+		return nil, fmt.Errorf("loading policies: %w", err)
+	}
+
+	// FilteredPaths will recursively find all file paths that contain a valid document
+	// extension from the given list of data paths.
+	allDocumentPaths, err := loader.FilteredPaths(dataPaths, func(abspath string, info os.FileInfo, depth int) bool {
+		if info.IsDir() {
+			return false
+		}
+		return !contains([]string{".yaml", ".yml", ".json"}, filepath.Ext(info.Name()))
+	})
+	if err != nil {
+		return nil, fmt.Errorf("filter data paths: %w", err)
+	}
+
+	documents, err := loader.NewFileLoader().All(allDocumentPaths)
+	if err != nil {
+		return nil, fmt.Errorf("load documents: %w", err)
+	}
+	store, err := documents.Store()
+	if err != nil {
+		return nil, fmt.Errorf("get documents store: %w", err)
+	}
+
+	documentContents := make(map[string]string)
+	for _, documentPath := range allDocumentPaths {
+		contents, err := ioutil.ReadFile(documentPath)
+		if err != nil {
+			return nil, fmt.Errorf("read file: %w", err)
+		}
+
+		documentPath = filepath.Clean(documentPath)
+		documentPath = filepath.ToSlash(documentPath)
+		documentContents[documentPath] = string(contents)
+	}
+
+	engine.store = store
+	engine.docs = documentContents
+
+	return engine, nil
 }
 
 // Check executes all of the loaded policies against the input and returns the results.
@@ -105,12 +186,7 @@ func (e *Engine) Documents() map[string]string {
 // The result is a map where the key is the filepath of the policy
 // and its value is the raw contents of the loaded policy.
 func (e *Engine) Policies() map[string]string {
-	policies := make(map[string]string)
-	for path, module := range e.Modules() {
-		policies[path] = module.String()
-	}
-
-	return policies
+	return e.policies
 }
 
 // Compiler returns the compiler from the loaded policies.
@@ -172,7 +248,7 @@ func (e *Engine) check(ctx context.Context, path string, config interface{}, nam
 		FileName: path,
 	}
 	for rule, count := range rules {
-		exceptionQuery := fmt.Sprintf("data.%s.exception[_][_] == %q", namespace, removeFailurePrefix(rule))
+		exceptionQuery := fmt.Sprintf("data.%s.exception[_][_] == %q", namespace, removeRulePrefix(rule))
 		exceptionQueryResult, err := e.query(ctx, config, exceptionQuery)
 		if err != nil {
 			return output.CheckResult{}, fmt.Errorf("query exception: %w", err)
@@ -331,12 +407,12 @@ func contains(collection []string, item string) bool {
 	return false
 }
 
-func removeFailurePrefix(rule string) string {
-	if strings.HasPrefix(rule, "deny_") {
-		return strings.TrimPrefix(rule, "deny_")
-	} else if strings.HasPrefix(rule, "violation_") {
-		return strings.TrimPrefix(rule, "violation_")
-	}
+// When matching rules for exceptions, only the name of the rule
+// is queried, so the severity prefix must be removed.
+func removeRulePrefix(rule string) string {
+	rule = strings.TrimPrefix(rule, "violation_")
+	rule = strings.TrimPrefix(rule, "deny_")
+	rule = strings.TrimPrefix(rule, "warn_")
 
 	return rule
 }
