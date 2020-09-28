@@ -30,13 +30,13 @@ test: conftest
 check: check-fmt check-vet check-lint
 
 check-fmt:
-	./scripts/check-fmt.sh
+	test -z $$(gofmt -l .) || echo $$(gofmt -l .)
 
 check-vet:
-	./scripts/check-vet.sh
+	go vet ./...
 
 check-lint:
-	./scripts/check-lint.sh
+	golint -set_exit_status ./...
 
 push: examples conftest
 	$(PUSH) $(IMAGE):$(TAG)
