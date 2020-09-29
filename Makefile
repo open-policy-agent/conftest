@@ -27,6 +27,17 @@ conftest:
 test: conftest
 	$(BUILD) --target test .
 
+check: check-fmt check-vet check-lint
+
+check-fmt:
+	test -z $$(gofmt -l .) || echo $$(gofmt -l .)
+
+check-vet:
+	go vet ./...
+
+check-lint:
+	golint -set_exit_status ./...
+
 push: examples conftest
 	$(PUSH) $(IMAGE):$(TAG)
 	$(PUSH) $(IMAGE):latest

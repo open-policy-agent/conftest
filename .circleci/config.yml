@@ -31,6 +31,22 @@ jobs:
       - store_test_results:
           path: /tmp/test-results
 
+  lint:
+    docker:
+      - image: circleci/golang:1.13-node
+
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - go-mod-{{ checksum "go.sum" }}
+      - run:
+          name: Install golint
+          command: go get golang.org/x/lint/golint
+      - run:
+          name: Lint & check
+          command: make check
+
   acceptance:
     docker:
       - image: circleci/golang:1.13-node
@@ -110,6 +126,7 @@ workflows:
   build:
     jobs:
       - test
+      - lint
       - acceptance
       - buildimage
       - release_docker:
