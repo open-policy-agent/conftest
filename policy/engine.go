@@ -61,7 +61,7 @@ func Load(ctx context.Context, policyPaths []string) (*Engine, error) {
 	return &engine, nil
 }
 
-// Load returns an Engine after loading all of the specified policies and data paths.
+// LoadWithData returns an Engine after loading all of the specified policies and data paths.
 func LoadWithData(ctx context.Context, policyPaths []string, dataPaths []string) (*Engine, error) {
 	engine, err := Load(ctx, policyPaths)
 	if err != nil {

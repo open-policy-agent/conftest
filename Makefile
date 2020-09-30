@@ -32,3 +32,11 @@ push: examples image
 	@docker push $(IMAGE):$(TAG)
 	@docker push $(IMAGE):latest
 	@docker push $(IMAGE):examples
+
+check-vet:
+	@go vet ./...
+
+check-lint:
+	@golint -set_exit_status ./...
+
+check: check-vet check-lint
