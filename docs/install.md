@@ -33,8 +33,10 @@ scoop install conftest
 Conftest Docker images are also available. Simply mount your configuration and policy at `/project` and specify the relevant command like so:
 
 ```console
-$ docker run --rm -v $(pwd):/project instrumenta/conftest test deployment.yaml
+$ docker run --rm -v $(pwd):/project openpolicyagent/conftest test deployment.yaml
 FAIL - deployment.yaml - Containers must not run as root in Deployment hello-kubernetes
 
 1 test, 0 passed, 0 warnings, 1 failure, 0 exceptions
 ```
+
+> **NOTE:** The instrumenta/conftest image is deprecated and will no longer be updated. Please use the openpolicyagent/conftest image.
