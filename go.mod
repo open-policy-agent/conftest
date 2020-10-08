@@ -10,7 +10,7 @@ require (
 	github.com/deislabs/oras v0.8.1
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-akka/configuration v0.0.0-20200606091224-a002c0330665
-	github.com/go-ini/ini v1.61.0
+	github.com/go-ini/ini v1.62.0
 	github.com/google/go-jsonnet v0.16.0
 	github.com/hashicorp/go-getter v1.5.0
 	github.com/hashicorp/hcl v1.0.0
