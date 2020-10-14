@@ -18,7 +18,7 @@ require (
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/moby/buildkit v0.3.3
 	github.com/olekukonko/tablewriter v0.0.4
-	github.com/open-policy-agent/opa v0.23.2
+	github.com/open-policy-agent/opa v0.24.0
 	github.com/opencontainers/image-spec v1.0.1
 	github.com/spf13/cobra v0.0.7
 	github.com/spf13/viper v1.7.1
