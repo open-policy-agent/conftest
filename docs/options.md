@@ -247,7 +247,7 @@ $ conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml -
 ### JUnit
 
 ```console
-$ conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml -o table
+$ conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml -o junit
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites>
         <testsuite tests="5" failures="4" time="0.000" name="conftest">
