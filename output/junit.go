@@ -31,7 +31,7 @@ func (j *JUnit) Output(results []CheckResult) error {
 	for _, result := range results {
 		for _, warning := range result.Warnings {
 			warningTest := parser.Test{
-				Name:   getTestName(result.FileName, warning.Message),
+				Name:   getTestName(result.FileName, result.Namespace, warning.Message),
 				Result: parser.FAIL,
 				Output: []string{warning.Message},
 			}
@@ -41,7 +41,7 @@ func (j *JUnit) Output(results []CheckResult) error {
 
 		for _, failure := range result.Failures {
 			failingTest := parser.Test{
-				Name:   getTestName(result.FileName, failure.Message),
+				Name:   getTestName(result.FileName, result.Namespace, failure.Message),
 				Result: parser.FAIL,
 				Output: []string{failure.Message},
 			}
@@ -51,7 +51,7 @@ func (j *JUnit) Output(results []CheckResult) error {
 
 		for s := 0; s < result.Successes; s++ {
 			successfulTest := parser.Test{
-				Name:   getTestName(result.FileName, ""),
+				Name:   getTestName(result.FileName, result.Namespace, ""),
 				Result: parser.PASS,
 				Output: []string{},
 			}
@@ -76,6 +76,12 @@ func (j *JUnit) Output(results []CheckResult) error {
 	return nil
 }
 
-func getTestName(fileName string, message string) string {
-	return fmt.Sprintf("%s - %s", fileName, strings.Split(message, "\n")[0])
+func getTestName(fileName string, namespace string, message string) string {
+
+    if len(message) >0 {
+	    return fmt.Sprintf("%s - %s - %s", fileName, namespace, strings.Split(message, "\n")[0])
+    }
+
+	return fmt.Sprintf("%s - %s", fileName, namespace)
+
 }

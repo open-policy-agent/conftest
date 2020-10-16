@@ -17,12 +17,14 @@ func TestJSON(t *testing.T) {
 			input: []CheckResult{
 				{
 					FileName: "examples/kubernetes/service.yaml",
+					Namespace: "namespace",
 				},
 			},
 			expected: []string{
 				`[`,
 				`	{`,
 				`		"filename": "examples/kubernetes/service.yaml",`,
+				`		"namespace": "namespace",`,
 				`		"successes": 0`,
 				`	}`,
 				`]`,
@@ -34,6 +36,7 @@ func TestJSON(t *testing.T) {
 			input: []CheckResult{
 				{
 					FileName: "examples/kubernetes/service.yaml",
+					Namespace: "namespace",
 					Failures: []Result{{Message: "first failure"}},
 				},
 			},
@@ -41,6 +44,7 @@ func TestJSON(t *testing.T) {
 				`[`,
 				`	{`,
 				`		"filename": "examples/kubernetes/service.yaml",`,
+				`		"namespace": "namespace",`,
 				`		"successes": 0,`,
 				`		"failures": [`,
 				`			{`,
@@ -57,6 +61,7 @@ func TestJSON(t *testing.T) {
 			input: []CheckResult{
 				{
 					FileName: "examples/kubernetes/service.yaml",
+					Namespace: "namespace",
 					Warnings: []Result{{Message: "first warning"}},
 					Failures: []Result{{Message: "first failure"}},
 				},
@@ -65,6 +70,7 @@ func TestJSON(t *testing.T) {
 				`[`,
 				`	{`,
 				`		"filename": "examples/kubernetes/service.yaml",`,
+				`		"namespace": "namespace",`,
 				`		"successes": 0,`,
 				`		"warnings": [`,
 				`			{`,
@@ -86,6 +92,7 @@ func TestJSON(t *testing.T) {
 			input: []CheckResult{
 				{
 					FileName: "-",
+					Namespace: "namespace",
 					Failures: []Result{{Message: "first failure"}},
 				},
 			},
@@ -93,6 +100,7 @@ func TestJSON(t *testing.T) {
 				`[`,
 				`	{`,
 				`		"filename": "",`,
+				`		"namespace": "namespace",`,
 				`		"successes": 0,`,
 				`		"failures": [`,
 				`			{`,
@@ -107,17 +115,19 @@ func TestJSON(t *testing.T) {
 		{
 			name: "Multiple files",
 			input: []CheckResult{
-				{FileName: "examples/kubernetes/service.yaml"},
-				{FileName: "examples/kubernetes/deployment.yaml"},
+				{FileName: "examples/kubernetes/service.yaml", Namespace: "namespace"},
+				{FileName: "examples/kubernetes/deployment.yaml", Namespace: "namespace"},
 			},
 			expected: []string{
 				`[`,
 				`	{`,
 				`		"filename": "examples/kubernetes/service.yaml",`,
+				`		"namespace": "namespace",`,
 				`		"successes": 0`,
 				`	},`,
 				`	{`,
 				`		"filename": "examples/kubernetes/deployment.yaml",`,
+				`		"namespace": "namespace",`,
 				`		"successes": 0`,
 				`	}`,
 				`]`,

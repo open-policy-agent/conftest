@@ -71,6 +71,7 @@ func (q QueryResult) Passed() bool {
 // from other classes of exceptions.
 type CheckResult struct {
 	FileName   string        `json:"filename"`
+	Namespace  string        `json:"namespace"`
 	Successes  int           `json:"successes"`
 	Warnings   []Result      `json:"warnings,omitempty"`
 	Failures   []Result      `json:"failures,omitempty"`

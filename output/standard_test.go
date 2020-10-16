@@ -18,13 +18,14 @@ func TestStandard(t *testing.T) {
 			input: []CheckResult{
 				{
 					FileName: "foo.yaml",
+					Namespace: "namespace",
 					Warnings: []Result{{Message: "first warning"}},
 					Failures: []Result{{Message: "first failure"}},
 				},
 			},
 			expected: []string{
-				"WARN - foo.yaml - first warning",
-				"FAIL - foo.yaml - first failure",
+				"WARN - foo.yaml - namespace - first warning",
+				"FAIL - foo.yaml - namespace - first failure",
 				"",
 				"2 tests, 0 passed, 1 warning, 1 failure, 0 exceptions",
 				"",
@@ -35,13 +36,14 @@ func TestStandard(t *testing.T) {
 			input: []CheckResult{
 				{
 					FileName: "-",
+					Namespace: "namespace",
 					Warnings: []Result{{Message: "first warning"}},
 					Failures: []Result{{Message: "first failure"}},
 				},
 			},
 			expected: []string{
-				"WARN - first warning",
-				"FAIL - first failure",
+				"WARN - - namespace - first warning",
+				"FAIL - - namespace - first failure",
 				"",
 				"2 tests, 0 passed, 1 warning, 1 failure, 0 exceptions",
 				"",

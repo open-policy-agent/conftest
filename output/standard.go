@@ -48,28 +48,36 @@ func (s *Standard) Output(results []CheckResult) error {
 	var totalSuccesses int
 	for _, result := range results {
 		var indicator string
+		var namespace string
 		if result.FileName == "-" {
 			indicator = "-"
 		} else {
-			indicator = fmt.Sprintf("- %s -", result.FileName)
+			indicator = fmt.Sprintf("- %s", result.FileName)
 		}
+
+		if result.Namespace == "-" {
+			namespace = "-"
+		} else {
+			namespace = fmt.Sprintf("- %s -", result.Namespace)
+		}
+
 
 		totalPolicies := result.Successes + len(result.Warnings) + len(result.Failures) + len(result.Exceptions)
 		if totalPolicies == 0 {
-			fmt.Fprintln(s.Writer, colorizer.Colorize("?", aurora.WhiteFg), indicator, "no policies found")
+			fmt.Fprintln(s.Writer, colorizer.Colorize("?", aurora.WhiteFg), indicator, namespace, "no policies found")
 			continue
 		}
 
 		for _, warning := range result.Warnings {
-			fmt.Fprintln(s.Writer, colorizer.Colorize("WARN", aurora.YellowFg), indicator, warning.Message)
+			fmt.Fprintln(s.Writer, colorizer.Colorize("WARN", aurora.YellowFg), indicator, namespace, warning.Message)
 		}
 
 		for _, failure := range result.Failures {
-			fmt.Fprintln(s.Writer, colorizer.Colorize("FAIL", aurora.RedFg), indicator, failure.Message)
+			fmt.Fprintln(s.Writer, colorizer.Colorize("FAIL", aurora.RedFg), indicator, namespace, failure.Message)
 		}
 
 		for _, exception := range result.Exceptions {
-			fmt.Fprintln(s.Writer, colorizer.Colorize("EXCP", aurora.CyanFg), indicator, exception.Message)
+			fmt.Fprintln(s.Writer, colorizer.Colorize("EXCP", aurora.CyanFg), indicator, namespace, exception.Message)
 		}
 
 		totalFailures += len(result.Failures)

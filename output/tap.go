@@ -24,10 +24,17 @@ func NewTAP(w io.Writer) *TAP {
 func (t *TAP) Output(checkResults []CheckResult) error {
 	for _, result := range checkResults {
 		var indicator string
+		var namespace string
 		if result.FileName == "-" {
 			indicator = "-"
 		} else {
-			indicator = fmt.Sprintf("- %s -", result.FileName)
+			indicator = fmt.Sprintf("- %s", result.FileName)
+		}
+
+		if result.Namespace == "-" {
+			namespace = "-"
+		} else {
+			namespace = fmt.Sprintf("- %s -", result.Namespace)
 		}
 
 		totalTests := result.Successes + len(result.Failures) + len(result.Warnings) + len(result.Exceptions)
@@ -39,14 +46,14 @@ func (t *TAP) Output(checkResults []CheckResult) error {
 		fmt.Fprintln(t.Writer, fmt.Sprintf("1..%d", totalTests))
 
 		for _, failure := range result.Failures {
-			fmt.Fprintln(t.Writer, fmt.Sprintf("not ok %v %v %v", counter, indicator, failure.Message))
+			fmt.Fprintln(t.Writer, fmt.Sprintf("not ok %v %v %v %v", counter, indicator, namespace, failure.Message))
 			counter++
 		}
 
 		if len(result.Warnings) > 0 {
 			fmt.Fprintln(t.Writer, "# warnings")
 			for _, warning := range result.Warnings {
-				fmt.Fprintln(t.Writer, fmt.Sprintf("not ok %v %v %v", counter, indicator, warning.Message))
+				fmt.Fprintln(t.Writer, fmt.Sprintf("not ok %v %v %v %v", counter, indicator, namespace, warning.Message))
 				counter++
 			}
 		}
@@ -54,7 +61,7 @@ func (t *TAP) Output(checkResults []CheckResult) error {
 		if len(result.Exceptions) > 0 {
 			fmt.Fprintln(t.Writer, "# exceptions")
 			for _, exception := range result.Exceptions {
-				fmt.Fprintln(t.Writer, fmt.Sprintf("ok %v %v %v", counter, indicator, exception.Message))
+				fmt.Fprintln(t.Writer, fmt.Sprintf("ok %v %v %v %v", counter, indicator, namespace, exception.Message))
 				counter++
 			}
 		}
@@ -62,7 +69,7 @@ func (t *TAP) Output(checkResults []CheckResult) error {
 		if result.Successes > 0 {
 			fmt.Fprintln(t.Writer, "# successes")
 			for i := 0; i < result.Successes; i++ {
-				fmt.Fprintln(t.Writer, fmt.Sprintf("ok %v %v", counter, indicator))
+				fmt.Fprintln(t.Writer, fmt.Sprintf("ok %v %v %v %v", counter, indicator, namespace, "SUCCESS"))
 				counter++
 			}
 		}
