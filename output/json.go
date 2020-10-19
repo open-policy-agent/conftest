@@ -13,7 +13,7 @@ type JSON struct {
 	Writer io.Writer
 }
 
-// NewJSON creates a new JSON with the given writer.
+// NewJSON creates a new JSON with the given writer. 
 func NewJSON(w io.Writer) *JSON {
 	jsonOutput := JSON{
 		Writer: w,

@@ -17,6 +17,7 @@ func TestTAP(t *testing.T) {
 			input: []CheckResult{
 				{
 					FileName: "examples/kubernetes/service.yaml",
+					Namespace: "namespace",
 				},
 			},
 			expected: []string{},
@@ -26,15 +27,16 @@ func TestTAP(t *testing.T) {
 			input: []CheckResult{
 				{
 					FileName: "examples/kubernetes/service.yaml",
+					Namespace: "namespace",
 					Warnings: []Result{{Message: "first warning"}},
 					Failures: []Result{{Message: "first failure"}},
 				},
 			},
 			expected: []string{
 				"1..2",
-				"not ok 1 - examples/kubernetes/service.yaml - first failure",
+				"not ok 1 - examples/kubernetes/service.yaml - namespace - first failure",
 				"# warnings",
-				"not ok 2 - examples/kubernetes/service.yaml - first warning",
+				"not ok 2 - examples/kubernetes/service.yaml - namespace - first warning",
 				"",
 			},
 		},
@@ -43,12 +45,13 @@ func TestTAP(t *testing.T) {
 			input: []CheckResult{
 				{
 					FileName: "examples/kubernetes/service.yaml",
+					Namespace: "namespace",
 					Failures: []Result{{Message: "first failure"}},
 				},
 			},
 			expected: []string{
 				"1..1",
-				"not ok 1 - examples/kubernetes/service.yaml - first failure",
+				"not ok 1 - examples/kubernetes/service.yaml - namespace - first failure",
 				"",
 			},
 		},
@@ -57,12 +60,13 @@ func TestTAP(t *testing.T) {
 			input: []CheckResult{
 				{
 					FileName: "-",
+					Namespace: "namespace",
 					Failures: []Result{{Message: "first failure"}},
 				},
 			},
 			expected: []string{
 				"1..1",
-				"not ok 1 - first failure",
+				"not ok 1 - - namespace - first failure",
 				"",
 			},
 		},

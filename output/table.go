@@ -24,23 +24,24 @@ func NewTable(w io.Writer) *Table {
 // Output outputs the results.
 func (t *Table) Output(checkResults []CheckResult) error {
 	table := tablewriter.NewWriter(t.Writer)
-	table.SetHeader([]string{"result", "file", "message"})
+	table.SetHeader([]string{"result", "file", "namespace", "message"})
 
 	for _, checkResult := range checkResults {
 		for r := 0; r < checkResult.Successes; r++ {
-			table.Append([]string{"success", checkResult.FileName, ""})
+			table.Append([]string{"success", checkResult.FileName, checkResult.Namespace, "SUCCESS"})
 		}
 
+
 		for _, result := range checkResult.Exceptions {
-			table.Append([]string{"exception", checkResult.FileName, result.Message})
+			table.Append([]string{"exception", checkResult.FileName, checkResult.Namespace, result.Message})
 		}
 
 		for _, result := range checkResult.Warnings {
-			table.Append([]string{"warning", checkResult.FileName, result.Message})
+			table.Append([]string{"warning", checkResult.FileName, checkResult.Namespace, result.Message})
 		}
 
 		for _, result := range checkResult.Failures {
-			table.Append([]string{"failure", checkResult.FileName, result.Message})
+			table.Append([]string{"failure", checkResult.FileName, checkResult.Namespace, result.Message})
 		}
 	}
 

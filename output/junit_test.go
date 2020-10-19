@@ -19,6 +19,7 @@ func TestJUnit(t *testing.T) {
 			input: []CheckResult{
 				{
 					FileName: "examples/kubernetes/service.yaml",
+					Namespace: "namespace",
 				},
 			},
 			expected: []string{
@@ -38,6 +39,7 @@ func TestJUnit(t *testing.T) {
 			input: []CheckResult{
 				{
 					FileName: "examples/kubernetes/service.yaml",
+					Namespace: "namespace",
 					Warnings: []Result{{Message: "first warning"}},
 					Failures: []Result{{Message: "first failure"}},
 				},
@@ -49,10 +51,10 @@ func TestJUnit(t *testing.T) {
 				`		<properties>`,
 				`			<property name="go.version" value="%s"></property>`,
 				`		</properties>`,
-				`		<testcase classname="conftest" name="examples/kubernetes/service.yaml - first warning" time="0.000">`,
+				`		<testcase classname="conftest" name="examples/kubernetes/service.yaml - namespace - first warning" time="0.000">`,
 				`			<failure message="Failed" type="">first warning</failure>`,
 				`		</testcase>`,
-				`		<testcase classname="conftest" name="examples/kubernetes/service.yaml - first failure" time="0.000">`,
+				`		<testcase classname="conftest" name="examples/kubernetes/service.yaml - namespace - first failure" time="0.000">`,
 				`			<failure message="Failed" type="">first failure</failure>`,
 				`		</testcase>`,
 				`	</testsuite>`,
@@ -65,6 +67,7 @@ func TestJUnit(t *testing.T) {
 			input: []CheckResult{
 				{
 					FileName: "examples/kubernetes/service.yaml",
+					Namespace: "namespace",
 					Failures: []Result{{Message: `failure with long message
 
 This is the rest of the description of the failed test`}},
@@ -77,7 +80,7 @@ This is the rest of the description of the failed test`}},
 				`		<properties>`,
 				`			<property name="go.version" value="%s"></property>`,
 				`		</properties>`,
-				`		<testcase classname="conftest" name="examples/kubernetes/service.yaml - failure with long message" time="0.000">`,
+				`		<testcase classname="conftest" name="examples/kubernetes/service.yaml - namespace - failure with long message" time="0.000">`,
 				`			<failure message="Failed" type="">failure with long message&#xA;&#xA;This is the rest of the description of the failed test</failure>`,
 				`		</testcase>`,
 				`	</testsuite>`,
