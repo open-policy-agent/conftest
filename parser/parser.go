@@ -15,6 +15,7 @@ import (
 	"github.com/open-policy-agent/conftest/parser/hcl1"
 	"github.com/open-policy-agent/conftest/parser/hcl2"
 	"github.com/open-policy-agent/conftest/parser/hocon"
+	"github.com/open-policy-agent/conftest/parser/ignore"
 	"github.com/open-policy-agent/conftest/parser/ini"
 	"github.com/open-policy-agent/conftest/parser/json"
 	"github.com/open-policy-agent/conftest/parser/jsonnet"
@@ -27,19 +28,21 @@ import (
 // The defined parsers are the parsers that are valid for
 // parsing files.
 const (
-	TOML       = "toml"
-	HCL1       = "hcl1"
-	HCL2       = "hcl2"
-	CUE        = "cue"
-	INI        = "ini"
-	HOCON      = "hocon"
-	Dockerfile = "dockerfile"
-	YAML       = "yaml"
-	JSON       = "json"
-	JSONNET    = "jsonnet"
-	EDN        = "edn"
-	VCL        = "vcl"
-	XML        = "xml"
+	TOML         = "toml"
+	HCL1         = "hcl1"
+	HCL2         = "hcl2"
+	CUE          = "cue"
+	INI          = "ini"
+	HOCON        = "hocon"
+	Dockerfile   = "dockerfile"
+	YAML         = "yaml"
+	JSON         = "json"
+	JSONNET      = "jsonnet"
+	EDN          = "edn"
+	VCL          = "vcl"
+	XML          = "xml"
+	GITIGNORE    = "gitignore"
+	DOCKERIGNORE = "dockerignore"
 )
 
 // Parser defines all of the methods that every parser
@@ -77,6 +80,10 @@ func New(parser string) (Parser, error) {
 		return &vcl.Parser{}, nil
 	case XML:
 		return &xml.Parser{}, nil
+	case GITIGNORE:
+		return &ignore.Parser{}, nil
+	case DOCKERIGNORE:
+		return &ignore.Parser{}, nil
 	default:
 		return nil, fmt.Errorf("unknown parser: %v", parser)
 	}
@@ -128,6 +135,7 @@ func Parsers() []string {
 		EDN,
 		VCL,
 		XML,
+		GITIGNORE,
 	}
 
 	return parsers
