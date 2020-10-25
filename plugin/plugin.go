@@ -14,6 +14,12 @@ import (
 	"github.com/ghodss/yaml"
 )
 
+const (
+	cacheDir = ".conftest"
+	cacheDirectory = xdgPath(cacheDir)
+)
+
+
 // Plugin represents a plugin.
 type Plugin struct {
 	Name        string `yaml:"name"`
@@ -139,14 +145,8 @@ func (p *Plugin) Directory() string {
 // CacheDirectory returns the full path to the
 // cache directory where all of the plugins are stored.
 func CacheDirectory() string {
-	const cacheDir = ".conftest/plugins"
-
-	homeDir, _ := os.UserHomeDir()
-
-	directory := filepath.Join(homeDir, cacheDir)
-	directory = filepath.ToSlash(directory)
-
-	return directory
+	dir, _ := cacheDirectory.Find("plugins")
+	return dir
 }
 
 // FromDirectory returns a plugin from a specific directory.

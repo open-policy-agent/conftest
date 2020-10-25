@@ -6,7 +6,13 @@ This guide will explain how you can use plugins and how you can create new plugi
 
 ## Installing a plugin
 
-A plugin can be installed using the `conftest plugin install` command. This command takes a url and will download the plugin and install it in the plugin cache, located at `~/.conftest/plugins`.
+A plugin can be installed using the `conftest plugin install` command. This command takes a url and will download the plugin and install it in the plugin cache.
+
+Conftest adheres to the XDG specification, so the location depends on whether `XDG_DATA_HOME` or `XDG_DATA_DIRS` is set. Conftest will now search `XDG_DATA_HOME` or `XDG_DATA_DIRS` for the location of the conftest plugins cache. The preference order is as follows:
+
+1. XDG_DATA_HOME if set and .conftest/plugins exists within the XDG_DATA_HOME dir
+2. XDG_DATA_DIRS if set and .conftest/plugins exists within one of the XDG_DATA_DIRS
+3. ~/.conftest/plugins
 
 Under the hood conftest leverages [go-getter](https://github.com/hashicorp/go-getter) to download plugins. This means the following protocols are supported for downloading plugins:
 

@@ -22,7 +22,7 @@ import (
 // as defined in the plugins configuration file.
 func Install(ctx context.Context, source string) error {
 	if _, err := os.Stat(CacheDirectory()); os.IsNotExist(err) {
-		if err := os.MkdirAll(CacheDirectory(), os.ModePerm); err != nil {
+		if err := os.MkdirAll(cacheDirectory.Preferred("plugins"), os.ModePerm); err != nil {
 			return fmt.Errorf("make plugin dir: %w", err)
 		}
 	}
