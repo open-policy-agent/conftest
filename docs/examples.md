@@ -7,6 +7,7 @@ You can find examples using various other tools in the `examples` directory, inc
 * [Docker compose](https://github.com/open-policy-agent/conftest/tree/master/examples/compose)
 * [Dockerfile](https://github.com/open-policy-agent/conftest/tree/master/examples/docker)
 * [EDN](https://github.com/open-policy-agent/conftest/tree/master/examples/edn)
+* [Ignore](https://github.com/open-policy-agent/conftest/tree/master/examples/ignore)
 * [HCL](https://github.com/open-policy-agent/conftest/tree/master/examples/hcl1)
 * [HCL 2](https://github.com/open-policy-agent/conftest/tree/master/examples/hcl2)
 * [HOCON](https://github.com/open-policy-agent/conftest/tree/master/examples/hocon)

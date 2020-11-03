@@ -15,6 +15,7 @@ import (
 	"github.com/open-policy-agent/conftest/parser/hcl1"
 	"github.com/open-policy-agent/conftest/parser/hcl2"
 	"github.com/open-policy-agent/conftest/parser/hocon"
+	"github.com/open-policy-agent/conftest/parser/ignore"
 	"github.com/open-policy-agent/conftest/parser/ini"
 	"github.com/open-policy-agent/conftest/parser/json"
 	"github.com/open-policy-agent/conftest/parser/jsonnet"
@@ -40,6 +41,7 @@ const (
 	EDN        = "edn"
 	VCL        = "vcl"
 	XML        = "xml"
+	IGNORE     = "ignore"
 )
 
 // Parser defines all of the methods that every parser
@@ -77,6 +79,8 @@ func New(parser string) (Parser, error) {
 		return &vcl.Parser{}, nil
 	case XML:
 		return &xml.Parser{}, nil
+	case IGNORE:
+		return &ignore.Parser{}, nil
 	default:
 		return nil, fmt.Errorf("unknown parser: %v", parser)
 	}
@@ -104,6 +108,10 @@ func NewFromPath(path string) (Parser, error) {
 		return New(HCL2)
 	}
 
+	if fileExtension == "gitignore" || fileExtension == "dockerignore" {
+		return New(IGNORE)
+	}
+
 	parser, err := New(fileExtension)
 	if err != nil {
 		return nil, fmt.Errorf("new: %w", err)
@@ -128,6 +136,7 @@ func Parsers() []string {
 		EDN,
 		VCL,
 		XML,
+		IGNORE,
 	}
 
 	return parsers
