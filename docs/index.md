@@ -30,6 +30,8 @@ deny[msg] {
 
 Conftest looks for `deny`, `violation`, and `warn` rules. Rules can optionally be suffixed with an underscore and an identifier, for example `deny_myrule`.
 
+`violation` rules evaluates the same as `deny` rules, except they support returning structured data errors instead of just strings. See [this issue](https://github.com/open-policy-agent/conftest/pull/243).
+
 By default, Conftest looks for these rules in the `main` namespace, but this can be overriden with the `--namespace` flag or provided in the configuration file. To look in all namespaces, use the `--all-namespaces` flag.
 
 Assuming you have a Kubernetes deployment in `deployment.yaml` you can run Conftest like so:
@@ -52,7 +54,7 @@ FAIL - Containers must provide app label for pod selectors
 2 tests, 0 passed, 0 warnings, 2 failures, 0 exceptions
 ```
 
-Note that Conftest isn't specific to Kubernetes. It will happily let you write tests for any configuration files. 
+Note that Conftest isn't specific to Kubernetes. It will happily let you write tests for any configuration files.
 
 As of today Conftest supports:
 
