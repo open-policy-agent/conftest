@@ -97,7 +97,7 @@ func NewFromPath(path string) (Parser, error) {
 		return New(Dockerfile)
 	}
 
-	fileExtension := ""
+	fileExtension := "yml"
 	if len(filepath.Ext(path)) > 0 {
 		fileExtension = filepath.Ext(path)[1:]
 	}
