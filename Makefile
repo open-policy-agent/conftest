@@ -21,7 +21,7 @@ IMAGE=openpolicyagent/conftest
 .PHONY: image
 image:
 	@docker build . -t $(IMAGE):$(TAG)
-	@docker build tag $(IMAGE):$(TAG) $(IMAGE):latest
+	@docker tag $(IMAGE):$(TAG) $(IMAGE):latest
 
 .PHONY: examples
 examples:
