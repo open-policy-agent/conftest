@@ -6,7 +6,8 @@ orbs:
 
 executors:
   linux:
-    executor: << parameters.os >>
+    docker:
+      - image: circleci/golang:1.13-node
 
 jobs:
   test:
