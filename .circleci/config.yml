@@ -11,6 +11,10 @@ executors:
 
 jobs:
   test:
+    parameters:
+      os:
+        type: executor
+
     executor: << parameters.os >>
 
     steps:
@@ -37,6 +41,10 @@ jobs:
           path: /tmp/test-results
 
   lint:
+    parameters:
+      os:
+        type: executor
+
     executor: << parameters.os >>
 
     steps:
@@ -52,6 +60,10 @@ jobs:
           command: make check
 
   acceptance:
+    parameters:
+      os:
+        type: executor
+
     executor: << parameters.os >>
 
     steps:
