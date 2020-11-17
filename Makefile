@@ -33,10 +33,13 @@ push: examples image
 	@docker push $(IMAGE):latest
 	@docker push $(IMAGE):examples
 
+.PHONY: check-vet
 check-vet:
 	@go vet ./...
 
+.PHONY: check-lint
 check-lint:
 	@golint -set_exit_status ./...
 
+.PHONY: check
 check: check-vet check-lint
