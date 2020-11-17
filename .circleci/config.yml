@@ -2,11 +2,15 @@ version: 2.1
 
 orbs:
   docker: circleci/docker@1.4.0
+  win: circleci/windows@2.2.0
+
+executors:
+  linux:
+    executor: << parameters.os >>
 
 jobs:
   test:
-    docker:
-      - image: circleci/golang:1.13-node
+    executor: << parameters.os >>
 
     steps:
       - checkout
@@ -32,8 +36,7 @@ jobs:
           path: /tmp/test-results
 
   lint:
-    docker:
-      - image: circleci/golang:1.13-node
+    executor: << parameters.os >>
 
     steps:
       - checkout
@@ -48,8 +51,7 @@ jobs:
           command: make check
 
   acceptance:
-    docker:
-      - image: circleci/golang:1.13-node
+    executor: << parameters.os >>
 
     steps:
       - checkout
@@ -81,8 +83,7 @@ jobs:
           path: ~/reports
 
   buildimage:
-    docker:
-      - image: circleci/golang:1.13-node
+    executor: linux
 
     steps:
       - checkout
@@ -91,8 +92,7 @@ jobs:
           image: openpolicyagent/conftest
 
   release_docker:
-    docker:
-      - image: circleci/golang:1.13-node
+    executor: linux
 
     steps:
       - checkout
@@ -113,8 +113,7 @@ jobs:
           tag: examples
 
   release_binaries:
-    docker:
-      - image: circleci/golang:1.13-node
+    executor: linux
 
     steps:
       - checkout
@@ -125,9 +124,18 @@ jobs:
 workflows:
   build:
     jobs:
-      - test
-      - lint
-      - acceptance
+      - test:
+          matrix:
+            parameters:
+              os: [linux, win/default]
+      - lint:
+          matrix:
+            parameters:
+              os: [linux, win/default]
+      - acceptance:
+          matrix:
+            parameters:
+              os: [linux, win/default]
       - buildimage
       - release_docker:
           filters:
