@@ -30,7 +30,7 @@ func Format(configurations map[string]interface{}) (string, error) {
 func FormatCombined(configurations map[string]interface{}) (string, error) {
 	combinedConfigurations := CombineConfigurations(configurations)
 
-	formattedConfigs, err := format(combinedConfigurations)
+	formattedConfigs, err := format(combinedConfigurations["Combined"])
 	if err != nil {
 		return "", fmt.Errorf("formatting configs: %w", err)
 	}
