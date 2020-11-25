@@ -115,6 +115,10 @@ func NewFromPath(path string) (Parser, error) {
 		return New(IGNORE)
 	}
 
+	if fileExtension == "Dockerfile" || fileExtension == "dockerfile" {
+		return New(Dockerfile)
+	}
+
 	parser, err := New(fileExtension)
 	if err != nil {
 		return nil, fmt.Errorf("new: %w", err)
