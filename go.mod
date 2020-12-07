@@ -20,7 +20,7 @@ require (
 	github.com/moby/buildkit v0.3.3
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/olekukonko/tablewriter v0.0.4
-	github.com/open-policy-agent/opa v0.24.0
+	github.com/open-policy-agent/opa v0.25.1
 	github.com/opencontainers/image-spec v1.0.1
 	github.com/shteou/go-ignore v0.3.0
 	github.com/spf13/cobra v0.0.7
