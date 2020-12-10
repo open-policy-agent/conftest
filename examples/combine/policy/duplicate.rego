@@ -3,7 +3,7 @@ package main
 # Check that no name attribute exists twice among all resources
 deny[msg] {
     name := input[_].contents.metadata.name
-    occurrences := [name | input[i].contents.metadata.name == name; name := input[i].metadata.name]
+    occurrences := [name | input[i].contents.metadata.name == name; name := input[i].contents.metadata.name]
     count(occurrences) > 1
     msg = sprintf("Error duplicate name : %s", [name])
 }
