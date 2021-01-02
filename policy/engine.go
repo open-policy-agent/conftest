@@ -133,6 +133,7 @@ func (e *Engine) Check(ctx context.Context, configs map[string]interface{}, name
 				checkResult.Failures = append(checkResult.Failures, result.Failures...)
 				checkResult.Warnings = append(checkResult.Warnings, result.Warnings...)
 				checkResult.Exceptions = append(checkResult.Exceptions, result.Exceptions...)
+				checkResult.Queries = append(checkResult.Queries, result.Queries...)
 			}
 			checkResults = append(checkResults, checkResult)
 			continue
