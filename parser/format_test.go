@@ -58,22 +58,20 @@ func TestFormatCombined(t *testing.T) {
 		t.Fatalf("parsing configs: %s", err)
 	}
 
-	expected := `{
-	"Combined": [
-		{
-			"path": "file1.json",
-			"contents": {
-				"Sut": "test"
-			}
-		},
-		{
-			"path": "file2.json",
-			"contents": {
-				"Foo": "bar"
-			}
+	expected := `[
+	{
+		"path": "file1.json",
+		"contents": {
+			"Sut": "test"
 		}
-	]
-}
+	},
+	{
+		"path": "file2.json",
+		"contents": {
+			"Foo": "bar"
+		}
+	}
+]
 `
 
 	if !strings.Contains(actual, expected) {

@@ -26,7 +26,7 @@ namespace = "conftest"
 
 This flag introduces *BREAKING CHANGES* in how Conftest provides input to rego policies. However, you may find it useful to use as it allows you to compare multiple values from different configurations simultaneously.
 
-The `--combine` flag combines files into one `input` data structure. The structure is a `map` where each index is the file path of the file being evaluated.
+The `--combine` flag combines files into one `input` data structure. The structure is an `array` where each element is a `map` with two keys: a `path` key with the relative file path of the file being evaluated and a `contents` key containing the actual document.
 
 Let's try it!
 
