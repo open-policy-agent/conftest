@@ -7,7 +7,7 @@ require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/KeisukeYamashita/go-vcl v0.4.0
 	github.com/basgys/goxml2json v1.1.0
-	github.com/deislabs/oras v0.8.1
+	github.com/deislabs/oras v0.9.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-akka/configuration v0.0.0-20200606091224-a002c0330665
 	github.com/go-ini/ini v1.62.0
@@ -21,9 +21,13 @@ require (
 	github.com/open-policy-agent/opa v0.25.2
 	github.com/opencontainers/image-spec v1.0.1
 	github.com/shteou/go-ignore v0.3.0
-	github.com/spf13/cobra v1.0.0
+	github.com/spf13/cobra v1.1.1
 	github.com/spf13/viper v1.7.1
 	github.com/tmccombs/hcl2json v0.3.1
 	olympos.io/encoding/edn v0.0.0-20200308123125-93e3b8dd0e24
-	rsc.io/letsencrypt v0.0.3 // indirect
+)
+
+replace (
+	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20191216044856-a8371794149d
+	github.com/docker/docker => github.com/moby/moby v17.12.0-ce-rc1.0.20200618181300-9dc6525e6118+incompatible
 )
