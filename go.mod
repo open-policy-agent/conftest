@@ -21,7 +21,7 @@ require (
 	github.com/open-policy-agent/opa v0.25.2
 	github.com/opencontainers/image-spec v1.0.1
 	github.com/shteou/go-ignore v0.3.0
-	github.com/spf13/cobra v1.0.0
+	github.com/spf13/cobra v1.1.2
 	github.com/spf13/viper v1.7.1
 	github.com/tmccombs/hcl2json v0.3.1
 	olympos.io/encoding/edn v0.0.0-20200308123125-93e3b8dd0e24
