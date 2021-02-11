@@ -17,7 +17,7 @@ require (
 	github.com/jstemmer/go-junit-report v0.9.1
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/moby/buildkit v0.8.1
-	github.com/olekukonko/tablewriter v0.0.4
+	github.com/olekukonko/tablewriter v0.0.5
 	github.com/open-policy-agent/opa v0.25.2
 	github.com/opencontainers/image-spec v1.0.1
 	github.com/shteou/go-ignore v0.3.0
