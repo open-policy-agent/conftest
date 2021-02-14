@@ -1076,8 +1076,8 @@ github.com/tj/go-kinesis v0.0.0-20171128231115-08b17f58cb1b/go.mod h1:/yhzCV0xPf
 github.com/tj/go-spin v1.1.0/go.mod h1:Mg1mzmePZm4dva8Qz60H2lHwmJ2loum4VIrLgVnKwh4=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20170815181823-89b8d40f7ca8/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
-github.com/tmccombs/hcl2json v0.3.1 h1:Pf+Lb9OpZ5lkQuIC0BB5txdCQskZ2ud/l8sz/Nkjf3A=
-github.com/tmccombs/hcl2json v0.3.1/go.mod h1:ljY0/prd2IFUF3cagQjV3cpPEEQKzqyGqnKI7m5DBVY=
+github.com/tmccombs/hcl2json v0.3.2 h1:COk00UQLYeZOsRZh6pXHfgitWr3WRGARbJWq8IzPVmo=
+github.com/tmccombs/hcl2json v0.3.2/go.mod h1:ljY0/prd2IFUF3cagQjV3cpPEEQKzqyGqnKI7m5DBVY=
 github.com/tommy-muehle/go-mnd v1.1.1/go.mod h1:dSUh0FtTP8VhvkL1S+gUR1OKd9ZnSaozuI6r3m6wOig=
 github.com/tommy-muehle/go-mnd v1.3.1-0.20200224220436-e6f9a994e8fa/go.mod h1:dSUh0FtTP8VhvkL1S+gUR1OKd9ZnSaozuI6r3m6wOig=
 github.com/tonistiigi/fsutil v0.0.0-20201103201449-0834f99b7b85/go.mod h1:a7cilN64dG941IOXfhJhlH0qB92hxJ9A1ewrdUmJ6xo=

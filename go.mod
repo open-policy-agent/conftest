@@ -23,7 +23,7 @@ require (
 	github.com/shteou/go-ignore v0.3.0
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/viper v1.7.1
-	github.com/tmccombs/hcl2json v0.3.1
+	github.com/tmccombs/hcl2json v0.3.2
 	olympos.io/encoding/edn v0.0.0-20200308123125-93e3b8dd0e24
 )
 
