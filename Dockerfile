@@ -1,5 +1,8 @@
 FROM golang:1.13-alpine as base
 ARG ARCH=amd64
+ARG VERSION
+ARG COMMIT
+ARG DATE
 ENV GOOS=linux \
     CGO_ENABLED=0 \
     GOARCH=${ARCH}
@@ -14,7 +17,7 @@ COPY . .
 
 ## BUILDER STAGE ##
 FROM base as builder
-RUN go build -o conftest -ldflags="-w -s" main.go
+RUN go build -o conftest -ldflags="-w -s -X github.com/open-policy-agent/conftest/internal/commands.version=${VERSION} -X github.com/open-policy-agent/conftest/internal/commands.commit=${COMMIT} -X github.com/open-policy-agent/conftest/internal/commands.date=${DATE}" main.go
 
 ## TEST STAGE ##
 FROM base as test

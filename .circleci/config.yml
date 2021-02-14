@@ -98,8 +98,16 @@ jobs:
       - checkout
       - setup_remote_docker
       - docker/check
+      - run:
+          name: Setup docker build environment
+          command: |
+            GIT_COMMIT=$(git rev-parse HEAD)
+            DATE=$(date)
+            echo 'export GIT_COMMIT="$GIT_COMMIT"' >> $BASH_ENV
+            echo 'export DATE="$DATE"' >> $BASH_ENV
       - docker/build:
           image: openpolicyagent/conftest
+          extra_build_args: "--build-arg VERSION=$CIRCLE_TAG --build-arg COMMIT=$GIT_COMMIT --build-arg DATE=$DATE"
           tag: $CIRCLE_TAG,latest
       - docker/push:
           image: openpolicyagent/conftest
