@@ -93,6 +93,9 @@ jobs:
   release_docker:
     docker:
       - image: circleci/golang:1.13-node
+    
+    environment:
+      DOCKER_BUILDKIT: 1
 
     steps:
       - checkout
