@@ -160,20 +160,6 @@ As of today Conftest supports the following output types:
 - Table `--output=table`
 - JUnit `--output=junit`
 
-## `--parser`
-
-Conftest normally detects which parser to used based on the file extension of the file, even when multiple input files are passed in. However, it is possible force a specific parser to be used with the `--parser` flag.
-
-For the available parsers, take a look at [parsers](https://github.com/open-policy-agent/conftest/tree/master/parser).
-
-For instance:
-
-```console
-$ conftest test -p examples/hcl1/policy examples/hcl1/gke.tf --parser hcl2
-
-2 tests, 2 passed, 0 warnings, 0 failures, 0 exceptions
-```
-
 ### Plaintext
 
 ```console
@@ -268,6 +254,20 @@ $ conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml -
                 </testcase>
                 <testcase classname="conftest" name="examples/kubernetes/deployment.yaml - " time="0.000"></testcase>
         </testsu
+```
+
+## `--parser`
+
+Conftest normally detects which parser to used based on the file extension of the file, even when multiple input files are passed in. However, it is possible force a specific parser to be used with the `--parser` flag.
+
+For the available parsers, take a look at [parsers](https://github.com/open-policy-agent/conftest/tree/master/parser).
+
+For instance:
+
+```console
+$ conftest test -p examples/hcl1/policy examples/hcl1/gke.tf --parser hcl2
+
+2 tests, 2 passed, 0 warnings, 0 failures, 0 exceptions
 ```
 
 ## `--policy`
