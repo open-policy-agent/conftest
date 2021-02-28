@@ -93,16 +93,24 @@ func NewFromPath(path string) (Parser, error) {
 		return New(YAML)
 	}
 
-	if strings.EqualFold(filepath.Base(path), "dockerfile") {
+	fileName := strings.ToLower(filepath.Base(path))
+	if fileName == "dockerfile" || strings.Contains(fileName, "dockerfile.") {
 		return New(Dockerfile)
 	}
 
+	// The yml file extension is the default when a file extension
+	// was not found.
 	fileExtension := "yml"
 	if len(filepath.Ext(path)) > 0 {
 		fileExtension = filepath.Ext(path)[1:]
 	}
+
 	if fileExtension == "yml" || fileExtension == "yaml" {
 		return New(YAML)
+	}
+
+	if strings.EqualFold(fileExtension, "dockerfile") {
+		return New(Dockerfile)
 	}
 
 	// When parsing Terraform files, the default parser to use
@@ -113,10 +121,6 @@ func NewFromPath(path string) (Parser, error) {
 
 	if fileExtension == "gitignore" || fileExtension == "dockerignore" {
 		return New(IGNORE)
-	}
-
-	if fileExtension == "Dockerfile" || fileExtension == "dockerfile" {
-		return New(Dockerfile)
 	}
 
 	parser, err := New(fileExtension)

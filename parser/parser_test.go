@@ -52,6 +52,16 @@ func TestNewFromPath(t *testing.T) {
 			false,
 		},
 		{
+			"Dockerfile.foo",
+			&docker.Parser{},
+			false,
+		},
+		{
+			"dockerfile.foo",
+			&docker.Parser{},
+			false,
+		},
+		{
 			"test.tf",
 			&hcl2.Parser{},
 			false,
