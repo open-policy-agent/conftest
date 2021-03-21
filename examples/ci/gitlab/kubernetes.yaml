@@ -16,7 +16,7 @@ conformance:
   dependencies:
     - validate
   image:
-    name: instrumenta/conftest:latest
+    name: openpolicyagent/conftest
     entrypoint:
       - ""                          # Override default entrypoint. If not included gitlab ci will execute `conftest sh test`
   script:
