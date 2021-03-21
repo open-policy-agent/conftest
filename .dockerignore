@@ -1,8 +1,11 @@
-.circle
+.circleci
 .git
-dist
-README.md
-CODE_OF_CONDUCT.md
+.github
+
+contrib
 docs
 conftest*
+
 Makefile
+README.md
+CODE_OF_CONDUCT.md
