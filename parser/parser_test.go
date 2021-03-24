@@ -67,6 +67,11 @@ func TestNewFromPath(t *testing.T) {
 			false,
 		},
 		{
+			"test.tfvars",
+			&hcl2.Parser{},
+			false,
+		},
+		{
 			"noextension",
 			&yaml.Parser{},
 			false,

@@ -115,7 +115,7 @@ func NewFromPath(path string) (Parser, error) {
 
 	// When parsing Terraform files, the default parser to use
 	// should be the latest HCL parser.
-	if fileExtension == "tf" {
+	if fileExtension == "tf" || fileExtension == "tfvars" {
 		return New(HCL2)
 	}
 
