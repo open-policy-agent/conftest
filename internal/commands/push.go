@@ -10,6 +10,7 @@ import (
 
 	auth "github.com/deislabs/oras/pkg/auth/docker"
 	"github.com/deislabs/oras/pkg/content"
+	orascontext "github.com/deislabs/oras/pkg/context"
 	"github.com/deislabs/oras/pkg/oras"
 	"github.com/open-policy-agent/conftest/policy"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -66,6 +67,7 @@ func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 		},
 
 		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx = orascontext.Background()
 
 			repository := args[0]
 			if !strings.Contains(repository, "/") {
