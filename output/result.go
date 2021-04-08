@@ -2,6 +2,11 @@ package output
 
 import "fmt"
 
+const (
+	failureExitCode = 1
+	warningExitCode = 2
+)
+
 // Result describes the result of a single rule evaluation.
 type Result struct {
 	Message  string                 `json:"msg"`
@@ -90,7 +95,7 @@ func ExitCode(results []CheckResult) int {
 	}
 
 	if hasFailure {
-		return 1
+		return failureExitCode
 	}
 
 	return 0
@@ -113,11 +118,11 @@ func ExitCodeFailOnWarn(results []CheckResult) int {
 	}
 
 	if hasFailure {
-		return 2
+		return failureExitCode
 	}
 
 	if hasWarning {
-		return 1
+		return warningExitCode
 	}
 
 	return 0

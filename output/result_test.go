@@ -19,8 +19,8 @@ func TestExitCode(t *testing.T) {
 	}{
 		{results: []CheckResult{}, expected: 0},
 		{results: []CheckResult{warning}, expected: 0},
-		{results: []CheckResult{failure}, expected: 1},
-		{results: []CheckResult{warning, failure}, expected: 1},
+		{results: []CheckResult{failure}, expected: failureExitCode},
+		{results: []CheckResult{warning, failure}, expected: failureExitCode},
 	}
 
 	for _, testCase := range testCases {
@@ -46,9 +46,9 @@ func TestExitCodeFailOnWarn(t *testing.T) {
 		expected int
 	}{
 		{results: []CheckResult{}, expected: 0},
-		{results: []CheckResult{warning}, expected: 1},
-		{results: []CheckResult{failure}, expected: 2},
-		{results: []CheckResult{warning, failure}, expected: 2},
+		{results: []CheckResult{warning}, expected: warningExitCode},
+		{results: []CheckResult{failure}, expected: failureExitCode},
+		{results: []CheckResult{warning, failure}, expected: failureExitCode},
 	}
 
 	for _, testCase := range testCases {

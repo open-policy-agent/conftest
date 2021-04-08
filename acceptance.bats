@@ -17,7 +17,7 @@
 
 @test "Fail when testing a service with warnings" {
   run ./conftest test --fail-on-warn -p examples/kubernetes/policy examples/kubernetes/service.yaml
-  [ "$status" -eq 1 ]
+  [ "$status" -eq 2 ]
 }
 
 @test "Fail when testing with no policies path" {
