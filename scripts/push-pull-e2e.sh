@@ -15,7 +15,7 @@ function cleanup() {
 }
 
 # Run the cleanup at the start of the test to ensure the previous
-# has been successfully torn down.
+# test run has been successfully torn down.
 cleanup
 
 docker run -p 5000:5000 --name $CONTAINER_NAME -d registry

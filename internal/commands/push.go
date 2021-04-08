@@ -74,6 +74,11 @@ func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 				return errors.New("destination url missing repository")
 			}
 
+			// At the moment, push only supports pushing to OCI registries
+			// which makes the oci: prefix redundant and has been known to
+			// cause issues.
+			repository = strings.ReplaceAll(repository, "oci://", "")
+
 			// When the destination repository to push to does not contain a
 			// tag, append the latest tag so the bundle is not pushed without
 			// a tag.
