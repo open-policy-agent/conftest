@@ -35,19 +35,20 @@ func TestJUnit(t *testing.T) {
 			},
 		},
 		{
-			name: "A warning and a failure",
+			name: "A warning, a failure and a skipped test",
 			input: []CheckResult{
 				{
 					FileName: "examples/kubernetes/service.yaml",
 					Namespace: "namespace",
 					Warnings: []Result{{Message: "first warning"}},
 					Failures: []Result{{Message: "first failure"}},
+					Skipped:  []Result{{Message: "first skipped"}},
 				},
 			},
 			expected: []string{
 				`<?xml version="1.0" encoding="UTF-8"?>`,
 				`<testsuites>`,
-				`	<testsuite tests="2" failures="2" time="0.000" name="conftest">`,
+				`	<testsuite tests="3" failures="2" time="0.000" name="conftest">`,
 				`		<properties>`,
 				`			<property name="go.version" value="%s"></property>`,
 				`		</properties>`,
@@ -56,6 +57,9 @@ func TestJUnit(t *testing.T) {
 				`		</testcase>`,
 				`		<testcase classname="conftest" name="examples/kubernetes/service.yaml - namespace - first failure" time="0.000">`,
 				`			<failure message="Failed" type="">first failure</failure>`,
+				`		</testcase>`,
+				`		<testcase classname="conftest" name="examples/kubernetes/service.yaml - namespace - first skipped" time="0.000">`,
+				`			<skipped message="first skipped"></skipped>`,
 				`		</testcase>`,
 				`	</testsuite>`,
 				`</testsuites>`,

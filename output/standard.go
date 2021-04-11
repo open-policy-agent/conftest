@@ -19,6 +19,10 @@ type Standard struct {
 	// NoColor will disable all coloring when
 	// set to true.
 	NoColor bool
+
+	// ShowSkipped whether to show skipped tests
+	// in the output.
+	ShowSkipped bool
 }
 
 // NewStandard creates a new Standard with the given writer.
@@ -46,6 +50,7 @@ func (s *Standard) Output(results []CheckResult) error {
 	var totalExceptions int
 	var totalWarnings int
 	var totalSuccesses int
+	var totalSkipped int
 	for _, result := range results {
 		var indicator string
 		var namespace string
@@ -61,8 +66,7 @@ func (s *Standard) Output(results []CheckResult) error {
 			namespace = fmt.Sprintf("- %s -", result.Namespace)
 		}
 
-
-		totalPolicies := result.Successes + len(result.Warnings) + len(result.Failures) + len(result.Exceptions)
+		totalPolicies := result.Successes + len(result.Warnings) + len(result.Failures) + len(result.Exceptions) + len(result.Skipped)
 		if totalPolicies == 0 {
 			fmt.Fprintln(s.Writer, colorizer.Colorize("?", aurora.WhiteFg), indicator, namespace, "no policies found")
 			continue
@@ -83,10 +87,11 @@ func (s *Standard) Output(results []CheckResult) error {
 		totalFailures += len(result.Failures)
 		totalExceptions += len(result.Exceptions)
 		totalWarnings += len(result.Warnings)
+		totalSkipped += len(result.Skipped)
 		totalSuccesses += result.Successes
 	}
 
-	totalTests := totalFailures + totalExceptions + totalWarnings + totalSuccesses
+	totalTests := totalFailures + totalExceptions + totalWarnings + totalSuccesses + totalSkipped
 
 	var pluralSuffixTests string
 	if totalTests != 1 {
@@ -115,6 +120,10 @@ func (s *Standard) Output(results []CheckResult) error {
 		totalFailures, pluralSuffixFailures,
 		totalExceptions, pluralSuffixExceptions,
 	)
+
+	if s.ShowSkipped {
+		outputText += fmt.Sprintf(", %v skipped", totalSkipped)
+	}
 
 	var outputColor aurora.Color
 	if totalFailures > 0 {

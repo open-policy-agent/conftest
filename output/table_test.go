@@ -22,13 +22,14 @@ func TestTable(t *testing.T) {
 			expected: []string{},
 		},
 		{
-			name: "A warning and a failure",
+			name: "A warning, a failure, a skipped",
 			input: []CheckResult{
 				{
 					FileName: "examples/kubernetes/service.yaml",
 					Namespace: "namespace",
 					Warnings: []Result{{Message: "first warning"}},
 					Failures: []Result{{Message: "first failure"}},
+					Skipped:  []Result{{Message: "first skipped"}},
 				},
 			},
 			expected: []string{
@@ -36,6 +37,7 @@ func TestTable(t *testing.T) {
 				`| RESULT  |               FILE               | NAMESPACE |    MESSAGE    |`,
 				`+---------+----------------------------------+-----------+---------------+`,
 				`| warning | examples/kubernetes/service.yaml | namespace | first warning |`,
+				`| skipped | examples/kubernetes/service.yaml | namespace | first skipped |`,
 				`| failure | examples/kubernetes/service.yaml | namespace | first failure |`,
 				`+---------+----------------------------------+-----------+---------------+`,
 				``,

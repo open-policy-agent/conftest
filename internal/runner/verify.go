@@ -51,7 +51,7 @@ func (r *VerifyRunner) Run(ctx context.Context) ([]output.CheckResult, error) {
 		}
 
 		var outputResult output.Result
-		if result.Fail {
+		if result.Fail || result.Skip {
 			outputResult.Message = result.Package + "." + result.Name
 		}
 
@@ -67,6 +67,8 @@ func (r *VerifyRunner) Run(ctx context.Context) ([]output.CheckResult, error) {
 		}
 		if result.Fail {
 			checkResult.Failures = []output.Result{outputResult}
+		} else if result.Skip {
+			checkResult.Skipped = []output.Result{outputResult}
 		} else {
 			checkResult.Successes++
 		}

@@ -57,13 +57,14 @@ func TestJSON(t *testing.T) {
 			},
 		},
 		{
-			name: "A warning and a failure",
+			name: "A warning, a failure and a skipped test",
 			input: []CheckResult{
 				{
 					FileName: "examples/kubernetes/service.yaml",
 					Namespace: "namespace",
 					Warnings: []Result{{Message: "first warning"}},
 					Failures: []Result{{Message: "first failure"}},
+					Skipped:  []Result{{Message: "first skipped"}},
 				},
 			},
 			expected: []string{
@@ -72,6 +73,11 @@ func TestJSON(t *testing.T) {
 				`		"filename": "examples/kubernetes/service.yaml",`,
 				`		"namespace": "namespace",`,
 				`		"successes": 0,`,
+				`		"skipped": [`,
+				`			{`,
+				`				"msg": "first skipped"`,
+				`			}`,
+				`		],`,
 				`		"warnings": [`,
 				`			{`,
 				`				"msg": "first warning"`,

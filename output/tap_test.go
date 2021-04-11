@@ -41,17 +41,20 @@ func TestTAP(t *testing.T) {
 			},
 		},
 		{
-			name: "mixed failure and warnings",
+			name: "mixed failure, warnings and skipped",
 			input: []CheckResult{
 				{
 					FileName: "examples/kubernetes/service.yaml",
 					Namespace: "namespace",
 					Failures: []Result{{Message: "first failure"}},
+					Skipped:  []Result{{Message: "first skipped"}},
 				},
 			},
 			expected: []string{
-				"1..1",
+				"1..2",
 				"not ok 1 - examples/kubernetes/service.yaml - namespace - first failure",
+				"# skip",
+				"ok 2 - examples/kubernetes/service.yaml - namespace - first skipped",
 				"",
 			},
 		},

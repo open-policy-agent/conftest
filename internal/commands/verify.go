@@ -76,7 +76,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("running verification: %w", err)
 			}
 
-			outputter := output.Get(runner.Output, output.Options{NoColor: runner.NoColor, Tracing: runner.Trace})
+			outputter := output.Get(runner.Output, output.Options{NoColor: runner.NoColor, Tracing: runner.Trace, ShowSkipped: true})
 			if err := outputter.Output(results); err != nil {
 				return fmt.Errorf("output results: %w", err)
 			}

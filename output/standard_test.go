@@ -9,12 +9,13 @@ import (
 
 func TestStandard(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    []CheckResult
-		expected []string
+		name        string
+		input       []CheckResult
+		expected    []string
+		showSkipped bool
 	}{
 		{
-			name: "records failures and warnings",
+			name: "records failures, warnings and skipped",
 			input: []CheckResult{
 				{
 					FileName: "foo.yaml",
@@ -49,6 +50,45 @@ func TestStandard(t *testing.T) {
 				"",
 			},
 		},
+		{
+			name: "records failures, warnings and skipped",
+			input: []CheckResult{
+				{
+					FileName:  "foo.yaml",
+					Namespace: "namespace",
+					Warnings:  []Result{{Message: "first warning"}},
+					Failures:  []Result{{Message: "first failure"}},
+					Skipped:   []Result{{Message: "first skipped"}},
+				},
+			},
+			showSkipped: true,
+			expected: []string{
+				"WARN - foo.yaml - namespace - first warning",
+				"FAIL - foo.yaml - namespace - first failure",
+				"",
+				"3 tests, 0 passed, 1 warning, 1 failure, 0 exceptions, 1 skipped",
+				"",
+			},
+		},
+		{
+			name: "skips filenames for stdin",
+			input: []CheckResult{
+				{
+					FileName:  "-",
+					Namespace: "namespace",
+					Warnings:  []Result{{Message: "first warning"}},
+					Failures:  []Result{{Message: "first failure"}},
+				},
+			},
+			showSkipped: true,
+			expected: []string{
+				"WARN - - namespace - first warning",
+				"FAIL - - namespace - first failure",
+				"",
+				"2 tests, 0 passed, 1 warning, 1 failure, 0 exceptions, 0 skipped",
+				"",
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -56,7 +96,7 @@ func TestStandard(t *testing.T) {
 			expected := strings.Join(tt.expected, "\n")
 
 			buf := new(bytes.Buffer)
-			standard := Standard{Writer: buf, NoColor: true}
+			standard := Standard{Writer: buf, NoColor: true, ShowSkipped: tt.showSkipped}
 			if err := standard.Output(tt.input); err != nil {
 				t.Fatal("output standard:", err)
 			}

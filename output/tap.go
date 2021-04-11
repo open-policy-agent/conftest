@@ -37,7 +37,7 @@ func (t *TAP) Output(checkResults []CheckResult) error {
 			namespace = fmt.Sprintf("- %s -", result.Namespace)
 		}
 
-		totalTests := result.Successes + len(result.Failures) + len(result.Warnings) + len(result.Exceptions)
+		totalTests := result.Successes + len(result.Failures) + len(result.Warnings) + len(result.Exceptions) + len(result.Skipped)
 		if totalTests == 0 {
 			return nil
 		}
@@ -62,6 +62,14 @@ func (t *TAP) Output(checkResults []CheckResult) error {
 			fmt.Fprintln(t.Writer, "# exceptions")
 			for _, exception := range result.Exceptions {
 				fmt.Fprintln(t.Writer, fmt.Sprintf("ok %v %v %v %v", counter, indicator, namespace, exception.Message))
+				counter++
+			}
+		}
+
+		if len(result.Skipped) > 0 {
+			fmt.Fprintln(t.Writer, "# skip")
+			for _, skipped := range result.Skipped {
+				fmt.Fprintln(t.Writer, fmt.Sprintf("ok %v %v %v %v", counter, indicator, namespace, skipped.Message))
 				counter++
 			}
 		}
