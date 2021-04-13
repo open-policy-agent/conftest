@@ -58,16 +58,16 @@ Note that Conftest isn't specific to Kubernetes. It will happily let you write t
 
 As of today Conftest supports:
 
-* YAML
-* JSON
-* INI
-* TOML
-* HOCON
-* HCL
-* HCL 2
 * CUE
 * Dockerfile
 * EDN
+* HCL and HCL2
+* HOCON
+* Ignore files (.gitignore, .dockerignore)
+* INI
+* JSON
+* Jsonnet
+* TOML
 * VCL
 * XML
-* Jsonnet
+* YAML
