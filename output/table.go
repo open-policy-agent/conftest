@@ -40,6 +40,10 @@ func (t *Table) Output(checkResults []CheckResult) error {
 			table.Append([]string{"warning", checkResult.FileName, checkResult.Namespace, result.Message})
 		}
 
+		for _, result := range checkResult.Skipped {
+			table.Append([]string{"skipped", checkResult.FileName, checkResult.Namespace, result.Message})
+		}
+
 		for _, result := range checkResult.Failures {
 			table.Append([]string{"failure", checkResult.FileName, checkResult.Namespace, result.Message})
 		}

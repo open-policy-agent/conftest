@@ -73,6 +73,7 @@ type CheckResult struct {
 	FileName   string        `json:"filename"`
 	Namespace  string        `json:"namespace"`
 	Successes  int           `json:"successes"`
+	Skipped    []Result      `json:"skipped,omitempty"`
 	Warnings   []Result      `json:"warnings,omitempty"`
 	Failures   []Result      `json:"failures,omitempty"`
 	Exceptions []Result      `json:"exceptions,omitempty"`

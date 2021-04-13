@@ -49,6 +49,16 @@ func (j *JUnit) Output(results []CheckResult) error {
 			tests = append(tests, &failingTest)
 		}
 
+		for _, skipped := range result.Skipped {
+			skippedTest := parser.Test{
+				Name:   getTestName(result.FileName, result.Namespace, skipped.Message),
+				Result: parser.SKIP,
+				Output: []string{skipped.Message},
+			}
+
+			tests = append(tests, &skippedTest)
+		}
+
 		for s := 0; s < result.Successes; s++ {
 			successfulTest := parser.Test{
 				Name:   getTestName(result.FileName, result.Namespace, ""),

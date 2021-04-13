@@ -13,12 +13,17 @@ func TestExitCode(t *testing.T) {
 		Failures: []Result{{}},
 	}
 
+	skipped := CheckResult{
+		Skipped: []Result{{}},
+	}
+
 	testCases := []struct {
 		results  []CheckResult
 		expected int
 	}{
 		{results: []CheckResult{}, expected: 0},
 		{results: []CheckResult{warning}, expected: 0},
+		{results: []CheckResult{skipped}, expected: 0},
 		{results: []CheckResult{failure}, expected: 1},
 		{results: []CheckResult{warning, failure}, expected: 1},
 	}

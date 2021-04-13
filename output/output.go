@@ -11,8 +11,9 @@ type Outputter interface {
 // Options represents the options available when configuring
 // an Outputter.
 type Options struct {
-	Tracing bool
-	NoColor bool
+	Tracing     bool
+	NoColor     bool
+	ShowSkipped bool
 }
 
 // The defined output formats represent all of the supported formats
@@ -29,7 +30,7 @@ const (
 func Get(format string, options Options) Outputter {
 	switch format {
 	case OutputStandard:
-		return &Standard{Writer: os.Stdout, NoColor: options.NoColor, Tracing: options.Tracing}
+		return &Standard{Writer: os.Stdout, NoColor: options.NoColor, Tracing: options.Tracing, ShowSkipped: options.ShowSkipped}
 	case OutputJSON:
 		return NewJSON(os.Stdout)
 	case OutputTAP:
