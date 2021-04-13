@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	orascontext "github.com/deislabs/oras/pkg/context"
 	"github.com/open-policy-agent/conftest/downloader"
 
 	"github.com/spf13/cobra"
@@ -60,6 +61,8 @@ func NewPullCommand(ctx context.Context) *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx = orascontext.Background()
+
 			policyDir := filepath.Join(".", viper.GetString("policy"))
 
 			if err := downloader.Download(ctx, policyDir, args); err != nil {

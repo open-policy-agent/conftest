@@ -10,6 +10,7 @@ import (
 
 	auth "github.com/deislabs/oras/pkg/auth/docker"
 	"github.com/deislabs/oras/pkg/content"
+	orascontext "github.com/deislabs/oras/pkg/context"
 	"github.com/deislabs/oras/pkg/oras"
 	"github.com/open-policy-agent/conftest/policy"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -66,11 +67,17 @@ func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 		},
 
 		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx = orascontext.Background()
 
 			repository := args[0]
 			if !strings.Contains(repository, "/") {
 				return errors.New("destination url missing repository")
 			}
+
+			// At the moment, push only supports pushing to OCI registries
+			// which makes the oci: prefix redundant and has been known to
+			// cause issues.
+			repository = strings.ReplaceAll(repository, "oci://", "")
 
 			// When the destination repository to push to does not contain a
 			// tag, append the latest tag so the bundle is not pushed without

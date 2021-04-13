@@ -11,10 +11,14 @@ CONTAINER_NAME="conftest-push-pull-e2e"
 
 function cleanup() {
     docker rm $CONTAINER_NAME -f
-    rm -r tmp
+    rm -rf tmp
 }
 
-docker run --name $CONTAINER_NAME -d registry
+# Run the cleanup at the start of the test to ensure the previous
+# test run has been successfully torn down.
+cleanup
+
+docker run -p 5000:5000 --name $CONTAINER_NAME -d registry
 if [ $? != 0 ]; then
     echo "ERROR RUNNING TEST CONTAINER. IS DOCKER INSTALLED?"
     exit 1
