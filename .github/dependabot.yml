@@ -1,6 +1,11 @@
+# Dependabot is used to keep track of the latest OPA releases so that
+# Conftest can use the most up to date engine.
+
 version: 2
 updates:
-  - package-ecosystem: gomod
+  - package-ecosystem: "gomod"
     directory: "/"
+    allow:
+      - dependency-name: "github.com/open-policy-agent/opa"
     schedule:
-      interval: daily
+      interval: "daily"
