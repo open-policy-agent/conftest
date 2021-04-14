@@ -11,7 +11,6 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-akka/configuration v0.0.0-20200606091224-a002c0330665
 	github.com/go-ini/ini v1.62.0
-	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/google/go-jsonnet v0.17.0
 	github.com/hashicorp/go-getter v1.5.3
 	github.com/hashicorp/hcl v1.0.0
@@ -25,10 +24,6 @@ require (
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/viper v1.7.1
 	github.com/tmccombs/hcl2json v0.3.1
-	olympos.io/encoding/edn v0.0.0-20200308123125-93e3b8dd0e24
-)
-
-replace (
-	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20191216044856-a8371794149d
-	github.com/docker/docker => github.com/moby/moby v17.12.0-ce-rc1.0.20200618181300-9dc6525e6118+incompatible
+	olympos.io/encoding/edn v0.0.0-20201019073823-d3554ca0b0a3
+	rsc.io/letsencrypt v0.0.3 // indirect
 )
