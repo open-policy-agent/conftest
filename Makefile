@@ -1,4 +1,4 @@
-ROOT_DIR := ../../..
+ROOT_DIR := ../..
 
 OS := $(if $(GOOS),$(GOOS),$(shell go env GOOS))
 
@@ -9,65 +9,72 @@ endif
 
 BIN := conftest$(BIN_EXTENSION)
 
-## All of the test directories specific to issues
-## e.g. echo $(ISSUE_TEST_DIRS) prints tests/issues/000 tests/issues/001
-ISSUE_TEST_DIRS := $(patsubst tests/%/, tests/%, $(dir $(wildcard tests/**/**/.)))
+IMAGE := openpolicyagent/conftest
 
-.PHONY: build
-build:
-	@go build
-
-.PHONY: test
-test:
-	@go test -v ./...
-
-.PHONY: acceptance
-acceptance: build
-	@bats acceptance.bats
-
-.PHONY: test-issues
-test-issues: build
-	@for testdir in $(ISSUE_TEST_DIRS) ; do \
-		cd $(CURDIR)/$$testdir && CONFTEST=$(ROOT_DIR)/$(BIN) bats test.bats ; \
-	done
-
-.PHONY: all
-all: build test acceptance test-issues
-
-## RELEASES
-TAG=$(shell git describe --abbrev=0 --tags)
-IMAGE=openpolicyagent/conftest
-GIT_COMMIT=$(shell git rev-parse HEAD)
-GIT_TAG=$(shell git describe --tags --abbrev=0 --exact-match 2>/dev/null)
-DATE=$(shell date)
+TAG := $(shell git describe --abbrev=0 --tags)
+GIT_COMMIT := $(shell git rev-parse HEAD)
+GIT_TAG := $(shell git describe --tags --abbrev=0 --exact-match 2>/dev/null)
+DATE := $(shell date)
 
 VERSION = unreleased
 ifneq ($(GIT_TAG),)
 	VERSION = $(GIT_TAG)
 endif
 
-.PHONY: image
-image:
-	@docker build --build-arg VERSION="$(VERSION)" --build-arg COMMIT="$(GIT_COMMIT)" --build-arg DATE="$(DATE)" . -t $(IMAGE):$(TAG) 
-	@docker tag $(IMAGE):$(TAG) $(IMAGE):latest
+DOCKER := DOCKER_BUILDKIT=1 docker
 
-.PHONY: examples
-examples:
-	@docker build . --target examples -t $(IMAGE):examples
+## All of the directories that contain tests to be executed
+## e.g. echo $(TEST_DIRS) prints tests/foo tests/bar
+TEST_DIRS := $(patsubst tests/%/, tests/%, $(dir $(wildcard tests/**/.)))
 
-.PHONY: push
-push: examples image
-	@docker push $(IMAGE):$(TAG)
-	@docker push $(IMAGE):latest
-	@docker push $(IMAGE):examples
+#
+##@ Development
+#
 
-.PHONY: check-vet
-check-vet: 
+.PHONY: build
+build: ## Builds Conftest.
+	@go build
+
+.PHONY: test
+test: ## Tests Conftest.
+	@go test -v ./...
+
+.PHONY: test-examples
+test-examples: build ## Runs the tests for the examples.
+	@bats acceptance.bats
+
+.PHONY: test-acceptance
+test-acceptance: build ## Runs the tests in the test folder.
+	@for testdir in $(TEST_DIRS) ; do \
+		cd $(CURDIR)/$$testdir && CONFTEST=$(ROOT_DIR)/$(BIN) bats test.bats || exit 1; \
+	done
+
+.PHONY: lint
+lint: ## Lints Conftest.
+	@golint -set_exit_status ./...
 	@go vet ./...
 
-.PHONY: check-lint
-check-lint:
-	@golint -set_exit_status ./...
+.PHONY: all
+all: lint build test test-examples test-acceptance ## Runs all linting and tests.
 
-.PHONY: check
-check: check-vet check-lint
+help:
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m\033[0m\n"} /^[$$()% a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+
+#
+##@ Releases
+#
+
+.PHONY: image
+image: ## Builds a Docker image for Conftest.
+	@$(DOCKER) build --build-arg VERSION="$(VERSION)" --build-arg COMMIT="$(GIT_COMMIT)" --build-arg DATE="$(DATE)" . -t $(IMAGE):$(TAG) 
+	@$(DOCKER) tag $(IMAGE):$(TAG) $(IMAGE):latest
+
+.PHONY: examples
+examples: ## Builds the examples Docker image.
+	@$(DOCKER) build . --target examples -t $(IMAGE):examples
+
+.PHONY: push
+push: examples image ## Pushes the examples and Conftest image to DockerHub.
+	@$(DOCKER) push $(IMAGE):$(TAG)
+	@$(DOCKER) push $(IMAGE):latest
+	@$(DOCKER) push $(IMAGE):examples

@@ -44,8 +44,8 @@ jobs:
           name: Install golint
           command: go get golang.org/x/lint/golint
       - run:
-          name: Lint & check
-          command: make check
+          name: Lint
+          command: make lint
 
   acceptance:
     docker:

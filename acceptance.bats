@@ -150,22 +150,6 @@
   [[ "$output" =~ "id_rsa files should be ignored" ]]
 }
 
-@test "Can parse multi-type files" {
-  run ./conftest test -p examples/multitype/policy examples/multitype/deployment.yaml examples/multitype/grafana.ini
-  [ "$status" -eq  1 ]
-  [[ "$output" =~ "Port should be" ]]
-}
-
-@test "Can parse nested files with name overlap (first)" {
-  run ./conftest test -p examples/nested/policy --namespace group1 examples/nested/data.json
-  [ "$status" -eq 1 ]
-}
-
-@test "Can parse nested files with name overlap (second)" {
-  run ./conftest test -p examples/nested/policy --namespace group2 examples/nested/data.json
-  [ "$status" -eq 1 ]
-}
-
 @test "Can parse cue files" {
   run ./conftest test -p examples/cue/policy examples/cue/deployment.cue
   [ "$status" -eq 1 ]
@@ -290,20 +274,6 @@
   run ./conftest test -p examples/exceptions/policy examples/exceptions/deployments.yaml --no-color
   [ "$status" -eq 1 ]
   [ "${lines[2]}" = "2 tests, 0 passed, 0 warnings, 1 failure, 1 exception" ]
-}
-
-@test "Can have multiple namespace flags" {
-  run ./conftest test -p examples/nested/policy --namespace group1 --namespace group2 examples/nested/data.json
-
-  [ "$status" -eq 1 ]
-  [[ "$output" =~ "2 tests, 0 passed, 0 warnings, 2 failures" ]]
-}
-
-@test "Can have multiple policy flags" {
-  run ./conftest test --policy examples/multidir/org --policy examples/multidir/team examples/multidir/data.json
-
-  [ "$status" -eq 1 ]
-  [[ "$output" =~ "2 tests, 0 passed, 0 warnings, 2 failures" ]]
 }
 
 @test "Can combine yaml files" {
