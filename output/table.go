@@ -26,30 +26,31 @@ func (t *Table) Output(checkResults []CheckResult) error {
 	table := tablewriter.NewWriter(t.Writer)
 	table.SetHeader([]string{"result", "file", "namespace", "message"})
 
+	var tableData [][]string
 	for _, checkResult := range checkResults {
 		for r := 0; r < checkResult.Successes; r++ {
-			table.Append([]string{"success", checkResult.FileName, checkResult.Namespace, "SUCCESS"})
+			tableData = append(tableData, []string{"success", checkResult.FileName, checkResult.Namespace, "SUCCESS"})
 		}
 
-
 		for _, result := range checkResult.Exceptions {
-			table.Append([]string{"exception", checkResult.FileName, checkResult.Namespace, result.Message})
+			tableData = append(tableData, []string{"exception", checkResult.FileName, checkResult.Namespace, result.Message})
 		}
 
 		for _, result := range checkResult.Warnings {
-			table.Append([]string{"warning", checkResult.FileName, checkResult.Namespace, result.Message})
+			tableData = append(tableData, []string{"warning", checkResult.FileName, checkResult.Namespace, result.Message})
 		}
 
 		for _, result := range checkResult.Skipped {
-			table.Append([]string{"skipped", checkResult.FileName, checkResult.Namespace, result.Message})
+			tableData = append(tableData, []string{"skipped", checkResult.FileName, checkResult.Namespace, result.Message})
 		}
 
 		for _, result := range checkResult.Failures {
-			table.Append([]string{"failure", checkResult.FileName, checkResult.Namespace, result.Message})
+			tableData = append(tableData, []string{"failure", checkResult.FileName, checkResult.Namespace, result.Message})
 		}
 	}
 
-	if table.NumLines() > 0 {
+	if len(tableData) > 0 {
+		table.AppendBulk(tableData)
 		table.Render()
 	}
 
