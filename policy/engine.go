@@ -120,7 +120,7 @@ func (e *Engine) Check(ctx context.Context, configs map[string]interface{}, name
 		if subconfigs, exist := config.([]interface{}); exist {
 
 			checkResult := output.CheckResult{
-				FileName: path,
+				FileName:  path,
 				Namespace: namespace,
 			}
 			for _, subconfig := range subconfigs {
@@ -227,31 +227,48 @@ func (e *Engine) Runtime() *ast.Term {
 }
 
 func (e *Engine) check(ctx context.Context, path string, config interface{}, namespace string) (output.CheckResult, error) {
-
-	// When performing policy evaluation using Check, there are a few rules that are special (e.g. warn and deny).
-	// In order to validate the inputs against the policies, these rules need to be identified and how often
-	// they appear in the policies.
-	rules := make(map[string]int)
+	var rules []string
+	var ruleCount int
 	for _, module := range e.Modules() {
 		currentNamespace := strings.Replace(module.Package.Path.String(), "data.", "", 1)
 		if currentNamespace != namespace {
 			continue
 		}
 
+		// When performing policy evaluation using Check, there are a few rules that are special (e.g. warn and deny).
+		// In order to validate the inputs against the policies, these rules need to be identified and how often
+		// they appear in the policies.
 		for r := range module.Rules {
 			currentRule := module.Rules[r].Head.Name.String()
-			if isFailure(currentRule) || isWarning(currentRule) {
-				rules[currentRule]++
+
+			if !isFailure(currentRule) && !isWarning(currentRule) {
+				continue
+			}
+
+			// When checking the policies we want a unique list of rules to evaluate them one by one, but we also want
+			// to keep track of how many rules we will be evaluating so we can calculate the final result.
+			//
+			// For example, a policy can have two deny rules that both contain different bodies. In this case the list
+			// of rules will only contain deny, but the rule count would be two.
+			ruleCount++
+
+			if !contains(rules, currentRule) {
+				rules = append(rules, currentRule)
 			}
 		}
 	}
 
 	checkResult := output.CheckResult{
-		FileName: path,
+		FileName:  path,
 		Namespace: namespace,
 	}
-	for rule, count := range rules {
+	var successes int
+	for _, rule := range rules {
+
+		// When matching rules for exceptions, only the name of the rule
+		// is queried, so the severity prefix must be removed.
 		exceptionQuery := fmt.Sprintf("data.%s.exception[_][_] == %q", namespace, removeRulePrefix(rule))
+
 		exceptionQueryResult, err := e.query(ctx, config, exceptionQuery, namespace)
 		if err != nil {
 			return output.CheckResult{}, fmt.Errorf("query exception: %w", err)
@@ -278,7 +295,15 @@ func (e *Engine) check(ctx context.Context, path string, config interface{}, nam
 		var failures []output.Result
 		var warnings []output.Result
 		for _, ruleResult := range ruleQueryResult.Results {
-			if ruleResult.Passed() || len(exceptions) > 0 {
+
+			// Exceptions have already been accounted for in the exception query so
+			// we skip them here to avoid doubling the result.
+			if len(exceptions) > 0 {
+				continue
+			}
+
+			if ruleResult.Passed() {
+				successes++
 				continue
 			}
 
@@ -289,14 +314,6 @@ func (e *Engine) check(ctx context.Context, path string, config interface{}, nam
 			}
 		}
 
-		// Only a single success result is returned when a given rule succeeds, even
-		// if there are multiple occurances of that rule.
-		//
-		// The actual number of successes will be the difference between the total number
-		// of evaluations that have been performed and the total number of expected evaluations.
-		successes := count - (len(failures) + len(warnings) + len(exceptions))
-
-		checkResult.Successes += successes
 		checkResult.Failures = append(checkResult.Failures, failures...)
 		checkResult.Warnings = append(checkResult.Warnings, warnings...)
 		checkResult.Exceptions = append(checkResult.Exceptions, exceptions...)
@@ -305,11 +322,21 @@ func (e *Engine) check(ctx context.Context, path string, config interface{}, nam
 		checkResult.Queries = append(checkResult.Queries, ruleQueryResult)
 	}
 
+	// Only a single success result is returned when a given rule succeeds, even if there are multiple occurrences
+	// of that rule.
+	//
+	// In the event that the total number of results is less than the total number of rules, we can safely assume
+	// that the difference were successful results.
+	resultCount := len(checkResult.Failures) + len(checkResult.Warnings) + len(checkResult.Exceptions) + successes
+	if resultCount < ruleCount {
+		successes += ruleCount - resultCount
+	}
+
+	checkResult.Successes = successes
 	return checkResult, nil
 }
 
-// query is a low-level method that has no notion of a failed policy or successful policy.
-// It only returns the result of executing a single query against the input.
+// query is a low-level method that returns the result of executing a single query against the input.
 //
 // Example queries could include:
 // data.main.deny to query the deny rule in the main namespace
@@ -410,8 +437,6 @@ func contains(collection []string, item string) bool {
 	return false
 }
 
-// When matching rules for exceptions, only the name of the rule
-// is queried, so the severity prefix must be removed.
 func removeRulePrefix(rule string) string {
 	rule = strings.TrimPrefix(rule, "violation_")
 	rule = strings.TrimPrefix(rule, "deny_")
