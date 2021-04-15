@@ -290,18 +290,4 @@
   [[ "$output" =~ "2 tests, 1 passed, 0 warnings, 1 failure" ]]
 }
 
-@test "Can install plugin from directory" {
-  run ./conftest plugin install contrib/plugins/kubectl
-  [ "$status" -eq 0 ]
 
-  run ./conftest kubectl
-  [ "$status" -eq 0 ]
-}
-
-@test "Can install plugin from URL" {
-  run ./conftest plugin install github.com/open-policy-agent/conftest/contrib/plugins/kubectl
-  [ "$status" -eq 0 ]
-
-  run ./conftest kubectl
-  [ "$status" -eq 0 ]
-}
