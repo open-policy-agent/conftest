@@ -52,7 +52,7 @@ the output will include a detailed trace of how the policy was evaluated, e.g.
 // to validate their rego unit tests.
 func NewVerifyCommand(ctx context.Context) *cobra.Command {
 	cmd := cobra.Command{
-		Use:   "verify",
+		Use:   "verify <path> [path [...]]",
 		Short: "Verify Rego unit tests",
 		Long:  verifyDesc,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
