@@ -1,9 +1,9 @@
 package kubernetes
 
 is_service {
-  input.kind = "Service"
+	input.kind = "Service"
 }
 
 is_deployment {
-  input.kind = "Deployment"
+	input.kind = "Deployment"
 }
