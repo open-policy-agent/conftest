@@ -16,7 +16,7 @@ This command executes Rego unit tests.
 
 Any file with a '_test' postfix and '.rego' extension will be compiled and 
 any Rego tests inside of them will be executed. For more information on how 
-to write tests check out the Rego testing documentation: 
+to write tests check out the Rego testing documentation:
 https://www.openpolicyagent.org/docs/latest/policy-testing/.
 
 The policy location defaults to the policy directory in the local folder.
@@ -26,15 +26,22 @@ The location can be overridden with the '--policy' flag, e.g.:
 
 Some policies are dependant on external data. This data is loaded in separately 
 from policies. The location of any data directory or file can be specified with 
-the '--data' flag. If a directory is specified, it will be recursively searched for 
-any data files. Right now any JSON or YAML file will be loaded in 
-and made available in the Rego policies. Data will be made available in Rego based on 
-the file path where the data was found. For example, if data is stored 
-under 'policy/exceptions/my_data.yaml', and we execute the following command:
+the '--data' flag.
 
-	$ conftest verify --data policy
+	$ conftest verify --data <data-directory>
 
-The data is available under 'import data.exceptions'.
+If a directory is specified, it will be recursively searched for 
+any data files. Data will be made available in Rego based on 
+the structure of the data that was loaded.
+
+For example, if a yaml file was loaded that had the structure:
+
+people:
+  ages:
+  - 18
+  - 21
+
+The data is made available under 'import data.people'.
 
 As with the test command, verify supports the '--output' flag to specify the type, e.g.:
 
