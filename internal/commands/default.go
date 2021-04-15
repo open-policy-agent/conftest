@@ -52,6 +52,7 @@ func NewDefaultCommand() *cobra.Command {
 	cmd.AddCommand(NewPullCommand(ctx))
 	cmd.AddCommand(NewVerifyCommand(ctx))
 	cmd.AddCommand(NewPluginCommand(ctx))
+	cmd.AddCommand(NewFormatCommand(ctx))
 
 	pluginCmds, err := loadPlugins(ctx)
 	if err != nil {

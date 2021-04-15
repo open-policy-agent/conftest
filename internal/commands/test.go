@@ -79,7 +79,7 @@ type TestRun struct {
 // NewTestCommand creates a new test command.
 func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd := cobra.Command{
-		Use:   "test <file> [file...]",
+		Use:   "test <path> [path [...]]",
 		Short: "Test your configuration files using Open Policy Agent",
 		Long:  testDesc,
 		Args:  cobra.MinimumNArgs(1),
