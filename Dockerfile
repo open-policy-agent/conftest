@@ -17,7 +17,7 @@ COPY . .
 
 ## BUILDER STAGE ##
 FROM base as builder
-RUN go build -o conftest -ldflags="-w -s -X github.com/open-policy-agent/conftest/internal/commands.version=${VERSION} -X github.com/open-policy-agent/conftest/internal/commands.commit=${COMMIT} -X github.com/open-policy-agent/conftest/internal/commands.date=${DATE}" main.go
+RUN go build -o conftest -ldflags="-w -s -X github.com/open-policy-agent/conftest/internal/commands.version=${VERSION}" main.go
 
 ## TEST STAGE ##
 FROM base as test
