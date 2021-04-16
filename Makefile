@@ -39,10 +39,13 @@ test-acceptance: build ## Runs the tests in the test folder.
 		cd $(CURDIR)/$$testdir && CONFTEST=$(ROOT_DIR)/$(BIN) bats test.bats || exit 1; \
 	done
 
+.PHONY: test-oci
+test-oci: ## Runs the OCI integration test for push and pull.
+	@./scripts/push-pull-e2e.sh
+
 .PHONY: lint
 lint: ## Lints Conftest.
-	@golint -set_exit_status ./...
-	@go vet ./...
+	@golangci-lint run
 
 .PHONY: all
 all: lint build test test-examples test-acceptance ## Runs all linting and tests.

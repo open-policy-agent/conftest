@@ -1,0 +1,23 @@
+linter-settings:
+  misspell:
+    locale: US
+
+linters:
+  disable-all: true
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - golint
+    - goconst
+    - gofmt
+    - goimports
+    - unused
+    - varcheck
+    - deadcode
+    - misspell
+    - typecheck
+    - structcheck
+    - staticcheck
+    - gosimple
+    - gosec

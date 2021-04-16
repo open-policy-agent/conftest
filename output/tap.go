@@ -43,17 +43,17 @@ func (t *TAP) Output(checkResults []CheckResult) error {
 		}
 
 		counter := 1
-		fmt.Fprintln(t.Writer, fmt.Sprintf("1..%d", totalTests))
+		fmt.Fprintf(t.Writer, "1..%d\n", totalTests)
 
 		for _, failure := range result.Failures {
-			fmt.Fprintln(t.Writer, fmt.Sprintf("not ok %v %v %v %v", counter, indicator, namespace, failure.Message))
+			fmt.Fprintf(t.Writer, "not ok %v %v %v %v\n", counter, indicator, namespace, failure.Message)
 			counter++
 		}
 
 		if len(result.Warnings) > 0 {
 			fmt.Fprintln(t.Writer, "# warnings")
 			for _, warning := range result.Warnings {
-				fmt.Fprintln(t.Writer, fmt.Sprintf("not ok %v %v %v %v", counter, indicator, namespace, warning.Message))
+				fmt.Fprintf(t.Writer, "not ok %v %v %v %v\n", counter, indicator, namespace, warning.Message)
 				counter++
 			}
 		}
@@ -61,7 +61,7 @@ func (t *TAP) Output(checkResults []CheckResult) error {
 		if len(result.Exceptions) > 0 {
 			fmt.Fprintln(t.Writer, "# exceptions")
 			for _, exception := range result.Exceptions {
-				fmt.Fprintln(t.Writer, fmt.Sprintf("ok %v %v %v %v", counter, indicator, namespace, exception.Message))
+				fmt.Fprintf(t.Writer, "ok %v %v %v %v\n", counter, indicator, namespace, exception.Message)
 				counter++
 			}
 		}
@@ -69,7 +69,7 @@ func (t *TAP) Output(checkResults []CheckResult) error {
 		if len(result.Skipped) > 0 {
 			fmt.Fprintln(t.Writer, "# skip")
 			for _, skipped := range result.Skipped {
-				fmt.Fprintln(t.Writer, fmt.Sprintf("ok %v %v %v %v", counter, indicator, namespace, skipped.Message))
+				fmt.Fprintf(t.Writer, "ok %v %v %v %v\n", counter, indicator, namespace, skipped.Message)
 				counter++
 			}
 		}
@@ -77,7 +77,7 @@ func (t *TAP) Output(checkResults []CheckResult) error {
 		if result.Successes > 0 {
 			fmt.Fprintln(t.Writer, "# successes")
 			for i := 0; i < result.Successes; i++ {
-				fmt.Fprintln(t.Writer, fmt.Sprintf("ok %v %v %v %v", counter, indicator, namespace, "SUCCESS"))
+				fmt.Fprintf(t.Writer, "ok %v %v %v %v", counter, indicator, namespace, "SUCCESS")
 				counter++
 			}
 		}
