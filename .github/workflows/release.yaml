@@ -18,9 +18,6 @@ jobs:
           username: ${{ secrets.DOCKER_LOGIN }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: validate
-        run: make all
-
       - name: get version
         id: get-version
         run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
