@@ -30,5 +30,9 @@ jobs:
           VERSION: ${{ steps.get-version.outputs.VERSION }}
         run: make push TAG=$VERSION
 
-      - name: publish binaries
-        run: curl -sL https://git.io/goreleaser | bash
+      - name: release
+        uses: goreleaser/goreleaser-action@v2
+        with:
+          args: release --rm-dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
