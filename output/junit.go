@@ -87,11 +87,9 @@ func (j *JUnit) Output(results []CheckResult) error {
 }
 
 func getTestName(fileName string, namespace string, message string) string {
-
-    if len(message) >0 {
-	    return fmt.Sprintf("%s - %s - %s", fileName, namespace, strings.Split(message, "\n")[0])
-    }
+	if len(message) > 0 {
+		return fmt.Sprintf("%s - %s - %s", fileName, namespace, strings.Split(message, "\n")[0])
+	}
 
 	return fmt.Sprintf("%s - %s", fileName, namespace)
-
 }
