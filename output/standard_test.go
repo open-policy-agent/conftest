@@ -18,10 +18,10 @@ func TestStandard(t *testing.T) {
 			name: "records failures, warnings and skipped",
 			input: []CheckResult{
 				{
-					FileName: "foo.yaml",
+					FileName:  "foo.yaml",
 					Namespace: "namespace",
-					Warnings: []Result{{Message: "first warning"}},
-					Failures: []Result{{Message: "first failure"}},
+					Warnings:  []Result{{Message: "first warning"}},
+					Failures:  []Result{{Message: "first failure"}},
 				},
 			},
 			expected: []string{
@@ -36,10 +36,10 @@ func TestStandard(t *testing.T) {
 			name: "skips filenames for stdin",
 			input: []CheckResult{
 				{
-					FileName: "-",
+					FileName:  "-",
 					Namespace: "namespace",
-					Warnings: []Result{{Message: "first warning"}},
-					Failures: []Result{{Message: "first failure"}},
+					Warnings:  []Result{{Message: "first warning"}},
+					Failures:  []Result{{Message: "first failure"}},
 				},
 			},
 			expected: []string{

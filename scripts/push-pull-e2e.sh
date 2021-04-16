@@ -10,7 +10,7 @@ CONFTEST="./conftest"
 CONTAINER_NAME="conftest-push-pull-e2e"
 
 function cleanup() {
-    docker rm $CONTAINER_NAME -f
+    docker rm $CONTAINER_NAME -f > /dev/null 2>&1
     rm -rf tmp
 }
 
@@ -23,6 +23,9 @@ if [ $? != 0 ]; then
     echo "ERROR RUNNING TEST CONTAINER. IS DOCKER INSTALLED?"
     exit 1
 fi
+
+# Give the registry container some time to spin up and initialize.
+sleep 5
 
 $CONFTEST push localhost:5000/test -p examples/data
 if [ $? != 0 ]; then

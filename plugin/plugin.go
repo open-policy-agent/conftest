@@ -15,10 +15,9 @@ import (
 )
 
 const (
-	cacheDir = ".conftest"
+	cacheDir       = ".conftest"
 	cacheDirectory = xdgPath(cacheDir)
 )
-
 
 // Plugin represents a plugin.
 type Plugin struct {
@@ -74,7 +73,6 @@ func FindAll() ([]*Plugin, error) {
 		}
 
 		plugins = append(plugins, foundPlugin)
-
 	}
 
 	return plugins, nil

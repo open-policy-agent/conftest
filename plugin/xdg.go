@@ -15,7 +15,6 @@ const (
 	XDGDataDirs = "XDG_DATA_DIRS"
 )
 
-// xdgPath is a 
 type xdgPath string
 
 // Preferred returns the preferred path according to the XDG specification
@@ -57,11 +56,11 @@ func (p xdgPath) Find(path string) (string, error) {
 		dirs := strings.Split(dataDirs, ":")
 		for _, dataDir := range dirs {
 			dir := filepath.ToSlash(filepath.Join(dataDir, string(p), path))
-			_, err := os.Stat(dir);
+			_, err := os.Stat(dir)
 			if err != nil && !os.IsNotExist(err) {
 				return "", fmt.Errorf("get data dirs directory: %w", err)
 			}
-	
+
 			if err == nil {
 				return dir, nil
 			}
@@ -74,7 +73,7 @@ func (p xdgPath) Find(path string) (string, error) {
 	}
 
 	dir := filepath.ToSlash(filepath.Join(homeDir, string(p), path))
-	_, err = os.Stat(dir);
+	_, err = os.Stat(dir)
 	if err != nil {
 		return "", fmt.Errorf("get data dirs directory: %w", err)
 	}

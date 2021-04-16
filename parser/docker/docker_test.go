@@ -5,7 +5,6 @@ import (
 )
 
 func TestParser_Unmarshal(t *testing.T) {
-
 	parser := Parser{}
 
 	sample := `FROM foo
@@ -56,7 +55,7 @@ RUN go build -o conftest`
 
 	dockerFile := input.([]interface{})[0]
 	commands := dockerFile.([]interface{})
-	
+
 	cmd := commands[1]
 	stage := cmd.(map[string]interface{})["Stage"].(float64)
 	if stage != 0 {

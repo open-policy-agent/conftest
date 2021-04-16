@@ -16,7 +16,7 @@ func TestTAP(t *testing.T) {
 			name: "no warnings or errors",
 			input: []CheckResult{
 				{
-					FileName: "examples/kubernetes/service.yaml",
+					FileName:  "examples/kubernetes/service.yaml",
 					Namespace: "namespace",
 				},
 			},
@@ -26,10 +26,10 @@ func TestTAP(t *testing.T) {
 			name: "records failure and warnings",
 			input: []CheckResult{
 				{
-					FileName: "examples/kubernetes/service.yaml",
+					FileName:  "examples/kubernetes/service.yaml",
 					Namespace: "namespace",
-					Warnings: []Result{{Message: "first warning"}},
-					Failures: []Result{{Message: "first failure"}},
+					Warnings:  []Result{{Message: "first warning"}},
+					Failures:  []Result{{Message: "first failure"}},
 				},
 			},
 			expected: []string{
@@ -44,10 +44,10 @@ func TestTAP(t *testing.T) {
 			name: "mixed failure, warnings and skipped",
 			input: []CheckResult{
 				{
-					FileName: "examples/kubernetes/service.yaml",
+					FileName:  "examples/kubernetes/service.yaml",
 					Namespace: "namespace",
-					Failures: []Result{{Message: "first failure"}},
-					Skipped:  []Result{{Message: "first skipped"}},
+					Failures:  []Result{{Message: "first failure"}},
+					Skipped:   []Result{{Message: "first skipped"}},
 				},
 			},
 			expected: []string{
@@ -62,9 +62,9 @@ func TestTAP(t *testing.T) {
 			name: "handles stdin input",
 			input: []CheckResult{
 				{
-					FileName: "-",
+					FileName:  "-",
 					Namespace: "namespace",
-					Failures: []Result{{Message: "first failure"}},
+					Failures:  []Result{{Message: "first failure"}},
 				},
 			},
 			expected: []string{

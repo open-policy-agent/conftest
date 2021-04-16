@@ -17,6 +17,11 @@ jobs:
       - name: setup bats
         uses: mig4/setup-bats@v1
 
+      - name: lint go
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.39.0
+          ./bin/golangci-lint run --timeout=5m --color=always --max-same-issues=0 --max-issues-per-linter=0
+
       - name: build
         run: make build
 

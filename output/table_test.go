@@ -25,11 +25,11 @@ func TestTable(t *testing.T) {
 			name: "A warning, a failure, a skipped",
 			input: []CheckResult{
 				{
-					FileName: "examples/kubernetes/service.yaml",
+					FileName:  "examples/kubernetes/service.yaml",
 					Namespace: "namespace",
-					Warnings: []Result{{Message: "first warning"}},
-					Failures: []Result{{Message: "first failure"}},
-					Skipped:  []Result{{Message: "first skipped"}},
+					Warnings:  []Result{{Message: "first warning"}},
+					Failures:  []Result{{Message: "first failure"}},
+					Skipped:   []Result{{Message: "first skipped"}},
 				},
 			},
 			expected: []string{

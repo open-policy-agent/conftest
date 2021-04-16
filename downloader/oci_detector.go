@@ -29,7 +29,7 @@ func (d *OCIDetector) Detect(src, _ string) (string, bool, error) {
 }
 
 func containsOCIRegistry(src string) bool {
-	var matchRegistries = []*regexp.Regexp{
+	matchRegistries := []*regexp.Regexp{
 		regexp.MustCompile("azurecr.io"),
 		regexp.MustCompile("gcr.io"),
 		regexp.MustCompile("registry.gitlab.com"),

@@ -9,7 +9,6 @@ import (
 
 func TestYAMLParser(t *testing.T) {
 	t.Run("error parsing a YAML document", func(t *testing.T) {
-
 		testTable := []struct {
 			name           string
 			controlConfigs []byte

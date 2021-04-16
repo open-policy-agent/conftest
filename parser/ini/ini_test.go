@@ -6,10 +6,10 @@ import (
 
 func TestIniParser(t *testing.T) {
 	parser := &Parser{}
-	sample := `[Local Varaibles]
+	sample := `[Local Variables]
 	Name=name
 	Title=title
-	Visisbility=show/hide
+	Visibility=show/hide
 	Delay=10
 
 
@@ -29,7 +29,7 @@ func TestIniParser(t *testing.T) {
 	}
 
 	inputMap := input.(map[string]interface{})
-	item := inputMap["Local Varaibles"]
+	item := inputMap["Local Variables"]
 	if len(item.(map[string]interface{})) <= 0 {
 		t.Error("there should be at least one item defined in the parsed file, but none found")
 	}

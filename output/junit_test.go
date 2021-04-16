@@ -18,7 +18,7 @@ func TestJUnit(t *testing.T) {
 			name: "No warnings or failures",
 			input: []CheckResult{
 				{
-					FileName: "examples/kubernetes/service.yaml",
+					FileName:  "examples/kubernetes/service.yaml",
 					Namespace: "namespace",
 				},
 			},
@@ -38,11 +38,11 @@ func TestJUnit(t *testing.T) {
 			name: "A warning, a failure and a skipped test",
 			input: []CheckResult{
 				{
-					FileName: "examples/kubernetes/service.yaml",
+					FileName:  "examples/kubernetes/service.yaml",
 					Namespace: "namespace",
-					Warnings: []Result{{Message: "first warning"}},
-					Failures: []Result{{Message: "first failure"}},
-					Skipped:  []Result{{Message: "first skipped"}},
+					Warnings:  []Result{{Message: "first warning"}},
+					Failures:  []Result{{Message: "first failure"}},
+					Skipped:   []Result{{Message: "first skipped"}},
 				},
 			},
 			expected: []string{
@@ -70,7 +70,7 @@ func TestJUnit(t *testing.T) {
 			name: "Failure with a long description",
 			input: []CheckResult{
 				{
-					FileName: "examples/kubernetes/service.yaml",
+					FileName:  "examples/kubernetes/service.yaml",
 					Namespace: "namespace",
 					Failures: []Result{{Message: `failure with long message
 
