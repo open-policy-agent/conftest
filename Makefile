@@ -68,3 +68,6 @@ push: ## Pushes the examples and Conftest image to DockerHub. Requires `TAG` par
 	@$(DOCKER) build . --build-arg VERSION="$(TAG)" -t $(IMAGE):$(TAG)
 	@$(DOCKER) build . --target examples -t $(IMAGE):examples
 	@$(DOCKER) tag $(IMAGE):$(TAG) $(IMAGE):latest
+	@$(DOCKER) push $(IMAGE):$(TAG)
+	@$(DOCKER) push $(IMAGE):latest
+	@$(DOCKER) push $(IMAGE):examples
