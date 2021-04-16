@@ -16,8 +16,6 @@ import (
 // These values are set at build time
 var (
 	version = ""
-	commit  = ""
-	date    = ""
 )
 
 // NewDefaultCommand creates the default command
@@ -25,7 +23,7 @@ func NewDefaultCommand() *cobra.Command {
 	cmd := cobra.Command{
 		Use:          "conftest <subcommand>",
 		Short:        "Test your configuration files using Open Policy Agent",
-		Version:      fmt.Sprintf("Version: %s\nCommit: %s\nDate: %s\n", version, commit, date),
+		Version:      fmt.Sprintf("Version: %s\n", version),
 		SilenceUsage: true,
 	}
 

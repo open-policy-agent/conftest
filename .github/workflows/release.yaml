@@ -1,0 +1,34 @@
+name: tag
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout source
+        uses: actions/checkout@v2
+
+      - name: login to docker hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_LOGIN }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: validate
+        run: make all
+
+      - name: get version
+        id: get-version
+        run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
+
+      - name: push images
+        env:
+          VERSION: ${{ steps.get-version.outputs.VERSION }}
+        run: make push TAG=$VERSION
+
+      - name: publish binaries
+        run: curl -sL https://git.io/goreleaser | bash

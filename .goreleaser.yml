@@ -16,8 +16,6 @@ builds:
   - "-s"
   - "-w"
   - "-X github.com/open-policy-agent/conftest/internal/commands.version={{.Version}}"
-  - "-X github.com/open-policy-agent/conftest/internal/commands.commit={{.ShortCommit}}"
-  - "-X github.com/open-policy-agent/conftest/internal/commands.date={{.Date}}"
 archives:
 - replacements:
     darwin: Darwin
