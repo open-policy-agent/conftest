@@ -36,8 +36,8 @@ Save the following as `policy/combine.rego`:
 package main
 
 deny[msg] {
-  input[_].contents.kind == "Deployment"
-  deployment := input[_].contents
+  input[deployment].contents.kind == "Deployment"
+  deployment := input[deployment].contents
 
   not service_selects_app(deployment.spec.selector.matchLabels.app)
 
@@ -45,8 +45,8 @@ deny[msg] {
 }
 
 service_selects_app(app) {
-  input[_].contents.kind == "Service"
-  input[_].contents.spec.selector.app == app
+  input[service].contents.kind == "Service"
+  input[service].contents.spec.selector.app == app
 }
 ```
 
