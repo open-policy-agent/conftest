@@ -6,6 +6,8 @@ Conftest relies on the Rego language from [Open Policy Agent](https://www.openpo
 
 ## Usage
 
+### Evaluating Policies
+
 Policies by default should be placed in a directory called `policy`, but this can be overridden with the `--policy` flag.
 
 For instance, save the following as `policy/deployment.rego`:
@@ -71,3 +73,18 @@ As of today Conftest supports:
 * VCL
 * XML
 * YAML
+
+### Testing/Verifying Policies
+
+When authoring policies, it is helpful to test them. Consult the Rego testing documentation at
+https://www.openpolicyagent.org/docs/latest/policy-testing/ for details on testing syntax and approach.
+
+Following the example above, with a policy file in `policy/deployment.rego`, you would create your
+tests in `policy/deployment_test.rego` by convention. You can then use `conftest verify` to execute
+them and report on the results.
+
+```console
+conftest verify --policy ./policy
+```
+
+Further documentation can be found using `conftest verify -h`
