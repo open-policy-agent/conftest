@@ -2,16 +2,20 @@ package main
 
 import data.services
 
-name = input.metadata.name
+name := input.metadata.name
 
-kind = input.kind
+kind := input.kind
 
-type = input.spec.type
+type := input.spec.type
 
 deny[msg] {
-	kind = "Service"
-	type = "LoadBalancer"
-	input.spec.ports[_].port = services.ports[_]
+	kind == "Service"
+	type == "LoadBalancer"
 
-	msg = sprintf("Cannot expose one of the following ports on a LoadBalancer %s", [services.ports])
+	some p
+	input.spec.ports[p].port
+
+	input.spec.ports[p].port == services.ports[_]
+
+	msg := sprintf("Cannot expose port %v on LoadBalancer. Denied ports: %v", [input.spec.ports[p].port, services.ports])
 }

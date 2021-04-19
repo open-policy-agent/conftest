@@ -248,7 +248,7 @@
 @test "Can load data along with rego policies" {
   run ./conftest test -p examples/data/policy -d examples/data/exclusions examples/data/service.yaml
   [ "$status" -eq 1 ]
-  [[ "$output" =~ "Cannot expose one of the following ports" ]]
+  [[ "$output" =~ "Cannot expose port" ]]
 }
 
 @test "Can load data in unit tests" {
