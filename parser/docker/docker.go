@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/moby/buildkit/frontend/dockerfile/parser"
 	"github.com/moby/buildkit/frontend/dockerfile/instructions"
+	"github.com/moby/buildkit/frontend/dockerfile/parser"
 )
 
 // Parser is a Dockerfile parser.
@@ -14,16 +14,22 @@ type Parser struct{}
 
 // Command represents a command in a Dockerfile.
 type Command struct {
-	// lowercased command name (ex: `from`)
-	Cmd    string   
-	// for ONBUILD only this holds the sub-command
-	SubCmd string   
-	// whether the value is written in json form
-	JSON   bool     	
+
+	// Lowercased command name (ex: `from`)
+	Cmd string
+
+	// For ONBUILD only this holds the sub-command
+	SubCmd string
+
+	// Whether the value is written in json form
+	JSON bool
+
 	// Any flags such as `--from=...` for `COPY`.
-	Flags  []string
+	Flags []string
+
 	// The contents of the command (ex: `ubuntu:xenial`)
-	Value  []string
+	Value []string
+
 	// Stage indicates which stage the command is found in a multistage docker build
 	Stage int
 }
@@ -38,6 +44,7 @@ func (dp *Parser) Unmarshal(p []byte, v interface{}) error {
 
 	var commands []Command
 	var stages []*instructions.Stage
+
 	for _, child := range res.AST.Children {
 		instr, err := instructions.ParseInstruction(child)
 		if err != nil {
@@ -47,6 +54,19 @@ func (dp *Parser) Unmarshal(p []byte, v interface{}) error {
 		stage, ok := instr.(*instructions.Stage)
 		if ok {
 			stages = append(stages, stage)
+		}
+
+		// PrevComment contains all of the comments that came before this node.
+		// In the event that comments exist, add them to the list of commands before
+		// adding the node itself.
+		for _, comment := range child.PrevComment {
+			cmd := Command{
+				Cmd:   "comment",
+				Stage: currentStage(stages),
+				Value: []string{comment},
+			}
+
+			commands = append(commands, cmd)
 		}
 
 		cmd := Command{

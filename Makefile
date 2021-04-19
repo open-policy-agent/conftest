@@ -11,16 +11,6 @@ BIN := conftest$(BIN_EXTENSION)
 
 IMAGE := openpolicyagent/conftest
 
-TAG := $(shell git describe --abbrev=0 --tags)
-GIT_COMMIT := $(shell git rev-parse HEAD)
-GIT_TAG := $(shell git describe --tags --abbrev=0 --exact-match 2>/dev/null)
-DATE := $(shell date)
-
-VERSION = unreleased
-ifneq ($(GIT_TAG),)
-	VERSION = $(GIT_TAG)
-endif
-
 DOCKER := DOCKER_BUILDKIT=1 docker
 
 ## All of the directories that contain tests to be executed
@@ -49,10 +39,13 @@ test-acceptance: build ## Runs the tests in the test folder.
 		cd $(CURDIR)/$$testdir && CONFTEST=$(ROOT_DIR)/$(BIN) bats test.bats || exit 1; \
 	done
 
+.PHONY: test-oci
+test-oci: ## Runs the OCI integration test for push and pull.
+	@./scripts/push-pull-e2e.sh
+
 .PHONY: lint
 lint: ## Lints Conftest.
-	@golint -set_exit_status ./...
-	@go vet ./...
+	@golangci-lint run
 
 .PHONY: all
 all: lint build test test-examples test-acceptance ## Runs all linting and tests.
@@ -66,15 +59,18 @@ help:
 
 .PHONY: image
 image: ## Builds a Docker image for Conftest.
-	@$(DOCKER) build --build-arg VERSION="$(VERSION)" --build-arg COMMIT="$(GIT_COMMIT)" --build-arg DATE="$(DATE)" . -t $(IMAGE):$(TAG) 
-	@$(DOCKER) tag $(IMAGE):$(TAG) $(IMAGE):latest
+	@$(DOCKER) build . -t $(IMAGE):latest
 
 .PHONY: examples
 examples: ## Builds the examples Docker image.
 	@$(DOCKER) build . --target examples -t $(IMAGE):examples
 
 .PHONY: push
-push: examples image ## Pushes the examples and Conftest image to DockerHub.
+push: ## Pushes the examples and Conftest image to DockerHub. Requires `TAG` parameter.
+	@test -n "$(TAG)" || (echo "TAG parameter not set." && exit 1)
+	@$(DOCKER) build . --build-arg VERSION="$(TAG)" -t $(IMAGE):$(TAG)
+	@$(DOCKER) build . --target examples -t $(IMAGE):examples
+	@$(DOCKER) tag $(IMAGE):$(TAG) $(IMAGE):latest
 	@$(DOCKER) push $(IMAGE):$(TAG)
 	@$(DOCKER) push $(IMAGE):latest
 	@$(DOCKER) push $(IMAGE):examples

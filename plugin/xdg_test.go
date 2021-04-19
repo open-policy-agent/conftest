@@ -77,9 +77,9 @@ func TestFind(t *testing.T) {
 	}
 
 	const (
-		cacheDir   = ".conftestcache"
-		pluginsDir = "plugins"
-		xdgDataHome = "xdgDataHome"
+		cacheDir      = ".conftestcache"
+		pluginsDir    = "plugins"
+		xdgDataHome   = "xdgDataHome"
 		xdgDataDirOne = "xdgDataDirOne"
 		xdgDataDirTwo = "xdgDataDirTwo"
 	)
@@ -174,7 +174,6 @@ func TestFind(t *testing.T) {
 				return os.RemoveAll(path)
 			},
 			func(path string) string {
-
 				return filepath.Join(path, xdgDataHome, cacheDir, pluginsDir)
 			},
 			false,
@@ -208,7 +207,7 @@ func TestFind(t *testing.T) {
 				if err != nil {
 					return "", err
 				}
-				os.Setenv(XDGDataDirs, tmpXdg1 + ":" + tmpXdg2)
+				os.Setenv(XDGDataDirs, tmpXdg1+":"+tmpXdg2)
 
 				err = os.MkdirAll(filepath.Join(tmpXdg2, cacheDir, pluginsDir), os.ModePerm)
 				if err != nil {

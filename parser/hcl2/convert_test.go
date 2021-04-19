@@ -1,12 +1,12 @@
 package hcl2
 
 import (
+	"bytes"
+	"encoding/json"
 	"testing"
 
 	"github.com/tmccombs/hcl2json/convert"
 )
-
-// This file is mostly attributed to https://github.com/tmccombs/hcl2json
 
 const inputa = `
 resource "aws_elastic_beanstalk_environment" "example" {
@@ -115,7 +115,6 @@ const outputc = `{
     }
 }`
 
-// Test that conversion works as expected
 func TestConversion(t *testing.T) {
 	testTable := map[string]struct {
 		input  string
@@ -125,15 +124,21 @@ func TestConversion(t *testing.T) {
 		"single-provider":  {input: inputb, output: outputb},
 		"two-providers":    {input: inputc, output: outputc},
 	}
-	for name, tc := range testTable {
-		bytes := []byte(tc.input)
 
-		json, err := convert.Bytes(bytes, "", convert.Options{})
+	for name, tc := range testTable {
+		testInput := []byte(tc.input)
+
+		convertedInput, err := convert.Bytes(testInput, "", convert.Options{})
 		if err != nil {
 			t.Fatal("convert bytes:", err)
 		}
 
-		computedJSON := string(json)
+		var indented bytes.Buffer
+		if err := json.Indent(&indented, convertedInput, "", "    "); err != nil {
+			t.Fatal("Failed to indent file:", err)
+		}
+
+		computedJSON := indented.String()
 		if computedJSON != tc.output {
 			t.Errorf("For test %s\nExpected:\n%s\n\nGot:\n%s", name, tc.output, computedJSON)
 		}

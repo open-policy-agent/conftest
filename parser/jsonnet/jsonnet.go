@@ -13,9 +13,9 @@ type Parser struct{}
 // Unmarshal unmarshals Jsonnet files.
 func (p *Parser) Unmarshal(data []byte, v interface{}) error {
 	vm := jsonnet.MakeVM()
-	snippetStream, err := vm.EvaluateSnippet("", string(data))
+	snippetStream, err := vm.EvaluateAnonymousSnippet("", string(data))
 	if err != nil {
-		return err
+		return fmt.Errorf("evaluate anonymous snippet: %w", err)
 	}
 
 	if err := json.Unmarshal([]byte(snippetStream), v); err != nil {

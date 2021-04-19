@@ -1,5 +1,5 @@
 package grafana
 
 is_config {
-    input.server["protocol"] = http
+	input.server.protocol = http
 }

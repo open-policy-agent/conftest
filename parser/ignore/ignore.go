@@ -2,6 +2,7 @@ package ignore
 
 import (
 	"encoding/json"
+	"fmt"
 
 	ignore "github.com/shteou/go-ignore"
 )
@@ -13,18 +14,21 @@ type Parser struct{}
 func (pp *Parser) Unmarshal(p []byte, v interface{}) error {
 	ignoreEntries, err := ignore.ParseIgnoreBytes(p)
 	if err != nil {
-		return err
+		return fmt.Errorf("parse ignore bytes: %w", err)
 	}
 
 	// Wrap the entry list in another list, to ensure it's
-	// treated as a single file
+	// treated as a single file.
 	entryListList := [][]ignore.Entry{ignoreEntries}
 
 	marshalledLines, err := json.Marshal(entryListList)
 	if err != nil {
-		return err
+		return fmt.Errorf("marshal ignore: %w", err)
 	}
 
-	json.Unmarshal(marshalledLines, v)
+	if err := json.Unmarshal(marshalledLines, v); err != nil {
+		return fmt.Errorf("unmarshal ignore: %w", err)
+	}
+
 	return nil
 }

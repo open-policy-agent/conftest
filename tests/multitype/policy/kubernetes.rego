@@ -1,5 +1,5 @@
 package kubernetes
 
 is_deployment {
-    input.kind = "Deployment"
+	input.kind = "Deployment"
 }
