@@ -45,7 +45,7 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) ([]output.Check
 		configurations, err = parser.ParseConfigurations(files)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("get configurations: %w", err)
+		return nil, fmt.Errorf("parse configurations: %w", err)
 	}
 
 	// When there are policies to download, they are currently placed in the first
