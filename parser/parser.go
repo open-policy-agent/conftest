@@ -169,7 +169,7 @@ func FileSupported(path string) bool {
 func ParseConfigurations(files []string) (map[string]interface{}, error) {
 	configurations, err := parseConfigurations(files, "")
 	if err != nil {
-		return nil, fmt.Errorf("get configurations: %w", err)
+		return nil, err
 	}
 
 	return configurations, nil
@@ -181,7 +181,7 @@ func ParseConfigurations(files []string) (map[string]interface{}, error) {
 func ParseConfigurationsAs(files []string, parser string) (map[string]interface{}, error) {
 	configurations, err := parseConfigurations(files, parser)
 	if err != nil {
-		return nil, fmt.Errorf("parse configurations: %w", err)
+		return nil, err
 	}
 
 	return configurations, nil

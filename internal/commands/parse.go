@@ -48,7 +48,7 @@ func NewParseCommand(ctx context.Context) *cobra.Command {
 				configurations, err = parser.ParseConfigurations(files)
 			}
 			if err != nil {
-				return fmt.Errorf("get configurations: %w", err)
+				return fmt.Errorf("parse configurations: %w", err)
 			}
 
 			var output string
