@@ -60,7 +60,7 @@ By default, it will use the regular stdout output. For a full list of available 
 The test command supports the '--update' flag to fetch the latest version of the policy at the given url.
 It expects one or more urls to fetch the latest policies from, e.g.:
 
-	$ conftest test --update instrumenta.azurecr.io/test
+	$ conftest test --update opa.azurecr.io/test
 
 See the pull command for more details on supported protocols for fetching policies.
 
@@ -84,7 +84,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 		Long:  testDesc,
 		Args:  cobra.MinimumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			flagNames := []string{"all-namespaces", "combine", "data", "fail-on-warn", "ignore", "namespace", "no-color", "output", "parser", "policy", "trace", "update"}
+			flagNames := []string{"all-namespaces", "combine", "data", "fail-on-warn", "ignore", "namespace", "no-color", "no-fail", "output", "parser", "policy", "trace", "update"}
 			for _, name := range flagNames {
 				if err := viper.BindPFlag(name, cmd.Flags().Lookup(name)); err != nil {
 					return fmt.Errorf("bind flag: %w", err)
@@ -110,24 +110,30 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("output results: %w", err)
 			}
 
+			// When the no-fail parameter is set, there is no need to figure out the error code
+			// as we always want to return zero.
+			if runner.NoFail {
+				return nil
+			}
+
 			var exitCode int
 			if runner.FailOnWarn {
 				exitCode = output.ExitCodeFailOnWarn(results)
 			} else {
 				exitCode = output.ExitCode(results)
 			}
-			if exitCode > 0 {
-				os.Exit(exitCode)
-			}
 
+			os.Exit(exitCode)
 			return nil
 		},
 	}
 
 	cmd.Flags().Bool("fail-on-warn", false, "Return a non-zero exit code if warnings or errors are found")
-	cmd.Flags().BoolP("trace", "", false, "Enable more verbose trace output for Rego queries")
+	cmd.Flags().Bool("no-fail", false, "Return an exit code of zero even if a policy fails")
 	cmd.Flags().Bool("no-color", false, "Disable color when printing")
 	cmd.Flags().Bool("all-namespaces", false, "Test policies found in all namespaces")
+
+	cmd.Flags().BoolP("trace", "", false, "Enable more verbose trace output for Rego queries")
 	cmd.Flags().BoolP("combine", "", false, "Combine all config files to be evaluated together")
 
 	cmd.Flags().String("ignore", "", "A regex pattern which can be used for ignoring paths")
