@@ -26,6 +26,7 @@ type TestRunner struct {
 	AllNamespaces bool `mapstructure:"all-namespaces"`
 	FailOnWarn    bool `mapstructure:"fail-on-warn"`
 	NoColor       bool `mapstructure:"no-color"`
+	NoFail        bool `mapstructure:"no-fail"`
 	Combine       bool
 	Output        string
 }
