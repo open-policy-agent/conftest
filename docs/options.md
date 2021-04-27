@@ -36,12 +36,13 @@ Save the following as `policy/combine.rego`:
 package main
 
 deny[msg] {
-  input[deployment].contents.kind == "Deployment"
-  deployment := input[deployment].contents
+  input[i].contents.kind == "Deployment"
+
+  deployment := input[i].contents
 
   not service_selects_app(deployment.spec.selector.matchLabels.app)
 
-  msg := sprintf("Deployment %v has selector %v that does not match any Services", [deployment.metadata.name, deployment.spec.selector.matchLabels.app])
+  msg := sprintf("Deployment %v with selector %v does not match any Services", [deployment.metadata.name, deployment.spec.selector.matchLabels])
 }
 
 service_selects_app(app) {
