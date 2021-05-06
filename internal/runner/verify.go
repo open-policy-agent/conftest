@@ -29,6 +29,10 @@ func (r *VerifyRunner) Run(ctx context.Context) ([]output.CheckResult, error) {
 		return nil, fmt.Errorf("load: %w", err)
 	}
 
+	if r.Trace {
+		engine.EnableTracing()
+	}
+
 	runner := tester.NewRunner().SetCompiler(engine.Compiler()).SetStore(engine.Store()).SetModules(engine.Modules()).EnableTracing(true).SetRuntime(engine.Runtime())
 	ch, err := runner.RunTests(ctx, nil)
 	if err != nil {

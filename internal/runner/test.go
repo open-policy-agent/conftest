@@ -62,6 +62,10 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) ([]output.Check
 		return nil, fmt.Errorf("load: %w", err)
 	}
 
+	if t.Trace {
+		engine.EnableTracing()
+	}
+
 	namespaces := t.Namespace
 	if t.AllNamespaces {
 		namespaces = engine.Namespaces()

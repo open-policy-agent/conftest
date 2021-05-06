@@ -17,12 +17,12 @@ import (
 	"github.com/open-policy-agent/opa/loader"
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/storage"
-	"github.com/open-policy-agent/opa/topdown"
 	"github.com/open-policy-agent/opa/version"
 )
 
 // Engine represents the policy engine.
 type Engine struct {
+	trace    bool
 	modules  map[string]*ast.Module
 	compiler *ast.Compiler
 	store    storage.Store
@@ -105,6 +105,10 @@ func LoadWithData(ctx context.Context, policyPaths []string, dataPaths []string)
 	engine.docs = documentContents
 
 	return engine, nil
+}
+
+func (e *Engine) EnableTracing() {
+	e.trace = true
 }
 
 // Check executes all of the loaded policies against the input and returns the results.
@@ -342,16 +346,17 @@ func (e *Engine) check(ctx context.Context, path string, config interface{}, nam
 // data.main.deny to query the deny rule in the main namespace
 // data.main.warn to query the warn rule in the main namespace
 func (e *Engine) query(ctx context.Context, input interface{}, query string, namespace string) (output.QueryResult, error) {
-	stdout := topdown.NewBufferTracer()
 	options := []func(r *rego.Rego){
 		rego.Input(input),
 		rego.Query(query),
 		rego.Compiler(e.Compiler()),
 		rego.Store(e.Store()),
 		rego.Runtime(e.Runtime()),
-		rego.QueryTracer(stdout),
+		rego.Trace(e.trace),
 	}
-	resultSet, err := rego.New(options...).Eval(ctx)
+
+	regoInstance := rego.New(options...)
+	resultSet, err := regoInstance.Eval(ctx)
 	if err != nil {
 		return output.QueryResult{}, fmt.Errorf("evaluating policy: %w", err)
 	}
@@ -359,7 +364,8 @@ func (e *Engine) query(ctx context.Context, input interface{}, query string, nam
 	// After the evaluation of the policy, the results of the trace (stdout) will be populated
 	// for the query. Once populated, format the trace results into a human readable format.
 	buf := new(bytes.Buffer)
-	topdown.PrettyTrace(buf, *stdout)
+	rego.PrintTrace(buf, regoInstance)
+
 	var traces []string
 	for _, line := range strings.Split(buf.String(), "\n") {
 		if len(line) > 0 {
