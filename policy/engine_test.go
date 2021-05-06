@@ -46,6 +46,65 @@ func TestException(t *testing.T) {
 	}
 }
 
+func TestTracing(t *testing.T) {
+	t.Run("with tracing ", func(t *testing.T) {
+		ctx := context.Background()
+
+		policies := []string{"../examples/kubernetes/policy"}
+		engine, err := Load(ctx, policies)
+		if err != nil {
+			t.Fatalf("loading policies: %v", err)
+		}
+
+		engine.EnableTracing()
+
+		configFiles := []string{"../examples/kubernetes/service.yaml"}
+		configs, err := parser.ParseConfigurations(configFiles)
+		if err != nil {
+			t.Fatalf("loading configs: %v", err)
+		}
+
+		results, err := engine.Check(ctx, configs, "main")
+		if err != nil {
+			t.Fatalf("could not process policy file: %s", err)
+		}
+
+		for _, query := range results[0].Queries {
+			if len(query.Traces) == 0 {
+				t.Errorf("Tracing error: Expected trace objects, got 0 instead")
+			}
+		}
+	})
+
+	t.Run("without tracing", func(t *testing.T) {
+		ctx := context.Background()
+
+		policies := []string{"../examples/kubernetes/policy"}
+		engine, err := Load(ctx, policies)
+		if err != nil {
+			t.Fatalf("loading policies: %v", err)
+		}
+
+		configFiles := []string{"../examples/kubernetes/service.yaml"}
+		configs, err := parser.ParseConfigurations(configFiles)
+		if err != nil {
+			t.Fatalf("loading configs: %v", err)
+		}
+
+		results, err := engine.Check(ctx, configs, "main")
+		if err != nil {
+			t.Fatalf("could not process policy file: %s", err)
+		}
+
+		for _, query := range results[0].Queries {
+			if len(query.Traces) != 0 {
+				t.Errorf("Tracing error: Expected no trace objects, got %d", len(query.Traces))
+			}
+		}
+	})
+
+}
+
 func TestMultifileYaml(t *testing.T) {
 	ctx := context.Background()
 
