@@ -1,6 +1,6 @@
 module github.com/open-policy-agent/conftest
 
-go 1.13
+go 1.16
 
 require (
 	cuelang.org/go v0.0.15
