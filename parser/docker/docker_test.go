@@ -67,5 +67,4 @@ RUN go build -o conftest`
 	if stage != 1 {
 		t.Errorf("expected command to be in stage 1, not stage: %v", stage)
 	}
-	t.Logf("%v", commands)
 }
