@@ -15,11 +15,11 @@ This command prints the internal representation of your input files.
 This can be useful in helping to write Rego policies. It is not always clear how 
 your input file will be represented in the Rego policies. The type of the input is inferred
 based on the file extension. If inference is not possible (e.g. due to the file coming from stdin)
-the '--input' flag can be used to explicitly set the input type, e.g.:
+the '--parser' flag can be used to explicitly set the parser, e.g.:
 
-	$ conftest parse --input toml <input-file(s)>
+	$ conftest parse --parser toml <input-file(s)>
 
-See the documentation of the '--input' flag for the supported input types.
+See the documentation of the '--parser' flag for the supported parsers.
 `
 
 // NewParseCommand creates a parse command.
