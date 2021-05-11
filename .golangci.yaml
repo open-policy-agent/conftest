@@ -5,19 +5,25 @@ linter-settings:
 linters:
   disable-all: true
   enable:
+    - deadcode
     - errcheck
-    - govet
-    - ineffassign
-    - golint
     - goconst
     - gofmt
     - goimports
+    - golint
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - makezero
+    - misspell
+    - nilerr
+    - predeclared
+    - staticcheck
+    - structcheck
+    - typecheck
+    - unconvert
+    - unparam
     - unused
     - varcheck
-    - deadcode
-    - misspell
-    - typecheck
-    - structcheck
-    - staticcheck
-    - gosimple
-    - gosec
+    - wastedassign

@@ -88,7 +88,7 @@ func (p *Plugin) Exec(ctx context.Context, args []string) error {
 	// Plugin configurations reference the CONFTEST_PLUGIN_DIR
 	// environment to be able to call the plugin.
 	os.Setenv("CONFTEST_PLUGIN_DIR", p.Directory())
-	expandedCommand := os.ExpandEnv(string(p.Command))
+	expandedCommand := os.ExpandEnv(p.Command)
 
 	var command string
 	var arguments []string

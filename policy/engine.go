@@ -273,7 +273,7 @@ func (e *Engine) check(ctx context.Context, path string, config interface{}, nam
 		// is queried, so the severity prefix must be removed.
 		exceptionQuery := fmt.Sprintf("data.%s.exception[_][_] == %q", namespace, removeRulePrefix(rule))
 
-		exceptionQueryResult, err := e.query(ctx, config, exceptionQuery, namespace)
+		exceptionQueryResult, err := e.query(ctx, config, exceptionQuery)
 		if err != nil {
 			return output.CheckResult{}, fmt.Errorf("query exception: %w", err)
 		}
@@ -291,7 +291,7 @@ func (e *Engine) check(ctx context.Context, path string, config interface{}, nam
 		}
 
 		ruleQuery := fmt.Sprintf("data.%s.%s", namespace, rule)
-		ruleQueryResult, err := e.query(ctx, config, ruleQuery, namespace)
+		ruleQueryResult, err := e.query(ctx, config, ruleQuery)
 		if err != nil {
 			return output.CheckResult{}, fmt.Errorf("query rule: %w", err)
 		}
@@ -345,7 +345,7 @@ func (e *Engine) check(ctx context.Context, path string, config interface{}, nam
 // Example queries could include:
 // data.main.deny to query the deny rule in the main namespace
 // data.main.warn to query the warn rule in the main namespace
-func (e *Engine) query(ctx context.Context, input interface{}, query string, namespace string) (output.QueryResult, error) {
+func (e *Engine) query(ctx context.Context, input interface{}, query string) (output.QueryResult, error) {
 	options := []func(r *rego.Rego){
 		rego.Input(input),
 		rego.Query(query),
