@@ -276,6 +276,18 @@
   [ "${lines[2]}" = "2 tests, 0 passed, 0 warnings, 1 failure, 1 exception" ]
 }
 
+@test "Exceptions output" {
+  run ./conftest test -p examples/exceptions/policy examples/exceptions/deployments.yaml --no-color
+  [ "$status" -eq 1 ]
+  [[ "${lines[1]}" =~ "EXCP - examples/exceptions/deployments.yaml - main - data.main.exception[_][_] == \"run_as_root\"" ]]
+}
+
+@test "Suppress exceptions output" {
+  run ./conftest test -p examples/exceptions/policy examples/exceptions/deployments.yaml --no-color --suppress-exceptions
+  [ "$status" -eq 1 ]
+  [ "${lines[1]}" = "2 tests, 0 passed, 0 warnings, 1 failure, 1 exception" ]
+}
+
 @test "Can combine yaml files" {
   run ./conftest test -p examples/combine/policy examples/combine/team.yaml examples/combine/user1.yaml examples/combine/user2.yaml --combine 
 

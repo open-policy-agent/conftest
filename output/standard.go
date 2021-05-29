@@ -20,6 +20,9 @@ type Standard struct {
 	// set to true.
 	NoColor bool
 
+	// SuppressExceptions will disable output for exceptions when set to true.
+	SuppressExceptions bool
+
 	// ShowSkipped whether to show skipped tests
 	// in the output.
 	ShowSkipped bool
@@ -80,8 +83,10 @@ func (s *Standard) Output(results []CheckResult) error {
 			fmt.Fprintln(s.Writer, colorizer.Colorize("FAIL", aurora.RedFg), indicator, namespace, failure.Message)
 		}
 
-		for _, exception := range result.Exceptions {
-			fmt.Fprintln(s.Writer, colorizer.Colorize("EXCP", aurora.CyanFg), indicator, namespace, exception.Message)
+		if !s.SuppressExceptions {
+			for _, exception := range result.Exceptions {
+				fmt.Fprintln(s.Writer, colorizer.Colorize("EXCP", aurora.CyanFg), indicator, namespace, exception.Message)
+			}
 		}
 
 		totalFailures += len(result.Failures)
