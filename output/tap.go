@@ -77,7 +77,7 @@ func (t *TAP) Output(checkResults []CheckResult) error {
 		if result.Successes > 0 {
 			fmt.Fprintln(t.Writer, "# successes")
 			for i := 0; i < result.Successes; i++ {
-				fmt.Fprintf(t.Writer, "ok %v %v %v %v", counter, indicator, namespace, "SUCCESS")
+				fmt.Fprintf(t.Writer, "ok %v %v %v %v\n", counter, indicator, namespace, "SUCCESS")
 				counter++
 			}
 		}
