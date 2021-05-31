@@ -18,12 +18,13 @@ require (
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/moby/buildkit v0.8.2
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/open-policy-agent/opa v0.28.0
+	github.com/open-policy-agent/opa v0.29.1
 	github.com/opencontainers/image-spec v1.0.1
 	github.com/shteou/go-ignore v0.3.0
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/viper v1.7.1
 	github.com/tmccombs/hcl2json v0.3.1
+	golang.org/x/lint v0.0.0-20201208152925-83fdc39ff7b5 // indirect
 	olympos.io/encoding/edn v0.0.0-20201019073823-d3554ca0b0a3
 	rsc.io/letsencrypt v0.0.3 // indirect
 )
