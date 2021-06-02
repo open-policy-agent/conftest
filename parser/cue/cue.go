@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"cuelang.org/go/cue"
+	"cuelang.org/go/cue/cuecontext"
 	cformat "cuelang.org/go/cue/format"
 )
 
@@ -18,18 +18,15 @@ func (*Parser) Unmarshal(p []byte, v interface{}) error {
 		return fmt.Errorf("format cue: %w", err)
 	}
 
-	var r cue.Runtime
-	instance, err := r.Compile("name", out)
+	cueContext := cuecontext.New()
+	cueBytes := cueContext.CompileBytes(out)
+
+	cueJSON, err := cueBytes.MarshalJSON()
 	if err != nil {
-		return fmt.Errorf("compile cue: %w", err)
+		return fmt.Errorf("marshal json: %w", err)
 	}
 
-	j, err := instance.Value().MarshalJSON()
-	if err != nil {
-		return fmt.Errorf("marshal cue to json: %w", err)
-	}
-
-	if err := json.Unmarshal(j, v); err != nil {
+	if err := json.Unmarshal(cueJSON, v); err != nil {
 		return fmt.Errorf("unmarshal cue json: %w", err)
 	}
 
