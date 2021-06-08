@@ -2,6 +2,7 @@ package runner
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -68,6 +69,10 @@ func TestTrace(t *testing.T) {
 			}
 
 			expTrace, err := ioutil.ReadFile(c.ExpectedTraceOutput)
+			if err != nil {
+				t.Fatalf("reding expected trace output file: %s", err)
+			}
+
 			result := outputs[0]
 			if len(result.Failures) != c.ExpFailures {
 				t.Errorf("Got %v failures, expected %v", len(result.Failures), c.ExpFailures)
@@ -78,6 +83,7 @@ func TestTrace(t *testing.T) {
 
 			// Remove newline in the expected fixtures
 			if actTrace != strings.TrimSuffix(string(expTrace), "\n") {
+				ioutil.WriteFile(fmt.Sprintf("%s.%s", c.ExpectedTraceOutput, "act"), []byte(actTrace), 0600)
 				t.Errorf("expected:\n%s\ngot:\n%s", expTrace, actTrace)
 			}
 		})
