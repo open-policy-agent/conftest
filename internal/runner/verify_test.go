@@ -70,7 +70,7 @@ func TestTrace(t *testing.T) {
 
 			expTrace, err := ioutil.ReadFile(c.ExpectedTraceOutput)
 			if err != nil {
-				t.Fatalf("reding expected trace output file: %s", err)
+				t.Fatalf("reading ExpectedTraceOutput: %s", err)
 			}
 
 			result := outputs[0]
@@ -83,7 +83,12 @@ func TestTrace(t *testing.T) {
 
 			// Remove newline in the expected fixtures
 			if actTrace != strings.TrimSuffix(string(expTrace), "\n") {
-				ioutil.WriteFile(fmt.Sprintf("%s.%s", c.ExpectedTraceOutput, "act"), []byte(actTrace), 0600)
+				actualTraceFile := fmt.Sprintf("%s.%s", c.ExpectedTraceOutput, "act")
+				err := ioutil.WriteFile(actualTraceFile, []byte(actTrace), 0600)
+				if err != nil {
+					t.Fatalf("writing file: %s", err)
+				}
+
 				t.Errorf("expected:\n%s\ngot:\n%s", expTrace, actTrace)
 			}
 		})
