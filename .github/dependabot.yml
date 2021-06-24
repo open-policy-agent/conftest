@@ -9,3 +9,9 @@ updates:
       - dependency-name: "github.com/open-policy-agent/opa"
     schedule:
       interval: "daily"
+
+  # Automatically open PRs to update the base images in the Dockerfile weekly
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
