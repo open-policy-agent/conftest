@@ -57,7 +57,6 @@ func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 		Use:   "push <repository>",
 		Short: "Push OPA bundles to an OCI registry",
 		Long:  pushDesc,
-		Args:  cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if err := viper.BindPFlag("policy", cmd.Flags().Lookup("policy")); err != nil {
 				return fmt.Errorf("bind flag: %w", err)
@@ -67,6 +66,11 @@ func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 		},
 
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Usage() //nolint
+				return fmt.Errorf("missing required arguments")
+			}
+
 			ctx = orascontext.Background()
 
 			repository := args[0]

@@ -51,8 +51,6 @@ func NewPullCommand(ctx context.Context) *cobra.Command {
 		Use:   "pull <repository>",
 		Short: "Download individual policies",
 		Long:  pullDesc,
-		Args:  cobra.MinimumNArgs(1),
-
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if err := viper.BindPFlag("policy", cmd.Flags().Lookup("policy")); err != nil {
 				return fmt.Errorf("bind flag: %w", err)
@@ -61,6 +59,11 @@ func NewPullCommand(ctx context.Context) *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Usage() //nolint
+				return fmt.Errorf("missing required arguments")
+			}
+
 			ctx = orascontext.Background()
 
 			policyDir := filepath.Join(".", viper.GetString("policy"))
