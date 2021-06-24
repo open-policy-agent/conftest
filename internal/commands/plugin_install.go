@@ -40,9 +40,12 @@ func NewPluginInstallCommand(ctx context.Context) *cobra.Command {
 		Use:   "install <path|url>",
 		Short: "Install a plugin from the given path or url",
 		Long:  installDesc,
-		Args:  cobra.MinimumNArgs(1),
-
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Usage() //nolint
+				return fmt.Errorf("missing required arguments")
+			}
+
 			if err := plugin.Install(ctx, args[0]); err != nil {
 				return fmt.Errorf("install: %v", err)
 			}

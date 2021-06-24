@@ -82,7 +82,6 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 		Use:   "test <path> [path [...]]",
 		Short: "Test your configuration files using Open Policy Agent",
 		Long:  testDesc,
-		Args:  cobra.MinimumNArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			flagNames := []string{"all-namespaces", "combine", "data", "fail-on-warn", "ignore", "namespace", "no-color", "no-fail", "suppress-exceptions", "output", "parser", "policy", "trace", "update"}
 			for _, name := range flagNames {
@@ -95,6 +94,11 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 		},
 
 		RunE: func(cmd *cobra.Command, fileList []string) error {
+			if len(fileList) < 1 {
+				cmd.Usage() //nolint
+				return fmt.Errorf("missing required arguments")
+			}
+
 			var runner runner.TestRunner
 			if err := viper.Unmarshal(&runner); err != nil {
 				return fmt.Errorf("unmarshal parameters: %w", err)
