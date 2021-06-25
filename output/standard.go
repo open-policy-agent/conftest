@@ -51,6 +51,7 @@ func (s *Standard) Output(results []CheckResult) error {
 
 	var totalFailures int
 	var totalExceptions int
+	var totalExclusions int
 	var totalWarnings int
 	var totalSuccesses int
 	var totalSkipped int
@@ -96,11 +97,12 @@ func (s *Standard) Output(results []CheckResult) error {
 		totalFailures += len(result.Failures)
 		totalExceptions += len(result.Exceptions)
 		totalWarnings += len(result.Warnings)
+		totalExclusions += len(result.Excludes)
 		totalSkipped += len(result.Skipped)
 		totalSuccesses += result.Successes
 	}
 
-	totalTests := totalFailures + totalExceptions + totalWarnings + totalSuccesses + totalSkipped
+	totalTests := totalFailures + totalExceptions + totalWarnings + totalSuccesses + totalExclusions + totalSkipped
 
 	var pluralSuffixTests string
 	if totalTests != 1 {
@@ -122,12 +124,18 @@ func (s *Standard) Output(results []CheckResult) error {
 		pluralSuffixExceptions = "s"
 	}
 
-	outputText := fmt.Sprintf("%v test%s, %v passed, %v warning%s, %v failure%s, %v exception%s",
+	var pluralSuffixExclusions string
+	if totalExclusions != 1 {
+		pluralSuffixExclusions = "s"
+	}
+
+	outputText := fmt.Sprintf("%v test%s, %v passed, %v warning%s, %v failure%s, %v exception%s, %v exclusion%s",
 		totalTests, pluralSuffixTests,
 		totalSuccesses,
 		totalWarnings, pluralSuffixWarnings,
 		totalFailures, pluralSuffixFailures,
 		totalExceptions, pluralSuffixExceptions,
+		totalExclusions, pluralSuffixExclusions,
 	)
 
 	if s.ShowSkipped {
