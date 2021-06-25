@@ -8,7 +8,7 @@ func TestPropertiesParser(t *testing.T) {
 	parser := &Parser{}
 	sample := `# This is a simle properties file
     SAMPLE_KEY=https://example.com/
-! some comment
+! some comment=not-a-prop
 my-property=some-value`
 
 	var input interface{}
@@ -29,5 +29,10 @@ my-property=some-value`
 	spaceProp := inputMap["SAMPLE_KEY"].(string)
 	if spaceProp != "https://example.com/" {
 		t.Fatalf("Failed to strip whitespace from key: %s", myProp)
+	}
+
+	inputLen := len(inputMap)
+	if inputLen != 2 {
+		t.Fatalf("Failed to parse all properties: expected 2 got %d", inputLen)
 	}
 }

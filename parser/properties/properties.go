@@ -3,6 +3,7 @@ package properties
 import (
 	"encoding/json"
 	"fmt"
+
 	prop "github.com/magiconair/properties"
 )
 
