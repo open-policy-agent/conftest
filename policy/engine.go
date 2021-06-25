@@ -298,6 +298,7 @@ func (e *Engine) check(ctx context.Context, path string, config interface{}, nam
 
 		var failures []output.Result
 		var warnings []output.Result
+		var excludes []output.Result
 		for _, ruleResult := range ruleQueryResult.Results {
 
 			// Exceptions have already been accounted for in the exception query so
@@ -311,6 +312,21 @@ func (e *Engine) check(ctx context.Context, path string, config interface{}, nam
 				continue
 			}
 
+			localExcludeQuery := fmt.Sprintf("data.%s.exclude_%s[_][_] = %q", namespace, removeRulePrefix(rule), ruleResult.Message)
+			localExcludeQueryResult, err := e.query(ctx, config, localExcludeQuery)
+			if err != nil {
+				return output.CheckResult{}, fmt.Errorf("query exception: %w", err)
+			}
+
+			// If the query was a failure, let's have a look & see if an exception was written for it.
+			if len(localExcludeQueryResult.Results) > 0 {
+				// append an exception & continue
+				localExcludeResult := localExcludeQueryResult.Results[0]
+				localExcludeResult.Message = localExcludeQuery
+				excludes = append(excludes, localExcludeResult)
+				continue
+			}
+
 			if isFailure(rule) {
 				failures = append(failures, ruleResult)
 			} else {
@@ -321,6 +337,7 @@ func (e *Engine) check(ctx context.Context, path string, config interface{}, nam
 		checkResult.Failures = append(checkResult.Failures, failures...)
 		checkResult.Warnings = append(checkResult.Warnings, warnings...)
 		checkResult.Exceptions = append(checkResult.Exceptions, exceptions...)
+		checkResult.Excludes = append(checkResult.Excludes, excludes...)
 
 		checkResult.Queries = append(checkResult.Queries, exceptionQueryResult)
 		checkResult.Queries = append(checkResult.Queries, ruleQueryResult)

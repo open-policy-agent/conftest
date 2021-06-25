@@ -89,6 +89,10 @@ func (s *Standard) Output(results []CheckResult) error {
 			}
 		}
 
+		for _, exclude := range result.Excludes {
+			fmt.Fprintln(s.Writer, colorizer.Colorize("EXCL", aurora.BlueFg), indicator, namespace, exclude.Message)
+		}
+
 		totalFailures += len(result.Failures)
 		totalExceptions += len(result.Exceptions)
 		totalWarnings += len(result.Warnings)
