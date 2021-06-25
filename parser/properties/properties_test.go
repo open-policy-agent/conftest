@@ -13,26 +13,26 @@ my-property=some-value`
 
 	var input interface{}
 	if err := parser.Unmarshal([]byte(sample), &input); err != nil {
-		t.Fatalf("parser should not have thrown an error: %v", err)
+		t.Errorf("parser should not have thrown an error: %v", err)
 	}
 
 	if input == nil {
-		t.Fatalf("there should be information parsed but its nil")
+		t.Errorf("there should be information parsed but its nil")
 	}
 
 	inputMap := input.(map[string]interface{})
 	myProp := inputMap["my-property"].(string)
 	if myProp != "some-value" {
-		t.Fatalf("Failed to parse property: %s", myProp)
+		t.Errorf("Failed to parse property: %s", myProp)
 	}
 
 	spaceProp := inputMap["SAMPLE_KEY"].(string)
 	if spaceProp != "https://example.com/" {
-		t.Fatalf("Failed to strip whitespace from key: %s", myProp)
+		t.Errorf("Failed to strip whitespace from key: %s", myProp)
 	}
 
 	inputLen := len(inputMap)
 	if inputLen != 2 {
-		t.Fatalf("Failed to parse all properties: expected 2 got %d", inputLen)
+		t.Errorf("Failed to parse all properties: expected 2 got %d", inputLen)
 	}
 }
