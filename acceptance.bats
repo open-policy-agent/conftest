@@ -168,6 +168,11 @@
   [[ "$output" =~ "ALB \`my-alb-listener\` is using HTTP rather than HTTP" ]]
 }
 
+@test "Can parse properties files" {
+  run ./conftest test -p examples/properties/policy/ examples/properties/sample.properties
+  [ "$status" -eq 0 ]
+}
+
 @test "Can parse stdin with parser flag" {
   run bash -c "cat examples/ini/grafana.ini | ./conftest test -p examples/ini/policy --parser ini -"
   [ "$status" -eq 1 ]

@@ -16,6 +16,7 @@ require (
 	github.com/hashicorp/hcl v1.0.0
 	github.com/jstemmer/go-junit-report v0.9.1
 	github.com/logrusorgru/aurora v2.0.3+incompatible
+	github.com/magiconair/properties v1.8.1 // indirect
 	github.com/moby/buildkit v0.8.2
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/open-policy-agent/opa v0.29.4
