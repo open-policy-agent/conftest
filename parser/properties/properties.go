@@ -1,9 +1,8 @@
 package properties
 
 import (
-	"fmt"
-
 	"encoding/json"
+	"fmt"
 	prop "github.com/magiconair/properties"
 )
 
@@ -11,9 +10,12 @@ import (
 type Parser struct{}
 
 func (pp *Parser) Unmarshal(p []byte, v interface{}) error {
-	raw_props := prop.MustLoadString(string(p))
+	rawProps, err := prop.LoadString(string(p))
+	if err != nil {
+		return fmt.Errorf("Could not parse properties file: %w", err)
+	}
 
-	result := raw_props.Map()
+	result := rawProps.Map()
 
 	j, err := json.Marshal(result)
 	if err != nil {
