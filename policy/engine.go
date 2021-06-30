@@ -3,6 +3,7 @@ package policy
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -137,6 +138,7 @@ func (e *Engine) Check(ctx context.Context, configs map[string]interface{}, name
 				checkResult.Failures = append(checkResult.Failures, result.Failures...)
 				checkResult.Warnings = append(checkResult.Warnings, result.Warnings...)
 				checkResult.Exceptions = append(checkResult.Exceptions, result.Exceptions...)
+				checkResult.Excludes = append(checkResult.Excludes, result.Excludes...)
 				checkResult.Queries = append(checkResult.Queries, result.Queries...)
 			}
 			checkResults = append(checkResults, checkResult)
@@ -233,6 +235,7 @@ func (e *Engine) Runtime() *ast.Term {
 func (e *Engine) check(ctx context.Context, path string, config interface{}, namespace string) (output.CheckResult, error) {
 	var rules []string
 	var ruleCount int
+
 	for _, module := range e.Modules() {
 		currentNamespace := strings.Replace(module.Package.Path.String(), "data.", "", 1)
 		if currentNamespace != namespace {
@@ -312,7 +315,8 @@ func (e *Engine) check(ctx context.Context, path string, config interface{}, nam
 				continue
 			}
 
-			localExcludeQuery := fmt.Sprintf("data.%s.exclude_%s[_][_] = %q", namespace, removeRulePrefix(rule), ruleResult.Message)
+			result, err := json.Marshal(ruleResult.Metadata)
+			localExcludeQuery := fmt.Sprintf("data.%s.exclude_%s[_][_] = %s", namespace, removeRulePrefix(rule), result)
 			localExcludeQueryResult, err := e.query(ctx, config, localExcludeQuery)
 			if err != nil {
 				return output.CheckResult{}, fmt.Errorf("query exception: %w", err)
