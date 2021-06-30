@@ -2,14 +2,14 @@ package main
 
 exceptions = {"exception-name"}
 
-func_name_msg(name) = ret {
-	ret := sprintf("Resource Name '%s' contains dashes", [name])
-}
-
-deny_name[msg] {
+deny_name[result] {
 	input.resource[_][name]
 	contains(name, "-")
-	msg := func_name_msg(name)
+	msg := sprintf("Resource Name '%s' contains dashes", [name])
+	result := {
+		"msg": msg,
+		"resource-name": name,
+	}
 }
 
 deny_resource_type[msg] {
@@ -18,10 +18,9 @@ deny_resource_type[msg] {
 	msg := sprintf("Resource Type '%s' is invalid", [type])
 }
 
-exclude_name[rules] {
-	input.resource[_][name]
+exclude_name[attrs] {
 	exceptions[name]
-	rules := [func_name_msg(name)]
+	attrs := [{"resource-name": name}]
 }
 
 exception[rules] {

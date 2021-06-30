@@ -316,21 +316,29 @@ func (e *Engine) check(ctx context.Context, path string, config interface{}, nam
 			}
 
 			result, err := json.Marshal(ruleResult.Metadata)
-			localExcludeQuery := fmt.Sprintf("data.%s.exclude_%s[_][_] = %s", namespace, removeRulePrefix(rule), result)
-			localExcludeQueryResult, err := e.query(ctx, config, localExcludeQuery)
 			if err != nil {
-				return output.CheckResult{}, fmt.Errorf("query exception: %w", err)
+				return output.CheckResult{}, fmt.Errorf("json marshal: %w", err)
 			}
 
-			// If the query was a failure, let's have a look & see if an exception was written for it.
-			if len(localExcludeQueryResult.Results) > 0 {
-				// append an exception & continue
-				localExcludeResult := localExcludeQueryResult.Results[0]
-				localExcludeResult.Message = localExcludeQuery
-				excludes = append(excludes, localExcludeResult)
-				continue
-			}
+			// If we have a non-null metadata response, then we are eligible to exclude the policy.
+			// Otherwise we can just skip & process the policy violation
+			if string(result) != "null" {
+				localExcludeQuery := fmt.Sprintf("data.%s.exclude_%s[_][_] = %s", namespace, removeRulePrefix(rule), result)
+				localExcludeQueryResult, err := e.query(ctx, config, localExcludeQuery)
+				if err != nil {
+					return output.CheckResult{}, fmt.Errorf("query exception: %w", err)
+				}
 
+				// If the query was a failure, let's have a look & see if an exception was written for it.
+				if len(localExcludeQueryResult.Results) > 0 {
+					// append an exception & continue
+					localExcludeResult := localExcludeQueryResult.Results[0]
+					localExcludeResult.Message = localExcludeQuery
+					excludes = append(excludes, localExcludeResult)
+					continue
+				}
+
+			}
 			if isFailure(rule) {
 				failures = append(failures, ruleResult)
 			} else {
