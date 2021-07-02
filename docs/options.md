@@ -273,6 +273,29 @@ success file=examples/kubernetes/deployment.yaml 1
 5 tests, 1 passed, 0 warnings, 4 failures, 0 exceptions
 ```
 
+Use Conftest directly to check incoming Pull Requests in GitHub:
+
+```yaml
+---
+name: Conftest
+
+on:
+  pull_request:
+    branches: 
+      - main
+
+jobs:
+  conftest:
+    runs-on: ubuntu-latest
+    container: openpolicyagent/conftest:latest
+    steps:
+      - name: Code checkout
+        uses: actions/checkout@v2
+      - name: Validate Kubernetes policy
+        run: |
+          conftest test -o github -p examples/kubernetes/policy examples/kubernetes/deployment.yaml
+```
+
 ## `--parser`
 
 Conftest normally detects which parser to used based on the file extension of the file, even when multiple input files are passed in. However, it is possible force a specific parser to be used with the `--parser` flag.

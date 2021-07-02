@@ -7,14 +7,15 @@ import (
 
 // GitHub represents an Outputter that outputs
 // results in GitHub workflow format.
+// https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions
 type GitHub struct {
-	Writer io.Writer
+	writer io.Writer
 }
 
 // NewGitHub creates a new GitHub with the given writer.
 func NewGitHub(w io.Writer) *GitHub {
 	github := GitHub{
-		Writer: w,
+		writer: w,
 	}
 
 	return &github
@@ -30,25 +31,25 @@ func (t *GitHub) Output(checkResults []CheckResult) error {
 	for _, result := range checkResults {
 		totalPolicies := result.Successes + len(result.Failures) + len(result.Warnings) + len(result.Exceptions) + len(result.Skipped)
 
-		fmt.Fprintf(t.Writer, "::group::Testing '%v' against %v policies in namespace '%v'\n", result.FileName, totalPolicies, result.Namespace)
+		fmt.Fprintf(t.writer, "::group::Testing '%v' against %v policies in namespace '%v'\n", result.FileName, totalPolicies, result.Namespace)
 		for _, failure := range result.Failures {
-			fmt.Fprintf(t.Writer, "::error file=%v::%v\n", result.FileName, failure.Message)
+			fmt.Fprintf(t.writer, "::error file=%v::%v\n", result.FileName, failure.Message)
 		}
 
 		for _, warning := range result.Warnings {
-			fmt.Fprintf(t.Writer, "::warning file=%v::%v\n", result.FileName, warning.Message)
+			fmt.Fprintf(t.writer, "::warning file=%v::%v\n", result.FileName, warning.Message)
 		}
 
 		for _, exception := range result.Exceptions {
-			fmt.Fprintf(t.Writer, "exception file=%v::%v\n", result.FileName, exception.Message)
+			fmt.Fprintf(t.writer, "exception file=%v %v\n", result.FileName, exception.Message)
 		}
 
 		for _, skipped := range result.Skipped {
-			fmt.Fprintf(t.Writer, "skipped file=%v::%v\n", result.FileName, skipped.Message)
+			fmt.Fprintf(t.writer, "skipped file=%v %v\n", result.FileName, skipped.Message)
 		}
 
 		if result.Successes > 0 {
-			fmt.Fprintf(t.Writer, "success file=%v %v\n", result.FileName, result.Successes)
+			fmt.Fprintf(t.writer, "success file=%v %v\n", result.FileName, result.Successes)
 		}
 
 		totalFailures += len(result.Failures)
@@ -56,7 +57,7 @@ func (t *GitHub) Output(checkResults []CheckResult) error {
 		totalWarnings += len(result.Warnings)
 		totalSkipped += len(result.Skipped)
 		totalSuccesses += result.Successes
-		fmt.Fprintf(t.Writer, "::endgroup::\n")
+		fmt.Fprintf(t.writer, "::endgroup::\n")
 	}
 
 	totalTests := totalFailures + totalExceptions + totalWarnings + totalSuccesses + totalSkipped
@@ -88,7 +89,7 @@ func (t *GitHub) Output(checkResults []CheckResult) error {
 		totalFailures, pluralSuffixFailures,
 		totalExceptions, pluralSuffixExceptions,
 	)
-	fmt.Fprintln(t.Writer, outputText)
+	fmt.Fprintln(t.writer, outputText)
 
 	return nil
 }

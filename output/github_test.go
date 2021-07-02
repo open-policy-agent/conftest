@@ -59,7 +59,7 @@ func TestGitHub(t *testing.T) {
 			expected: []string{
 				"::group::Testing 'examples/kubernetes/service.yaml' against 2 policies in namespace 'namespace'",
 				"::error file=examples/kubernetes/service.yaml::first failure",
-				"skipped file=examples/kubernetes/service.yaml::first skipped",
+				"skipped file=examples/kubernetes/service.yaml first skipped",
 				"::endgroup::",
 				"2 tests, 0 passed, 0 warnings, 1 failure, 0 exceptions",
 				"",
