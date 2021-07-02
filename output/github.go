@@ -88,7 +88,7 @@ func (t *GitHub) Output(checkResults []CheckResult) error {
 		totalFailures, pluralSuffixFailures,
 		totalExceptions, pluralSuffixExceptions,
 	)
-	fmt.Fprintf(t.Writer, "%s\n", outputText)
+	fmt.Fprintln(t.Writer, outputText)
 
 	return nil
 }
