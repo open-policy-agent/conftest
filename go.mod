@@ -21,6 +21,7 @@ require (
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/magiconair/properties v1.8.1
 	github.com/moby/buildkit v0.8.2
+	github.com/nats-io/nats-server/v2 v2.3.2 // indirect
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/open-policy-agent/opa v0.30.2
 	github.com/opencontainers/image-spec v1.0.1
@@ -29,7 +30,6 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/tmccombs/hcl2json v0.3.1
 	go.opencensus.io v0.22.4 // indirect
-	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83 // indirect
 	golang.org/x/lint v0.0.0-20201208152925-83fdc39ff7b5 // indirect
 	golang.org/x/tools v0.1.2-0.20210512205948-8287d5da45e4 // indirect
 	google.golang.org/api v0.29.0 // indirect
