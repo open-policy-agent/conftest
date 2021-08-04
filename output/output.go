@@ -30,6 +30,7 @@ const (
 	OutputTAP      = "tap"
 	OutputTable    = "table"
 	OutputJUnit    = "junit"
+	OutputGitHub   = "github"
 )
 
 // Get returns a type that can render output in the given format.
@@ -45,6 +46,8 @@ func Get(format string, options Options) Outputter {
 		return NewTable(os.Stdout)
 	case OutputJUnit:
 		return NewJUnit(os.Stdout)
+	case OutputGitHub:
+		return NewGitHub(os.Stdout)
 	default:
 		return NewStandard(os.Stdout)
 	}
@@ -58,5 +61,6 @@ func Outputs() []string {
 		OutputTAP,
 		OutputTable,
 		OutputJUnit,
+		OutputGitHub,
 	}
 }
