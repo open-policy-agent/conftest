@@ -53,7 +53,7 @@ RUN go get -u cuelang.org/go/cmd/cue
 WORKDIR /examples
 
 ## RELEASE ##
-FROM alpine:3.14.1
+FROM alpine:3.14.2
 
 # Install git for protocols that depend on it when using conftest pull
 RUN apk add --no-cache git
