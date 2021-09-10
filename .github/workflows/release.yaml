@@ -29,6 +29,11 @@ jobs:
           VERSION: ${{ steps.get-version.outputs.VERSION }}
         run: make push TAG=$VERSION
 
+      - name: setup go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "1.17.1"
+
       - name: release
         uses: goreleaser/goreleaser-action@v2
         with:
