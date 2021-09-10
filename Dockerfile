@@ -1,4 +1,4 @@
-FROM golang:1.17.0-alpine as base
+FROM golang:1.17.1-alpine as base
 ARG ARCH=amd64
 ARG VERSION
 ARG COMMIT
@@ -48,7 +48,7 @@ RUN apk add --no-cache npm make git jq ca-certificates openssl unzip wget && \
 RUN wget -O /usr/local/bin/kustomize "https://github.com/kubernetes-sigs/kustomize/releases/download/v${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_amd64" && \
     chmod +x /usr/local/bin/kustomize
 
-RUN go get -u cuelang.org/go/cmd/cue
+RUN go install cuelang.org/go/cmd/cue@latest
 
 WORKDIR /examples
 
