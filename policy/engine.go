@@ -17,6 +17,7 @@ import (
 	"github.com/open-policy-agent/opa/loader"
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/storage"
+	"github.com/open-policy-agent/opa/storage/inmem"
 	"github.com/open-policy-agent/opa/version"
 )
 
@@ -231,6 +232,10 @@ func (e *Engine) Runtime() *ast.Term {
 }
 
 func (e *Engine) check(ctx context.Context, path string, config interface{}, namespace string) (output.CheckResult, error) {
+	if err := e.addFileInfo(ctx, path); err != nil {
+		return output.CheckResult{}, fmt.Errorf("add file info: %w", err)
+	}
+
 	var rules []string
 	var ruleCount int
 	for _, module := range e.Modules() {
@@ -338,6 +343,39 @@ func (e *Engine) check(ctx context.Context, path string, config interface{}, nam
 
 	checkResult.Successes = successes
 	return checkResult, nil
+}
+
+// addFileInfo adds the file name and directory to data.conftest.file so that it is accessible to
+// the policies to be used during evaluation.
+func (e *Engine) addFileInfo(ctx context.Context, path string) error {
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		return fmt.Errorf("get absolute path: %w", err)
+	}
+	if e.store == nil {
+		e.store = inmem.New()
+	}
+	tx, err := e.store.NewTransaction(ctx, storage.WriteParams)
+	if err != nil {
+		return fmt.Errorf("begin store tx: %w", err)
+	}
+	if err := storage.MakeDir(ctx, e.store, tx, storage.Path{"conftest"}); err != nil {
+		return fmt.Errorf("create dir in store: %w", err)
+	}
+	if err := e.store.Write(
+		ctx, tx, storage.AddOp, storage.Path{"conftest", "file"},
+		map[string]string{
+			"name": filepath.Base(abs),
+			"dir":  filepath.Dir(abs),
+		},
+	); err != nil {
+		return fmt.Errorf("write file info to storage: %w", err)
+	}
+	if err := e.store.Commit(ctx, tx); err != nil {
+		return fmt.Errorf("commit file info to storage: %w", err)
+	}
+
+	return nil
 }
 
 // query is a low-level method that returns the result of executing a single query against the input.
