@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/open-policy-agent/conftest/plugin"
 
@@ -30,6 +31,7 @@ func NewDefaultCommand() *cobra.Command {
 	cmd.SetVersionTemplate(`{{.Version}}`)
 
 	viper.SetEnvPrefix("CONFTEST")
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	viper.SetConfigName("conftest")
 	viper.AddConfigPath(".")
 	viper.AutomaticEnv()
