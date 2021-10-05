@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"path/filepath"
 
-	orascontext "github.com/deislabs/oras/pkg/context"
 	"github.com/open-policy-agent/conftest/downloader"
+	orascontext "oras.land/oras-go/pkg/context"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
