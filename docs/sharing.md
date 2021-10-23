@@ -34,7 +34,7 @@ See the [go-getter](https://github.com/hashicorp/go-getter) repository for more 
 
 ## Pushing to an OCI registry
 
-Policies can be stored in OCI registries that support the artifact specification mentioned above. Conftest accomplishes this by leveraging [ORAS](https://github.com/deislabs/oras).
+Policies can be stored in OCI registries that support the artifact specification mentioned above. Conftest accomplishes this by leveraging [ORAS](https://github.com/oras-project/oras-go).
 
 For example, if you have a compatible OCI registry you can push a new policy bundle like so:
 

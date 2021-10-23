@@ -7,10 +7,10 @@ import (
 	"net/url"
 	"os"
 
-	auth "github.com/deislabs/oras/pkg/auth/docker"
-	"github.com/deislabs/oras/pkg/content"
-	"github.com/deislabs/oras/pkg/oras"
 	getter "github.com/hashicorp/go-getter"
+	auth "oras.land/oras-go/pkg/auth/docker"
+	"oras.land/oras-go/pkg/content"
+	"oras.land/oras-go/pkg/oras"
 )
 
 // OCIGetter is responsible for handling OCI repositories

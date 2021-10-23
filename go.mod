@@ -9,8 +9,8 @@ require (
 	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
 	github.com/BurntSushi/toml v0.3.1
 	github.com/KeisukeYamashita/go-vcl v0.4.0
-	github.com/Microsoft/go-winio v0.4.16 // indirect
-	github.com/Microsoft/hcsshim v0.8.14 // indirect
+	github.com/Microsoft/go-winio v0.4.17 // indirect
+	github.com/Microsoft/hcsshim v0.8.16 // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/apparentlymart/go-textseg/v12 v12.0.0 // indirect
@@ -20,16 +20,15 @@ require (
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/cockroachdb/apd/v2 v2.0.1 // indirect
-	github.com/containerd/cgroups v0.0.0-20200710171044-318312a37340 // indirect
-	github.com/containerd/containerd v1.4.4 // indirect
-	github.com/containerd/typeurl v1.0.1 // indirect
-	github.com/deislabs/oras v0.11.1
-	github.com/docker/cli v20.10.5+incompatible // indirect
+	github.com/containerd/cgroups v1.0.1 // indirect
+	github.com/containerd/containerd v1.5.2 // indirect
+	github.com/containerd/typeurl v1.0.2 // indirect
+	github.com/docker/cli v20.10.7+incompatible // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/docker v20.10.0-beta1.0.20201110211921-af34b94a78a1+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.6.3 // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
-	github.com/docker/go-metrics v0.0.0-20180209012529-399ea8c73916 // indirect
+	github.com/docker/go-metrics v0.0.1 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/ghodss/yaml v1.0.0
@@ -57,12 +56,13 @@ require (
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/magiconair/properties v1.8.5
 	github.com/mattn/go-runewidth v0.0.9 // indirect
-	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
+	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
 	github.com/moby/buildkit v0.8.2
+	github.com/moby/locker v1.0.1 // indirect
 	github.com/moby/term v0.0.0-20200915141129-7f0af18e79f2 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/mpvl/unique v0.0.0-20150818121801-cbe035fff7de // indirect
@@ -93,7 +93,6 @@ require (
 	github.com/yashtewari/glob-intersection v0.0.0-20180916065949-5c77d914dd0b // indirect
 	github.com/zclconf/go-cty v1.6.1 // indirect
 	go.opencensus.io v0.23.0 // indirect
-	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83 // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/mod v0.4.2 // indirect
 	golang.org/x/net v0.0.0-20210825183410-e898025ed96a // indirect
@@ -112,5 +111,6 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	olympos.io/encoding/edn v0.0.0-20201019073823-d3554ca0b0a3
+	oras.land/oras-go v0.4.0
 	rsc.io/letsencrypt v0.0.3 // indirect
 )
