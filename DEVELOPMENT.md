@@ -22,7 +22,7 @@ Windows users can download Make from [here](http://gnuwin32.sourceforge.net/pack
 
 There are a few ways to install Bats:
 
-- Brew: `brew install bats`
+- Brew: `brew install bats-core`
 - npm: `npm install -g bats`
 
 ## Building and Testing
