@@ -50,7 +50,12 @@ func (r *VerifyRunner) Run(ctx context.Context) ([]output.CheckResult, []*tester
 		engine.EnableTracing()
 	}
 
-	runner := tester.NewRunner().SetCompiler(engine.Compiler()).SetStore(engine.Store()).SetModules(engine.Modules()).EnableTracing(enableTracing).SetRuntime(engine.Runtime())
+	runner := tester.NewRunner().
+		SetCompiler(engine.Compiler()).
+		SetStore(engine.Store()).
+		SetModules(engine.Modules()).
+		EnableTracing(enableTracing).
+		SetRuntime(engine.Runtime())
 	ch, err := runner.RunTests(ctx, nil)
 	if err != nil {
 		return nil, nil, fmt.Errorf("running tests: %w", err)

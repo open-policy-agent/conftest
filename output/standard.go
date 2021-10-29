@@ -53,6 +53,8 @@ func (s *Standard) Output(results []CheckResult) error {
 		return nil
 	}
 
+	s.outputPrints(results, colorizer)
+
 	var totalFailures int
 	var totalExceptions int
 	var totalWarnings int
@@ -150,6 +152,16 @@ func (s *Standard) Output(results []CheckResult) error {
 	return nil
 }
 
+func (s *Standard) outputPrints(results []CheckResult, colorizer aurora.Aurora) {
+	for _, result := range results {
+		for _, query := range result.Queries {
+			for _, t := range query.Outputs {
+				fmt.Fprintln(s.Writer, colorizer.Colorize("PRNT ", aurora.BlueFg), "", t)
+			}
+		}
+	}
+}
+
 func (s *Standard) outputTrace(results []CheckResult, colorizer aurora.Aurora) {
 	for _, result := range results {
 		for _, query := range result.Queries {
@@ -169,7 +181,7 @@ func (s *Standard) outputTrace(results []CheckResult, colorizer aurora.Aurora) {
 	}
 }
 
-// outputs results as a report - similar to OPA test output
+// Report outputs results similar to OPA test output
 func (s *Standard) Report(results []*tester.Result, flag string) error {
 	reporter := tester.PrettyReporter{
 		Verbose:     true,
@@ -192,7 +204,8 @@ func (s *Standard) Report(results []*tester.Result, flag string) error {
 	return nil
 }
 
-// Filter traces - returns only failed traces
+// filterTrace returns the traces according to flag: only "fails" or "notes", or, with
+// flag = "full", all of them
 func filterTrace(trace []*topdown.Event, flag string) []*topdown.Event {
 	if flag == "full" {
 		return trace
