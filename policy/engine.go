@@ -18,6 +18,7 @@ import (
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/storage"
 	"github.com/open-policy-agent/opa/storage/inmem"
+	"github.com/open-policy-agent/opa/topdown/print"
 	"github.com/open-policy-agent/opa/version"
 )
 
@@ -40,13 +41,15 @@ func Load(ctx context.Context, policyPaths []string) (*Engine, error) {
 		return nil, fmt.Errorf("no policies found in %v", policyPaths)
 	}
 
-	compiler, err := policies.Compiler()
-	if err != nil {
-		return nil, fmt.Errorf("get compiler: %w", err)
+	modules := policies.ParsedModules()
+	compiler := ast.NewCompiler().WithEnablePrintStatements(true)
+	compiler.Compile(modules)
+	if compiler.Failed() {
+		return nil, fmt.Errorf("get compiler: %w", compiler.Errors)
 	}
 
-	policyContents := make(map[string]string)
-	for path, module := range policies.ParsedModules() {
+	policyContents := make(map[string]string, len(modules))
+	for path, module := range modules {
 		path = filepath.Clean(path)
 		path = filepath.ToSlash(path)
 
@@ -327,8 +330,7 @@ func (e *Engine) check(ctx context.Context, path string, config interface{}, nam
 		checkResult.Warnings = append(checkResult.Warnings, warnings...)
 		checkResult.Exceptions = append(checkResult.Exceptions, exceptions...)
 
-		checkResult.Queries = append(checkResult.Queries, exceptionQueryResult)
-		checkResult.Queries = append(checkResult.Queries, ruleQueryResult)
+		checkResult.Queries = append(checkResult.Queries, exceptionQueryResult, ruleQueryResult)
 	}
 
 	// Only a single success result is returned when a given rule succeeds, even if there are multiple occurrences
@@ -384,6 +386,7 @@ func (e *Engine) addFileInfo(ctx context.Context, path string) error {
 // data.main.deny to query the deny rule in the main namespace
 // data.main.warn to query the warn rule in the main namespace
 func (e *Engine) query(ctx context.Context, input interface{}, query string) (output.QueryResult, error) {
+	ph := printHook{s: &[]string{}}
 	options := []func(r *rego.Rego){
 		rego.Input(input),
 		rego.Query(query),
@@ -391,6 +394,7 @@ func (e *Engine) query(ctx context.Context, input interface{}, query string) (ou
 		rego.Store(e.Store()),
 		rego.Runtime(e.Runtime()),
 		rego.Trace(e.trace),
+		rego.PrintHook(ph),
 	}
 
 	regoInstance := rego.New(options...)
@@ -456,6 +460,7 @@ func (e *Engine) query(ctx context.Context, input interface{}, query string) (ou
 		Query:   query,
 		Results: results,
 		Traces:  traces,
+		Outputs: *ph.s,
 	}
 
 	return queryResult, nil
@@ -487,4 +492,13 @@ func removeRulePrefix(rule string) string {
 	rule = strings.TrimPrefix(rule, "warn_")
 
 	return rule
+}
+
+type printHook struct {
+	s *[]string
+}
+
+func (ph printHook) Print(pctx print.Context, msg string) error {
+	*ph.s = append(*ph.s, fmt.Sprintf("%v: %s\n", pctx.Location, msg))
+	return nil
 }

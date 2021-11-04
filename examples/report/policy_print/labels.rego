@@ -9,7 +9,7 @@ required_deployment_labels {
 
 deny[msg] {
 	input.kind = "Deployment"
+	print(name)
 	not required_deployment_labels
-	trace("just testing notes flag")
 	msg := sprintf("%s must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels", [name])
 }
