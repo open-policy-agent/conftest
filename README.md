@@ -49,4 +49,4 @@ more details about the features.
 * See [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
 
 For discussions and questions join us on the [Open Policy Agent Slack](https://slack.openpolicyagent.org/)
-in the `#conftest` channel.
+in the `#opa-conftest` channel.
