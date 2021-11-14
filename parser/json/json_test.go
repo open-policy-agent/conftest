@@ -36,7 +36,7 @@ func TestJSONParser(t *testing.T) {
 	}
 
 	inputMap := input.(map[string]interface{})
-	if len(inputMap) < 0 {
+	if len(inputMap) <= 0 {
 		t.Error("there should be at least one item defined in the parsed file, but none found")
 	}
 }
