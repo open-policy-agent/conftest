@@ -20,6 +20,7 @@ import (
 	"github.com/open-policy-agent/conftest/parser/json"
 	"github.com/open-policy-agent/conftest/parser/jsonnet"
 	"github.com/open-policy-agent/conftest/parser/properties"
+	"github.com/open-policy-agent/conftest/parser/spdx"
 	"github.com/open-policy-agent/conftest/parser/toml"
 	"github.com/open-policy-agent/conftest/parser/vcl"
 	"github.com/open-policy-agent/conftest/parser/xml"
@@ -40,6 +41,7 @@ const (
 	JSON       = "json"
 	JSONNET    = "jsonnet"
 	PROPERTIES = "properties"
+	SPDX       = "spdx"
 	TOML       = "toml"
 	VCL        = "vcl"
 	XML        = "xml"
@@ -85,6 +87,8 @@ func New(parser string) (Parser, error) {
 		return &ignore.Parser{}, nil
 	case PROPERTIES:
 		return &properties.Parser{}, nil
+	case SPDX:
+		return &spdx.Parser{}, nil
 	default:
 		return nil, fmt.Errorf("unknown parser: %v", parser)
 	}
