@@ -7,6 +7,7 @@ import (
 	"github.com/open-policy-agent/conftest/parser/docker"
 	"github.com/open-policy-agent/conftest/parser/hcl2"
 	"github.com/open-policy-agent/conftest/parser/ignore"
+	"github.com/open-policy-agent/conftest/parser/json"
 	"github.com/open-policy-agent/conftest/parser/yaml"
 )
 
@@ -69,6 +70,16 @@ func TestNewFromPath(t *testing.T) {
 		{
 			"test.tfvars",
 			&hcl2.Parser{},
+			false,
+		},
+		{
+			"terragrunt.hcl",
+			&hcl2.Parser{},
+			false,
+		},
+		{
+			"terragrunt.hcl.json",
+			&json.Parser{},
 			false,
 		},
 		{
