@@ -75,7 +75,7 @@ func TestHcl1Parser(t *testing.T) {
 	}
 
 	inputMap := input.(map[string]interface{})
-	if len(inputMap["resource"].([]map[string]interface{})) <= 0 {
+	if len(inputMap["resource"].([]map[string]interface{})) == 0 {
 		t.Error("there should be resources defined in the parsed file, but none found")
 	}
 }
