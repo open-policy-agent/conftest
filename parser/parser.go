@@ -237,6 +237,9 @@ func CombineConfigurations(configs map[string]interface{}) map[string]interface{
 
 func parseConfigurations(paths []string, parser string) (map[string]interface{}, error) {
 	parsedConfigurations := make(map[string]interface{})
+	errWithPathInfo := func(err error, msg, path string) error {
+		return fmt.Errorf("%s: %w, path: %s", msg, err, path)
+	}
 	for _, path := range paths {
 		var fileParser Parser
 		var err error
@@ -246,17 +249,17 @@ func parseConfigurations(paths []string, parser string) (map[string]interface{},
 			fileParser, err = New(parser)
 		}
 		if err != nil {
-			return nil, fmt.Errorf("new parser: %w", err)
+			return nil, errWithPathInfo(err, "new parser", path)
 		}
 
 		contents, err := getConfigurationContent(path)
 		if err != nil {
-			return nil, fmt.Errorf("get configuration content: %w", err)
+			return nil, errWithPathInfo(err, "get configuration content", path)
 		}
 
 		var parsed interface{}
 		if err := fileParser.Unmarshal(contents, &parsed); err != nil {
-			return nil, fmt.Errorf("parser unmarshal: %w", err)
+			return nil, errWithPathInfo(err, "parser unmarshal", path)
 		}
 
 		parsedConfigurations[path] = parsed
