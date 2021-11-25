@@ -28,7 +28,7 @@ func TestJsonnetParser(t *testing.T) {
 
 	item := input.(map[string]interface{})
 
-	if len(item) <= 0 {
+	if len(item) == 0 {
 		t.Error("there should be at least one item defined in the parsed file, but none found")
 	}
 }
