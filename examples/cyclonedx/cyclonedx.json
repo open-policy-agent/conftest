@@ -1,0 +1,27 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.3",
+  "serialNumber": "urn:uuid:b073b8d7-b0ea-4acb-b20f-6fe35bbf6a5c",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2021-11-26T07:47:14Z",
+    "tools": [
+      {
+        "vendor": "anchore",
+        "name": "syft",
+        "version": "0.30.1",
+        "hashes": []
+      }
+    ],
+    "component": {
+      "type": "container",
+      "name": "devopps/busybox:latest",
+      "version": "sha256:d7ec60cf8390612b360c857688b383068b580d9a6ab78417c9493170ad3f1616",
+      "hashes": [],
+      "licenses": [],
+      "externalReferences": [],
+      "components": []
+    }
+  },
+  "components": []
+}

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bom xmlns="http://cyclonedx.org/schema/bom/1.2" version="1" serialNumber="urn:uuid:caa542d6-b9bf-469b-b564-c9ddc1e6945f">
+  <metadata>
+    <timestamp>2021-11-26T10:32:14+03:00</timestamp>
+    <tools>
+      <tool>
+        <vendor>anchore</vendor>
+        <name>syft</name>
+        <version>0.30.1</version>
+      </tool>
+    </tools>
+    <component type="container">
+      <name>devopps/busybox:latest</name>
+      <version>sha256:d7ec60cf8390612b360c857688b383068b580d9a6ab78417c9493170ad3f1616</version>
+    </component>
+  </metadata>
+  <components></components>
+</bom>
