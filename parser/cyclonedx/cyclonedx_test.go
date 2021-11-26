@@ -1,8 +1,9 @@
 package cyclonedx
 
 import (
-	"github.com/pkg/errors"
 	"testing"
+
+	"github.com/pkg/errors"
 )
 
 func TestCycloneDXParserValid(t *testing.T) {
