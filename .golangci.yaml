@@ -10,7 +10,6 @@ linters:
     - goconst
     - gofmt
     - goimports
-    - golint
     - gosec
     - gosimple
     - govet
@@ -19,6 +18,7 @@ linters:
     - misspell
     - nilerr
     - predeclared
+    - revive
     - staticcheck
     - structcheck
     - typecheck

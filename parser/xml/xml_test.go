@@ -24,7 +24,7 @@ func TestXMLParser(t *testing.T) {
 
 	inputMap := input.(map[string]interface{})
 	item := inputMap["note"]
-	if len(item.(map[string]interface{})) <= 0 {
+	if len(item.(map[string]interface{})) == 0 {
 		t.Error("there should be at least one item defined in the parsed file, but none found")
 	}
 }

@@ -123,7 +123,7 @@ func NewFromPath(path string) (Parser, error) {
 		return New(YAML)
 	}
 
-	if fileExtension == "tf" || fileExtension == "tfvars" {
+	if fileExtension == "hcl" || fileExtension == "tf" || fileExtension == "tfvars" {
 		return New(HCL2)
 	}
 
