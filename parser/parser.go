@@ -153,6 +153,7 @@ func Parsers() []string {
 		JSON,
 		JSONNET,
 		PROPERTIES,
+		SPDX,
 		TOML,
 		VCL,
 		XML,
