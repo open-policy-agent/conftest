@@ -1,0 +1,9 @@
+SPDXVersion: SPDX-2.2
+DataLicense: conftest-demo
+SPDXID: SPDXRef-DOCUMENT
+DocumentName: hello
+DocumentNamespace: https://swinslow.net/spdx-examples/example1/hello-v3
+Creator: Person: Steve Winslow (steve@swinslow.net)
+Creator: Tool: github.com/spdx/tools-golang/builder
+Creator: Tool: github.com/spdx/tools-golang/idsearcher
+Created: 2021-08-26T01:46:00Z

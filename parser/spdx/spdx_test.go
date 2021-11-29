@@ -27,7 +27,9 @@ Created: 2021-08-26T01:46:00Z
 
 	inputMap := input.(map[string]interface{})
 	creationInfo := inputMap["CreationInfo"].(map[string]interface{})
-	if creationInfo["DataLicense"] != "conftest-demo" {
-		t.Error("DataLicense of parsed SPDX file's should be a conftest-demo, but was not")
+	currentDataLicense := creationInfo["DataLicense"]
+	expectedDataLicense := "conftest-demo"
+	if currentDataLicense != expectedDataLicense {
+		t.Errorf("DataLicense of the SPDX file have: %s, want: %s", currentDataLicense, expectedDataLicense)
 	}
 }

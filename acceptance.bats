@@ -381,3 +381,16 @@
   [ "$status" -eq 1 ]
   [[ "$output" =~ "2 tests, 1 passed, 0 warnings, 1 failure" ]]
 }
+
+@test "Can parse SPDX file" {
+  run ./conftest parse --parser spdx examples/spdx/sbom.spdx
+
+  [ "$status" -eq 0 ]
+}
+
+@test "Can validate SPDX file" {
+  run ./conftest test -p examples/spdx/policy examples/spdx/sbom.spdx
+  
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "1 test, 1 passed, 0 warnings, 0 failures, 0 exceptions" ]] 
+}
