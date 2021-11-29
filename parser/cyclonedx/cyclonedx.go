@@ -3,6 +3,7 @@ package cyclonedx
 import (
 	"bytes"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 
 	"github.com/CycloneDX/cyclonedx-go"
@@ -13,15 +14,33 @@ type Parser struct{}
 
 // Unmarshal unmarshals CycloneDX files.
 func (*Parser) Unmarshal(p []byte, v interface{}) error {
+	bomFileFormat := cyclonedx.BOMFileFormatJSON
+	if !json.Valid(p) {
+		bomFileFormat = cyclonedx.BOMFileFormatXML
+	}
 	bom := new(cyclonedx.BOM)
-	decoder := cyclonedx.NewBOMDecoder(bytes.NewBuffer(p), cyclonedx.BOMFileFormatJSON)
+	decoder := cyclonedx.NewBOMDecoder(bytes.NewBuffer(p), bomFileFormat)
 	if err := decoder.Decode(bom); err != nil {
 		panic(err)
 	}
 
-	err := json.Unmarshal(p, v)
+	temp := p
+
+	if bomFileFormat == cyclonedx.BOMFileFormatXML {
+		var data cyclonedx.BOM
+		if err := xml.Unmarshal(p, &data); err != nil {
+			return fmt.Errorf("unmarshalling XML error: %v", err)
+		}
+		if d, err := json.Marshal(data); err == nil {
+			temp = d
+		} else {
+			return fmt.Errorf("marshalling JSON error: %v", err)
+		}
+	}
+
+	err := json.Unmarshal(temp, v)
 	if err != nil {
-		return fmt.Errorf("unmarshalling error: %v", err)
+		return fmt.Errorf("unmarshalling JSON error: %v", err)
 	}
 
 	return nil
