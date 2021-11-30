@@ -383,7 +383,7 @@
 }
 
 @test "Can test cyclonedx against policy" {
-  run ./conftest test --policy ./examples/cyclonedx/policy/ ./examples/cyclonedx/cyclonedx.json
+  run ./conftest test --policy ./examples/cyclonedx/policy/ ./examples/cyclonedx/cyclonedx.json --parser cyclonedx
   [ "$status" -eq 0 ]
 }
 
