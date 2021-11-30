@@ -1,15 +1,21 @@
 package commands
 
 import (
+	"bufio"
 	"context"
 	"fmt"
+	"log"
+	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 
+	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/open-policy-agent/conftest/downloader"
-	orascontext "oras.land/oras-go/pkg/context"
-
+	"github.com/sigstore/cosign/pkg/oci/remote"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	orascontext "oras.land/oras-go/pkg/context"
 )
 
 const pullDesc = `
@@ -66,6 +72,24 @@ func NewPullCommand(ctx context.Context) *cobra.Command {
 
 			ctx = orascontext.Background()
 
+			if isVerify, err := cmd.Flags().GetString("verify"); err == nil && isVerify == "cosign" {
+				for _, url := range args {
+					t, err := downloader.Detect(url, "")
+					if err != nil {
+						return fmt.Errorf("detect type: %w", err)
+					}
+					if strings.HasPrefix(t, "oci://") {
+						keyRef, err := cmd.Flags().GetString("cosign-key")
+						if err != nil {
+							return err
+						}
+						if err := verifyCosign(ctx, url, keyRef); err != nil {
+							return err
+						}
+					}
+				}
+			}
+
 			policyDir := filepath.Join(".", viper.GetString("policy"))
 
 			if err := downloader.Download(ctx, policyDir, args); err != nil {
@@ -77,6 +101,62 @@ func NewPullCommand(ctx context.Context) *cobra.Command {
 	}
 
 	cmd.Flags().StringP("policy", "p", "policy", "Path to download the policies to")
+	cmd.Flags().String("verify", "none", "Verify the image with none|cosign. Default none")
+	cmd.Flags().String("cosign-key", "", "path to the public key file, KMS, URI or Kubernetes Secret")
 
 	return &cmd
+}
+
+func verifyCosign(ctx context.Context, rawRef string, keyRef string) error {
+	ref, err := name.ParseReference(rawRef)
+	if err != nil {
+		return err
+	}
+
+	digest, err := remote.ResolveDigest(ref)
+	if err != nil {
+		return err
+	}
+
+	if err != nil {
+		return fmt.Errorf("unable to resolve digest for an image %s: %v\n", digest.String(), err)
+	}
+
+	log.Printf("verifying image: %s\n", digest.String())
+
+	cosignExecutable, err := exec.LookPath("cosign")
+	if err != nil {
+		return fmt.Errorf("cosign executable not found in path $PATH")
+	}
+
+	cosignCmd := exec.CommandContext(ctx, cosignExecutable, []string{"verify"}...)
+	cosignCmd.Env = os.Environ()
+
+	if keyRef != "" {
+		cosignCmd.Args = append(cosignCmd.Args, "--key", keyRef)
+	} else {
+		cosignCmd.Env = append(cosignCmd.Env, "COSIGN_EXPERIMENTAL=true")
+	}
+
+	cosignCmd.Args = append(cosignCmd.Args, digest.String())
+
+	log.Printf("running %s %v\n", cosignExecutable, cosignCmd.Args)
+
+	stdout, _ := cosignCmd.StdoutPipe()
+	stderr, _ := cosignCmd.StderrPipe()
+	if err := cosignCmd.Start(); err != nil {
+		return err
+	}
+
+	scanner := bufio.NewScanner(stdout)
+	for scanner.Scan() {
+		log.Println("cosign: " + scanner.Text())
+	}
+
+	errScanner := bufio.NewScanner(stderr)
+	for errScanner.Scan() {
+		log.Println("cosign: " + errScanner.Text())
+	}
+
+	return cosignCmd.Wait()
 }

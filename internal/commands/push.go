@@ -1,11 +1,14 @@
 package commands
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/open-policy-agent/conftest/policy"
@@ -99,11 +102,26 @@ func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 			}
 
 			logger.Printf("pushed bundle with digest: %s", manifest.Digest)
+
+			if isSign, err := cmd.Flags().GetString("sign"); err == nil && isSign == "cosign" {
+				keyRef, err := cmd.Flags().GetString("cosign-key")
+				if err != nil {
+					return err
+				}
+
+				err = signCosign(ctx, repository, keyRef)
+				if err != nil {
+					return err
+				}
+			}
+
 			return nil
 		},
 	}
 
 	cmd.Flags().StringP("policy", "p", "policy", "Directory to push as a bundle")
+	cmd.Flags().String("sign", "none", "Verify the image with none|cosign. Default none")
+	cmd.Flags().String("cosign-key", "", "path to the private key file, KMS, URI or Kubernetes Secret")
 
 	return &cmd
 }
@@ -150,4 +168,42 @@ func buildLayers(ctx context.Context, memoryStore *content.Memorystore, path str
 	}
 
 	return layers, nil
+}
+
+func signCosign(ctx context.Context, rawRef string, keyRef string) error {
+	cosignExecutable, err := exec.LookPath("cosign")
+	if err != nil {
+		return fmt.Errorf("cosign executable not found in path $PATH: %v", err)
+	}
+
+	cosignCmd := exec.CommandContext(ctx, cosignExecutable, []string{"sign"}...)
+	cosignCmd.Env = os.Environ()
+
+	if keyRef != "" {
+		cosignCmd.Args = append(cosignCmd.Args, "--key", keyRef)
+	} else {
+		cosignCmd.Env = append(cosignCmd.Env, "COSIGN_EXPERIMENTAL=true")
+	}
+
+	cosignCmd.Args = append(cosignCmd.Args, rawRef)
+
+	log.Printf("running %s %v\n", cosignExecutable, cosignCmd.Args)
+
+	stdout, _ := cosignCmd.StdoutPipe()
+	stderr, _ := cosignCmd.StderrPipe()
+	if err := cosignCmd.Start(); err != nil {
+		return err
+	}
+
+	scanner := bufio.NewScanner(stdout)
+	for scanner.Scan() {
+		log.Println("cosign: " + scanner.Text())
+	}
+
+	errScanner := bufio.NewScanner(stderr)
+	for errScanner.Scan() {
+		log.Println("cosign: " + errScanner.Text())
+	}
+
+	return cosignCmd.Wait()
 }
