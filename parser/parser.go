@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/open-policy-agent/conftest/parser/cyclonedx"
+
 	"github.com/open-policy-agent/conftest/parser/cue"
 	"github.com/open-policy-agent/conftest/parser/docker"
 	"github.com/open-policy-agent/conftest/parser/edn"
@@ -30,6 +32,7 @@ import (
 // parsing files.
 const (
 	CUE        = "cue"
+	CYCLONEDX  = "cyclonedx"
 	Dockerfile = "dockerfile"
 	EDN        = "edn"
 	HCL1       = "hcl1"
@@ -85,6 +88,8 @@ func New(parser string) (Parser, error) {
 		return &ignore.Parser{}, nil
 	case PROPERTIES:
 		return &properties.Parser{}, nil
+	case CYCLONEDX:
+		return &cyclonedx.Parser{}, nil
 	default:
 		return nil, fmt.Errorf("unknown parser: %v", parser)
 	}
