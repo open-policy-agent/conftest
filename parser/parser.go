@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/open-policy-agent/conftest/parser/cyclonedx"
+
 	"github.com/open-policy-agent/conftest/parser/cue"
 	"github.com/open-policy-agent/conftest/parser/docker"
 	"github.com/open-policy-agent/conftest/parser/edn"
@@ -31,6 +33,7 @@ import (
 // parsing files.
 const (
 	CUE        = "cue"
+	CYCLONEDX  = "cyclonedx"
 	Dockerfile = "dockerfile"
 	EDN        = "edn"
 	HCL1       = "hcl1"
@@ -89,6 +92,8 @@ func New(parser string) (Parser, error) {
 		return &properties.Parser{}, nil
 	case SPDX:
 		return &spdx.Parser{}, nil
+	case CYCLONEDX:
+		return &cyclonedx.Parser{}, nil
 	default:
 		return nil, fmt.Errorf("unknown parser: %v", parser)
 	}
@@ -242,6 +247,9 @@ func CombineConfigurations(configs map[string]interface{}) map[string]interface{
 
 func parseConfigurations(paths []string, parser string) (map[string]interface{}, error) {
 	parsedConfigurations := make(map[string]interface{})
+	errWithPathInfo := func(err error, msg, path string) error {
+		return fmt.Errorf("%s: %w, path: %s", msg, err, path)
+	}
 	for _, path := range paths {
 		var fileParser Parser
 		var err error
@@ -251,17 +259,17 @@ func parseConfigurations(paths []string, parser string) (map[string]interface{},
 			fileParser, err = New(parser)
 		}
 		if err != nil {
-			return nil, fmt.Errorf("new parser: %w", err)
+			return nil, errWithPathInfo(err, "new parser", path)
 		}
 
 		contents, err := getConfigurationContent(path)
 		if err != nil {
-			return nil, fmt.Errorf("get configuration content: %w", err)
+			return nil, errWithPathInfo(err, "get configuration content", path)
 		}
 
 		var parsed interface{}
 		if err := fileParser.Unmarshal(contents, &parsed); err != nil {
-			return nil, fmt.Errorf("parser unmarshal: %w", err)
+			return nil, errWithPathInfo(err, "parser unmarshal", path)
 		}
 
 		parsedConfigurations[path] = parsed
