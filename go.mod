@@ -23,6 +23,7 @@ require (
 	github.com/opencontainers/image-spec v1.0.2
 	github.com/pkg/errors v0.9.1
 	github.com/shteou/go-ignore v0.3.0
+	github.com/spdx/tools-golang v0.2.0
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/viper v1.8.1
 	github.com/tmccombs/hcl2json v0.3.1
