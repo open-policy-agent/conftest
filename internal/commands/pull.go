@@ -10,9 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/google/go-containerregistry/pkg/name"
+	"github.com/google/go-containerregistry/pkg/crane"
 	"github.com/open-policy-agent/conftest/downloader"
-	"github.com/sigstore/cosign/pkg/oci/remote"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	orascontext "oras.land/oras-go/pkg/context"
@@ -108,21 +107,16 @@ func NewPullCommand(ctx context.Context) *cobra.Command {
 }
 
 func verifyCosign(ctx context.Context, rawRef string, keyRef string) error {
-	ref, err := name.ParseReference(rawRef)
-	if err != nil {
-		return err
-	}
 
-	digest, err := remote.ResolveDigest(ref)
-	if err != nil {
-		return err
-	}
+	digest, err := crane.Digest(rawRef)
 
 	if err != nil {
-		return fmt.Errorf("unable to resolve digest for an image %s: %v\n", digest.String(), err)
+		return fmt.Errorf("unable to resolve digest for an image %s: %v\n", rawRef, err)
 	}
 
-	log.Printf("verifying image: %s\n", digest.String())
+	rawRef = rawRef + "@" + digest
+
+	log.Printf("verifying image: %s\n", rawRef)
 
 	cosignExecutable, err := exec.LookPath("cosign")
 	if err != nil {
@@ -138,7 +132,7 @@ func verifyCosign(ctx context.Context, rawRef string, keyRef string) error {
 		cosignCmd.Env = append(cosignCmd.Env, "COSIGN_EXPERIMENTAL=true")
 	}
 
-	cosignCmd.Args = append(cosignCmd.Args, digest.String())
+	cosignCmd.Args = append(cosignCmd.Args, rawRef)
 
 	log.Printf("running %s %v\n", cosignExecutable, cosignCmd.Args)
 
