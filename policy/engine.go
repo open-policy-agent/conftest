@@ -487,7 +487,7 @@ func contains(collection []string, item string) bool {
 }
 
 func removeRulePrefix(rule string) string {
-	if rule=="violation" || rule == "deny" || rule == "warn"{
+	if rule == "violation" || rule == "deny" || rule == "warn" {
 		return ""
 	}
 	rule = strings.TrimPrefix(rule, "violation_")
