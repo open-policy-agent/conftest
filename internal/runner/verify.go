@@ -21,6 +21,7 @@ type VerifyRunner struct {
 	NoColor bool `mapstructure:"no-color"`
 	Trace   bool
 	Report  string
+	Quiet   bool
 }
 
 const (

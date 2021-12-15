@@ -68,7 +68,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 		Short: "Verify Rego unit tests",
 		Long:  verifyDesc,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			flagNames := []string{"data", "no-color", "output", "policy", "trace", "report"}
+			flagNames := []string{"data", "no-color", "output", "policy", "trace", "report", "quiet"}
 			for _, name := range flagNames {
 				if err := viper.BindPFlag(name, cmd.Flags().Lookup(name)); err != nil {
 					return fmt.Errorf("bind flag: %w", err)
@@ -88,24 +88,25 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("running verification: %w", err)
 			}
 
-			outputter := output.Get(runner.Output, output.Options{NoColor: runner.NoColor, Tracing: runner.Trace, ShowSkipped: true})
+			exitCode := output.ExitCode(results)
+			if !runner.Quiet || exitCode != 0 {
+				outputter := output.Get(runner.Output, output.Options{NoColor: runner.NoColor, Tracing: runner.Trace, ShowSkipped: true})
+				if runner.IsReportOptionOn() {
+					// report currently available with stdout only
+					if runner.Output != output.OutputStandard {
+						return fmt.Errorf("report flag is supported with stdout only")
+					}
 
-			if runner.IsReportOptionOn() {
-				// report currently available with stdout only
-				if runner.Output != output.OutputStandard {
-					return fmt.Errorf("report flag is supported with stdout only")
-				}
-
-				if err := outputter.Report(raw, runner.Report); err != nil {
-					return fmt.Errorf("report results: %w", err)
-				}
-			} else {
-				if err := outputter.Output(results); err != nil {
-					return fmt.Errorf("output results: %w", err)
+					if err := outputter.Report(raw, runner.Report); err != nil {
+						return fmt.Errorf("report results: %w", err)
+					}
+				} else {
+					if err := outputter.Output(results); err != nil {
+						return fmt.Errorf("output results: %w", err)
+					}
 				}
 			}
 
-			exitCode := output.ExitCode(results)
 			if exitCode > 0 {
 				os.Exit(exitCode)
 			}
@@ -115,6 +116,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 	}
 
 	cmd.Flags().Bool("no-color", false, "Disable color when printing")
+	cmd.Flags().Bool("quiet", false, "Disable successful test output")
 	cmd.Flags().Bool("trace", false, "Enable more verbose trace output for Rego queries")
 	cmd.Flags().String("report", "", "Shows output for Rego queries as a report with summary. Available options are {full|notes|fails}.")
 
