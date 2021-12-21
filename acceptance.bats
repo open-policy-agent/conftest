@@ -409,3 +409,8 @@
   run ./conftest parse --parser cyclonedx ./examples/cyclonedx/cyclonedx.xml
   [ "$status" -eq 0 ]
 }
+
+@test "Can parse .env files" {
+  run ./conftest test -p examples/dotenv/policy/ examples/dotenv/sample.env
+  [ "$status" -eq 0 ]
+}
