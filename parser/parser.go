@@ -13,6 +13,7 @@ import (
 
 	"github.com/open-policy-agent/conftest/parser/cue"
 	"github.com/open-policy-agent/conftest/parser/docker"
+	dotenv "github.com/open-policy-agent/conftest/parser/dotenv"
 	"github.com/open-policy-agent/conftest/parser/edn"
 	"github.com/open-policy-agent/conftest/parser/hcl1"
 	"github.com/open-policy-agent/conftest/parser/hcl2"
@@ -49,6 +50,7 @@ const (
 	VCL        = "vcl"
 	XML        = "xml"
 	YAML       = "yaml"
+	DOTENV     = "dotenv"
 )
 
 // Parser defines all of the methods that every parser
@@ -94,6 +96,8 @@ func New(parser string) (Parser, error) {
 		return &spdx.Parser{}, nil
 	case CYCLONEDX:
 		return &cyclonedx.Parser{}, nil
+	case DOTENV:
+		return &dotenv.Parser{}, nil
 	default:
 		return nil, fmt.Errorf("unknown parser: %v", parser)
 	}
@@ -136,6 +140,14 @@ func NewFromPath(path string) (Parser, error) {
 		return New(IGNORE)
 	}
 
+	// A .env can either be a file named .env, be prefixed with
+	// .env, or have .env as its extension.
+	//
+	// For example: .env, .env.prod, prod.env
+	if fileName == ".env" || strings.HasPrefix(fileName, ".env.") || fileExtension == "env" {
+		return New(DOTENV)
+	}
+
 	parser, err := New(fileExtension)
 	if err != nil {
 		return nil, fmt.Errorf("new: %w", err)
@@ -163,6 +175,7 @@ func Parsers() []string {
 		VCL,
 		XML,
 		YAML,
+		DOTENV,
 	}
 
 	return parsers
