@@ -10,6 +10,7 @@ import (
 	"github.com/open-policy-agent/opa/format"
 	"github.com/open-policy-agent/opa/loader"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // NewFormatCommand creates a format command.
@@ -18,6 +19,13 @@ func NewFormatCommand(ctx context.Context) *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "fmt <path> [path [...]]",
 		Short: "Format Rego files",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if err := viper.BindPFlag("fail", cmd.Flags().Lookup("fail")); err != nil {
+				return fmt.Errorf("bind flag: %w", err)
+			}
+
+			return nil
+		},
 		RunE: func(cmd *cobra.Command, files []string) error {
 			policies, err := loader.AllRegos(files)
 			if err != nil {
@@ -26,6 +34,7 @@ func NewFormatCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("no policies found in %v", files)
 			}
 
+			var formattedFiles bool
 			for _, policy := range policies.ParsedModules() {
 				info, err := os.Stat(policy.Package.Location.File)
 				if err != nil {
@@ -42,10 +51,13 @@ func NewFormatCommand(ctx context.Context) *cobra.Command {
 					return fmt.Errorf("format: %w", err)
 				}
 
+				// If the original file contents match the formatted contents, formatting does not
+				// need to be done and we can try the next module.
 				if bytes.Equal(contents, formattedContents) {
 					continue
 				}
 
+				formattedFiles = true
 				outfile, err := os.OpenFile(policy.Package.Location.File, os.O_WRONLY|os.O_TRUNC, info.Mode().Perm())
 				if err != nil {
 					return fmt.Errorf("open file for write: %w", err)
@@ -58,9 +70,15 @@ func NewFormatCommand(ctx context.Context) *cobra.Command {
 				outfile.Close()
 			}
 
+			if viper.GetBool("fail") && formattedFiles {
+				os.Exit(1)
+			}
+
 			return nil
 		},
 	}
+
+	cmd.Flags().Bool("fail", false, "Returns a non-zero exit code if the policies are not formatted")
 
 	return &cmd
 }
