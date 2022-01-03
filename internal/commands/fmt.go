@@ -3,6 +3,7 @@ package commands
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -20,7 +21,7 @@ func NewFormatCommand(ctx context.Context) *cobra.Command {
 		Use:   "fmt <path> [path [...]]",
 		Short: "Format Rego files",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if err := viper.BindPFlag("fail", cmd.Flags().Lookup("fail")); err != nil {
+			if err := viper.BindPFlag("check", cmd.Flags().Lookup("check")); err != nil {
 				return fmt.Errorf("bind flag: %w", err)
 			}
 
@@ -34,7 +35,6 @@ func NewFormatCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("no policies found in %v", files)
 			}
 
-			var formattedFiles bool
 			for _, policy := range policies.ParsedModules() {
 				info, err := os.Stat(policy.Package.Location.File)
 				if err != nil {
@@ -57,7 +57,12 @@ func NewFormatCommand(ctx context.Context) *cobra.Command {
 					continue
 				}
 
-				formattedFiles = true
+				// When we are running the format command in check mode and the file contents are different
+				// we want to return an error code to the user and not update any of the files.
+				if viper.GetBool("check") {
+					return errors.New("files not formatted")
+				}
+
 				outfile, err := os.OpenFile(policy.Package.Location.File, os.O_WRONLY|os.O_TRUNC, info.Mode().Perm())
 				if err != nil {
 					return fmt.Errorf("open file for write: %w", err)
@@ -70,15 +75,11 @@ func NewFormatCommand(ctx context.Context) *cobra.Command {
 				outfile.Close()
 			}
 
-			if viper.GetBool("fail") && formattedFiles {
-				os.Exit(1)
-			}
-
 			return nil
 		},
 	}
 
-	cmd.Flags().Bool("fail", false, "Returns a non-zero exit code if the policies are not formatted")
+	cmd.Flags().Bool("check", false, "Returns a non-zero exit code if the policies are not formatted")
 
 	return &cmd
 }
