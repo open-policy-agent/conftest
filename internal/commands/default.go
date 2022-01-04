@@ -54,39 +54,33 @@ func NewDefaultCommand() *cobra.Command {
 	cmd.AddCommand(NewPluginCommand(ctx))
 	cmd.AddCommand(NewFormatCommand(ctx))
 
-	pluginCmds, err := loadPlugins(ctx)
+	plugins, err := plugin.FindAll()
 	if err != nil {
-		logger.Fatalf("error loading plugins: %v", err)
+		logger.Fatalf("find all plugins: %s", err)
 	}
 
-	cmd.AddCommand(pluginCmds...)
+	for p := range plugins {
+		cmd.AddCommand(newCommandFromPlugin(ctx, plugins[p]))
+	}
+
 	return &cmd
 }
 
-func loadPlugins(ctx context.Context) ([]*cobra.Command, error) {
-	plugins, err := plugin.FindAll()
-	if err != nil {
-		return nil, fmt.Errorf("find plugins: %v", err)
+func newCommandFromPlugin(ctx context.Context, p *plugin.Plugin) *cobra.Command {
+	pluginCommand := cobra.Command{
+		Use:   p.Name,
+		Short: p.Usage,
+		Long:  p.Description,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := p.Exec(ctx, args); err != nil {
+				return fmt.Errorf("execute plugin: %v", err)
+			}
+
+			return nil
+		},
+
+		DisableFlagParsing: true,
 	}
 
-	var cmds []*cobra.Command
-	for _, plugin := range plugins {
-		cmd := cobra.Command{
-			Use:   plugin.Name,
-			Short: plugin.Usage,
-			Long:  plugin.Description,
-			RunE: func(cmd *cobra.Command, args []string) error {
-				if err := plugin.Exec(ctx, args); err != nil {
-					return fmt.Errorf("execute plugin: %v", err)
-				}
-
-				return nil
-			},
-			DisableFlagParsing: true,
-		}
-
-		cmds = append(cmds, &cmd)
-	}
-
-	return cmds, nil
+	return &pluginCommand
 }
