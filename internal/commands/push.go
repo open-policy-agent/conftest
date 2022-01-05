@@ -71,8 +71,6 @@ func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 				return fmt.Errorf("missing required arguments")
 			}
 
-			ctx = orascontext.Background()
-
 			repository := args[0]
 			if !strings.Contains(repository, "/") {
 				return errors.New("destination url missing repository")
@@ -93,7 +91,7 @@ func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 			}
 
 			logger.Printf("pushing bundle to: %s", repository)
-			manifest, err := pushBundle(ctx, repository, viper.GetString("policy"))
+			manifest, err := pushBundle(orascontext.Background(), repository, viper.GetString("policy"))
 			if err != nil {
 				return fmt.Errorf("push bundle: %w", err)
 			}
