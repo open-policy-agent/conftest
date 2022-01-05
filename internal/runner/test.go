@@ -11,6 +11,7 @@ import (
 	"github.com/open-policy-agent/conftest/output"
 	"github.com/open-policy-agent/conftest/parser"
 	"github.com/open-policy-agent/conftest/policy"
+	orascontext "oras.land/oras-go/pkg/context"
 )
 
 // TestRunner is the runner for the Test command, executing
@@ -53,7 +54,7 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) ([]output.Check
 	// When there are policies to download, they are currently placed in the first
 	// directory that appears in the list of policies.
 	if len(t.Update) > 0 {
-		if err := downloader.Download(ctx, t.Policy[0], t.Update); err != nil {
+		if err := downloader.Download(orascontext.Background(), t.Policy[0], t.Update); err != nil {
 			return nil, fmt.Errorf("update policies: %w", err)
 		}
 	}
