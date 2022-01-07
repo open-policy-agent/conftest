@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/open-policy-agent/conftest/parser"
+	"github.com/open-policy-agent/opa/ast"
 )
 
 func TestException(t *testing.T) {
@@ -241,6 +242,68 @@ func TestIsFailure(t *testing.T) {
 
 			if tt.exp != res {
 				t.Fatalf("%s recognized as `fail` query - expected: %v actual: %v", tt.in, tt.exp, res)
+			}
+		})
+	}
+}
+
+func TestAddFileInfo(t *testing.T) {
+	tests := []struct {
+		desc  string
+		input string
+		name  string
+	}{
+		{
+			desc:  "SingleFile",
+			input: "foobar.txt",
+			name:  "foobar.txt",
+		},
+		{
+			desc:  "RelativePath",
+			input: "../foobar.txt",
+			name:  "foobar.txt",
+		},
+		{
+			desc:  "FullPath",
+			input: "/some/dir/foobar.txt",
+			name:  "foobar.txt",
+		},
+	}
+
+	modules := make(map[string]string, 1)
+	modules["test.rego"] = `package main
+
+deny[{"msg": msg}] {
+	msg := data.conftest.file.name
+}
+`
+
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			var e Engine
+			ctx := context.Background()
+			if err := e.addFileInfo(ctx, tt.input); err != nil {
+				t.Error(err)
+			}
+
+			module, err := ast.ParseModule("test.rego", modules["test.rego"])
+			if err != nil {
+				t.Error(err)
+			}
+			e.modules = make(map[string]*ast.Module, 1)
+			e.modules["test.rego"] = module
+			compiler, err := ast.CompileModules(modules)
+			if err != nil {
+				t.Error(err)
+			}
+			e.compiler = compiler
+
+			qr, err := e.query(ctx, nil, "data.main.deny")
+			if err != nil {
+				t.Error(err)
+			}
+			if qr.Results[0].Message != tt.name {
+				t.Errorf("mismatch. have [%v], want [%v]", qr.Results[0].Message, tt.name)
 			}
 		})
 	}

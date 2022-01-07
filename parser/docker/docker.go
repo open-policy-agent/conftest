@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/moby/buildkit/frontend/dockerfile/instructions"
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
@@ -70,7 +71,11 @@ func (dp *Parser) Unmarshal(p []byte, v interface{}) error {
 		}
 
 		cmd := Command{
-			Cmd:   child.Value,
+
+			// For consistency within policies, always lowercase the command.
+			// As an example, a policy that checks for the below could fail:
+			// input[i].Cmd == "FROM"
+			Cmd:   strings.ToLower(child.Value),
 			Flags: child.Flags,
 			Stage: currentStage(stages),
 		}

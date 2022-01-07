@@ -8,14 +8,14 @@ import (
 	"net/http"
 	"strings"
 
-	auth "github.com/deislabs/oras/pkg/auth/docker"
-	"github.com/deislabs/oras/pkg/content"
-	orascontext "github.com/deislabs/oras/pkg/context"
-	"github.com/deislabs/oras/pkg/oras"
 	"github.com/open-policy-agent/conftest/policy"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	auth "oras.land/oras-go/pkg/auth/docker"
+	"oras.land/oras-go/pkg/content"
+	orascontext "oras.land/oras-go/pkg/context"
+	"oras.land/oras-go/pkg/oras"
 )
 
 const pushDesc = `
@@ -71,8 +71,6 @@ func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 				return fmt.Errorf("missing required arguments")
 			}
 
-			ctx = orascontext.Background()
-
 			repository := args[0]
 			if !strings.Contains(repository, "/") {
 				return errors.New("destination url missing repository")
@@ -93,7 +91,7 @@ func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 			}
 
 			logger.Printf("pushing bundle to: %s", repository)
-			manifest, err := pushBundle(ctx, repository, viper.GetString("policy"))
+			manifest, err := pushBundle(orascontext.Background(), repository, viper.GetString("policy"))
 			if err != nil {
 				return fmt.Errorf("push bundle: %w", err)
 			}

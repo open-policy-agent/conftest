@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"path/filepath"
 
-	orascontext "github.com/deislabs/oras/pkg/context"
 	"github.com/open-policy-agent/conftest/downloader"
+	orascontext "oras.land/oras-go/pkg/context"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -64,11 +64,9 @@ func NewPullCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("missing required arguments")
 			}
 
-			ctx = orascontext.Background()
-
 			policyDir := filepath.Join(".", viper.GetString("policy"))
 
-			if err := downloader.Download(ctx, policyDir, args); err != nil {
+			if err := downloader.Download(orascontext.Background(), policyDir, args); err != nil {
 				return fmt.Errorf("download policies: %w", err)
 			}
 

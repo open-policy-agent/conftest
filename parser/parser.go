@@ -9,8 +9,11 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/open-policy-agent/conftest/parser/cyclonedx"
+
 	"github.com/open-policy-agent/conftest/parser/cue"
 	"github.com/open-policy-agent/conftest/parser/docker"
+	dotenv "github.com/open-policy-agent/conftest/parser/dotenv"
 	"github.com/open-policy-agent/conftest/parser/edn"
 	"github.com/open-policy-agent/conftest/parser/hcl1"
 	"github.com/open-policy-agent/conftest/parser/hcl2"
@@ -19,6 +22,8 @@ import (
 	"github.com/open-policy-agent/conftest/parser/ini"
 	"github.com/open-policy-agent/conftest/parser/json"
 	"github.com/open-policy-agent/conftest/parser/jsonnet"
+	"github.com/open-policy-agent/conftest/parser/properties"
+	"github.com/open-policy-agent/conftest/parser/spdx"
 	"github.com/open-policy-agent/conftest/parser/toml"
 	"github.com/open-policy-agent/conftest/parser/vcl"
 	"github.com/open-policy-agent/conftest/parser/xml"
@@ -28,20 +33,24 @@ import (
 // The defined parsers are the parsers that are valid for
 // parsing files.
 const (
-	TOML       = "toml"
+	CUE        = "cue"
+	CYCLONEDX  = "cyclonedx"
+	Dockerfile = "dockerfile"
+	EDN        = "edn"
 	HCL1       = "hcl1"
 	HCL2       = "hcl2"
-	CUE        = "cue"
-	INI        = "ini"
 	HOCON      = "hocon"
-	Dockerfile = "dockerfile"
-	YAML       = "yaml"
+	IGNORE     = "ignore"
+	INI        = "ini"
 	JSON       = "json"
 	JSONNET    = "jsonnet"
-	EDN        = "edn"
+	PROPERTIES = "properties"
+	SPDX       = "spdx"
+	TOML       = "toml"
 	VCL        = "vcl"
 	XML        = "xml"
-	IGNORE     = "ignore"
+	YAML       = "yaml"
+	DOTENV     = "dotenv"
 )
 
 // Parser defines all of the methods that every parser
@@ -81,6 +90,14 @@ func New(parser string) (Parser, error) {
 		return &xml.Parser{}, nil
 	case IGNORE:
 		return &ignore.Parser{}, nil
+	case PROPERTIES:
+		return &properties.Parser{}, nil
+	case SPDX:
+		return &spdx.Parser{}, nil
+	case CYCLONEDX:
+		return &cyclonedx.Parser{}, nil
+	case DOTENV:
+		return &dotenv.Parser{}, nil
 	default:
 		return nil, fmt.Errorf("unknown parser: %v", parser)
 	}
@@ -115,12 +132,20 @@ func NewFromPath(path string) (Parser, error) {
 		return New(YAML)
 	}
 
-	if fileExtension == "tf" || fileExtension == "tfvars" {
+	if fileExtension == "hcl" || fileExtension == "tf" || fileExtension == "tfvars" {
 		return New(HCL2)
 	}
 
 	if fileExtension == "gitignore" || fileExtension == "dockerignore" {
 		return New(IGNORE)
+	}
+
+	// A .env can either be a file named .env, be prefixed with
+	// .env, or have .env as its extension.
+	//
+	// For example: .env, .env.prod, prod.env
+	if fileName == ".env" || strings.HasPrefix(fileName, ".env.") || fileExtension == "env" {
+		return New(DOTENV)
 	}
 
 	parser, err := New(fileExtension)
@@ -134,20 +159,23 @@ func NewFromPath(path string) (Parser, error) {
 // Parsers returns a list of the supported Parsers.
 func Parsers() []string {
 	parsers := []string{
-		TOML,
+		CUE,
+		Dockerfile,
+		EDN,
 		HCL1,
 		HCL2,
-		CUE,
-		INI,
 		HOCON,
-		Dockerfile,
-		YAML,
+		IGNORE,
+		INI,
 		JSON,
 		JSONNET,
-		EDN,
+		PROPERTIES,
+		SPDX,
+		TOML,
 		VCL,
 		XML,
-		IGNORE,
+		YAML,
+		DOTENV,
 	}
 
 	return parsers
@@ -232,6 +260,9 @@ func CombineConfigurations(configs map[string]interface{}) map[string]interface{
 
 func parseConfigurations(paths []string, parser string) (map[string]interface{}, error) {
 	parsedConfigurations := make(map[string]interface{})
+	errWithPathInfo := func(err error, msg, path string) error {
+		return fmt.Errorf("%s: %w, path: %s", msg, err, path)
+	}
 	for _, path := range paths {
 		var fileParser Parser
 		var err error
@@ -241,17 +272,17 @@ func parseConfigurations(paths []string, parser string) (map[string]interface{},
 			fileParser, err = New(parser)
 		}
 		if err != nil {
-			return nil, fmt.Errorf("new parser: %w", err)
+			return nil, errWithPathInfo(err, "new parser", path)
 		}
 
 		contents, err := getConfigurationContent(path)
 		if err != nil {
-			return nil, fmt.Errorf("get configuration content: %w", err)
+			return nil, errWithPathInfo(err, "get configuration content", path)
 		}
 
 		var parsed interface{}
 		if err := fileParser.Unmarshal(contents, &parsed); err != nil {
-			return nil, fmt.Errorf("parser unmarshal: %w", err)
+			return nil, errWithPathInfo(err, "parser unmarshal", path)
 		}
 
 		parsedConfigurations[path] = parsed

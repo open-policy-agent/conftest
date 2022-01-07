@@ -5,8 +5,10 @@ import (
 	"testing"
 
 	"github.com/open-policy-agent/conftest/parser/docker"
+	dotenv "github.com/open-policy-agent/conftest/parser/dotenv"
 	"github.com/open-policy-agent/conftest/parser/hcl2"
 	"github.com/open-policy-agent/conftest/parser/ignore"
+	"github.com/open-policy-agent/conftest/parser/json"
 	"github.com/open-policy-agent/conftest/parser/yaml"
 )
 
@@ -72,6 +74,16 @@ func TestNewFromPath(t *testing.T) {
 			false,
 		},
 		{
+			"terragrunt.hcl",
+			&hcl2.Parser{},
+			false,
+		},
+		{
+			"terragrunt.hcl.json",
+			&json.Parser{},
+			false,
+		},
+		{
 			"noextension",
 			&yaml.Parser{},
 			false,
@@ -85,6 +97,21 @@ func TestNewFromPath(t *testing.T) {
 			"file.unknown",
 			nil,
 			true,
+		},
+		{
+			".env",
+			&dotenv.Parser{},
+			false,
+		},
+		{
+			"prod.env",
+			&dotenv.Parser{},
+			false,
+		},
+		{
+			".env.prod",
+			&dotenv.Parser{},
+			false,
 		},
 	}
 

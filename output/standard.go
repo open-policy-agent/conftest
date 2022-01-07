@@ -3,8 +3,12 @@ package output
 import (
 	"fmt"
 	"io"
+	"os"
 
 	"github.com/logrusorgru/aurora"
+	"github.com/open-policy-agent/opa/tester"
+	"github.com/open-policy-agent/opa/topdown"
+	"github.com/open-policy-agent/opa/topdown/lineage"
 )
 
 // Standard represents an Outputter that outputs
@@ -48,6 +52,8 @@ func (s *Standard) Output(results []CheckResult) error {
 		s.outputTrace(results, colorizer)
 		return nil
 	}
+
+	s.outputPrints(results, colorizer)
 
 	var totalFailures int
 	var totalExceptions int
@@ -158,6 +164,16 @@ func (s *Standard) Output(results []CheckResult) error {
 	return nil
 }
 
+func (s *Standard) outputPrints(results []CheckResult, colorizer aurora.Aurora) {
+	for _, result := range results {
+		for _, query := range result.Queries {
+			for _, t := range query.Outputs {
+				fmt.Fprintln(s.Writer, colorizer.Colorize("PRNT ", aurora.BlueFg), "", t)
+			}
+		}
+	}
+}
+
 func (s *Standard) outputTrace(results []CheckResult, colorizer aurora.Aurora) {
 	for _, result := range results {
 		for _, query := range result.Queries {
@@ -175,4 +191,49 @@ func (s *Standard) outputTrace(results []CheckResult, colorizer aurora.Aurora) {
 			}
 		}
 	}
+}
+
+// Report outputs results similar to OPA test output
+func (s *Standard) Report(results []*tester.Result, flag string) error {
+	reporter := tester.PrettyReporter{
+		Verbose:     true,
+		Output:      os.Stdout,
+		FailureLine: true}
+
+	dup := make(chan *tester.Result)
+
+	go func() {
+		defer close(dup)
+		for i := 0; i < len(results); i++ {
+			results[i].Trace = filterTrace(results[i].Trace, flag)
+			dup <- results[i]
+		}
+	}()
+
+	if err := reporter.Report(dup); err != nil {
+		return fmt.Errorf("report results: %w", err)
+	}
+	return nil
+}
+
+// filterTrace returns the traces according to flag: only "fails" or "notes", or, with
+// flag = "full", all of them
+func filterTrace(trace []*topdown.Event, flag string) []*topdown.Event {
+	if flag == "full" {
+		return trace
+	}
+	ops := map[topdown.Op]struct{}{}
+
+	if flag == "fails" {
+		ops[topdown.FailOp] = struct{}{}
+	}
+
+	if flag == "notes" {
+		ops[topdown.NoteOp] = struct{}{}
+	}
+
+	return lineage.Filter(trace, func(event *topdown.Event) bool {
+		_, relevant := ops[event.Op]
+		return relevant
+	})
 }

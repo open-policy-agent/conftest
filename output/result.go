@@ -6,6 +6,7 @@ import "fmt"
 type Result struct {
 	Message  string                 `json:"msg"`
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Outputs  []string               `json:"outputs,omitempty"`
 }
 
 // NewResult creates a new result. An error is returned if the
@@ -52,6 +53,10 @@ type QueryResult struct {
 	// Traces represents a single trace of how the query was
 	// evaluated. Each trace value is a trace line.
 	Traces []string `json:"traces"`
+
+	// Output represents anything print()'ed during the query
+	// evaluation. Each value is a print() call's result.
+	Outputs []string `json:"outputs,omitempty"`
 }
 
 // Passed returns true if all of the results in the query

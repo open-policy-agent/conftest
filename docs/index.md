@@ -56,6 +56,11 @@ FAIL - Containers must provide app label for pod selectors
 2 tests, 0 passed, 0 warnings, 2 failures, 0 exceptions
 ```
 
+Conftest supplies a default document with additional contextual information at the `data.conftest` location that can be used in policy evaluation. Currently, the following information is provided:
+
+* `data.conftest.file.name` - The name of the file being evaluated
+* `data.conftest.file.dir` - The full directory path of the file being evaluated
+
 Note that Conftest isn't specific to Kubernetes. It will happily let you write tests for any configuration files.
 
 As of today Conftest supports:

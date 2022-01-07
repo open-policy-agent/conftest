@@ -1,11 +1,16 @@
 package output
 
-import "os"
+import (
+	"os"
+
+	"github.com/open-policy-agent/opa/tester"
+)
 
 // Outputter controls how results of an evaluation will
 // be recorded and reported to the end user.
 type Outputter interface {
 	Output([]CheckResult) error
+	Report([]*tester.Result, string) error
 }
 
 // Options represents the options available when configuring
@@ -25,6 +30,7 @@ const (
 	OutputTAP      = "tap"
 	OutputTable    = "table"
 	OutputJUnit    = "junit"
+	OutputGitHub   = "github"
 )
 
 // Get returns a type that can render output in the given format.
@@ -40,6 +46,8 @@ func Get(format string, options Options) Outputter {
 		return NewTable(os.Stdout)
 	case OutputJUnit:
 		return NewJUnit(os.Stdout)
+	case OutputGitHub:
+		return NewGitHub(os.Stdout)
 	default:
 		return NewStandard(os.Stdout)
 	}
@@ -53,5 +61,6 @@ func Outputs() []string {
 		OutputTAP,
 		OutputTable,
 		OutputJUnit,
+		OutputGitHub,
 	}
 }

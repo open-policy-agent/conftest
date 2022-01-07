@@ -18,6 +18,8 @@ import (
 	"github.com/open-policy-agent/opa/loader"
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/storage"
+	"github.com/open-policy-agent/opa/storage/inmem"
+	"github.com/open-policy-agent/opa/topdown/print"
 	"github.com/open-policy-agent/opa/version"
 )
 
@@ -40,13 +42,15 @@ func Load(ctx context.Context, policyPaths []string) (*Engine, error) {
 		return nil, fmt.Errorf("no policies found in %v", policyPaths)
 	}
 
-	compiler, err := policies.Compiler()
-	if err != nil {
-		return nil, fmt.Errorf("get compiler: %w", err)
+	modules := policies.ParsedModules()
+	compiler := ast.NewCompiler().WithEnablePrintStatements(true)
+	compiler.Compile(modules)
+	if compiler.Failed() {
+		return nil, fmt.Errorf("get compiler: %w", compiler.Errors)
 	}
 
-	policyContents := make(map[string]string)
-	for path, module := range policies.ParsedModules() {
+	policyContents := make(map[string]string, len(modules))
+	for path, module := range modules {
 		path = filepath.Clean(path)
 		path = filepath.ToSlash(path)
 
@@ -233,6 +237,10 @@ func (e *Engine) Runtime() *ast.Term {
 }
 
 func (e *Engine) check(ctx context.Context, path string, config interface{}, namespace string) (output.CheckResult, error) {
+	if err := e.addFileInfo(ctx, path); err != nil {
+		return output.CheckResult{}, fmt.Errorf("add file info: %w", err)
+	}
+
 	var rules []string
 	var ruleCount int
 
@@ -351,8 +359,7 @@ func (e *Engine) check(ctx context.Context, path string, config interface{}, nam
 		checkResult.Exceptions = append(checkResult.Exceptions, exceptions...)
 		checkResult.Excludes = append(checkResult.Excludes, excludes...)
 
-		checkResult.Queries = append(checkResult.Queries, exceptionQueryResult)
-		checkResult.Queries = append(checkResult.Queries, ruleQueryResult)
+		checkResult.Queries = append(checkResult.Queries, exceptionQueryResult, ruleQueryResult)
 	}
 
 	// Only a single success result is returned when a given rule succeeds, even if there are multiple occurrences
@@ -369,12 +376,46 @@ func (e *Engine) check(ctx context.Context, path string, config interface{}, nam
 	return checkResult, nil
 }
 
+// addFileInfo adds the file name and directory to data.conftest.file so that it is accessible to
+// the policies to be used during evaluation.
+func (e *Engine) addFileInfo(ctx context.Context, path string) error {
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		return fmt.Errorf("get absolute path: %w", err)
+	}
+	if e.store == nil {
+		e.store = inmem.New()
+	}
+	tx, err := e.store.NewTransaction(ctx, storage.WriteParams)
+	if err != nil {
+		return fmt.Errorf("begin store tx: %w", err)
+	}
+	if err := storage.MakeDir(ctx, e.store, tx, storage.Path{"conftest"}); err != nil {
+		return fmt.Errorf("create dir in store: %w", err)
+	}
+	if err := e.store.Write(
+		ctx, tx, storage.AddOp, storage.Path{"conftest", "file"},
+		map[string]string{
+			"name": filepath.Base(abs),
+			"dir":  filepath.Dir(abs),
+		},
+	); err != nil {
+		return fmt.Errorf("write file info to storage: %w", err)
+	}
+	if err := e.store.Commit(ctx, tx); err != nil {
+		return fmt.Errorf("commit file info to storage: %w", err)
+	}
+
+	return nil
+}
+
 // query is a low-level method that returns the result of executing a single query against the input.
 //
 // Example queries could include:
 // data.main.deny to query the deny rule in the main namespace
 // data.main.warn to query the warn rule in the main namespace
 func (e *Engine) query(ctx context.Context, input interface{}, query string) (output.QueryResult, error) {
+	ph := printHook{s: &[]string{}}
 	options := []func(r *rego.Rego){
 		rego.Input(input),
 		rego.Query(query),
@@ -382,6 +423,7 @@ func (e *Engine) query(ctx context.Context, input interface{}, query string) (ou
 		rego.Store(e.Store()),
 		rego.Runtime(e.Runtime()),
 		rego.Trace(e.trace),
+		rego.PrintHook(ph),
 	}
 
 	regoInstance := rego.New(options...)
@@ -447,6 +489,7 @@ func (e *Engine) query(ctx context.Context, input interface{}, query string) (ou
 		Query:   query,
 		Results: results,
 		Traces:  traces,
+		Outputs: *ph.s,
 	}
 
 	return queryResult, nil
@@ -473,9 +516,21 @@ func contains(collection []string, item string) bool {
 }
 
 func removeRulePrefix(rule string) string {
+	if rule == "violation" || rule == "deny" || rule == "warn" {
+		return ""
+	}
 	rule = strings.TrimPrefix(rule, "violation_")
 	rule = strings.TrimPrefix(rule, "deny_")
 	rule = strings.TrimPrefix(rule, "warn_")
 
 	return rule
+}
+
+type printHook struct {
+	s *[]string
+}
+
+func (ph printHook) Print(pctx print.Context, msg string) error {
+	*ph.s = append(*ph.s, fmt.Sprintf("%v: %s\n", pctx.Location, msg))
+	return nil
 }

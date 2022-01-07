@@ -22,8 +22,12 @@ Windows users can download Make from [here](http://gnuwin32.sourceforge.net/pack
 
 There are a few ways to install Bats:
 
-- Brew: `brew install bats`
+- Brew: `brew install bats-core`
 - npm: `npm install -g bats`
+
+### GolangCI-lint
+
+[golangci-lint](https://golangci-lint.run/) is a Go linters aggregator and is used for running lint tasks.
 
 ## Building and Testing
 
@@ -33,6 +37,6 @@ All build and testing workflows have `make` commands.
 
 - Test: `make test`
 
-- Acceptance: `make acceptance`
+- Acceptance: `make test-acceptance`
 
 - Run everything! `make all`

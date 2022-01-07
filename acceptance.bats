@@ -78,7 +78,7 @@
 }
 
 @test "Verify command has trace flag" {
-    run ./conftest verify --policy ./examples/kubernetes/policy --trace
+  run ./conftest verify --policy ./examples/kubernetes/policy --trace
   [ "$status" -eq 0 ]
   [[ "$output" =~ "data.kubernetes.is_service" ]]
 }
@@ -86,6 +86,75 @@
 @test "Fail when verifying with no policies path" {
   run ./conftest verify -p internal/
   [ "$status" -eq 1 ]
+}
+
+@test "Verify command has report flag - no failures" {
+    run ./conftest verify --policy ./examples/report/policy --policy ./examples/report/success --report fails
+    [ "$status" -eq 0 ]
+    [[ "${lines[0]}" =~ "data.main.test_no_missing_label: PASS" ]]
+    [[ "${lines[1]}" == "--------------------------------------------------------------------------------" ]]
+    [[ "${lines[2]}" == "PASS: 1/1" ]]
+}
+
+@test "Verify command has report flag - success with print output" {
+    run ./conftest verify --policy ./examples/report/policy_print --policy ./examples/report/success --report fails
+    [ "$status" -eq 0 ]
+    [[ "${lines[0]}" =~ "data.main.test_no_missing_label: PASS" ]]
+    [[ "${lines[2]}" == "--------------------------------------------------------------------------------" ]]
+    [[ "${lines[3]}" == "PASS: 1/1" ]]
+    [[ "${lines[1]}" == '  sample' ]]
+}
+
+@test "Verify command does not support report flag with table output" {
+    run ./conftest verify --policy ./examples/report/policy -o table --report fails
+    [[ "$output" =~ "Error: report flag is supported with stdout only" ]]
+}
+
+@test "Verify command does not support report flag with tap output" {
+    run ./conftest verify --policy ./examples/report/policy -o tap --report fails
+    [[ "$output" =~ "Error: report flag is supported with stdout only" ]]
+}
+
+@test "Verify command does not support report flag with junit output" {
+    run ./conftest verify --policy ./examples/report/policy -o junit --report fails
+    [[ "$output" =~ "Error: report flag is supported with stdout only" ]]
+}
+
+@test "Verify command does not support report flag with json output" {
+    run ./conftest verify --policy ./examples/report/policy -o json --report fails
+    [[ "$output" =~ "Error: report flag is supported with stdout only" ]]
+}
+
+@test "Verify command has report flag - failure with report fails" {
+    run ./conftest verify --policy ./examples/report/policy --policy ./examples/report/fail --report fails
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "FAILURES" ]]
+    [[ "$output" =~ "data.main.test_missing_required_label_fail: FAIL" ]]
+    [[ "$output" =~ "Fail input.metadata.labels[\"app.kubernetes.io/name\"]" ]]
+    [[ "$output" =~ "SUMMARY" ]]
+    [[ "$output" =~ "FAIL: 1/1" ]]
+}
+
+@test "Verify command has report flag - failure with report notes" {
+    run ./conftest verify --policy ./examples/report/policy --policy ./examples/report/fail --report notes
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "FAILURES" ]]
+    [[ "$output" =~ "data.main.test_missing_required_label_fail: FAIL" ]]
+    [[ "$output" =~ "Note \"just testing notes flag\"" ]]
+    [[ "$output" =~ "SUMMARY" ]]
+    [[ "$output" =~ "FAIL: 1/1" ]]
+}
+
+@test "Verify command has report flag - failure with report full" {
+    run ./conftest verify --policy ./examples/report/policy --policy ./examples/report/fail --report full
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "FAILURES" ]]
+    [[ "$output" =~ "data.main.test_missing_required_label_fail: FAIL" ]]
+    [[ "$output" =~ "Eval input.metadata.labels[\"app.kubernetes.io/name\"]" ]]
+    [[ "$output" =~ "Fail input.metadata.labels[\"app.kubernetes.io/name\"]" ]]
+    [[ "$output" =~ "Note \"just testing notes flag\"" ]]
+    [[ "$output" =~ "SUMMARY" ]]
+    [[ "$output" =~ "FAIL: 1/1" ]]
 }
 
 @test "Has help flag" {
@@ -97,6 +166,12 @@
   run ./conftest test -p examples/hcl1/policy/base.rego examples/hcl1/gke-show.json
   [ "$status" -eq 1 ]
   [[ "$output" =~ "Terraform plan will change prohibited resources in the following namespaces: google_iam, google_container" ]]
+}
+
+@test "Supports print() output" {
+  run ./conftest test -p examples/report/policy_print/labels.rego examples/kubernetes/deployment.yaml --no-color
+  [ "$status" -eq 1 ]
+  [[ "${lines[0]}" == "PRNT   examples/report/policy_print/labels.rego:12: hello-kubernetes" ]]
 }
 
 @test "Can parse hcl1 files" {
@@ -166,6 +241,11 @@
   run ./conftest test -p examples/hcl2/policy examples/hcl2/terraform.tf
   [ "$status" -eq 1 ]
   [[ "$output" =~ "ALB \`my-alb-listener\` is using HTTP rather than HTTP" ]]
+}
+
+@test "Can parse properties files" {
+  run ./conftest test -p examples/properties/policy/ examples/properties/sample.properties
+  [ "$status" -eq 0 ]
 }
 
 @test "Can parse stdin with parser flag" {
@@ -300,4 +380,37 @@
 
   [ "$status" -eq 1 ]
   [[ "$output" =~ "2 tests, 1 passed, 0 warnings, 1 failure" ]]
+}
+
+@test "Can parse SPDX file" {
+  run ./conftest parse --parser spdx examples/spdx/sbom.spdx
+
+  [ "$status" -eq 0 ]
+}
+
+@test "Can validate SPDX file" {
+  run ./conftest test -p examples/spdx/policy examples/spdx/sbom.spdx
+  
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "1 test, 1 passed, 0 warnings, 0 failures, 0 exceptions" ]] 
+}
+
+@test "Can test cyclonedx against policy" {
+  run ./conftest test --policy ./examples/cyclonedx/policy/ ./examples/cyclonedx/cyclonedx.json --parser cyclonedx
+  [ "$status" -eq 0 ]
+}
+
+@test "Can parse cyclonedx JSON file" {
+  run ./conftest parse --parser cyclonedx ./examples/cyclonedx/cyclonedx.json
+  [ "$status" -eq 0 ]
+}
+
+@test "Can parse cyclonedx XML file" {
+  run ./conftest parse --parser cyclonedx ./examples/cyclonedx/cyclonedx.xml
+  [ "$status" -eq 0 ]
+}
+
+@test "Can parse .env files" {
+  run ./conftest test -p examples/dotenv/policy/ examples/dotenv/sample.env
+  [ "$status" -eq 0 ]
 }
