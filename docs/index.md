@@ -66,14 +66,18 @@ Note that Conftest isn't specific to Kubernetes. It will happily let you write t
 As of today Conftest supports:
 
 * CUE
+* CycloneDX
 * Dockerfile
 * EDN
+* Environment files (.env)
 * HCL and HCL2
 * HOCON
 * Ignore files (.gitignore, .dockerignore)
 * INI
 * JSON
 * Jsonnet
+* Property files (.properties)
+* SPDX
 * TOML
 * VCL
 * XML
