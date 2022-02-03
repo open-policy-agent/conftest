@@ -5,8 +5,9 @@ Conftest is available for Windows, macOS and Linux on the [releases page](https:
 On Linux and macOS you can download as follows:
 
 ```console
-wget https://github.com/open-policy-agent/conftest/releases/download/v0.25.0/conftest_0.25.0_Linux_x86_64.tar.gz
-tar xzf conftest_0.25.0_Linux_x86_64.tar.gz
+LATEST_VERSION=$(wget -O - "https://api.github.com/repos/open-policy-agent/conftest/releases/latest" > /dev/null | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | cut -c 2-)
+wget "https://github.com/open-policy-agent/conftest/releases/download/v${LATEST_VERSION}/conftest_${LATEST_VERSION}_Linux_x86_64.tar.gz"
+tar xzf conftest_${LATEST_VERSION}_Linux_x86_64.tar.gz
 sudo mv conftest /usr/local/bin
 ```
 
