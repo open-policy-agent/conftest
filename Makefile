@@ -13,6 +13,8 @@ IMAGE := openpolicyagent/conftest
 
 DOCKER := DOCKER_BUILDKIT=1 docker
 
+GIT_VERSION := $(shell git describe --abbrev=4 --dirty --always --tags)
+
 ## All of the directories that contain tests to be executed
 ## e.g. echo $(TEST_DIRS) prints tests/foo tests/bar
 TEST_DIRS := $(patsubst tests/%/, tests/%, $(dir $(wildcard tests/**/.)))
@@ -23,7 +25,7 @@ TEST_DIRS := $(patsubst tests/%/, tests/%, $(dir $(wildcard tests/**/.)))
 
 .PHONY: build
 build: ## Builds Conftest.
-	@go build
+	@go build -ldflags="-X github.com/open-policy-agent/conftest/internal/commands.version=${GIT_VERSION}"
 
 .PHONY: test
 test: ## Tests Conftest.

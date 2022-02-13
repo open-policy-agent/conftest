@@ -12,6 +12,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	opaversion "github.com/open-policy-agent/opa/version"
 )
 
 // These values are set at build time
@@ -24,7 +26,7 @@ func NewDefaultCommand() *cobra.Command {
 	cmd := cobra.Command{
 		Use:          "conftest <subcommand>",
 		Short:        "Test your configuration files using Open Policy Agent",
-		Version:      fmt.Sprintf("Version: %s\n", version),
+		Version:      createVersionString(),
 		SilenceUsage: true,
 	}
 
@@ -83,4 +85,8 @@ func newCommandFromPlugin(ctx context.Context, p *plugin.Plugin) *cobra.Command 
 	}
 
 	return &pluginCommand
+}
+
+func createVersionString() string {
+	return fmt.Sprintf("Conftest: %s\nOPA: %s\n", version, opaversion.Version)
 }
