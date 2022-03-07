@@ -10,7 +10,7 @@ require (
 	github.com/basgys/goxml2json v1.1.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-akka/configuration v0.0.0-20200606091224-a002c0330665
-	github.com/go-ini/ini v1.66.3
+	github.com/go-ini/ini v1.66.4
 	github.com/google/go-jsonnet v0.18.0
 	github.com/hashicorp/go-getter v1.5.10
 	github.com/hashicorp/hcl v1.0.0
@@ -19,7 +19,7 @@ require (
 	github.com/magiconair/properties v1.8.5
 	github.com/moby/buildkit v0.9.3
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/open-policy-agent/opa v0.37.2
+	github.com/open-policy-agent/opa v0.38.0
 	github.com/opencontainers/image-spec v1.0.2
 	github.com/pkg/errors v0.9.1
 	github.com/shteou/go-ignore v0.3.1
