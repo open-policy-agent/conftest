@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/open-policy-agent/conftest/parser"
@@ -36,6 +37,9 @@ func NewParseCommand(ctx context.Context) *cobra.Command {
 					return fmt.Errorf("bind flag: %w", err)
 				}
 			}
+			if len(args) == 0 {
+				return fmt.Errorf("must supply path to at least one file")
+			}
 
 			return nil
 		},
@@ -54,8 +58,10 @@ func NewParseCommand(ctx context.Context) *cobra.Command {
 			var output string
 			if viper.GetBool("combine") {
 				output, err = parser.FormatCombined(configurations)
+			} else if len(configurations) == 1 {
+				output, err = formatSingleJSON(configurations)
 			} else {
-				output, err = parser.Format(configurations)
+				output, err = parser.FormatJSON(configurations)
 			}
 			if err != nil {
 				return fmt.Errorf("format output: %w", err)
@@ -66,8 +72,24 @@ func NewParseCommand(ctx context.Context) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().BoolP("combine", "", false, "Combine all config files to be evaluated together")
+	cmd.Flags().Bool("combine", false, "Combine all config files to be evaluated together")
 	cmd.Flags().String("parser", "", fmt.Sprintf("Parser to use to parse the configurations. Valid parsers: %s", parser.Parsers()))
 
 	return &cmd
+}
+
+func formatSingleJSON(configurations map[string]interface{}) (string, error) {
+	if len(configurations) != 1 {
+		return "", fmt.Errorf("formatSingleJSON: only supports one configuration")
+	}
+	var config interface{}
+	for _, cfg := range configurations {
+		config = cfg
+	}
+	marshalled, err := json.MarshalIndent(config, "", "  ")
+	if err != nil {
+		return "", err
+	}
+
+	return string(marshalled), nil
 }
