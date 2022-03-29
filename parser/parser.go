@@ -21,6 +21,7 @@ import (
 	"github.com/open-policy-agent/conftest/parser/ignore"
 	"github.com/open-policy-agent/conftest/parser/ini"
 	"github.com/open-policy-agent/conftest/parser/json"
+	"github.com/open-policy-agent/conftest/parser/jsonc"
 	"github.com/open-policy-agent/conftest/parser/jsonnet"
 	"github.com/open-policy-agent/conftest/parser/properties"
 	"github.com/open-policy-agent/conftest/parser/spdx"
@@ -43,6 +44,7 @@ const (
 	IGNORE     = "ignore"
 	INI        = "ini"
 	JSON       = "json"
+	JSONC      = "jsonc"
 	JSONNET    = "jsonnet"
 	PROPERTIES = "properties"
 	SPDX       = "spdx"
@@ -80,6 +82,8 @@ func New(parser string) (Parser, error) {
 		return &yaml.Parser{}, nil
 	case JSON:
 		return &json.Parser{}, nil
+	case JSONC:
+		return &jsonc.Parser{}, nil
 	case JSONNET:
 		return &jsonnet.Parser{}, nil
 	case EDN:
