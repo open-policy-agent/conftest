@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/open-policy-agent/conftest/internal/runner"
 	"github.com/open-policy-agent/conftest/output"
+	"github.com/open-policy-agent/conftest/runner"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -14,8 +14,8 @@ import (
 const verifyDesc = `
 This command executes Rego unit tests.
 
-Any file with a '_test' postfix and '.rego' extension will be compiled and 
-any Rego tests inside of them will be executed. For more information on how 
+Any file with a '_test' postfix and '.rego' extension will be compiled and
+any Rego tests inside of them will be executed. For more information on how
 to write tests check out the Rego testing documentation:
 https://www.openpolicyagent.org/docs/latest/policy-testing/.
 
@@ -24,14 +24,14 @@ The location can be overridden with the '--policy' flag, e.g.:
 
 	$ conftest verify --policy <my-directory>
 
-Some policies are dependant on external data. This data is loaded in separately 
-from policies. The location of any data directory or file can be specified with 
+Some policies are dependant on external data. This data is loaded in separately
+from policies. The location of any data directory or file can be specified with
 the '--data' flag.
 
 	$ conftest verify --data <data-directory>
 
-If a directory is specified, it will be recursively searched for 
-any data files. Data will be made available in Rego based on 
+If a directory is specified, it will be recursively searched for
+any data files. Data will be made available in Rego based on
 the structure of the data that was loaded.
 
 For example, if a yaml file was loaded that had the structure:
