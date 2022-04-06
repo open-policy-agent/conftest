@@ -91,18 +91,16 @@
 @test "Verify command has report flag - no failures" {
     run ./conftest verify --policy ./examples/report/policy --policy ./examples/report/success --report fails
     [ "$status" -eq 0 ]
-    [[ "${lines[0]}" =~ "data.main.test_no_missing_label: PASS" ]]
-    [[ "${lines[1]}" == "--------------------------------------------------------------------------------" ]]
-    [[ "${lines[2]}" == "PASS: 1/1" ]]
+    [[ "$output" =~ "data.main.test_no_missing_label: PASS" ]]
+    [[ "$output" =~ "PASS: 1/1" ]]
 }
 
 @test "Verify command has report flag - success with print output" {
     run ./conftest verify --policy ./examples/report/policy_print --policy ./examples/report/success --report fails
     [ "$status" -eq 0 ]
-    [[ "${lines[0]}" =~ "data.main.test_no_missing_label: PASS" ]]
-    [[ "${lines[2]}" == "--------------------------------------------------------------------------------" ]]
-    [[ "${lines[3]}" == "PASS: 1/1" ]]
-    [[ "${lines[1]}" == '  sample' ]]
+    [[ "$output" =~ "data.main.test_no_missing_label: PASS" ]]
+    [[ "$output" =~ "sample" ]]
+    [[ "$output" =~ "PASS: 1/1" ]]
 }
 
 @test "Verify command does not support report flag with table output" {
