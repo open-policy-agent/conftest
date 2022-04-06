@@ -30,13 +30,6 @@ const (
 	ReportFails = "fails"
 )
 
-func (r *VerifyRunner) IsReportOptionOn() bool {
-	return r.Report == ReportFull ||
-		r.Report == ReportNotes ||
-		r.Report == ReportFails
-
-}
-
 // Run executes the Rego tests for the given policies.
 func (r *VerifyRunner) Run(ctx context.Context) ([]output.CheckResult, []*tester.Result, error) {
 	engine, err := policy.LoadWithData(ctx, r.Policy, r.Data)
@@ -106,4 +99,11 @@ func (r *VerifyRunner) Run(ctx context.Context) ([]output.CheckResult, []*tester
 	}
 
 	return results, rawResults, nil
+}
+
+// IsReportOptionOn returns true if the reporting option is turned on, otherwise false.
+func (r *VerifyRunner) IsReportOptionOn() bool {
+	return r.Report == ReportFull ||
+		r.Report == ReportNotes ||
+		r.Report == ReportFails
 }

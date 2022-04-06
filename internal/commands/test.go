@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/open-policy-agent/conftest/internal/runner"
 	"github.com/open-policy-agent/conftest/output"
 	"github.com/open-policy-agent/conftest/parser"
+	"github.com/open-policy-agent/conftest/runner"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/storage"
 	"github.com/spf13/cobra"
@@ -17,9 +17,9 @@ import (
 const testDesc = `
 This command tests your configuration files using the Open Policy Agent.
 
-The test command expects one or more input files that will be evaluated 
+The test command expects one or more input files that will be evaluated
 against Open Policy Agent policies. Directories are also supported as valid
-inputs. 
+inputs.
 
 Policies are written in the Rego language. For more
 information on how to write Rego policies, see the documentation:
@@ -30,12 +30,12 @@ The location can be overridden with the '--policy' flag, e.g.:
 
 	$ conftest test --policy <my-directory> <input-file(s)/input-folder>
 
-Some policies are dependant on external data. This data is loaded in seperatly 
-from policies. The location of any data directory or file can be specified with 
-the '--data' flag. If a directory is specified, it will be recursively searched for 
-any data files. Right now any '.json' or '.yaml' file will be loaded in 
-and made available in the Rego policies. Data will be made available in Rego based on 
-the file path where the data was found. For example, if data is stored 
+Some policies are dependant on external data. This data is loaded in seperatly
+from policies. The location of any data directory or file can be specified with
+the '--data' flag. If a directory is specified, it will be recursively searched for
+any data files. Right now any '.json' or '.yaml' file will be loaded in
+and made available in the Rego policies. Data will be made available in Rego based on
+the file path where the data was found. For example, if data is stored
 under 'policy/exceptions/my_data.yaml', and we execute the following command:
 
 	$ conftest test --data policy <input-file>
