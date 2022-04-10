@@ -20,6 +20,7 @@ type Options struct {
 	NoColor            bool
 	SuppressExceptions bool
 	ShowSkipped        bool
+	JUnitHideMessage   bool
 }
 
 // The defined output formats represent all of the supported formats
@@ -45,7 +46,7 @@ func Get(format string, options Options) Outputter {
 	case OutputTable:
 		return NewTable(os.Stdout)
 	case OutputJUnit:
-		return NewJUnit(os.Stdout)
+		return NewJUnit(os.Stdout, options.JUnitHideMessage)
 	case OutputGitHub:
 		return NewGitHub(os.Stdout)
 	default:

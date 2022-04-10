@@ -14,13 +14,15 @@ import (
 // JUnit represents an Outputter that outputs
 // results in JUnit format.
 type JUnit struct {
-	Writer io.Writer
+	Writer      io.Writer
+	hideMessage bool
 }
 
 // NewJUnit creates a new JUnit with the given writer.
-func NewJUnit(w io.Writer) *JUnit {
+func NewJUnit(w io.Writer, hideMessage bool) *JUnit {
 	jUnit := JUnit{
-		Writer: w,
+		Writer:      w,
+		hideMessage: hideMessage,
 	}
 
 	return &jUnit
@@ -28,56 +30,55 @@ func NewJUnit(w io.Writer) *JUnit {
 
 // Output outputs the results.
 func (j *JUnit) Output(results []CheckResult) error {
-	var tests []*parser.Test
+	namespaceTests := make(map[string][]*parser.Test)
 	for _, result := range results {
+		ns := result.Namespace
 		for _, warning := range result.Warnings {
 			warningTest := parser.Test{
-				Name:   getTestName(result.FileName, result.Namespace, warning.Message),
+				Name:   j.formatTestName(result.FileName, warning.Message),
 				Result: parser.FAIL,
-				Output: []string{warning.Message},
+				Output: strings.Split(warning.Message, "\n"),
 			}
 
-			tests = append(tests, &warningTest)
+			namespaceTests[ns] = append(namespaceTests[ns], &warningTest)
 		}
 
 		for _, failure := range result.Failures {
 			failingTest := parser.Test{
-				Name:   getTestName(result.FileName, result.Namespace, failure.Message),
+				Name:   j.formatTestName(result.FileName, failure.Message),
 				Result: parser.FAIL,
-				Output: []string{failure.Message},
+				Output: strings.Split(failure.Message, "\n"),
 			}
 
-			tests = append(tests, &failingTest)
+			namespaceTests[ns] = append(namespaceTests[ns], &failingTest)
 		}
 
 		for _, skipped := range result.Skipped {
 			skippedTest := parser.Test{
-				Name:   getTestName(result.FileName, result.Namespace, skipped.Message),
+				Name:   j.formatTestName(result.FileName, skipped.Message),
 				Result: parser.SKIP,
-				Output: []string{skipped.Message},
+				Output: strings.Split(skipped.Message, "\n"),
 			}
 
-			tests = append(tests, &skippedTest)
+			namespaceTests[ns] = append(namespaceTests[ns], &skippedTest)
 		}
 
 		for s := 0; s < result.Successes; s++ {
 			successfulTest := parser.Test{
-				Name:   getTestName(result.FileName, result.Namespace, ""),
+				Name:   j.formatTestName(result.FileName, ""),
 				Result: parser.PASS,
-				Output: []string{},
 			}
 
-			tests = append(tests, &successfulTest)
+			namespaceTests[ns] = append(namespaceTests[ns], &successfulTest)
 		}
 	}
 
-	report := parser.Report{
-		Packages: []parser.Package{
-			{
-				Name:  "conftest",
-				Tests: tests,
-			},
-		},
+	var report parser.Report
+	for ns, tests := range namespaceTests {
+		report.Packages = append(report.Packages, parser.Package{
+			Name:  "conftest." + ns,
+			Tests: tests,
+		})
 	}
 
 	if err := formatter.JUnitReportXML(&report, false, runtime.Version(), j.Writer); err != nil {
@@ -87,12 +88,12 @@ func (j *JUnit) Output(results []CheckResult) error {
 	return nil
 }
 
-func getTestName(fileName string, namespace string, message string) string {
-	if len(message) > 0 {
-		return fmt.Sprintf("%s - %s - %s", fileName, namespace, strings.Split(message, "\n")[0])
+func (j JUnit) formatTestName(fileName, message string) string {
+	if j.hideMessage || message == "" {
+		return fileName
 	}
-
-	return fmt.Sprintf("%s - %s", fileName, namespace)
+	summary := strings.Split(message, "\n")[0]
+	return fmt.Sprintf("%s - %s", fileName, summary)
 }
 
 func (j *JUnit) Report(results []*tester.Result, flag string) error {

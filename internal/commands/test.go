@@ -83,7 +83,23 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 		Short: "Test your configuration files using Open Policy Agent",
 		Long:  testDesc,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			flagNames := []string{"all-namespaces", "combine", "data", "fail-on-warn", "ignore", "namespace", "no-color", "no-fail", "suppress-exceptions", "output", "parser", "policy", "trace", "update"}
+			flagNames := []string{
+				"all-namespaces",
+				"combine",
+				"data",
+				"fail-on-warn",
+				"ignore",
+				"namespace",
+				"no-color",
+				"no-fail",
+				"suppress-exceptions",
+				"output",
+				"parser",
+				"policy",
+				"trace",
+				"update",
+				"junit-hide-message",
+			}
 			for _, name := range flagNames {
 				if err := viper.BindPFlag(name, cmd.Flags().Lookup(name)); err != nil {
 					return fmt.Errorf("bind flag: %w", err)
@@ -109,7 +125,12 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("running test: %w", err)
 			}
 
-			outputter := output.Get(runner.Output, output.Options{NoColor: runner.NoColor, SuppressExceptions: runner.SuppressExceptions, Tracing: runner.Trace})
+			outputter := output.Get(runner.Output, output.Options{
+				NoColor:            runner.NoColor,
+				SuppressExceptions: runner.SuppressExceptions,
+				Tracing:            runner.Trace,
+				JUnitHideMessage:   viper.GetBool("junit-hide-message"),
+			})
 			if err := outputter.Output(results); err != nil {
 				return fmt.Errorf("output results: %w", err)
 			}
@@ -145,6 +166,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().String("parser", "", fmt.Sprintf("Parser to use to parse the configurations. Valid parsers: %s", parser.Parsers()))
 
 	cmd.Flags().StringP("output", "o", output.OutputStandard, fmt.Sprintf("Output format for conftest results - valid options are: %s", output.Outputs()))
+	cmd.Flags().Bool("junit-hide-message", false, "Do not include the violation message in the JUnit test name")
 
 	cmd.Flags().StringSliceP("policy", "p", []string{"policy"}, "Path to the Rego policy files directory")
 	cmd.Flags().StringSliceP("update", "u", []string{}, "A list of URLs can be provided to the update flag, which will download before the tests run")

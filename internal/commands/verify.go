@@ -68,7 +68,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 		Short: "Verify Rego unit tests",
 		Long:  verifyDesc,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			flagNames := []string{"data", "no-color", "output", "policy", "trace", "report", "quiet"}
+			flagNames := []string{"data", "no-color", "output", "policy", "trace", "report", "quiet", "junit-hide-message"}
 			for _, name := range flagNames {
 				if err := viper.BindPFlag(name, cmd.Flags().Lookup(name)); err != nil {
 					return fmt.Errorf("bind flag: %w", err)
@@ -90,7 +90,12 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 
 			exitCode := output.ExitCode(results)
 			if !runner.Quiet || exitCode != 0 {
-				outputter := output.Get(runner.Output, output.Options{NoColor: runner.NoColor, Tracing: runner.Trace, ShowSkipped: true})
+				outputter := output.Get(runner.Output, output.Options{
+					NoColor:          runner.NoColor,
+					Tracing:          runner.Trace,
+					ShowSkipped:      true,
+					JUnitHideMessage: viper.GetBool("junit-hide-message"),
+				})
 				if runner.IsReportOptionOn() {
 					// report currently available with stdout only
 					if runner.Output != output.OutputStandard {
@@ -121,6 +126,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().String("report", "", "Shows output for Rego queries as a report with summary. Available options are {full|notes|fails}.")
 
 	cmd.Flags().StringP("output", "o", output.OutputStandard, fmt.Sprintf("Output format for conftest results - valid options are: %s", output.Outputs()))
+	cmd.Flags().Bool("junit-hide-message", false, "Do not include the violation message in the JUnit test name")
 
 	cmd.Flags().StringSliceP("data", "d", []string{}, "A list of paths from which data for the rego policies will be recursively loaded")
 	cmd.Flags().StringSliceP("policy", "p", []string{"policy"}, "Path to the Rego policy files directory")
