@@ -29,7 +29,7 @@ func TestGetOutputter(t *testing.T) {
 		},
 		{
 			input:    OutputJUnit,
-			expected: NewJUnit(os.Stdout),
+			expected: NewJUnit(os.Stdout, false),
 		},
 		{
 			input:    "unknown_format",
