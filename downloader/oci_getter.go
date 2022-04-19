@@ -7,8 +7,10 @@ import (
 	"net/url"
 	"os"
 
+	"oras.land/oras-go/pkg/auth"
+	dockerauth "oras.land/oras-go/pkg/auth/docker"
+
 	getter "github.com/hashicorp/go-getter"
-	auth "oras.land/oras-go/pkg/auth/docker"
 	"oras.land/oras-go/pkg/content"
 	"oras.land/oras-go/pkg/oras"
 )
@@ -31,23 +33,26 @@ func (g *OCIGetter) Get(path string, u *url.URL) error {
 		return fmt.Errorf("make policy directory: %w", err)
 	}
 
-	cli, err := auth.NewClient()
+	cli, err := dockerauth.NewClient()
 	if err != nil {
 		return fmt.Errorf("new auth client: %w", err)
 	}
 
-	resolver, err := cli.Resolver(ctx, http.DefaultClient, false)
+	opts := []auth.ResolverOption{auth.WithResolverClient(http.DefaultClient)}
+	resolver, err := cli.ResolverWithOpts(opts...)
 	if err != nil {
-		return fmt.Errorf("new resolver: %w", err)
+		return fmt.Errorf("docker resolver: %w", err)
 	}
 
-	fileStore := content.NewFileStore(path)
+	registry := content.Registry{Resolver: resolver}
+
+	fileStore := content.NewFile(path)
 	defer fileStore.Close()
 
 	repository := getRepositoryFromURL(u.Path)
 	pullURL := u.Host + repository
 
-	_, _, err = oras.Pull(ctx, resolver, pullURL, fileStore)
+	_, err = oras.Copy(ctx, registry, pullURL, fileStore, "")
 	if err != nil {
 		return fmt.Errorf("pulling policy: %w", err)
 	}
