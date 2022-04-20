@@ -24,21 +24,21 @@ jobs:
       - name: setup go
         uses: actions/setup-go@v2
         with:
-          go-version: "1.17.7"
+          go-version: "1.18.1"
 
-      - name: setup bats
-        uses: mig4/setup-bats@v1
-
-      - name: lint go
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.39.0
-          ./bin/golangci-lint run --timeout=5m --color=always --max-same-issues=0 --max-issues-per-linter=0
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          args: --timeout=5m --color=always --max-same-issues=0 --max-issues-per-linter=0
 
       - name: build
         run: make build
 
       - name: unit test
         run: make test
+
+      - name: setup bats
+        uses: mig4/setup-bats@v1
 
       - name: test examples
         run: make test-examples
