@@ -293,6 +293,21 @@
   [[ "$output" =~ "\"Cmd\": \"from\"" ]]
 }
 
+@test "Can parse single file with 'conftest parse'" {
+  run bash -c "./conftest parse examples/kubernetes/deployment.yaml | jq '.kind'"
+  [ "$status" -eq 0 ]
+  [[ "$output" = "\"Deployment\"" ]]
+}
+
+@test "Can parse multiple files with 'conftest parse'" {
+  run bash -c "./conftest parse examples/kubernetes/deployment.yaml examples/kubernetes/deployment+service.yaml | jq 'keys'"
+  [ "$status" -eq 0 ]
+  count="${#lines[@]}"
+  [ "$count" -eq 4 ]
+  [[ "$output" =~ "\"examples/kubernetes/deployment+service.yaml\"" ]]
+  [[ "$output" =~ "\"examples/kubernetes/deployment.yaml\"" ]]
+}
+
 @test "Can output tap format in test command" {
   run ./conftest test -p examples/kubernetes/policy/ -o tap examples/kubernetes/deployment.yaml
   [[ "$output" =~ "not ok" ]]
