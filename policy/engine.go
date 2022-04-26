@@ -33,7 +33,7 @@ type Engine struct {
 }
 
 // Load returns an Engine after loading all of the specified policies.
-func Load(ctx context.Context, policyPaths []string) (*Engine, error) {
+func Load(ctx context.Context, policyPaths []string, c *ast.Capabilities) (*Engine, error) {
 	policies, err := loader.AllRegos(policyPaths)
 	if err != nil {
 		return nil, fmt.Errorf("load: %w", err)
@@ -42,7 +42,7 @@ func Load(ctx context.Context, policyPaths []string) (*Engine, error) {
 	}
 
 	modules := policies.ParsedModules()
-	compiler := ast.NewCompiler().WithEnablePrintStatements(true)
+	compiler := ast.NewCompiler().WithEnablePrintStatements(true).WithCapabilities(c)
 	compiler.Compile(modules)
 	if compiler.Failed() {
 		return nil, fmt.Errorf("get compiler: %w", compiler.Errors)
@@ -66,8 +66,21 @@ func Load(ctx context.Context, policyPaths []string) (*Engine, error) {
 }
 
 // LoadWithData returns an Engine after loading all of the specified policies and data paths.
-func LoadWithData(ctx context.Context, policyPaths []string, dataPaths []string) (*Engine, error) {
-	engine, err := Load(ctx, policyPaths)
+func LoadWithData(ctx context.Context, policyPaths []string, dataPaths []string, capabilities string) (*Engine, error) {
+	c := ast.CapabilitiesForThisVersion()
+	if capabilities != "" {
+		f, err := os.Open(capabilities)
+		if err != nil {
+			return nil, fmt.Errorf("capabilities not opened: %w", err)
+		}
+		defer f.Close()
+		c, err = ast.LoadCapabilitiesJSON(f)
+		if err != nil {
+			return nil, fmt.Errorf("capabilities not loaded: %w", err)
+		}
+	}
+
+	engine, err := Load(ctx, policyPaths, c)
 	if err != nil {
 		return nil, fmt.Errorf("loading policies: %w", err)
 	}

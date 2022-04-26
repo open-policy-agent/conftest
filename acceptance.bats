@@ -412,3 +412,10 @@
   run ./conftest test -p examples/dotenv/policy/ examples/dotenv/sample.env
   [ "$status" -eq 0 ]
 }
+
+@test "Should fail if an opa function is not defined given capabilities file" {
+  run ./conftest test examples/kubernetes/deployment.yaml -p examples/kubernetes/policy/ -p examples/capabilities/malicious.rego --capabilities examples/capabilities/capabilities.json
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "undefined function opa.runtime" ]]
+  [[ "$output" =~ "undefined function http.send" ]]
+}

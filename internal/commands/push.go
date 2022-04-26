@@ -133,7 +133,7 @@ func pushBundle(ctx context.Context, repository string, path string) (*ocispec.D
 }
 
 func buildLayers(ctx context.Context, memoryStore *content.Memorystore, path string) ([]ocispec.Descriptor, error) {
-	engine, err := policy.LoadWithData(ctx, []string{path}, []string{path})
+	engine, err := policy.LoadWithData(ctx, []string{path}, []string{path}, "")
 	if err != nil {
 		return nil, fmt.Errorf("load: %w", err)
 	}

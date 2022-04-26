@@ -15,13 +15,14 @@ import (
 // VerifyRunner is the runner for the Verify command, executing
 // Rego policy unit-tests.
 type VerifyRunner struct {
-	Policy  []string
-	Data    []string
-	Output  string
-	NoColor bool `mapstructure:"no-color"`
-	Trace   bool
-	Report  string
-	Quiet   bool
+	Capabilities string
+	Policy       []string
+	Data         []string
+	Output       string
+	NoColor      bool `mapstructure:"no-color"`
+	Trace        bool
+	Report       string
+	Quiet        bool
 }
 
 const (
@@ -32,7 +33,7 @@ const (
 
 // Run executes the Rego tests for the given policies.
 func (r *VerifyRunner) Run(ctx context.Context) ([]output.CheckResult, []*tester.Result, error) {
-	engine, err := policy.LoadWithData(ctx, r.Policy, r.Data)
+	engine, err := policy.LoadWithData(ctx, r.Policy, r.Data, r.Capabilities)
 	if err != nil {
 		return nil, nil, fmt.Errorf("load: %w", err)
 	}
