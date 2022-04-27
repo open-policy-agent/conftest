@@ -68,7 +68,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 		Short: "Verify Rego unit tests",
 		Long:  verifyDesc,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			flagNames := []string{"data", "no-color", "output", "policy", "trace", "report", "quiet", "junit-hide-message"}
+			flagNames := []string{"data", "no-color", "output", "policy", "trace", "report", "quiet", "junit-hide-message", "capabilities"}
 			for _, name := range flagNames {
 				if err := viper.BindPFlag(name, cmd.Flags().Lookup(name)); err != nil {
 					return fmt.Errorf("bind flag: %w", err)
@@ -128,6 +128,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().StringP("output", "o", output.OutputStandard, fmt.Sprintf("Output format for conftest results - valid options are: %s", output.Outputs()))
 	cmd.Flags().Bool("junit-hide-message", false, "Do not include the violation message in the JUnit test name")
 
+	cmd.Flags().String("capabilities", "", "Path to JSON file that can restrict opa functionality against a given policy. Default: all operations allowed")
 	cmd.Flags().StringSliceP("data", "d", []string{}, "A list of paths from which data for the rego policies will be recursively loaded")
 	cmd.Flags().StringSliceP("policy", "p", []string{"policy"}, "Path to the Rego policy files directory")
 
