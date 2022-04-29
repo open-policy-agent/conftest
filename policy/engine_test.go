@@ -8,6 +8,55 @@ import (
 	"github.com/open-policy-agent/opa/ast"
 )
 
+func TestLoadWithData(t *testing.T) {
+	tests := []struct {
+		desc         string
+		policies     []string
+		data         []string
+		capabilities string
+		err          bool
+	}{
+		{
+			desc:         "valid policy, data and capabilities",
+			policies:     []string{"../examples/kubernetes/policy"},
+			data:         []string{"../examples/data"},
+			capabilities: "../examples/capabilities/capabilities.json",
+			err:          false,
+		},
+		{
+			desc:         "valid policy, data but invalid capabilities",
+			policies:     []string{"../examples/kubernetes/policy"},
+			data:         []string{"../examples/data"},
+			capabilities: "../examples/capabilities/invalid.json",
+			err:          true,
+		},
+		{
+			desc:         "invalid policy",
+			policies:     []string{"../examples/kubernetes/invalid"},
+			data:         []string{""},
+			capabilities: "",
+			err:          true,
+		},
+		{
+			desc:         "invalid data",
+			policies:     []string{"../examples/kubernetes/policy"},
+			data:         []string{"../examples/invalid"},
+			capabilities: "",
+			err:          true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			ctx := context.Background()
+			_, err := LoadWithData(ctx, tt.policies, tt.data, tt.capabilities)
+			if (err != nil && !tt.err) || (err == nil && tt.err) {
+				t.Errorf("expected err status %v, got: %v", tt.err, err)
+			}
+		})
+	}
+}
+
 func TestException(t *testing.T) {
 	ctx := context.Background()
 
