@@ -6,45 +6,107 @@ import (
 
 	"github.com/open-policy-agent/conftest/parser"
 	"github.com/open-policy-agent/opa/ast"
+	loader "github.com/open-policy-agent/opa/loader"
+	"github.com/open-policy-agent/opa/util/test"
 )
+
+func mustListPaths(path string, recurse bool) (paths []string) {
+	paths, err := loader.Paths(path, recurse)
+	if err != nil {
+		panic(err)
+	}
+	return paths
+}
 
 func TestException(t *testing.T) {
 	ctx := context.Background()
 
-	policies := []string{"../examples/exceptions/policy"}
-	engine, err := Load(ctx, policies, ast.CapabilitiesForThisVersion())
-	if err != nil {
-		t.Fatalf("loading policies: %v", err)
+	files := map[string]string{
+		"/exception.rego": `
+			package main
+
+			exception[rules] {
+				input.kind = "Deployment"
+				input.metadata.name = "can-run-as-root"
+			
+				rules = ["run_as_root"]
+			}`,
+		"/policy.rego": `
+			package main
+
+			is_deployment {
+				input.kind = "Deployment"
+			}
+			
+			deny_run_as_root[msg] {
+				is_deployment
+				not input.spec.template.spec.securityContext.runAsNonRoot
+			
+				msg = sprintf("Containers must not run as root in Deployment %s", [input.metadata.name])
+			}`,
+		"/deployment.yaml": `apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cannot-run-as-root
+spec:
+  template:
+    spec:
+      containers:
+        - name: root-container
+          image: nginx
+          ports:
+          - containerPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: can-run-as-root
+spec:
+  template:
+    spec:
+      containers:
+        - name: root-container
+          image: nginx
+          ports:
+          - containerPort: 8080`,
 	}
 
-	configFiles := []string{"../examples/exceptions/deployments.yaml"}
-	configs, err := parser.ParseConfigurations(configFiles)
-	if err != nil {
-		t.Fatalf("loading configs: %v", err)
-	}
+	test.WithTempFS(files, func(rootDir string) {
+		paths := mustListPaths(rootDir, true)
 
-	results, err := engine.Check(ctx, configs, "main")
-	if err != nil {
-		t.Fatalf("could not process policy file: %s", err)
-	}
+		engine, err := Load(ctx, paths, ast.CapabilitiesForThisVersion())
+		if err != nil {
+			t.Fatalf("loading policies: %v", err)
+		}
+		configFiles := []string{paths[0] + "/deployment.yaml"}
+		configs, err := parser.ParseConfigurations(configFiles)
+		if err != nil {
+			t.Fatalf("loading configs: %v", err)
+		}
 
-	const expectedFailures = 1
-	actualFailures := len(results[0].Failures)
-	if actualFailures != expectedFailures {
-		t.Errorf("Multifile yaml test failure. Got %v failures, expected %v", actualFailures, expectedFailures)
-	}
+		results, err := engine.Check(ctx, configs, "main")
+		if err != nil {
+			t.Fatalf("could not process policy file: %s", err)
+		}
 
-	const expectedSuccesses = 0
-	actualSuccesses := results[0].Successes
-	if actualSuccesses != expectedSuccesses {
-		t.Errorf("Multifile yaml test failure. Got %v success, expected %v", actualSuccesses, expectedSuccesses)
-	}
+		const expectedFailures = 1
+		actualFailures := len(results[0].Failures)
+		if actualFailures != expectedFailures {
+			t.Errorf("Multifile yaml test failure. Got %v failures, expected %v", actualFailures, expectedFailures)
+		}
 
-	const expectedExceptions = 1
-	actualExceptions := len(results[0].Exceptions)
-	if actualExceptions != expectedExceptions {
-		t.Errorf("Multifile yaml test failure. Got %v exceptions, expected %v", actualExceptions, expectedExceptions)
-	}
+		const expectedSuccesses = 0
+		actualSuccesses := results[0].Successes
+		if actualSuccesses != expectedSuccesses {
+			t.Errorf("Multifile yaml test failure. Got %v success, expected %v", actualSuccesses, expectedSuccesses)
+		}
+
+		const expectedExceptions = 1
+		actualExceptions := len(results[0].Exceptions)
+		if actualExceptions != expectedExceptions {
+			t.Errorf("Multifile yaml test failure. Got %v exceptions, expected %v", actualExceptions, expectedExceptions)
+		}
+	})
 }
 
 func TestTracing(t *testing.T) {
