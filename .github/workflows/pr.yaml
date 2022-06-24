@@ -45,3 +45,6 @@ jobs:
 
       - name: acceptance
         run: make test-acceptance
+
+      - name: test oci push/pull
+        run: ./scripts/push-pull-e2e.sh
