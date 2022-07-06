@@ -46,7 +46,6 @@ The location can be overridden with the '--policy' flag, e.g.:
 `
 
 const (
-	openPolicyAgentConfigMediaType      = "application/vnd.cncf.openpolicyagent.config.v1+json"
 	openPolicyAgentPolicyLayerMediaType = "application/vnd.cncf.openpolicyagent.policy.layer.v1+rego"
 	openPolicyAgentDataLayerMediaType   = "application/vnd.cncf.openpolicyagent.data.layer.v1+json"
 )
@@ -112,35 +111,29 @@ func pushBundle(ctx context.Context, repository string, path string) (*ocispec.D
 	if err != nil {
 		return nil, fmt.Errorf("get auth client: %w", err)
 	}
-
 	opts := []auth.ResolverOption{auth.WithResolverClient(http.DefaultClient)}
 	resolver, err := cli.ResolverWithOpts(opts...)
 	if err != nil {
 		return nil, fmt.Errorf("docker resolver: %w", err)
 	}
+	registry := content.Registry{Resolver: resolver}
 
 	memoryStore := content.NewMemory()
 	layers, err := buildLayers(ctx, memoryStore, path)
 	if err != nil {
 		return nil, fmt.Errorf("building layers: %w", err)
 	}
-
-	manifestData, manifest, err := content.GenerateManifest(nil, nil, layers...)
+	manifestData, manifest, cfgData, cfg, err := content.GenerateManifestAndConfig(nil, nil, layers...)
 	if err != nil {
 		return nil, fmt.Errorf("generate manifest: %w", err)
 	}
-
+	memoryStore.Set(cfg, cfgData)
 	err = memoryStore.StoreManifest(repository, manifest, manifestData)
 	if err != nil {
 		return nil, fmt.Errorf("store manifest: %w", err)
 	}
 
-	registry := content.Registry{Resolver: resolver}
-
-	allowedMediaTypes := []string{openPolicyAgentConfigMediaType}
-	copyOpts := []oras.CopyOpt{oras.WithAllowedMediaTypes(allowedMediaTypes)}
-
-	_, err = oras.Copy(ctx, memoryStore, repository, registry, "", copyOpts...)
+	_, err = oras.Copy(ctx, memoryStore, repository, registry, "")
 	if err != nil {
 		return nil, fmt.Errorf("pushing manifest: %w", err)
 	}
