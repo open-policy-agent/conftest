@@ -21,5 +21,10 @@ test_unencrypted_azure_disk {
 }
 
 test_fails_with_http_alb {
-	deny["ALB `name` is using HTTP rather than HTTPS"] with input as {"resource": {"aws_alb_listener": {"name": {"protocol": "HTTP"}}}}
+	cfg := parse_config("hcl2", `
+		resource "aws_alb_listener" "name" {
+			protocol = "HTTP"
+		}
+	`)
+	deny["ALB `name` is using HTTP rather than HTTPS"] with input as cfg
 }
