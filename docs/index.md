@@ -169,3 +169,45 @@ test_deny_alb_protocol_unspecified {
 
 For the full list of supported parsers and their names, please refer to the
 constants [defined in the parser package](https://github.com/open-policy-agent/conftest/blob/master/parser/parser.go).
+
+If you prefer to have your configuration snippets outside of the Rego unit test
+(for syntax highlighting, etc.) you can use the `parse_config_file` builtin. It
+accepts the path to the config file as its only parameter and returns the
+parsed configuration as a Rego object. The example below shows denying Azure
+disks with encryption disabled.
+
+> **:information_source: NOTE:** The file path argument is relative to the
+> location of the Rego unit test file.
+
+> **:information_source: NOTE:** Using this function performs disk I/O which
+> can significantly slow down tests.
+
+**deny.rego**
+
+```rego
+deny[msg] {
+  disk = input.resource.azurerm_managed_disk[name]
+  has_field(disk, "encryption_settings")
+  disk.encryption_settings.enabled != true
+  msg = sprintf("Azure disk `%v` is not encrypted", [name])
+}
+```
+
+**deny_test.rego**
+
+```rego
+test_unencrypted_azure_disk {
+  cfg := parse_config_file("unencrypted_azure_disk.tf")
+  deny with input as cfg
+}
+```
+
+**unencrypted_azure_disk.tf**
+
+```hcl
+resource "azurerm_managed_disk" "sample" {
+  encryption_settings {
+    enabled = false
+  }
+}
+```
