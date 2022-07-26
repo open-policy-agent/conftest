@@ -85,8 +85,8 @@ As of today Conftest supports:
 
 ### Testing/Verifying Policies
 
-When authoring policies, it is helpful to test them. Consult the Rego testing documentation at
-https://www.openpolicyagent.org/docs/latest/policy-testing/ for details on testing syntax and approach.
+When authoring policies, it is helpful to test them. Consult the Rego [testing documentation](https://www.openpolicyagent.org/docs/latest/policy-testing)
+for details on testing syntax and approach.
 
 Following the example above, with a policy file in `policy/deployment.rego`, you would create your
 tests in `policy/deployment_test.rego` by convention. You can then use `conftest verify` to execute
@@ -97,3 +97,117 @@ conftest verify --policy ./policy
 ```
 
 Further documentation can be found using `conftest verify -h`
+
+#### Writing Unit Tests
+
+When writing unit tests, it is common to use the `with` keyword to override the
+`input` and `data` documents. For example:
+
+```rego
+test_foo {
+  input := {
+    "abc": 123,
+    "foo": ["bar", "baz"],
+  }
+  deny with input as input
+}
+```
+
+However, it can be burdensome to craft the `input` values by hand when the
+configurations you are testing are of different formats, especially when they
+can be dynamic and their source does not closely align to key-value objects
+like Rego requires. A common example is Hashicorp Configuration Language (HCL)
+used by Terraform and other products.
+
+To alleviate this issue, conftest provides a builtin function `parse_config`
+which takes the parser type and configuration as arguments and parses the
+configuration for use in Rego polciies. This is the same logic that conftest
+uses when testing configurations, only exposed as a Rego function. The example
+below shows how to use this to parse an AWS Terraform configuration and use it
+in a unit test.
+
+**deny.rego**
+
+```rego
+deny[msg] {
+  proto := input.resource.aws_alb_listener[lb].protocol
+  proto == "HTTP"
+  msg = sprintf("ALB `%v` is using HTTP rather than HTTPS", [lb])
+}
+```
+
+**deny_test.rego**
+
+```rego
+test_deny_alb_http {
+  cfg := parse_config("hcl2", `
+    resource "aws_alb_listener" "lb_with_http" {
+      protocol = "HTTP"
+    }
+  `)
+  deny with input as cfg
+}
+
+test_deny_alb_https {
+  cfg := parse_config("hcl2", `
+    resource "aws_alb_listener" "lb_with_https" {
+      protocol = "HTTPS"
+    }
+  `)
+  not deny with input as cfg
+}
+
+test_deny_alb_protocol_unspecified {
+  cfg := parse_config("hcl2", `
+    resource "aws_alb_listener" "lb_with_unspecified_protocol" {
+      foo = "bar"
+    }
+  `)
+  not deny with input as cfg
+}
+```
+
+For the full list of supported parsers and their names, please refer to the
+constants [defined in the parser package](https://github.com/open-policy-agent/conftest/blob/master/parser/parser.go).
+
+If you prefer to have your configuration snippets outside of the Rego unit test
+(for syntax highlighting, etc.) you can use the `parse_config_file` builtin. It
+accepts the path to the config file as its only parameter and returns the
+parsed configuration as a Rego object. The example below shows denying Azure
+disks with encryption disabled.
+
+> **:information_source: NOTE:** The file path argument is relative to the
+> location of the Rego unit test file.
+
+> **:information_source: NOTE:** Using this function performs disk I/O which
+> can significantly slow down tests.
+
+**deny.rego**
+
+```rego
+deny[msg] {
+  disk = input.resource.azurerm_managed_disk[name]
+  has_field(disk, "encryption_settings")
+  disk.encryption_settings.enabled != true
+  msg = sprintf("Azure disk `%v` is not encrypted", [name])
+}
+```
+
+**deny_test.rego**
+
+```rego
+test_unencrypted_azure_disk {
+  cfg := parse_config_file("unencrypted_azure_disk.tf")
+  deny with input as cfg
+}
+```
+
+**unencrypted_azure_disk.tf**
+
+```hcl
+resource "azurerm_managed_disk" "sample" {
+  encryption_settings {
+    enabled = false
+  }
+}
+```

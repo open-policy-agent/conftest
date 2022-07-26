@@ -258,6 +258,11 @@
   [ "$status" -eq 1 ]
 }
 
+@test "Can verify unit tests using parse_config() and parse_config_file builtins()" {
+  run ./conftest verify -p examples/hcl2/policy examples/hcl2
+  [ "$status" -eq 0 ]
+}
+
 @test "Can combine configs and reference by file" {
   run ./conftest test -p examples/hcl1/policy/gke_combine.rego examples/hcl1/gke.tf --combine --parser hcl1 --all-namespaces
   [ "$status" -eq 0 ]

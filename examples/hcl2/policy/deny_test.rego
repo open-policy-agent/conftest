@@ -17,9 +17,15 @@ test_correctly_encrypted_azure_disk {
 }
 
 test_unencrypted_azure_disk {
-	deny["Azure disk `sample` is not encrypted"] with input as {"resource": {"azurerm_managed_disk": {"sample": {"encryption_settings": {"enabled": false}}}}}
+	cfg := parse_config_file("unencrypted_azure_disk.tf")
+	deny["Azure disk `sample` is not encrypted"] with input as cfg
 }
 
 test_fails_with_http_alb {
-	deny["ALB `name` is using HTTP rather than HTTPS"] with input as {"resource": {"aws_alb_listener": {"name": {"protocol": "HTTP"}}}}
+	cfg := parse_config("hcl2", `
+		resource "aws_alb_listener" "name" {
+			protocol = "HTTP"
+		}
+	`)
+	deny["ALB `name` is using HTTP rather than HTTPS"] with input as cfg
 }
