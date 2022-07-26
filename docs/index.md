@@ -168,7 +168,7 @@ test_deny_alb_protocol_unspecified {
 ```
 
 For the full list of supported parsers and their names, please refer to the
-constants [defined in the parser package](https://github.com/open-policy-agent/conftest/blob/master/parser/parser.go).
+constants [defined in the parser package](https://pkg.go.dev/github.com/open-policy-agent/conftest/parser#pkg-constants).
 
 If you prefer to have your configuration snippets outside of the Rego unit test
 (for syntax highlighting, etc.) you can use the `parse_config_file` builtin. It
