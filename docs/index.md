@@ -121,7 +121,7 @@ used by Terraform and other products.
 
 To alleviate this issue, conftest provides a builtin function `parse_config`
 which takes the parser type and configuration as arguments and parses the
-configuration for use in Rego polciies. This is the same logic that conftest
+configuration for use in Rego policies. This is the same logic that conftest
 uses when testing configurations, only exposed as a Rego function. The example
 below shows how to use this to parse an AWS Terraform configuration and use it
 in a unit test.
