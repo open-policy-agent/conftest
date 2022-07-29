@@ -39,3 +39,12 @@ FAIL - deployment.yaml - Containers must not run as root in Deployment hello-kub
 ```
 
 > **NOTE:** The instrumenta/conftest image is deprecated and will no longer be updated. Please use the openpolicyagent/conftest image.
+
+## From Source
+
+If you have a working Go environment, you can install conftest from source. It will be installed
+to your configured `$GOPATH/bin` folder.
+
+```sh
+CGO_ENABLED=0 go install github.com/open-policy-agent/conftest@latest
+```
