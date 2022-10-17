@@ -1,4 +1,4 @@
-FROM golang:1.18.5-alpine as base
+FROM golang:1.19.2-alpine as base
 ARG ARCH=amd64
 ARG VERSION
 ARG COMMIT
