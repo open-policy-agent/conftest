@@ -48,6 +48,11 @@ func TestOCIDetector_Detect(t *testing.T) {
 			"localhost:5000/policies",
 			"oci://localhost:5000/policies:latest",
 		},
+		{
+			"should detect Quay",
+			"quay.io/conftest/policies:tag",
+			"oci://quay.io/conftest/policies:tag",
+		},
 	}
 	pwd := "/pwd"
 	d := &OCIDetector{}
