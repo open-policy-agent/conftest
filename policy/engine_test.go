@@ -2,6 +2,7 @@ package policy
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/open-policy-agent/conftest/parser"
@@ -306,5 +307,51 @@ deny[{"msg": msg}] {
 				t.Errorf("mismatch. have [%v], want [%v]", qr.Results[0].Message, tt.name)
 			}
 		})
+	}
+}
+
+func TestAnnotations(t *testing.T) {
+	ctx := context.Background()
+
+	policies := []string{"./testdata/annotations/policy"}
+	engine, err := Load(ctx, policies, ast.CapabilitiesForThisVersion())
+	if err != nil {
+		t.Fatalf("loading policies: %v", err)
+	}
+
+	allPolicies := engine.Policies()
+	annotationPolicy := allPolicies["testdata/annotations/policy/annotations.rego"]
+	if !strings.Contains(annotationPolicy, "METADATA") {
+		t.Fatal("annotation data is missing from policy")
+	}
+
+	configFiles := []string{"./testdata/annotations/data.json"}
+	configs, err := parser.ParseConfigurations(configFiles)
+	if err != nil {
+		t.Fatalf("loading configs: %v", err)
+	}
+
+	results, err := engine.Check(ctx, configs, "main")
+	if err != nil {
+		t.Fatalf("could not process policy file: %s", err)
+	}
+
+	const expectedFailures = 1
+	actualFailures := len(results[0].Failures)
+	if actualFailures != expectedFailures {
+		t.Errorf("Annotations test failure. Got %v failures, expected %v", actualFailures, expectedFailures)
+	}
+
+	const expectedSuccesses = 0
+	actualSuccesses := results[0].Successes
+	if actualSuccesses != expectedSuccesses {
+		t.Errorf("Annotations test failure. Got %v successes, expected %v", actualSuccesses, expectedSuccesses)
+	}
+
+	// 1 failure, and 1 dummy exception query
+	const expectedQueries = 2
+	actualQueries := len(results[0].Queries)
+	if actualQueries != expectedQueries {
+		t.Errorf("Annotations test failure. Got %v queries, expected %v", actualQueries, expectedQueries)
 	}
 }
