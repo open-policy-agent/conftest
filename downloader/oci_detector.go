@@ -34,6 +34,7 @@ func containsOCIRegistry(src string) bool {
 		regexp.MustCompile("gcr.io"),
 		regexp.MustCompile("registry.gitlab.com"),
 		regexp.MustCompile("[0-9]{12}.dkr.ecr.[a-z0-9-]*.amazonaws.com"),
+		regexp.MustCompile("^quay.io"),
 	}
 
 	for _, matchRegistry := range matchRegistries {
