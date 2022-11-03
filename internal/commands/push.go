@@ -109,7 +109,7 @@ func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 	}
 
 	cmd.Flags().StringP("policy", "p", "policy", "Directory to push as a bundle")
-	cmd.Flags().StringP("data", "d", "", "Directory containing data to include in the bundle")
+	cmd.Flags().StringP("data", "d", "", "Directory containing data to include in the bundle, defaults to the value of the policy flag")
 
 	return &cmd
 }
