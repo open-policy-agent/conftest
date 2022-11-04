@@ -19,18 +19,18 @@ require (
 	github.com/magiconair/properties v1.8.5
 	github.com/moby/buildkit v0.9.3
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/open-policy-agent/opa v0.45.0
+	github.com/open-policy-agent/opa v0.46.1
 	github.com/opencontainers/image-spec v1.1.0-rc1
 	github.com/pkg/errors v0.9.1
 	github.com/shteou/go-ignore v0.3.1
 	github.com/spdx/tools-golang v0.2.0
-	github.com/spf13/cobra v1.5.0
+	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.10.0
 	github.com/subosito/gotenv v1.2.0
 	github.com/tmccombs/hcl2json v0.3.1
 	muzzammil.xyz/jsonc v1.0.0
 	olympos.io/encoding/edn v0.0.0-20201019073823-d3554ca0b0a3
-	oras.land/oras-go v1.2.0
+	oras.land/oras-go v1.2.1
 )
 
 require (
@@ -48,7 +48,7 @@ require (
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/cockroachdb/apd/v2 v2.0.1 // indirect
-	github.com/containerd/containerd v1.6.8 // indirect
+	github.com/containerd/containerd v1.6.9 // indirect
 	github.com/containerd/typeurl v1.0.2 // indirect
 	github.com/docker/cli v20.10.18+incompatible // indirect
 	github.com/docker/distribution v2.8.1+incompatible // indirect
@@ -58,7 +58,7 @@ require (
 	github.com/docker/go-metrics v0.0.1 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
-	github.com/fsnotify/fsnotify v1.5.4 // indirect
+	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
@@ -89,7 +89,7 @@ require (
 	github.com/mpvl/unique v0.0.0-20150818121801-cbe035fff7de // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
-	github.com/prometheus/client_golang v1.13.0 // indirect
+	github.com/prometheus/client_golang v1.13.1 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.37.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
@@ -110,13 +110,13 @@ require (
 	golang.org/x/net v0.0.0-20220909164309-bea034e7d591 // indirect
 	golang.org/x/oauth2 v0.0.0-20220822191816-0ebed06d0094 // indirect
 	golang.org/x/sync v0.0.0-20220929204114-8fcdb60fdcc0 // indirect
-	golang.org/x/sys v0.0.0-20220928140112-f11e5e49a4ec // indirect
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/sys v0.0.0-20221010170243-090e33056c14 // indirect
+	golang.org/x/text v0.4.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f // indirect
 	google.golang.org/api v0.84.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220822174746-9e6da59bd2fc // indirect
-	google.golang.org/grpc v1.49.0 // indirect
+	google.golang.org/grpc v1.50.1 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/ini.v1 v1.66.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
