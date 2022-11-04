@@ -61,7 +61,9 @@ func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 			if err := viper.BindPFlag("policy", cmd.Flags().Lookup("policy")); err != nil {
 				return fmt.Errorf("bind flag: %w", err)
 			}
-
+			if err := viper.BindPFlag("data", cmd.Flags().Lookup("data")); err != nil {
+				return fmt.Errorf("bind flag: %w", err)
+			}
 			return nil
 		},
 
@@ -91,7 +93,12 @@ func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 			}
 
 			logger.Printf("pushing bundle to: %s", repository)
-			manifest, err := pushBundle(orascontext.Background(), repository, viper.GetString("policy"))
+			policyPath := viper.GetString("policy")
+			dataPath := viper.GetString("data")
+			if dataPath == "" {
+				dataPath = policyPath
+			}
+			manifest, err := pushBundle(orascontext.Background(), repository, policyPath, dataPath)
 			if err != nil {
 				return fmt.Errorf("push bundle: %w", err)
 			}
@@ -102,11 +109,12 @@ func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 	}
 
 	cmd.Flags().StringP("policy", "p", "policy", "Directory to push as a bundle")
+	cmd.Flags().StringP("data", "d", "", "Directory containing data to include in the bundle, defaults to the value of the policy flag")
 
 	return &cmd
 }
 
-func pushBundle(ctx context.Context, repository string, path string) (*ocispec.Descriptor, error) {
+func pushBundle(ctx context.Context, repository, policyPath, dataPath string) (*ocispec.Descriptor, error) {
 	cli, err := dockerauth.NewClient()
 	if err != nil {
 		return nil, fmt.Errorf("get auth client: %w", err)
@@ -119,7 +127,7 @@ func pushBundle(ctx context.Context, repository string, path string) (*ocispec.D
 	registry := content.Registry{Resolver: resolver}
 
 	memoryStore := content.NewMemory()
-	layers, err := buildLayers(ctx, memoryStore, path)
+	layers, err := buildLayers(ctx, memoryStore, policyPath, dataPath)
 	if err != nil {
 		return nil, fmt.Errorf("building layers: %w", err)
 	}
@@ -141,8 +149,8 @@ func pushBundle(ctx context.Context, repository string, path string) (*ocispec.D
 	return &manifest, nil
 }
 
-func buildLayers(ctx context.Context, memoryStore *content.Memory, path string) ([]ocispec.Descriptor, error) {
-	engine, err := policy.LoadWithData(ctx, []string{path}, []string{path}, "")
+func buildLayers(ctx context.Context, memoryStore *content.Memory, policyPath, dataPath string) ([]ocispec.Descriptor, error) {
+	engine, err := policy.LoadWithData(ctx, []string{policyPath}, []string{dataPath}, "")
 	if err != nil {
 		return nil, fmt.Errorf("load: %w", err)
 	}

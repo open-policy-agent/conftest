@@ -27,19 +27,37 @@ fi
 # Give the registry container some time to spin up and initialize.
 sleep 5
 
-$CONFTEST push localhost:5000/test -p examples/data
+$CONFTEST push localhost:5000/testpush -p examples/data
 if [ $? != 0 ]; then
     echo "ERROR PUSHING BUNDLE"
     exit 1
 fi
 
-$CONFTEST pull localhost:5000/test -p tmp
+$CONFTEST pull localhost:5000/testpush -p testpush
 if [ $? != 0 ]; then
     echo "ERROR PULLING BUNDLE"
     exit 1
 fi
 
-$CONFTEST verify -p tmp/examples/data/policy -d tmp/examples/data/exclusions tmp/examples/data/service.yaml
+$CONFTEST verify -p testpush/examples/data/policy -d testpush/examples/data/exclusions testpush/examples/data/service.yaml
+if [ $? != 0 ]; then
+    echo "POLICIES WERE NOT SUCCESSFULLY VERIFIED"
+    exit 1
+fi
+
+$CONFTEST push localhost:5000/testdatadirectory -p examples/data/policy -d examples/data/exclusions
+if [ $? != 0 ]; then
+    echo "ERROR PUSHING BUNDLE"
+    exit 1
+fi
+
+$CONFTEST pull localhost:5000/testdatadirectory -p testdatadirectory
+if [ $? != 0 ]; then
+    echo "ERROR PULLING BUNDLE"
+    exit 1
+fi
+
+$CONFTEST verify -p testdatadirectory/examples/data/policy -d testdatadirectory/examples/data/exclusions testdatadirectory/examples/data/service.yaml
 if [ $? != 0 ]; then
     echo "POLICIES WERE NOT SUCCESSFULLY VERIFIED"
     exit 1
