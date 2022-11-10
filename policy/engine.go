@@ -53,11 +53,11 @@ func Load(ctx context.Context, policyPaths []string, c *ast.Capabilities) (*Engi
 	}
 
 	policyContents := make(map[string]string, len(modules))
-	for path, module := range modules {
+	for path, module := range policies.Modules {
 		path = filepath.Clean(path)
 		path = filepath.ToSlash(path)
 
-		policyContents[path] = module.String()
+		policyContents[path] = string(module.Raw)
 	}
 
 	engine := Engine{
