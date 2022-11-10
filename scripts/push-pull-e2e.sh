@@ -10,7 +10,7 @@ CONFTEST="./conftest"
 CONTAINER_NAME="conftest-push-pull-e2e"
 
 function cleanup() {
-    docker rm $CONTAINER_NAME -f > /dev/null 2>&1
+    docker rm $CONTAINER_NAME -f >/dev/null 2>&1
     rm -rf tmp
 }
 
@@ -42,6 +42,24 @@ fi
 $CONFTEST verify -p tmp/examples/data/policy -d tmp/examples/data/exclusions tmp/examples/data/service.yaml
 if [ $? != 0 ]; then
     echo "POLICIES WERE NOT SUCCESSFULLY VERIFIED"
+    exit 1
+fi
+
+$CONFTEST push localhost:5000/test-annotations -p tests/annotations
+if [ $? != 0 ]; then
+    echo "ERROR PUSHING ANNOTATIONS BUNDLE"
+    exit 1
+fi
+
+$CONFTEST pull localhost:5000/test-annotations -p tmp
+if [ $? != 0 ]; then
+    echo "ERROR PULLING ANNOTATIONS BUNDLE"
+    exit 1
+fi
+
+$CONFTEST verify -p tmp/tests/annotations/policy -d tmp/tests/annotations/exclusions tmp/tests/annotations/service.yaml
+if [ $? != 0 ]; then
+    echo "POLICIES WITH ANNOTATIONS WERE NOT SUCCESSFULLY VERIFIED"
     exit 1
 fi
 
