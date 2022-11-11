@@ -1,0 +1,4 @@
+services:
+  ports:
+  - 22
+  - 21

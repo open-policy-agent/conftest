@@ -14,6 +14,7 @@ import (
 	"github.com/open-policy-agent/conftest/parser"
 
 	"github.com/open-policy-agent/opa/ast"
+	"github.com/open-policy-agent/opa/bundle"
 	"github.com/open-policy-agent/opa/loader"
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/storage"
@@ -34,7 +35,10 @@ type Engine struct {
 
 // Load returns an Engine after loading all of the specified policies.
 func Load(ctx context.Context, policyPaths []string, c *ast.Capabilities) (*Engine, error) {
-	policies, err := loader.AllRegos(policyPaths)
+	policies, err := loader.NewFileLoader().WithProcessAnnotation(true).Filtered(policyPaths, func(_ string, info os.FileInfo, depth int) bool {
+		return !info.IsDir() && !strings.HasSuffix(info.Name(), bundle.RegoExt)
+	})
+
 	if err != nil {
 		return nil, fmt.Errorf("load: %w", err)
 	} else if len(policies.Modules) == 0 {
@@ -49,11 +53,11 @@ func Load(ctx context.Context, policyPaths []string, c *ast.Capabilities) (*Engi
 	}
 
 	policyContents := make(map[string]string, len(modules))
-	for path, module := range modules {
+	for path, module := range policies.Modules {
 		path = filepath.Clean(path)
 		path = filepath.ToSlash(path)
 
-		policyContents[path] = module.String()
+		policyContents[path] = string(module.Raw)
 	}
 
 	engine := Engine{
