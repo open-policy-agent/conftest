@@ -35,8 +35,8 @@ Optionally, specific directory can be passed as a second argument, e.g.:
 
 	$ conftest push instrumenta.azurecr.io/my-registry:v1 path/to/dir
 
-Conftest leverages the ORAS library under the hood. This allows arbitrary artifacts to 
-be stored in compatible OCI registries. Currently open policy agent bundles are supported by 
+Conftest leverages the ORAS library under the hood. This allows arbitrary artifacts to
+be stored in compatible OCI registries. Currently Open Policy Agent bundles are supported by
 the docker/distribution (https://github.com/docker/distribution) registry and by Azure.
 
 The policy location defaults to the policy directory in the local folder.
@@ -93,8 +93,12 @@ func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 			}
 
 			logger.Printf("pushing bundle to: %s", repository)
+
 			policyPath := viper.GetString("policy")
 			dataPath := viper.GetString("data")
+			if policyPath == "" && dataPath == "" {
+				return errors.New("either policy or data must be set")
+			}
 			if dataPath == "" {
 				dataPath = policyPath
 			}
@@ -150,7 +154,15 @@ func pushBundle(ctx context.Context, repository, policyPath, dataPath string) (*
 }
 
 func buildLayers(ctx context.Context, memoryStore *content.Memory, policyPath, dataPath string) ([]ocispec.Descriptor, error) {
-	engine, err := policy.LoadWithData(ctx, []string{policyPath}, []string{dataPath}, "")
+	var policyPaths []string
+	if policyPath != "" {
+		policyPaths = append(policyPaths, policyPath)
+	}
+	var dataPaths []string
+	if dataPath != "" {
+		dataPaths = append(dataPaths, dataPath)
+	}
+	engine, err := policy.LoadWithData(ctx, policyPaths, dataPaths, "")
 	if err != nil {
 		return nil, fmt.Errorf("load: %w", err)
 	}

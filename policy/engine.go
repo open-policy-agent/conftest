@@ -84,9 +84,13 @@ func LoadWithData(ctx context.Context, policyPaths []string, dataPaths []string,
 		}
 	}
 
-	engine, err := Load(ctx, policyPaths, c)
-	if err != nil {
-		return nil, fmt.Errorf("loading policies: %w", err)
+	engine := &Engine{}
+	if len(policyPaths) > 0 {
+		var err error
+		engine, err = Load(ctx, policyPaths, c)
+		if err != nil {
+			return nil, fmt.Errorf("loading policies: %w", err)
+		}
 	}
 
 	// FilteredPaths will recursively find all file paths that contain a valid document
