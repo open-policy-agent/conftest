@@ -63,6 +63,24 @@ if [ $? != 0 ]; then
     exit 1
 fi
 
+$CONFTEST push localhost:5000/testdataonly -p '' -d examples/data/exclusions
+if [ $? != 0 ]; then
+    echo "ERROR PUSHING BUNDLE"
+    exit 1
+fi
+
+$CONFTEST pull localhost:5000/testdataonly -p testdataonly
+if [ $? != 0 ]; then
+    echo "ERROR PULLING BUNDLE"
+    exit 1
+fi
+
+$CONFTEST verify -p '' -d testdataonly/examples/data/exclusions
+if [ $? != 0 ]; then
+    echo "ERROR LOADING DATA BUNDLES"
+    exit 1
+fi
+
 $CONFTEST push localhost:5000/test-annotations -p tests/annotations
 if [ $? != 0 ]; then
     echo "ERROR PUSHING ANNOTATIONS BUNDLE"
