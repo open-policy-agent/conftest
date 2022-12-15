@@ -1,6 +1,7 @@
 package builtins
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
@@ -15,6 +16,7 @@ import (
 func init() {
 	registerParseConfig()
 	registerParseConfigFile()
+	registerParseCombinedConfigFiles()
 }
 
 func registerParseConfig() {
@@ -39,6 +41,17 @@ func registerParseConfigFile() {
 	rego.RegisterBuiltin1(&decl, parseConfigFile)
 }
 
+func registerParseCombinedConfigFiles() {
+	decl := rego.Function{
+		Name: "parse_combined_config_files",
+		Decl: types.NewFunction(
+			types.Args(types.NewArray(nil, types.S)),                                // paths to configuration files
+			types.NewObject(nil, types.NewDynamicProperty(types.S, types.NewAny())), // map[string]interface{} aka JSON
+		),
+	}
+	rego.RegisterBuiltin1(&decl, parseCombinedConfigFiles)
+}
+
 // parseConfig takes a parser name and configuration as strings and returns the
 // parsed configuration as a Rego object. This can be used to parse all of the
 // configuration formats conftest supports in-line in Rego policies.
@@ -60,7 +73,12 @@ func parseConfig(bctx rego.BuiltinContext, op1, op2 *ast.Term) (*ast.Term, error
 		return nil, fmt.Errorf("create config parser: %w", err)
 	}
 
-	return toAST(bctx, parser, []byte(config))
+	var cfg map[string]interface{}
+	if err := parser.Unmarshal([]byte(config), &cfg); err != nil {
+		return nil, fmt.Errorf("unmarshal config: %w", err)
+	}
+
+	return toAST(bctx, cfg, []byte(config))
 }
 
 // parseConfigFile takes a config file path, parses the config file, and
@@ -84,7 +102,38 @@ func parseConfigFile(bctx rego.BuiltinContext, op1 *ast.Term) (*ast.Term, error)
 		return nil, fmt.Errorf("read config file %s: %w", filePath, err)
 	}
 
-	return toAST(bctx, parser, contents)
+	var cfg map[string]interface{}
+	if err := parser.Unmarshal(contents, &cfg); err != nil {
+		return nil, fmt.Errorf("unmarshal config: %w", err)
+	}
+
+	return toAST(bctx, cfg, contents)
+}
+
+// parseCombinedConfigFiles
+func parseCombinedConfigFiles(bctx rego.BuiltinContext, op1 *ast.Term) (*ast.Term, error) {
+	args, err := decodeArgs([]*ast.Term{op1})
+	if err != nil {
+		return nil, fmt.Errorf("decode args: %w", err)
+	}
+
+	filePaths := []string{}
+	fileList := args[0].([]interface{})
+	for _, file := range fileList {
+		filePaths = append(filePaths, filepath.Join(filepath.Dir(bctx.Location.File), file.(string)))
+	}
+
+	cfg, err := parser.ParseConfigurations(filePaths)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse combine configurations: %w", err)
+	}
+	combinedCfg := parser.CombineConfigurations(cfg)
+	combinedContent, err := json.Marshal(combinedCfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal combined content: %w", err)
+	}
+
+	return toAST(bctx, combinedCfg["Combined"], combinedContent)
 }
 
 func decodeArgs(args []*ast.Term) ([]interface{}, error) {
@@ -100,11 +149,7 @@ func decodeArgs(args []*ast.Term) ([]interface{}, error) {
 	return decoded, nil
 }
 
-func toAST(bctx rego.BuiltinContext, parser parser.Parser, contents []byte) (*ast.Term, error) {
-	var cfg map[string]interface{}
-	if err := parser.Unmarshal(contents, &cfg); err != nil {
-		return nil, fmt.Errorf("unmarshal config: %w", err)
-	}
+func toAST(bctx rego.BuiltinContext, cfg interface{}, contents []byte) (*ast.Term, error) {
 	val, err := ast.InterfaceToValue(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("convert config to ast.Value: %w", err)
