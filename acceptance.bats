@@ -408,7 +408,7 @@
 
 @test "Can validate SPDX file" {
   run ./conftest test -p examples/spdx/policy examples/spdx/sbom.spdx
-  
+
   [ "$status" -eq 0 ]
   [[ "$output" =~ "1 test, 1 passed, 0 warnings, 0 failures, 0 exceptions" ]] 
 }
@@ -438,4 +438,10 @@
   [ "$status" -eq 1 ]
   [[ "$output" =~ "undefined function opa.runtime" ]]
   [[ "$output" =~ "undefined function http.send" ]]
+}
+
+@test "Can verify rego tests that uses parse_combined_config_files" {
+  run ./conftest verify --policy ./examples/kubernetes/combine
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "2 tests, 2 passed" ]]
 }
