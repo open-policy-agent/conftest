@@ -39,11 +39,27 @@ checksum:
   name_template: 'checksums.txt'
 
 changelog:
+  use: github
+  groups:
+  - title: New Features
+    regexp: '^feat(ure)?:'
+    order: 0
+  - title: Bug Fixes
+    regexp: '^(bug|fix):'
+    order: 1
+  - title: OPA Changes
+    regexp: '(?i)bump (opa|github.com/open-policy-agent/opa)'
+    order: 5
+  - title: Other Changes
+    order: 999
   sort: asc
   filters:
     exclude:
     - '^docs:'
     - '^test:'
+    - '^misc:'
+    - '^typo:'
+    - '(?i) typo( |\.|\r?\n)'
 
 # Publishes the deb and rpm files to the GitHub releases page.
 nfpms:
