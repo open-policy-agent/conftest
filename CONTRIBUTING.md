@@ -33,6 +33,7 @@ If you are contributing code, please consider the following:
 - Most changes should be accompanied by tests.
 - All commits must be signed off (see next section).
 - Related commits must be squashed before they are merged.
+- All commits must have a [conventional commit prefix](https://www.conventionalcommits.org/en/v1.0.0/#summary), such as `feat:`, `fix:`, etc.
 - All tests must pass.
 
 If you are new to Go, consider reading [Effective
@@ -45,7 +46,7 @@ guidance on writing idiomatic Go code.
 Commit messages should explain *why* the changes were made and should probably look like this:
 
 ```
-Description of the change in 50 characters or less
+fix: Description of a bug fix in 50 characters or less
 
 More detail on what was changed. Provide some background on the issue
 and describe how the changes address the issue. Feel free to use multiple
