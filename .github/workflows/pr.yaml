@@ -15,6 +15,19 @@ permissions:
   statuses: none
 
 jobs:
+  style:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout all PR branch and commits
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+        fetch-depth: ${{ github.event.pull_request.commits }}
+
+    - name: validate conventional commit prefix
+      working-directory: scripts
+      run: ./validate-conventional-commit-prefix.sh
+
   validate:
     runs-on: ubuntu-latest
     steps:
