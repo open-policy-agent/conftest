@@ -290,7 +290,7 @@ jobs:
     container: openpolicyagent/conftest:latest
     steps:
       - name: Code checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Validate Kubernetes policy
         run: |
           conftest test -o github -p examples/kubernetes/policy examples/kubernetes/deployment.yaml
