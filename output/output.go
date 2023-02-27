@@ -20,6 +20,7 @@ type Options struct {
 	NoColor            bool
 	SuppressExceptions bool
 	ShowSkipped        bool
+	ShowSucceeded      bool
 	JUnitHideMessage   bool
 }
 
@@ -38,7 +39,7 @@ const (
 func Get(format string, options Options) Outputter {
 	switch format {
 	case OutputStandard:
-		return &Standard{Writer: os.Stdout, NoColor: options.NoColor, SuppressExceptions: options.SuppressExceptions, Tracing: options.Tracing, ShowSkipped: options.ShowSkipped}
+		return &Standard{Writer: os.Stdout, NoColor: options.NoColor, SuppressExceptions: options.SuppressExceptions, Tracing: options.Tracing, ShowSkipped: options.ShowSkipped, ShowSucceeded: options.ShowSucceeded}
 	case OutputJSON:
 		return NewJSON(os.Stdout)
 	case OutputTAP:

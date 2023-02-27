@@ -30,6 +30,9 @@ type Standard struct {
 	// ShowSkipped whether to show skipped tests
 	// in the output.
 	ShowSkipped bool
+
+	// ShowSucceeded results used to remove the no policies feature
+	ShowSucceeded bool
 }
 
 // NewStandard creates a new Standard with the given writer.
@@ -76,7 +79,7 @@ func (s *Standard) Output(results []CheckResult) error {
 		}
 
 		totalPolicies := result.Successes + len(result.Warnings) + len(result.Failures) + len(result.Exceptions) + len(result.Skipped)
-		if totalPolicies == 0 {
+		if totalPolicies == 0 && s.ShowSucceeded {
 			fmt.Fprintln(s.Writer, colorizer.Colorize("?", aurora.WhiteFg), indicator, namespace, "no policies found")
 			continue
 		}

@@ -9,10 +9,11 @@ import (
 
 func TestStandard(t *testing.T) {
 	tests := []struct {
-		name        string
-		input       []CheckResult
-		expected    []string
-		showSkipped bool
+		name          string
+		input         []CheckResult
+		expected      []string
+		showSkipped   bool
+		showSucceeded bool
 	}{
 		{
 			name: "records failures, warnings and skipped",
@@ -89,6 +90,41 @@ func TestStandard(t *testing.T) {
 				"",
 			},
 		},
+		{
+			name: "no policies found",
+			input: []CheckResult{
+				{
+					FileName:  "deployment.yaml",
+					Namespace: "namespace",
+					Successes: 0,
+				},
+			},
+			showSkipped:   true,
+			showSucceeded: true,
+			expected: []string{
+				"? - deployment.yaml - namespace - no policies found",
+				"",
+				"0 tests, 0 passed, 0 warnings, 0 failures, 0 exceptions, 0 skipped",
+				"",
+			},
+		},
+		{
+			name: "no policies found - hide succeeded cases",
+			input: []CheckResult{
+				{
+					FileName:  "deployment.yaml",
+					Namespace: "namespace",
+					Successes: 0,
+				},
+			},
+			showSkipped:   true,
+			showSucceeded: false,
+			expected: []string{
+				"",
+				"0 tests, 0 passed, 0 warnings, 0 failures, 0 exceptions, 0 skipped",
+				"",
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -96,7 +132,7 @@ func TestStandard(t *testing.T) {
 			expected := strings.Join(tt.expected, "\n")
 
 			buf := new(bytes.Buffer)
-			standard := Standard{Writer: buf, NoColor: true, ShowSkipped: tt.showSkipped}
+			standard := Standard{Writer: buf, NoColor: true, ShowSkipped: tt.showSkipped, ShowSucceeded: tt.showSucceeded}
 			if err := standard.Output(tt.input); err != nil {
 				t.Fatal("output standard:", err)
 			}
