@@ -101,6 +101,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				"update",
 				"junit-hide-message",
 				"quiet",
+				"suppress-no-policies-found",
 			}
 			for _, name := range flagNames {
 				if err := viper.BindPFlag(name, cmd.Flags().Lookup(name)); err != nil {
@@ -127,28 +128,30 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("running test: %w", err)
 			}
 
-			outputter := output.Get(runner.Output, output.Options{
-				NoColor:            runner.NoColor,
-				SuppressExceptions: runner.SuppressExceptions,
-				Tracing:            runner.Trace,
-				ShowSucceeded:      !runner.Quiet,
-				JUnitHideMessage:   viper.GetBool("junit-hide-message"),
-			})
-			if err := outputter.Output(results); err != nil {
-				return fmt.Errorf("output results: %w", err)
-			}
-
-			// When the no-fail parameter is set, there is no need to figure out the error code
-			// as we always want to return zero.
-			if runner.NoFail {
-				return nil
-			}
-
 			var exitCode int
 			if runner.FailOnWarn {
 				exitCode = output.ExitCodeFailOnWarn(results)
 			} else {
 				exitCode = output.ExitCode(results)
+			}
+
+			if !runner.Quiet || exitCode != 0 {
+				outputter := output.Get(runner.Output, output.Options{
+					NoColor:                 runner.NoColor,
+					SuppressExceptions:      runner.SuppressExceptions,
+					Tracing:                 runner.Trace,
+					SuppressNoPoliciesFound: runner.SuppressNoPoliciesFound,
+					JUnitHideMessage:        viper.GetBool("junit-hide-message"),
+				})
+				if err := outputter.Output(results); err != nil {
+					return fmt.Errorf("output results: %w", err)
+				}
+
+				// When the no-fail parameter is set, there is no need to figure out the error code
+				// as we always want to return zero.
+				if runner.NoFail {
+					return nil
+				}
 			}
 
 			os.Exit(exitCode)
@@ -162,6 +165,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().Bool("suppress-exceptions", false, "Do not include exceptions in output")
 	cmd.Flags().Bool("all-namespaces", false, "Test policies found in all namespaces")
 	cmd.Flags().Bool("quiet", false, "Disable successful test output")
+	cmd.Flags().Bool("suppress-no-policies-found", true, "Suppresses output that no policies found")
 
 	cmd.Flags().BoolP("trace", "", false, "Enable more verbose trace output for Rego queries")
 	cmd.Flags().BoolP("combine", "", false, "Combine all config files to be evaluated together")

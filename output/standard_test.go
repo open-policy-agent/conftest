@@ -9,11 +9,11 @@ import (
 
 func TestStandard(t *testing.T) {
 	tests := []struct {
-		name          string
-		input         []CheckResult
-		expected      []string
-		showSkipped   bool
-		showSucceeded bool
+		name                    string
+		input                   []CheckResult
+		expected                []string
+		showSkipped             bool
+		suppressNoPoliciesFound bool
 	}{
 		{
 			name: "records failures, warnings and skipped",
@@ -99,8 +99,8 @@ func TestStandard(t *testing.T) {
 					Successes: 0,
 				},
 			},
-			showSkipped:   true,
-			showSucceeded: true,
+			showSkipped:             true,
+			suppressNoPoliciesFound: false,
 			expected: []string{
 				"? - deployment.yaml - namespace - no policies found",
 				"",
@@ -117,8 +117,8 @@ func TestStandard(t *testing.T) {
 					Successes: 0,
 				},
 			},
-			showSkipped:   true,
-			showSucceeded: false,
+			showSkipped:             true,
+			suppressNoPoliciesFound: true,
 			expected: []string{
 				"",
 				"0 tests, 0 passed, 0 warnings, 0 failures, 0 exceptions, 0 skipped",
@@ -132,7 +132,7 @@ func TestStandard(t *testing.T) {
 			expected := strings.Join(tt.expected, "\n")
 
 			buf := new(bytes.Buffer)
-			standard := Standard{Writer: buf, NoColor: true, ShowSkipped: tt.showSkipped, ShowSucceeded: tt.showSucceeded}
+			standard := Standard{Writer: buf, NoColor: true, ShowSkipped: tt.showSkipped, SuppressNoPoliciesFound: tt.suppressNoPoliciesFound}
 			if err := standard.Output(tt.input); err != nil {
 				t.Fatal("output standard:", err)
 			}

@@ -16,12 +16,12 @@ type Outputter interface {
 // Options represents the options available when configuring
 // an Outputter.
 type Options struct {
-	Tracing            bool
-	NoColor            bool
-	SuppressExceptions bool
-	ShowSkipped        bool
-	ShowSucceeded      bool
-	JUnitHideMessage   bool
+	Tracing                 bool
+	NoColor                 bool
+	SuppressExceptions      bool
+	ShowSkipped             bool
+	SuppressNoPoliciesFound bool
+	JUnitHideMessage        bool
 }
 
 // The defined output formats represent all of the supported formats
@@ -39,7 +39,7 @@ const (
 func Get(format string, options Options) Outputter {
 	switch format {
 	case OutputStandard:
-		return &Standard{Writer: os.Stdout, NoColor: options.NoColor, SuppressExceptions: options.SuppressExceptions, Tracing: options.Tracing, ShowSkipped: options.ShowSkipped, ShowSucceeded: options.ShowSucceeded}
+		return &Standard{Writer: os.Stdout, NoColor: options.NoColor, SuppressExceptions: options.SuppressExceptions, Tracing: options.Tracing, ShowSkipped: options.ShowSkipped, SuppressNoPoliciesFound: options.SuppressNoPoliciesFound}
 	case OutputJSON:
 		return NewJSON(os.Stdout)
 	case OutputTAP:

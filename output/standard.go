@@ -31,8 +31,8 @@ type Standard struct {
 	// in the output.
 	ShowSkipped bool
 
-	// ShowSucceeded results used to remove the no policies feature
-	ShowSucceeded bool
+	// SuppressNoPoliciesFound results used to remove the policies not found output
+	SuppressNoPoliciesFound bool
 }
 
 // NewStandard creates a new Standard with the given writer.
@@ -79,7 +79,7 @@ func (s *Standard) Output(results []CheckResult) error {
 		}
 
 		totalPolicies := result.Successes + len(result.Warnings) + len(result.Failures) + len(result.Exceptions) + len(result.Skipped)
-		if totalPolicies == 0 && s.ShowSucceeded {
+		if totalPolicies == 0 && !s.SuppressNoPoliciesFound {
 			fmt.Fprintln(s.Writer, colorizer.Colorize("?", aurora.WhiteFg), indicator, namespace, "no policies found")
 			continue
 		}
