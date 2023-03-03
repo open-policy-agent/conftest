@@ -99,6 +99,16 @@ FAIL - Combined - Deployment hello-kubernetes has selector hello-kubernetes that
 
 This is just the tip of the iceberg. Now you can ensure that duplicate values match across the entirety of your configuration files.
 
+## `--config-file (-c)`
+
+Sets the location of the Conftest configuration file
+
+For example:
+
+```console
+conftest -c examples/configfile/conftest.toml test -p examples/configfile/test examples/configfile/deployment.yaml
+```
+
 ## `--data`
 
 Sometimes policies require additional data in order to determine an answer.
