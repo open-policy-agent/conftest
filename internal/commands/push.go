@@ -1,22 +1,24 @@
 package commands
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
-	"net/http"
 	"strings"
 
+	"github.com/open-policy-agent/conftest/internal/registry"
 	"github.com/open-policy-agent/conftest/policy"
+	"github.com/opencontainers/image-spec/specs-go"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"oras.land/oras-go/pkg/auth"
-	dockerauth "oras.land/oras-go/pkg/auth/docker"
-	"oras.land/oras-go/pkg/content"
-	orascontext "oras.land/oras-go/pkg/context"
-	"oras.land/oras-go/pkg/oras"
+	"oras.land/oras-go/v2"
+	"oras.land/oras-go/v2/content"
+	"oras.land/oras-go/v2/errdef"
+	"oras.land/oras-go/v2/registry/remote"
 )
 
 const pushDesc = `
@@ -64,6 +66,9 @@ func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 			if err := viper.BindPFlag("data", cmd.Flags().Lookup("data")); err != nil {
 				return fmt.Errorf("bind flag: %w", err)
 			}
+			if err := viper.BindPFlag("tls", cmd.Flags().Lookup("tls")); err != nil {
+				return fmt.Errorf("bind flag: %w", err)
+			}
 			return nil
 		},
 
@@ -102,7 +107,7 @@ func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 			if dataPath == "" {
 				dataPath = policyPath
 			}
-			manifest, err := pushBundle(orascontext.Background(), repository, policyPath, dataPath)
+			manifest, err := pushBundle(ctx, repository, policyPath, dataPath)
 			if err != nil {
 				return fmt.Errorf("push bundle: %w", err)
 			}
@@ -114,46 +119,60 @@ func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 
 	cmd.Flags().StringP("policy", "p", "policy", "Directory to push as a bundle")
 	cmd.Flags().StringP("data", "d", "", "Directory containing data to include in the bundle, defaults to the value of the policy flag")
+	cmd.Flags().BoolP("tls", "s", true, "Use TLS to access the registry")
 
 	return &cmd
 }
 
 func pushBundle(ctx context.Context, repository, policyPath, dataPath string) (*ocispec.Descriptor, error) {
-	cli, err := dockerauth.NewClient()
+	dest, err := remote.NewRepository(repository)
 	if err != nil {
-		return nil, fmt.Errorf("get auth client: %w", err)
-	}
-	opts := []auth.ResolverOption{auth.WithResolverClient(http.DefaultClient)}
-	resolver, err := cli.ResolverWithOpts(opts...)
-	if err != nil {
-		return nil, fmt.Errorf("docker resolver: %w", err)
-	}
-	registry := content.Registry{Resolver: resolver}
-
-	memoryStore := content.NewMemory()
-	layers, err := buildLayers(ctx, memoryStore, policyPath, dataPath)
-	if err != nil {
-		return nil, fmt.Errorf("building layers: %w", err)
-	}
-	manifestData, manifest, cfgData, cfg, err := content.GenerateManifestAndConfig(nil, nil, layers...)
-	if err != nil {
-		return nil, fmt.Errorf("generate manifest: %w", err)
-	}
-	memoryStore.Set(cfg, cfgData)
-	err = memoryStore.StoreManifest(repository, manifest, manifestData)
-	if err != nil {
-		return nil, fmt.Errorf("store manifest: %w", err)
+		return nil, fmt.Errorf("constructing repository: %w", err)
 	}
 
-	_, err = oras.Copy(ctx, memoryStore, repository, registry, "")
+	registry.SetupClient(dest)
+
+	layers, err := pushLayers(ctx, dest, policyPath, dataPath)
 	if err != nil {
-		return nil, fmt.Errorf("pushing manifest: %w", err)
+		return nil, fmt.Errorf("pushing layers: %w", err)
 	}
 
-	return &manifest, nil
+	configBytes := []byte("{}")
+	configDesc := content.NewDescriptorFromBytes(oras.MediaTypeUnknownConfig, configBytes)
+	if err != nil {
+		return nil, fmt.Errorf("serializing manifest conifg: %w", err)
+	}
+
+	if err := dest.Push(ctx, configDesc, bytes.NewReader(configBytes)); err != nil && !errors.Is(err, errdef.ErrAlreadyExists) {
+		return nil, fmt.Errorf("pushing manifest conifg: %w", err)
+	}
+
+	manifest := ocispec.Manifest{
+		Config:    configDesc,
+		Layers:    layers,
+		Versioned: specs.Versioned{SchemaVersion: 2},
+	}
+	manifestBytes, err := json.Marshal(manifest)
+	if err != nil {
+		return nil, fmt.Errorf("serializing manifest: %w", err)
+	}
+
+	manifestDesc := content.NewDescriptorFromBytes(ocispec.MediaTypeImageManifest, manifestBytes)
+	if err := dest.Push(ctx, manifestDesc, bytes.NewReader(manifestBytes)); err != nil && !errors.Is(err, errdef.ErrAlreadyExists) {
+		return nil, fmt.Errorf("pushing manifest conifg: %w", err)
+	}
+
+	afterLastSlash := repository[strings.LastIndex(repository, "/")+1:]
+	tag := afterLastSlash[strings.Index(afterLastSlash, ":")+1:]
+
+	if err := dest.Tag(ctx, manifestDesc, tag); err != nil && !errors.Is(err, errdef.ErrAlreadyExists) {
+		return nil, fmt.Errorf("tagging: %w", err)
+	}
+
+	return &manifestDesc, nil
 }
 
-func buildLayers(ctx context.Context, memoryStore *content.Memory, policyPath, dataPath string) ([]ocispec.Descriptor, error) {
+func pushLayers(ctx context.Context, pusher content.Pusher, policyPath, dataPath string) ([]ocispec.Descriptor, error) {
 	var policyPaths []string
 	if policyPath != "" {
 		policyPaths = append(policyPaths, policyPath)
@@ -169,17 +188,25 @@ func buildLayers(ctx context.Context, memoryStore *content.Memory, policyPath, d
 
 	var layers []ocispec.Descriptor
 	for path, contents := range engine.Policies() {
-		desc, err := memoryStore.Add(path, openPolicyAgentPolicyLayerMediaType, []byte(contents))
-		if err != nil {
-			return nil, fmt.Errorf("add policy layer to store: %w", err)
+		data := []byte(contents)
+		desc := content.NewDescriptorFromBytes(openPolicyAgentPolicyLayerMediaType, data)
+		desc.Annotations = map[string]string{
+			ocispec.AnnotationTitle: path,
+		}
+		if err := pusher.Push(ctx, desc, bytes.NewReader(data)); err != nil && !errors.Is(err, errdef.ErrAlreadyExists) {
+			return nil, fmt.Errorf("pushing policy layer: %w", err)
 		}
 		layers = append(layers, desc)
 	}
 
 	for path, contents := range engine.Documents() {
-		desc, err := memoryStore.Add(path, openPolicyAgentDataLayerMediaType, []byte(contents))
-		if err != nil {
-			return nil, fmt.Errorf("add data layer to store: %w", err)
+		data := []byte(contents)
+		desc := content.NewDescriptorFromBytes(openPolicyAgentDataLayerMediaType, data)
+		desc.Annotations = map[string]string{
+			ocispec.AnnotationTitle: path,
+		}
+		if err := pusher.Push(ctx, desc, bytes.NewReader(data)); err != nil && !errors.Is(err, errdef.ErrAlreadyExists) {
+			return nil, fmt.Errorf("pushing data layer: %w", err)
 		}
 		layers = append(layers, desc)
 	}

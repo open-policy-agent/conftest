@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	"github.com/open-policy-agent/conftest/downloader"
-	orascontext "oras.land/oras-go/pkg/context"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -32,7 +31,7 @@ The location of the policies is specified by passing an URL, e.g.:
 	$ conftest pull http://<my-policy-url>
 
 Based on the protocol a different mechanism will be used to download the policy.
-The pull command will also try to infer the protocol based on the URL if the 
+The pull command will also try to infer the protocol based on the URL if the
 URL does not contain a protocol. For example, the OCI mechanism will be used if
 an azure registry URL is passed, e.g.
 
@@ -55,6 +54,9 @@ func NewPullCommand(ctx context.Context) *cobra.Command {
 			if err := viper.BindPFlag("policy", cmd.Flags().Lookup("policy")); err != nil {
 				return fmt.Errorf("bind flag: %w", err)
 			}
+			if err := viper.BindPFlag("tls", cmd.Flags().Lookup("tls")); err != nil {
+				return fmt.Errorf("bind flag: %w", err)
+			}
 
 			return nil
 		},
@@ -66,7 +68,7 @@ func NewPullCommand(ctx context.Context) *cobra.Command {
 
 			policyDir := filepath.Join(".", viper.GetString("policy"))
 
-			if err := downloader.Download(orascontext.Background(), policyDir, args); err != nil {
+			if err := downloader.Download(ctx, policyDir, args); err != nil {
 				return fmt.Errorf("download policies: %w", err)
 			}
 
@@ -75,6 +77,7 @@ func NewPullCommand(ctx context.Context) *cobra.Command {
 	}
 
 	cmd.Flags().StringP("policy", "p", "policy", "Path to download the policies to")
+	cmd.Flags().BoolP("tls", "s", true, "Use TLS to access the registry")
 
 	return &cmd
 }

@@ -1,0 +1,7 @@
+{
+    "auths": {
+        "test.registry.io": {
+            "auth": "dGVzdDpzdXBlcnNlY3JldA=="
+        }
+    }
+}
