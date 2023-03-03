@@ -30,7 +30,7 @@ The location can be overridden with the '--policy' flag, e.g.:
 
 	$ conftest test --policy <my-directory> <input-file(s)/input-folder>
 
-Some policies are dependant on external data. This data is loaded in seperatly
+Some policies are dependant on external data. This data is loaded in separately
 from policies. The location of any data directory or file can be specified with
 the '--data' flag. If a directory is specified, it will be recursively searched for
 any data files. Right now any '.json' or '.yaml' file will be loaded in
