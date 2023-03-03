@@ -165,7 +165,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().Bool("suppress-exceptions", false, "Do not include exceptions in output")
 	cmd.Flags().Bool("all-namespaces", false, "Test policies found in all namespaces")
 	cmd.Flags().Bool("quiet", false, "Disable successful test output")
-	cmd.Flags().Bool("suppress-no-policies-found", true, "Suppresses output that no policies found")
+	cmd.Flags().Bool("suppress-no-policies-found", false, "Suppresses output that no policies found")
 
 	cmd.Flags().BoolP("trace", "", false, "Enable more verbose trace output for Rego queries")
 	cmd.Flags().BoolP("combine", "", false, "Combine all config files to be evaluated together")

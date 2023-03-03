@@ -445,3 +445,27 @@
   [ "$status" -eq 0 ]
   [[ "$output" =~ "2 tests, 2 passed" ]]
 }
+
+@test "Should not show any output with quiet flag and all tests succeeds" {
+  run ./conftest test -p examples/kubernetes/policy/deny.rego examples/kubernetes/deployment.yaml --quiet
+  [ "$status" -eq 0 ]
+  [[ "$output" = "" ]]
+}
+
+@test "Should show output because of failure" {
+  run ./conftest test -p examples/kubernetes/policy/ examples/kubernetes/deployment.yaml  --all-namespaces --quiet 
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "5 tests, 1 passed, 0 warnings, 4 failures, 0 exceptions" ]]
+}
+
+@test "Should suppress no policies found output" {
+  run ./conftest test -p examples/kubernetes/policy/ examples/kubernetes/service.yaml  --all-namespaces --suppress-no-policies-found
+  [ "$status" -eq 0 ]
+  [[ "${lines[1]}" =~ "5 tests, 4 passed, 1 warning, 0 failures, 0 exceptions" ]]
+}
+
+@test "Should suppress no policies found output1" {
+  run ./conftest test -p examples/kubernetes/policy/ examples/kubernetes/service.yaml  --all-namespaces 
+  [ "$status" -eq 0 ]
+  [[ "${lines[2]}" =~ "5 tests, 4 passed, 1 warning, 0 failures, 0 exceptions" ]]
+}
