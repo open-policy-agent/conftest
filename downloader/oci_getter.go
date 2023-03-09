@@ -3,16 +3,17 @@ package downloader
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"net/url"
 	"os"
+	"strings"
 
-	"oras.land/oras-go/pkg/auth"
-	dockerauth "oras.land/oras-go/pkg/auth/docker"
+	reg "github.com/open-policy-agent/conftest/internal/registry"
 
 	getter "github.com/hashicorp/go-getter"
-	"oras.land/oras-go/pkg/content"
-	"oras.land/oras-go/pkg/oras"
+	"oras.land/oras-go/v2"
+	"oras.land/oras-go/v2/content/file"
+	"oras.land/oras-go/v2/registry"
+	"oras.land/oras-go/v2/registry/remote"
 )
 
 // OCIGetter is responsible for handling OCI repositories
@@ -29,30 +30,35 @@ func (g *OCIGetter) ClientMode(u *url.URL) (getter.ClientMode, error) {
 func (g *OCIGetter) Get(path string, u *url.URL) error {
 	ctx := g.Context()
 
+	repository := strings.TrimPrefix(u.String(), "oci://")
+	ref, err := registry.ParseReference(repository)
+	if err != nil {
+		return fmt.Errorf("reference: %w", err)
+	}
+
+	if ref.Reference == "" {
+		ref.Reference = "latest"
+		repository = ref.String()
+	}
+
+	src, err := remote.NewRepository(repository)
+	if err != nil {
+		return fmt.Errorf("repository: %w", err)
+	}
+
+	reg.SetupClient(src)
+
 	if err := os.MkdirAll(path, os.ModePerm); err != nil {
 		return fmt.Errorf("make policy directory: %w", err)
 	}
 
-	cli, err := dockerauth.NewClient()
+	fileStore, err := file.New(path)
 	if err != nil {
-		return fmt.Errorf("new auth client: %w", err)
+		return fmt.Errorf("file store: %w", err)
 	}
-
-	opts := []auth.ResolverOption{auth.WithResolverClient(http.DefaultClient)}
-	resolver, err := cli.ResolverWithOpts(opts...)
-	if err != nil {
-		return fmt.Errorf("docker resolver: %w", err)
-	}
-
-	registry := content.Registry{Resolver: resolver}
-
-	fileStore := content.NewFile(path)
 	defer fileStore.Close()
 
-	repository := getRepositoryFromURL(u.Path)
-	pullURL := u.Host + repository
-
-	_, err = oras.Copy(ctx, registry, pullURL, fileStore, "")
+	_, err = oras.Copy(ctx, src, repository, fileStore, "", oras.DefaultCopyOptions)
 	if err != nil {
 		return fmt.Errorf("pulling policy: %w", err)
 	}
