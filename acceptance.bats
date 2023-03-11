@@ -47,6 +47,13 @@
   [[ "$output" =~ "Containers must not run as root" ]]
 }
 
+@test "Fail due to picking up settings from config-file flag" {
+  DIR="examples/configfile"
+  run ./conftest -c $DIR/conftest.toml test -p $DIR/test $DIR/deployment.yaml
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "Containers must not run as root" ]]
+}
+
 @test "Has version flag" {
   run ./conftest --version
   [ "$status" -eq 0 ]
