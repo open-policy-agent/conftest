@@ -75,12 +75,6 @@ func (s *Standard) Output(results []CheckResult) error {
 			namespace = fmt.Sprintf("- %s -", result.Namespace)
 		}
 
-		totalPolicies := result.Successes + len(result.Warnings) + len(result.Failures) + len(result.Exceptions) + len(result.Skipped)
-		if totalPolicies == 0 {
-			fmt.Fprintln(s.Writer, colorizer.Colorize("?", aurora.WhiteFg), indicator, namespace, "no policies found")
-			continue
-		}
-
 		for _, warning := range result.Warnings {
 			fmt.Fprintln(s.Writer, colorizer.Colorize("WARN", aurora.YellowFg), indicator, namespace, warning.Message)
 		}
