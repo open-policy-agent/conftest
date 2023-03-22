@@ -2,7 +2,6 @@ package commands
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -16,7 +15,7 @@ import (
 
 // NewFormatCommand creates a format command.
 // This command can be used for formatting Rego files.
-func NewFormatCommand(ctx context.Context) *cobra.Command {
+func NewFormatCommand() *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "fmt <path> [path [...]]",
 		Short: "Format Rego files",

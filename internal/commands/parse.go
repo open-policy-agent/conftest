@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 
@@ -25,7 +24,7 @@ See the documentation of the '--parser' flag for the supported parsers.
 
 // NewParseCommand creates a parse command.
 // This command can be used for printing structured inputs from unstructured configuration inputs.
-func NewParseCommand(ctx context.Context) *cobra.Command {
+func NewParseCommand() *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "parse [file...]",
 		Short: "Print out structured data from your input files",

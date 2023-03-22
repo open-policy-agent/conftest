@@ -96,6 +96,6 @@ func (t *GitHub) Output(checkResults []CheckResult) error {
 	return nil
 }
 
-func (t *GitHub) Report(results []*tester.Result, flag string) error {
+func (t *GitHub) Report(_ []*tester.Result, _ string) error {
 	return fmt.Errorf("report is not supported in GitHub output")
 }

@@ -22,7 +22,7 @@ type OCIGetter struct {
 }
 
 // ClientMode returns the client mode directory
-func (g *OCIGetter) ClientMode(u *url.URL) (getter.ClientMode, error) {
+func (g *OCIGetter) ClientMode(_ *url.URL) (getter.ClientMode, error) {
 	return getter.ClientModeDir, nil
 }
 
@@ -67,7 +67,7 @@ func (g *OCIGetter) Get(path string, u *url.URL) error {
 }
 
 // GetFile is currently a NOOP
-func (g *OCIGetter) GetFile(dst string, u *url.URL) error {
+func (g *OCIGetter) GetFile(_ string, _ *url.URL) error {
 	return nil
 }
 

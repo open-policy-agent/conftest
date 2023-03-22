@@ -96,6 +96,6 @@ func (j JUnit) formatTestName(fileName, message string) string {
 	return fmt.Sprintf("%s - %s", fileName, summary)
 }
 
-func (j *JUnit) Report(results []*tester.Result, flag string) error {
+func (j *JUnit) Report(_ []*tester.Result, _ string) error {
 	return fmt.Errorf("report is not supported in JUnit output")
 }

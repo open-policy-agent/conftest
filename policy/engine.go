@@ -34,7 +34,7 @@ type Engine struct {
 }
 
 // Load returns an Engine after loading all of the specified policies.
-func Load(ctx context.Context, policyPaths []string, c *ast.Capabilities) (*Engine, error) {
+func Load(policyPaths []string, c *ast.Capabilities) (*Engine, error) {
 	policies, err := loader.NewFileLoader().WithProcessAnnotation(true).Filtered(policyPaths, func(_ string, info os.FileInfo, depth int) bool {
 		return !info.IsDir() && !strings.HasSuffix(info.Name(), bundle.RegoExt)
 	})
@@ -70,7 +70,7 @@ func Load(ctx context.Context, policyPaths []string, c *ast.Capabilities) (*Engi
 }
 
 // LoadWithData returns an Engine after loading all of the specified policies and data paths.
-func LoadWithData(ctx context.Context, policyPaths []string, dataPaths []string, capabilities string) (*Engine, error) {
+func LoadWithData(policyPaths []string, dataPaths []string, capabilities string) (*Engine, error) {
 	c := ast.CapabilitiesForThisVersion()
 	if capabilities != "" {
 		f, err := os.Open(capabilities)
@@ -87,7 +87,7 @@ func LoadWithData(ctx context.Context, policyPaths []string, dataPaths []string,
 	engine := &Engine{}
 	if len(policyPaths) > 0 {
 		var err error
-		engine, err = Load(ctx, policyPaths, c)
+		engine, err = Load(policyPaths, c)
 		if err != nil {
 			return nil, fmt.Errorf("loading policies: %w", err)
 		}
