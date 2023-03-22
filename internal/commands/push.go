@@ -181,7 +181,7 @@ func pushLayers(ctx context.Context, pusher content.Pusher, policyPath, dataPath
 	if dataPath != "" {
 		dataPaths = append(dataPaths, dataPath)
 	}
-	engine, err := policy.LoadWithData(ctx, policyPaths, dataPaths, "")
+	engine, err := policy.LoadWithData(policyPaths, dataPaths, "")
 	if err != nil {
 		return nil, fmt.Errorf("load: %w", err)
 	}
