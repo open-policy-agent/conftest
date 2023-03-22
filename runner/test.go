@@ -17,6 +17,7 @@ import (
 // Rego policy checks against configuration files.
 type TestRunner struct {
 	Trace              bool
+	Strict             bool
 	Capabilities       string
 	Policy             []string
 	Data               []string
@@ -59,7 +60,7 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) ([]output.Check
 		}
 	}
 
-	engine, err := policy.LoadWithData(t.Policy, t.Data, t.Capabilities)
+	engine, err := policy.LoadWithData(t.Policy, t.Data, t.Capabilities, t.Strict)
 	if err != nil {
 		return nil, fmt.Errorf("load: %w", err)
 	}
