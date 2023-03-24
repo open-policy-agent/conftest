@@ -30,7 +30,7 @@ func (g *OCIGetter) ClientMode(_ *url.URL) (getter.ClientMode, error) {
 func (g *OCIGetter) Get(path string, u *url.URL) error {
 	ctx := g.Context()
 
-	repository := strings.TrimPrefix(u.String(), "oci://")
+	repository := ociURL(u)
 	ref, err := registry.ParseReference(repository)
 	if err != nil {
 		return fmt.Errorf("reference: %w", err)
@@ -83,4 +83,14 @@ func (g *OCIGetter) Context() context.Context {
 		return context.Background()
 	}
 	return g.client.Ctx
+}
+
+// ociURL returns the string representation of the url that is an acceptable
+// OCI URL. In short, it strips off the scheme, e.g. "https://", from the URL.
+func ociURL(u *url.URL) string {
+	scheme, url, found := strings.Cut(u.String(), "://")
+	if !found {
+		url = scheme
+	}
+	return url
 }
