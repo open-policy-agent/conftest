@@ -98,6 +98,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				"policy",
 				"capabilities",
 				"trace",
+				"strict",
 				"update",
 				"junit-hide-message",
 			}
@@ -161,6 +162,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().Bool("all-namespaces", false, "Test policies found in all namespaces")
 
 	cmd.Flags().BoolP("trace", "", false, "Enable more verbose trace output for Rego queries")
+	cmd.Flags().BoolP("strict", "", false, "Enable strict mode for Rego policies")
 	cmd.Flags().BoolP("combine", "", false, "Combine all config files to be evaluated together")
 
 	cmd.Flags().String("ignore", "", "A regex pattern which can be used for ignoring paths")
