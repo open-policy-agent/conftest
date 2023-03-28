@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -136,7 +135,7 @@ func LoadWithData(policyPaths []string, dataPaths []string, capabilities string,
 
 	documentContents := make(map[string]string)
 	for _, documentPath := range allDocumentPaths {
-		contents, err := ioutil.ReadFile(documentPath)
+		contents, err := os.ReadFile(documentPath)
 		if err != nil {
 			return nil, fmt.Errorf("read file: %w", err)
 		}

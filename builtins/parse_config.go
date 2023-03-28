@@ -3,7 +3,7 @@ package builtins
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	"github.com/open-policy-agent/conftest/parser"
@@ -97,7 +97,7 @@ func parseConfigFile(bctx rego.BuiltinContext, op1 *ast.Term) (*ast.Term, error)
 	if err != nil {
 		return nil, fmt.Errorf("create config parser: %w", err)
 	}
-	contents, err := ioutil.ReadFile(filePath)
+	contents, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("read config file %s: %w", filePath, err)
 	}
