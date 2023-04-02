@@ -3,7 +3,6 @@ package plugin
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -87,7 +86,7 @@ func installFromURL(ctx context.Context, url string) error {
 	// Before allowing the plugin to be stored in the plugin directory,
 	// make sure the plugin has a valid configuration file by first downloading
 	// the plugin into a temporary directory and validating its configuration.
-	tempDirectory, err := ioutil.TempDir(CacheDirectory(), "conftest-plugin-*")
+	tempDirectory, err := os.MkdirTemp(CacheDirectory(), "conftest-plugin-*")
 	if err != nil {
 		return fmt.Errorf("create tmp dir: %w", err)
 	}

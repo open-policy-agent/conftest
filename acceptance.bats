@@ -281,6 +281,15 @@
   [[ "$output" =~ "unallowed image found [\"openjdk:8-jdk-alpine\"]" ]]
 }
 
+@test "Can parse newly introduced keywords for docker" {
+  run bash -c "cat <<EOF | ./conftest parse --parser dockerfile - 
+# syntax=docker/dockerfile:1.4
+FROM alpine
+COPY --link /foo /bar
+EOF"
+  [ "$status" -eq 0 ]
+}
+
 @test "Can disable color" {
   run ./conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml --no-color
   [ "$status" -eq 0 ]

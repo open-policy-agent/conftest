@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/open-policy-agent/opa/format"
@@ -40,7 +39,7 @@ func NewFormatCommand() *cobra.Command {
 					return fmt.Errorf("stat: %w", err)
 				}
 
-				contents, err := ioutil.ReadFile(policy.Package.Location.File)
+				contents, err := os.ReadFile(policy.Package.Location.File)
 				if err != nil {
 					return fmt.Errorf("read policy: %w", err)
 				}

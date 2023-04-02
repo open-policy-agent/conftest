@@ -1,7 +1,6 @@
 package plugin
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -151,7 +150,7 @@ func TestFind(t *testing.T) {
 				}
 
 				dir := filepath.ToSlash(filepath.Join(homeDir))
-				tmp, err := ioutil.TempDir(dir, "")
+				tmp, err := os.MkdirTemp(dir, "")
 				if err != nil {
 					return "", err
 				}
@@ -191,7 +190,7 @@ func TestFind(t *testing.T) {
 				}
 
 				dir := filepath.ToSlash(filepath.Join(homeDir))
-				tmp, err := ioutil.TempDir(dir, "")
+				tmp, err := os.MkdirTemp(dir, "")
 				if err != nil {
 					return "", err
 				}
