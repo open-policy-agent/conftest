@@ -470,3 +470,9 @@ EOF"
   [ "$status" -eq 0 ]
   [[ "$output" =~ "2 tests, 2 passed" ]]
 }
+
+@test "Should fail evaluation if a builtin function returns error" {
+  run ./conftest test -p examples/builtin-errors/invalid-dns.rego examples/kubernetes/deployment.yaml
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "built-in error" ]]
+}
