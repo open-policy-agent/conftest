@@ -18,6 +18,7 @@ import (
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/storage"
 	"github.com/open-policy-agent/opa/storage/inmem"
+	"github.com/open-policy-agent/opa/topdown"
 	"github.com/open-policy-agent/opa/topdown/print"
 	"github.com/open-policy-agent/opa/version"
 )
@@ -427,6 +428,7 @@ func (e *Engine) addFileInfo(ctx context.Context, path string) error {
 // data.main.warn to query the warn rule in the main namespace
 func (e *Engine) query(ctx context.Context, input interface{}, query string) (output.QueryResult, error) {
 	ph := printHook{s: &[]string{}}
+	builtInErrors := &[]topdown.Error{}
 	options := []func(r *rego.Rego){
 		rego.Input(input),
 		rego.Query(query),
@@ -435,12 +437,17 @@ func (e *Engine) query(ctx context.Context, input interface{}, query string) (ou
 		rego.Runtime(e.Runtime()),
 		rego.Trace(e.trace),
 		rego.PrintHook(ph),
+		rego.BuiltinErrorList(builtInErrors),
 	}
 
 	regoInstance := rego.New(options...)
 	resultSet, err := regoInstance.Eval(ctx)
 	if err != nil {
 		return output.QueryResult{}, fmt.Errorf("evaluating policy: %w", err)
+	}
+
+	if len(*builtInErrors) > 0 {
+		return output.QueryResult{}, fmt.Errorf("built-in error: %s", (*builtInErrors))
 	}
 
 	// After the evaluation of the policy, the results of the trace (stdout) will be populated
