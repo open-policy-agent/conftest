@@ -187,10 +187,10 @@ accepts the path to the config file as its only parameter and returns the
 parsed configuration as a Rego object. The example below shows denying Azure
 disks with encryption disabled.
 
-> **:information_source: NOTE:** The file path argument is relative to the
+> **NOTE:** The file path argument is relative to the
 > location of the Rego unit test file.
-
-> **:information_source: NOTE:** Using this function performs disk I/O which
+>
+> **NOTE:** Using this function performs disk I/O which
 > can significantly slow down tests.
 
 **deny.rego**
