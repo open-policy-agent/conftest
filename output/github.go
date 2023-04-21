@@ -43,7 +43,7 @@ func (t *GitHub) Output(checkResults []CheckResult) error {
 		}
 
 		for _, exception := range result.Exceptions {
-			fmt.Fprintf(t.writer, "exception file=%v %v\n", result.FileName, exception.Message)
+			fmt.Fprintf(t.writer, "::notice file=%v::%v\n", result.FileName, exception.Message)
 		}
 
 		for _, skipped := range result.Skipped {
