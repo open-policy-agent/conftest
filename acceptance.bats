@@ -47,6 +47,13 @@
   [[ "$output" =~ "Containers must not run as root" ]]
 }
 
+@test "Fail due to picking up settings from config-file flag" {
+  DIR="examples/configfile"
+  run ./conftest -c $DIR/conftest.toml test -p $DIR/test $DIR/deployment.yaml
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "Containers must not run as root" ]]
+}
+
 @test "Has version flag" {
   run ./conftest --version
   [ "$status" -eq 0 ]
@@ -274,6 +281,15 @@
   [[ "$output" =~ "unallowed image found [\"openjdk:8-jdk-alpine\"]" ]]
 }
 
+@test "Can parse newly introduced keywords for docker" {
+  run bash -c "cat <<EOF | ./conftest parse --parser dockerfile - 
+# syntax=docker/dockerfile:1.4
+FROM alpine
+COPY --link /foo /bar
+EOF"
+  [ "$status" -eq 0 ]
+}
+
 @test "Can disable color" {
   run ./conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml --no-color
   [ "$status" -eq 0 ]
@@ -433,6 +449,15 @@
   [ "$status" -eq 0 ]
 }
 
+@test "Should fail if strict is set and there are unused variables in the policy" {
+  run ./conftest test -p examples/strict-rules/policy/ examples/kubernetes/deployment.yaml --strict
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "rego_compile_error: assigned var b unused" ]]
+  [[ "$output" =~ "rego_compile_error: assigned var x unused" ]]
+  [[ "$output" =~ "rego_compile_error: assigned var c unused" ]]
+  [[ "$output" =~ "rego_compile_error: unused argument y" ]]
+}
+
 @test "Should fail if an opa function is not defined given capabilities file" {
   run ./conftest test examples/kubernetes/deployment.yaml -p examples/kubernetes/policy/ -p examples/capabilities/malicious.rego --capabilities examples/capabilities/capabilities.json
   [ "$status" -eq 1 ]
@@ -457,3 +482,10 @@
   [ "$status" -eq 1 ]
   [[ "$output" =~ "5 tests, 1 passed, 0 warnings, 4 failures, 0 exceptions" ]]
 }
+
+@test "Should fail evaluation if a builtin function returns error" {
+  run ./conftest test -p examples/builtin-errors/invalid-dns.rego examples/kubernetes/deployment.yaml
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "built-in error" ]]
+}
+

@@ -53,6 +53,21 @@ func TestOCIDetector_Detect(t *testing.T) {
 			"quay.io/conftest/policies:tag",
 			"oci://quay.io/conftest/policies:tag",
 		},
+		{
+			"should detect localhost:32123/policies:tag as most likely being an OCI registry",
+			"localhost:32123/policies:tag",
+			"oci://localhost:32123/policies:tag",
+		},
+		{
+			"should detect 127.0.0.1:32123/policies:tag as most likely being an OCI registry",
+			"127.0.0.1:32123/policies:tag",
+			"oci://127.0.0.1:32123/policies:tag",
+		},
+		{
+			"should detect ::1:32123/policies:tag as most likely being an OCI registry",
+			"::1:32123/policies:tag",
+			"oci://::1:32123/policies:tag",
+		},
 	}
 	pwd := "/pwd"
 	d := &OCIDetector{}

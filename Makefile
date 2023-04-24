@@ -13,6 +13,8 @@ IMAGE := openpolicyagent/conftest
 
 DOCKER := DOCKER_BUILDKIT=1 docker
 
+DOCKER_PLATFORMS := linux/amd64,linux/arm64
+
 GIT_VERSION := $(shell git describe --abbrev=4 --dirty --always --tags)
 
 ## All of the directories that contain tests to be executed
@@ -70,9 +72,6 @@ examples: ## Builds the examples Docker image.
 .PHONY: push
 push: ## Pushes the examples and Conftest image to DockerHub. Requires `TAG` parameter.
 	@test -n "$(TAG)" || (echo "TAG parameter not set." && exit 1)
-	@$(DOCKER) build . --build-arg VERSION="$(TAG)" -t $(IMAGE):$(TAG)
-	@$(DOCKER) build . --target examples -t $(IMAGE):examples
-	@$(DOCKER) tag $(IMAGE):$(TAG) $(IMAGE):latest
-	@$(DOCKER) push $(IMAGE):$(TAG)
-	@$(DOCKER) push $(IMAGE):latest
-	@$(DOCKER) push $(IMAGE):examples
+	@$(DOCKER) buildx build . --push --build-arg VERSION="$(TAG)" -t $(IMAGE):$(TAG) --platform $(DOCKER_PLATFORMS)
+	@$(DOCKER) buildx build . --push --build-arg VERSION="$(TAG)" -t $(IMAGE):latest --platform $(DOCKER_PLATFORMS)
+	@$(DOCKER) buildx build . --push --target examples -t $(IMAGE):examples --platform $(DOCKER_PLATFORMS)

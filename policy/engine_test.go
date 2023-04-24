@@ -12,7 +12,8 @@ func TestException(t *testing.T) {
 	ctx := context.Background()
 
 	policies := []string{"../examples/exceptions/policy"}
-	engine, err := Load(ctx, policies, ast.CapabilitiesForThisVersion())
+	compilerOptions, _ := newCompilerOptions(false, "")
+	engine, err := Load(policies, compilerOptions)
 	if err != nil {
 		t.Fatalf("loading policies: %v", err)
 	}
@@ -52,7 +53,8 @@ func TestTracing(t *testing.T) {
 		ctx := context.Background()
 
 		policies := []string{"../examples/kubernetes/policy"}
-		engine, err := Load(ctx, policies, ast.CapabilitiesForThisVersion())
+		compilerOptions, _ := newCompilerOptions(false, "")
+		engine, err := Load(policies, compilerOptions)
 		if err != nil {
 			t.Fatalf("loading policies: %v", err)
 		}
@@ -81,7 +83,8 @@ func TestTracing(t *testing.T) {
 		ctx := context.Background()
 
 		policies := []string{"../examples/kubernetes/policy"}
-		engine, err := Load(ctx, policies, ast.CapabilitiesForThisVersion())
+		compilerOptions, _ := newCompilerOptions(false, "")
+		engine, err := Load(policies, compilerOptions)
 		if err != nil {
 			t.Fatalf("loading policies: %v", err)
 		}
@@ -110,7 +113,8 @@ func TestMultifileYaml(t *testing.T) {
 	ctx := context.Background()
 
 	policies := []string{"../examples/kubernetes/policy"}
-	engine, err := Load(ctx, policies, ast.CapabilitiesForThisVersion())
+	compilerOptions, _ := newCompilerOptions(false, "")
+	engine, err := Load(policies, compilerOptions)
 	if err != nil {
 		t.Fatalf("loading policies: %v", err)
 	}
@@ -156,7 +160,8 @@ func TestDockerfile(t *testing.T) {
 	ctx := context.Background()
 
 	policies := []string{"../examples/docker/policy"}
-	engine, err := Load(ctx, policies, ast.CapabilitiesForThisVersion())
+	compilerOptions, _ := newCompilerOptions(false, "")
+	engine, err := Load(policies, compilerOptions)
 	if err != nil {
 		t.Fatalf("loading policies: %v", err)
 	}

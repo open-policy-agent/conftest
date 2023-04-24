@@ -139,22 +139,33 @@ deny[msg] {
 **deny_test.rego**
 
 ```rego
-test_deny_alb_http {
+# "not deny" doesn't work because deny is a set.
+# Instead we need to define "no_violations" to be true when `deny` is empty.
+empty(value) {
+  count(value) == 0
+}
+
+no_violations {
+  empty(deny)
+}
+
+# Now the actual tests start
+test_fails_with_http_alb {
   cfg := parse_config("hcl2", `
-    resource "aws_alb_listener" "lb_with_http" {
+    resource "aws_alb_listener" "name" {
       protocol = "HTTP"
     }
   `)
-  deny with input as cfg
+  deny["ALB `name` is using HTTP rather than HTTPS"] with input as cfg
 }
 
-test_deny_alb_https {
+test_allow_with_alb_https {
   cfg := parse_config("hcl2", `
     resource "aws_alb_listener" "lb_with_https" {
       protocol = "HTTPS"
     }
   `)
-  not deny with input as cfg
+  no_violations with input as cfg
 }
 
 test_deny_alb_protocol_unspecified {
@@ -163,7 +174,7 @@ test_deny_alb_protocol_unspecified {
       foo = "bar"
     }
   `)
-  not deny with input as cfg
+  no_violations with input as cfg
 }
 ```
 
@@ -176,10 +187,10 @@ accepts the path to the config file as its only parameter and returns the
 parsed configuration as a Rego object. The example below shows denying Azure
 disks with encryption disabled.
 
-> **:information_source: NOTE:** The file path argument is relative to the
+> **NOTE:** The file path argument is relative to the
 > location of the Rego unit test file.
-
-> **:information_source: NOTE:** Using this function performs disk I/O which
+>
+> **NOTE:** Using this function performs disk I/O which
 > can significantly slow down tests.
 
 **deny.rego**
@@ -211,3 +222,51 @@ resource "azurerm_managed_disk" "sample" {
   }
 }
 ```
+
+
+##### Using `deny_` as a prefix to simplify testing
+
+You may have noticed earlier the weird looking test:
+
+```rego
+# Now the actual tests start
+test_fails_with_http_alb {
+  cfg := parse_config("hcl2", `
+    resource "aws_alb_listener" "name" {
+      protocol = "HTTP"
+    }
+  `)
+  deny["ALB `name` is using HTTP rather than HTTPS"] with input as cfg
+}
+```
+
+Specifically, the `deny["ALB ``name`` is using HTTP rather than HTTPS"]` looks a bit strange. The reason we need to do this is we can't just check that any `deny` occurred, we are trying to test that specifically our alb protocol test is working as expected, so we had to match on it's `msg` to make sure we were testing the right rule.
+
+There is an alternative to this, which is to use `deny_` as a prefix, instead of overloading `deny`. For example, we could have instead done:
+
+**deny_v2.rego**
+
+```rego
+deny_alb_http[msg] {
+  proto := input.resource.aws_alb_listener[lb].protocol
+  proto == "HTTP"
+  msg = sprintf("ALB `%v` is using HTTP rather than HTTPS", [lb])
+}
+```
+
+And then we can test specifically that rule with
+
+**deny_v2_test.rego**
+
+```rego
+test_fails_with_http_alb {
+  cfg := parse_config("hcl2", `
+    resource "aws_alb_listener" "name" {
+      protocol = "HTTP"
+    }
+  `)
+  deny_alb_http with input as cfg
+}
+```
+
+This is much more elagant if you have lots of tests and are unit-testing them. Unfortunately you need to do a bit more book-keeping with the `no_violations` rule, but a future feature may make that easier to implement.

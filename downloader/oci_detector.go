@@ -47,7 +47,9 @@ func containsOCIRegistry(src string) bool {
 }
 
 func containsLocalRegistry(src string) bool {
-	return strings.Contains(src, "127.0.0.1:5000") || strings.Contains(src, "localhost:5000")
+	matched, err := regexp.MatchString(`(?:::1|127\.0\.0\.1|(?i:localhost)):\d{1,5}`, src)
+
+	return err == nil && matched
 }
 
 func detectHTTP(src string) (string, error) {

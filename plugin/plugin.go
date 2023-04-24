@@ -3,7 +3,6 @@ package plugin
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -52,7 +51,7 @@ func FindAll() ([]*Plugin, error) {
 		return []*Plugin{}, nil
 	}
 
-	files, err := ioutil.ReadDir(CacheDirectory())
+	files, err := os.ReadDir(CacheDirectory())
 	if err != nil {
 		return nil, fmt.Errorf("read plugin cache: %w", err)
 	}
@@ -155,7 +154,7 @@ func FromDirectory(directory string) (*Plugin, error) {
 	const configurationFileName = "plugin.yaml"
 
 	configPath := filepath.Join(directory, configurationFileName)
-	data, err := ioutil.ReadFile(configPath)
+	data, err := os.ReadFile(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("read config: %w", err)
 	}

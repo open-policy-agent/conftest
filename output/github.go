@@ -43,7 +43,7 @@ func (t *GitHub) Output(checkResults []CheckResult) error {
 		}
 
 		for _, exception := range result.Exceptions {
-			fmt.Fprintf(t.writer, "exception file=%v %v\n", result.FileName, exception.Message)
+			fmt.Fprintf(t.writer, "::notice file=%v::%v\n", result.FileName, exception.Message)
 		}
 
 		for _, skipped := range result.Skipped {
@@ -96,6 +96,6 @@ func (t *GitHub) Output(checkResults []CheckResult) error {
 	return nil
 }
 
-func (t *GitHub) Report(results []*tester.Result, flag string) error {
+func (t *GitHub) Report(_ []*tester.Result, _ string) error {
 	return fmt.Errorf("report is not supported in GitHub output")
 }

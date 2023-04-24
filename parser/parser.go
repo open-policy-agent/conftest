@@ -3,7 +3,7 @@ package parser
 import (
 	"bufio"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"sort"
@@ -297,7 +297,7 @@ func parseConfigurations(paths []string, parser string) (map[string]interface{},
 
 func getConfigurationContent(path string) ([]byte, error) {
 	if path == "-" {
-		contents, err := ioutil.ReadAll(bufio.NewReader(os.Stdin))
+		contents, err := io.ReadAll(bufio.NewReader(os.Stdin))
 		if err != nil {
 			return nil, fmt.Errorf("read standard in: %w", err)
 		}
@@ -310,7 +310,7 @@ func getConfigurationContent(path string) ([]byte, error) {
 		return nil, fmt.Errorf("get abs: %w", err)
 	}
 
-	contents, err := ioutil.ReadFile(filePath)
+	contents, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("open file: %w", err)
 	}

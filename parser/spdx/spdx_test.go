@@ -26,8 +26,7 @@ Created: 2021-08-26T01:46:00Z
 	}
 
 	inputMap := input.(map[string]interface{})
-	creationInfo := inputMap["CreationInfo"].(map[string]interface{})
-	currentDataLicense := creationInfo["DataLicense"]
+	currentDataLicense := inputMap["dataLicense"]
 	expectedDataLicense := "conftest-demo"
 	if currentDataLicense != expectedDataLicense {
 		t.Errorf("DataLicense of the SPDX file have: %s, want: %s", currentDataLicense, expectedDataLicense)

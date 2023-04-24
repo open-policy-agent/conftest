@@ -21,6 +21,7 @@ type VerifyRunner struct {
 	Output       string
 	NoColor      bool `mapstructure:"no-color"`
 	Trace        bool
+	Strict       bool
 	Report       string
 	Quiet        bool
 }
@@ -33,7 +34,7 @@ const (
 
 // Run executes the Rego tests for the given policies.
 func (r *VerifyRunner) Run(ctx context.Context) ([]output.CheckResult, []*tester.Result, error) {
-	engine, err := policy.LoadWithData(ctx, r.Policy, r.Data, r.Capabilities)
+	engine, err := policy.LoadWithData(r.Policy, r.Data, r.Capabilities, r.Strict)
 	if err != nil {
 		return nil, nil, fmt.Errorf("load: %w", err)
 	}

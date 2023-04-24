@@ -2,10 +2,8 @@ package commands
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/open-policy-agent/opa/format"
@@ -16,7 +14,7 @@ import (
 
 // NewFormatCommand creates a format command.
 // This command can be used for formatting Rego files.
-func NewFormatCommand(ctx context.Context) *cobra.Command {
+func NewFormatCommand() *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "fmt <path> [path [...]]",
 		Short: "Format Rego files",
@@ -41,7 +39,7 @@ func NewFormatCommand(ctx context.Context) *cobra.Command {
 					return fmt.Errorf("stat: %w", err)
 				}
 
-				contents, err := ioutil.ReadFile(policy.Package.Location.File)
+				contents, err := os.ReadFile(policy.Package.Location.File)
 				if err != nil {
 					return fmt.Errorf("read policy: %w", err)
 				}

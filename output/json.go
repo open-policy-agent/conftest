@@ -48,6 +48,6 @@ func (j *JSON) Output(results []CheckResult) error {
 	return nil
 }
 
-func (j *JSON) Report(results []*tester.Result, flag string) error {
+func (j *JSON) Report(_ []*tester.Result, _ string) error {
 	return fmt.Errorf("report is not supported in JSON output")
 }

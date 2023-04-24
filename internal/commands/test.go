@@ -30,7 +30,7 @@ The location can be overridden with the '--policy' flag, e.g.:
 
 	$ conftest test --policy <my-directory> <input-file(s)/input-folder>
 
-Some policies are dependant on external data. This data is loaded in seperatly
+Some policies are dependant on external data. This data is loaded in separately
 from policies. The location of any data directory or file can be specified with
 the '--data' flag. If a directory is specified, it will be recursively searched for
 any data files. Right now any '.json' or '.yaml' file will be loaded in
@@ -98,6 +98,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				"policy",
 				"capabilities",
 				"trace",
+				"strict",
 				"update",
 				"junit-hide-message",
 				"quiet",
@@ -165,6 +166,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().Bool("quiet", false, "Disable successful test output")
 
 	cmd.Flags().BoolP("trace", "", false, "Enable more verbose trace output for Rego queries")
+	cmd.Flags().BoolP("strict", "", false, "Enable strict mode for Rego policies")
 	cmd.Flags().BoolP("combine", "", false, "Combine all config files to be evaluated together")
 
 	cmd.Flags().String("ignore", "", "A regex pattern which can be used for ignoring paths")

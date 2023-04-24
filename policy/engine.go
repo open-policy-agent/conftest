@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -19,6 +18,7 @@ import (
 	"github.com/open-policy-agent/opa/rego"
 	"github.com/open-policy-agent/opa/storage"
 	"github.com/open-policy-agent/opa/storage/inmem"
+	"github.com/open-policy-agent/opa/topdown"
 	"github.com/open-policy-agent/opa/topdown/print"
 	"github.com/open-policy-agent/opa/version"
 )
@@ -33,8 +33,36 @@ type Engine struct {
 	docs     map[string]string
 }
 
+type compilerOptions struct {
+	strict       bool
+	capabilities *ast.Capabilities
+}
+
+func newCompilerOptions(strict bool, capabilities string) (compilerOptions, error) {
+	c := ast.CapabilitiesForThisVersion()
+	if capabilities != "" {
+		f, err := os.Open(capabilities)
+		if err != nil {
+			return compilerOptions{}, fmt.Errorf("capabilities not opened: %w", err)
+		}
+		defer f.Close()
+		c, err = ast.LoadCapabilitiesJSON(f)
+		if err != nil {
+			return compilerOptions{}, fmt.Errorf("capabilities not loaded: %w", err)
+		}
+	}
+	return compilerOptions{
+		strict:       strict,
+		capabilities: c,
+	}, nil
+}
+
+func newCompiler(c compilerOptions) *ast.Compiler {
+	return ast.NewCompiler().WithEnablePrintStatements(true).WithCapabilities(c.capabilities).WithStrict(c.strict)
+}
+
 // Load returns an Engine after loading all of the specified policies.
-func Load(ctx context.Context, policyPaths []string, c *ast.Capabilities) (*Engine, error) {
+func Load(policyPaths []string, c compilerOptions) (*Engine, error) {
 	policies, err := loader.NewFileLoader().WithProcessAnnotation(true).Filtered(policyPaths, func(_ string, info os.FileInfo, depth int) bool {
 		return !info.IsDir() && !strings.HasSuffix(info.Name(), bundle.RegoExt)
 	})
@@ -46,7 +74,7 @@ func Load(ctx context.Context, policyPaths []string, c *ast.Capabilities) (*Engi
 	}
 
 	modules := policies.ParsedModules()
-	compiler := ast.NewCompiler().WithEnablePrintStatements(true).WithCapabilities(c)
+	compiler := newCompiler(c)
 	compiler.Compile(modules)
 	if compiler.Failed() {
 		return nil, fmt.Errorf("get compiler: %w", compiler.Errors)
@@ -70,24 +98,16 @@ func Load(ctx context.Context, policyPaths []string, c *ast.Capabilities) (*Engi
 }
 
 // LoadWithData returns an Engine after loading all of the specified policies and data paths.
-func LoadWithData(ctx context.Context, policyPaths []string, dataPaths []string, capabilities string) (*Engine, error) {
-	c := ast.CapabilitiesForThisVersion()
-	if capabilities != "" {
-		f, err := os.Open(capabilities)
-		if err != nil {
-			return nil, fmt.Errorf("capabilities not opened: %w", err)
-		}
-		defer f.Close()
-		c, err = ast.LoadCapabilitiesJSON(f)
-		if err != nil {
-			return nil, fmt.Errorf("capabilities not loaded: %w", err)
-		}
+func LoadWithData(policyPaths []string, dataPaths []string, capabilities string, strict bool) (*Engine, error) {
+	compilerOptions, err := newCompilerOptions(strict, capabilities)
+	if err != nil {
+		return nil, fmt.Errorf("get compiler options: %w", err)
 	}
 
 	engine := &Engine{}
 	if len(policyPaths) > 0 {
 		var err error
-		engine, err = Load(ctx, policyPaths, c)
+		engine, err = Load(policyPaths, compilerOptions)
 		if err != nil {
 			return nil, fmt.Errorf("loading policies: %w", err)
 		}
@@ -116,7 +136,7 @@ func LoadWithData(ctx context.Context, policyPaths []string, dataPaths []string,
 
 	documentContents := make(map[string]string)
 	for _, documentPath := range allDocumentPaths {
-		contents, err := ioutil.ReadFile(documentPath)
+		contents, err := os.ReadFile(documentPath)
 		if err != nil {
 			return nil, fmt.Errorf("read file: %w", err)
 		}
@@ -408,6 +428,7 @@ func (e *Engine) addFileInfo(ctx context.Context, path string) error {
 // data.main.warn to query the warn rule in the main namespace
 func (e *Engine) query(ctx context.Context, input interface{}, query string) (output.QueryResult, error) {
 	ph := printHook{s: &[]string{}}
+	builtInErrors := &[]topdown.Error{}
 	options := []func(r *rego.Rego){
 		rego.Input(input),
 		rego.Query(query),
@@ -416,12 +437,17 @@ func (e *Engine) query(ctx context.Context, input interface{}, query string) (ou
 		rego.Runtime(e.Runtime()),
 		rego.Trace(e.trace),
 		rego.PrintHook(ph),
+		rego.BuiltinErrorList(builtInErrors),
 	}
 
 	regoInstance := rego.New(options...)
 	resultSet, err := regoInstance.Eval(ctx)
 	if err != nil {
 		return output.QueryResult{}, fmt.Errorf("evaluating policy: %w", err)
+	}
+
+	if len(*builtInErrors) > 0 {
+		return output.QueryResult{}, fmt.Errorf("built-in error: %s", (*builtInErrors))
 	}
 
 	// After the evaluation of the policy, the results of the trace (stdout) will be populated

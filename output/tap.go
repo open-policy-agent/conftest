@@ -88,6 +88,6 @@ func (t *TAP) Output(checkResults []CheckResult) error {
 	return nil
 }
 
-func (t *TAP) Report(results []*tester.Result, flag string) error {
+func (t *TAP) Report(_ []*tester.Result, _ string) error {
 	return fmt.Errorf("report is not supported in TAP output")
 }

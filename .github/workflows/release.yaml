@@ -24,6 +24,9 @@ jobs:
         id: get-version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
+      - name: setup docker buildx
+        run: docker buildx create --name conftestbuild --use
+
       - name: push images
         env:
           VERSION: ${{ steps.get-version.outputs.VERSION }}
