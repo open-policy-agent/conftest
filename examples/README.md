@@ -24,3 +24,8 @@ supported flags can be displayed with the following command:
 ```console
 ./conftest test --help
 ```
+
+## Running all example tests
+
+All acceptance tests written for `examples/` can be run via `make test-examples`
+The tests with the expected results demonstrate how Conftest evaluates the `examples/`
