@@ -457,15 +457,3 @@
   [ "$status" -eq 1 ]
   [[ "$output" =~ "5 tests, 1 passed, 0 warnings, 4 failures, 0 exceptions" ]]
 }
-
-@test "Should suppress no policies found output" {
-  run ./conftest test -p examples/kubernetes/policy/ examples/kubernetes/service.yaml  --all-namespaces --suppress-no-policies-found
-  [ "$status" -eq 0 ]
-  [[ "${lines[1]}" =~ "5 tests, 4 passed, 1 warning, 0 failures, 0 exceptions" ]]
-}
-
-@test "Should suppress no policies found output1" {
-  run ./conftest test -p examples/kubernetes/policy/ examples/kubernetes/service.yaml  --all-namespaces 
-  [ "$status" -eq 0 ]
-  [[ "${lines[2]}" =~ "5 tests, 4 passed, 1 warning, 0 failures, 0 exceptions" ]]
-}

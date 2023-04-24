@@ -101,7 +101,6 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				"update",
 				"junit-hide-message",
 				"quiet",
-				"suppress-no-policies-found",
 			}
 			for _, name := range flagNames {
 				if err := viper.BindPFlag(name, cmd.Flags().Lookup(name)); err != nil {
@@ -137,11 +136,10 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 
 			if !runner.Quiet || exitCode != 0 {
 				outputter := output.Get(runner.Output, output.Options{
-					NoColor:                 runner.NoColor,
-					SuppressExceptions:      runner.SuppressExceptions,
-					Tracing:                 runner.Trace,
-					SuppressNoPoliciesFound: runner.SuppressNoPoliciesFound,
-					JUnitHideMessage:        viper.GetBool("junit-hide-message"),
+					NoColor:            runner.NoColor,
+					SuppressExceptions: runner.SuppressExceptions,
+					Tracing:            runner.Trace,
+					JUnitHideMessage:   viper.GetBool("junit-hide-message"),
 				})
 				if err := outputter.Output(results); err != nil {
 					return fmt.Errorf("output results: %w", err)
@@ -165,7 +163,6 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().Bool("suppress-exceptions", false, "Do not include exceptions in output")
 	cmd.Flags().Bool("all-namespaces", false, "Test policies found in all namespaces")
 	cmd.Flags().Bool("quiet", false, "Disable successful test output")
-	cmd.Flags().Bool("suppress-no-policies-found", false, "Suppresses output that no policies found")
 
 	cmd.Flags().BoolP("trace", "", false, "Enable more verbose trace output for Rego queries")
 	cmd.Flags().BoolP("combine", "", false, "Combine all config files to be evaluated together")

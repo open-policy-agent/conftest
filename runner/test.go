@@ -17,23 +17,22 @@ import (
 // TestRunner is the runner for the Test command, executing
 // Rego policy checks against configuration files.
 type TestRunner struct {
-	Trace                   bool
-	Capabilities            string
-	Policy                  []string
-	Data                    []string
-	Update                  []string
-	Ignore                  string
-	Parser                  string
-	Namespace               []string
-	AllNamespaces           bool `mapstructure:"all-namespaces"`
-	FailOnWarn              bool `mapstructure:"fail-on-warn"`
-	NoColor                 bool `mapstructure:"no-color"`
-	NoFail                  bool `mapstructure:"no-fail"`
-	SuppressExceptions      bool `mapstructure:"suppress-exceptions"`
-	Combine                 bool
-	Quiet                   bool
-	SuppressNoPoliciesFound bool `mapstructure:"suppress-no-policies-found"`
-	Output                  string
+	Trace              bool
+	Capabilities       string
+	Policy             []string
+	Data               []string
+	Update             []string
+	Ignore             string
+	Parser             string
+	Namespace          []string
+	AllNamespaces      bool `mapstructure:"all-namespaces"`
+	FailOnWarn         bool `mapstructure:"fail-on-warn"`
+	NoColor            bool `mapstructure:"no-color"`
+	NoFail             bool `mapstructure:"no-fail"`
+	SuppressExceptions bool `mapstructure:"suppress-exceptions"`
+	Combine            bool
+	Quiet              bool
+	Output             string
 }
 
 // Run executes the TestRunner, verifying all Rego policies against the given
