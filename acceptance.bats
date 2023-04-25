@@ -471,8 +471,21 @@ EOF"
   [[ "$output" =~ "2 tests, 2 passed" ]]
 }
 
+@test "Should not show any output with quiet flag and all tests succeeds" {
+  run ./conftest test -p examples/kubernetes/policy/deny.rego examples/kubernetes/deployment.yaml --quiet
+  [ "$status" -eq 0 ]
+  [[ "$output" = "" ]]
+}
+
+@test "Should show output because of failure" {
+  run ./conftest test -p examples/kubernetes/policy/ examples/kubernetes/deployment.yaml  --all-namespaces --quiet 
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "5 tests, 1 passed, 0 warnings, 4 failures, 0 exceptions" ]]
+}
+
 @test "Should fail evaluation if a builtin function returns error" {
   run ./conftest test -p examples/builtin-errors/invalid-dns.rego examples/kubernetes/deployment.yaml
   [ "$status" -eq 1 ]
   [[ "$output" =~ "built-in error" ]]
 }
+

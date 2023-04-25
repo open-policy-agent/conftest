@@ -31,6 +31,7 @@ type TestRunner struct {
 	NoFail             bool `mapstructure:"no-fail"`
 	SuppressExceptions bool `mapstructure:"suppress-exceptions"`
 	Combine            bool
+	Quiet              bool
 	Output             string
 }
 
