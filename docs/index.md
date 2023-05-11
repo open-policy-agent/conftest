@@ -269,4 +269,4 @@ test_fails_with_http_alb {
 }
 ```
 
-This is much more elagant if you have lots of tests and are unit-testing them. Unfortunately you need to do a bit more book-keeping with the `no_violations` rule, but a future feature may make that easier to implement.
+This is much more elegant if you have lots of tests and are unit-testing them. Unfortunately you need to do a bit more book-keeping with the `no_violations` rule, but a future feature may make that easier to implement.
