@@ -96,6 +96,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				"output",
 				"parser",
 				"policy",
+				"proto-file-dirs",
 				"capabilities",
 				"trace",
 				"strict",
@@ -180,6 +181,8 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().StringSliceP("update", "u", []string{}, "A list of URLs can be provided to the update flag, which will download before the tests run")
 	cmd.Flags().StringSliceP("namespace", "n", []string{"main"}, "Test policies in a specific namespace")
 	cmd.Flags().StringSliceP("data", "d", []string{}, "A list of paths from which data for the rego policies will be recursively loaded")
+
+	cmd.Flags().StringSlice("proto-file-dirs", []string{}, "A list of directories containing Protocol Buffer definitions")
 
 	return &cmd
 }

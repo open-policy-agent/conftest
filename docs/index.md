@@ -78,6 +78,7 @@ As of today Conftest supports:
 * Jsonnet
 * Property files (.properties)
 * SPDX
+* TextProto (Protocol Buffers)
 * TOML
 * VCL
 * XML

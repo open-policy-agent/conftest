@@ -1,0 +1,4 @@
+# proto-message: conftest.testing.TestMessage
+
+name: "pass"
+number: 9001

@@ -4,12 +4,15 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 
 	"github.com/open-policy-agent/conftest/parser/cyclonedx"
+	"github.com/spf13/viper"
+	"golang.org/x/exp/slices"
 
 	"github.com/open-policy-agent/conftest/parser/cue"
 	"github.com/open-policy-agent/conftest/parser/docker"
@@ -25,6 +28,7 @@ import (
 	"github.com/open-policy-agent/conftest/parser/jsonnet"
 	"github.com/open-policy-agent/conftest/parser/properties"
 	"github.com/open-policy-agent/conftest/parser/spdx"
+	"github.com/open-policy-agent/conftest/parser/textproto"
 	"github.com/open-policy-agent/conftest/parser/toml"
 	"github.com/open-policy-agent/conftest/parser/vcl"
 	"github.com/open-policy-agent/conftest/parser/xml"
@@ -48,6 +52,7 @@ const (
 	JSONNET    = "jsonnet"
 	PROPERTIES = "properties"
 	SPDX       = "spdx"
+	TEXTPROTO  = "textproto"
 	TOML       = "toml"
 	VCL        = "vcl"
 	XML        = "xml"
@@ -102,9 +107,44 @@ func New(parser string) (Parser, error) {
 		return &cyclonedx.Parser{}, nil
 	case DOTENV:
 		return &dotenv.Parser{}, nil
+	case TEXTPROTO:
+		parser := &textproto.Parser{}
+		if dirs := viper.GetStringSlice("proto-file-dirs"); len(dirs) > 0 {
+			files, err := findFilesWithExt(dirs, ".proto")
+			if err != nil {
+				return nil, fmt.Errorf("find proto files: %w", err)
+			}
+			if err := parser.LoadProtoFiles(files); err != nil {
+				return nil, fmt.Errorf("load protos: %w", err)
+			}
+		}
+
+		return parser, nil
 	default:
 		return nil, fmt.Errorf("unknown parser: %v", parser)
 	}
+}
+
+func findFilesWithExt(dirs []string, ext string) ([]string, error) {
+	var files []string
+	for _, dir := range dirs {
+		err := filepath.Walk(dir, func(path string, info fs.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if info.IsDir() {
+				return nil
+			}
+			if strings.HasSuffix(info.Name(), ext) {
+				files = append(files, path)
+			}
+			return nil
+		})
+		if err != nil {
+			return nil, fmt.Errorf("walk dir %q: %w", dir, err)
+		}
+	}
+	return files, nil
 }
 
 // NewFromPath returns a file parser based on the file type
@@ -152,6 +192,10 @@ func NewFromPath(path string) (Parser, error) {
 		return New(DOTENV)
 	}
 
+	if slices.Contains(textproto.TextProtoFileExtensions, fileExtension) {
+		return New(TEXTPROTO)
+	}
+
 	parser, err := New(fileExtension)
 	if err != nil {
 		return nil, fmt.Errorf("new: %w", err)
@@ -175,6 +219,7 @@ func Parsers() []string {
 		JSONNET,
 		PROPERTIES,
 		SPDX,
+		TEXTPROTO,
 		TOML,
 		VCL,
 		XML,
@@ -188,11 +233,8 @@ func Parsers() []string {
 // FileSupported returns true if the file at the given path is
 // a file that can be parsed.
 func FileSupported(path string) bool {
-	if _, err := NewFromPath(path); err != nil {
-		return false
-	}
-
-	return true
+	_, err := NewFromPath(path)
+	return err == nil
 }
 
 // ParseConfigurations parses and returns the configurations from the given

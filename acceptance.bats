@@ -489,3 +489,14 @@ EOF"
   [[ "$output" =~ "built-in error" ]]
 }
 
+@test "TextProto policy returns expected results" {
+  run ./conftest test --proto-file-dirs=examples/textproto/protos -p examples/textproto/policy examples/textproto/
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "2 tests, 1 passed, 0 warnings, 1 failure, 0 exceptions" ]]
+}
+
+@test "TextProto policy fails when the proto messages could not be resolved" {
+  run ./conftest test -p examples/textproto/policy examples/textproto/
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "look up message type" ]]
+}

@@ -10,6 +10,7 @@ import (
 	"github.com/open-policy-agent/conftest/parser/ignore"
 	"github.com/open-policy-agent/conftest/parser/json"
 	"github.com/open-policy-agent/conftest/parser/jsonc"
+	"github.com/open-policy-agent/conftest/parser/textproto"
 	"github.com/open-policy-agent/conftest/parser/yaml"
 )
 
@@ -117,6 +118,11 @@ func TestNewFromPath(t *testing.T) {
 		{
 			".env.prod",
 			&dotenv.Parser{},
+			false,
+		},
+		{
+			"foo.textproto",
+			&textproto.Parser{},
 			false,
 		},
 	}
