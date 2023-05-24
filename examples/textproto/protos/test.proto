@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package conftest.testing;
+
+message TestMessage {
+    string name = 1;
+    int32 number = 2;
+    bool truthy = 3;
+}
