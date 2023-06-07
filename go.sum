@@ -536,8 +536,8 @@ github.com/mwitkow/go-conntrack v0.0.0-20161129095857-cc309e4a2223/go.mod h1:qRW
 github.com/oklog/ulid v1.3.1/go.mod h1:CirwcVhetQ6Lv90oh/F+FBtV6XMibvdAFo93nm5qn4U=
 github.com/olekukonko/tablewriter v0.0.5 h1:P2Ga83D34wi1o9J6Wh1mRuqd4mF/x/lgBS7N7AbDhec=
 github.com/olekukonko/tablewriter v0.0.5/go.mod h1:hPp6KlRPjbx+hW8ykQs1w3UBbZlj6HuIJcUGPhkA7kY=
-github.com/open-policy-agent/opa v0.53.0 h1:zC/0sI+Gof5/oiFNS3DmoJa11D0m0InZeDhZyzi+l6E=
-github.com/open-policy-agent/opa v0.53.0/go.mod h1:j3wl8FqSz/+u33Scl72Ms2wxkZx4yZPdqSCrOqBqdsA=
+github.com/open-policy-agent/opa v0.53.1 h1:APN8iA7Txgel13kSkc6S8dbUulydiPojXt6iyubmB7Q=
+github.com/open-policy-agent/opa v0.53.1/go.mod h1:j3wl8FqSz/+u33Scl72Ms2wxkZx4yZPdqSCrOqBqdsA=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
 github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3IKzErnv2BNG4W4MAM=
 github.com/opencontainers/image-spec v1.1.0-rc2 h1:2zx/Stx4Wc5pIPDvIxHXvXtQFW/7XWJGmnM7r3wg034=

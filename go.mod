@@ -22,7 +22,7 @@ require (
 	github.com/magiconair/properties v1.8.5
 	github.com/moby/buildkit v0.11.5
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/open-policy-agent/opa v0.53.0
+	github.com/open-policy-agent/opa v0.53.1
 	github.com/opencontainers/image-spec v1.1.0-rc2
 	github.com/pkg/errors v0.9.1
 	github.com/shteou/go-ignore v0.3.1
