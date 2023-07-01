@@ -447,7 +447,7 @@ func (e *Engine) query(ctx context.Context, input interface{}, query string) (ou
 	}
 
 	if len(*builtInErrors) > 0 {
-		return output.QueryResult{}, fmt.Errorf("built-in error: %s", (*builtInErrors))
+		return output.QueryResult{}, fmt.Errorf("built-in error: %+v", (*builtInErrors))
 	}
 
 	// After the evaluation of the policy, the results of the trace (stdout) will be populated
