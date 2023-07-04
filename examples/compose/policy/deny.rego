@@ -1,8 +1,6 @@
 package main
 
-version {
-	to_number(input.version)
-}
+version := to_number(input.version)
 
 deny[msg] {
 	endswith(input.services[_].image, ":latest")

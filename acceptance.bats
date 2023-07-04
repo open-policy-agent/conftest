@@ -378,6 +378,18 @@ EOF"
   [[ "$output" =~ "No images tagged latest" ]]
 }
 
+@test "Can validate a docker-compose file that does not conform to the policy" {
+  run ./conftest test -p examples/compose/policy examples/compose/docker-compose.yml --no-color
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "2 tests, 0 passed, 0 warnings, 2 failures, 0 exceptions" ]]
+}
+
+@test "Can validate a docker-compose file that conforms to the policy" {
+  run ./conftest test -p examples/compose/policy examples/compose/docker-compose-valid.yml --no-color
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "2 tests, 2 passed, 0 warnings, 0 failures, 0 exceptions" ]]
+}
+
 @test "The number of tests run is accurate" {
   run ./conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml --no-color
   [ "$status" -eq 0 ]
