@@ -14,6 +14,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      # It is important to check the GoReleaser config before pushing to
+      # Dockerhub to avoid having mismatches between what is in Dockerhub
+      # and GitHub releases.
+      - name: check releaser config
+        uses: goreleaser/goreleaser-action@v2
+        with:
+          args: check
+
       - name: login to docker hub
         uses: docker/login-action@v1
         with:
