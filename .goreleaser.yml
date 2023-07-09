@@ -20,12 +20,16 @@ builds:
   - "-X github.com/open-policy-agent/conftest/internal/commands.version={{.Version}}"
 
 archives:
-- replacements:
-    darwin: Darwin
-    linux: Linux
-    windows: Windows
-    386: i386
-    amd64: x86_64
+- name_template: >-
+    {{ .ProjectName }}_
+    {{- .Version }}_
+    {{- if eq .Os "linux" }}Linux
+    {{- else if eq .Os "windows" }}Windows
+    {{- else if eq .Os "darwin" }}Darwin
+    {{- else }}{{ .Os }}{{ end }}_
+    {{- if eq .Arch "386" }}i386
+    {{- else if eq .Arch "amd64" }}x86_64
+    {{- else }}{{ .Arch }}{{ end }}
   format: tar.gz
   format_overrides:
   - goos: windows
