@@ -139,7 +139,7 @@ ports := services.ports
 
 ## `--fail-on-warn`
 
-Policies can either be catagorized as a warning (using the `warn` rule) or a failure (using the `deny` or `violation` rules). By default, Conftest only returns an exit code of `1` when a policy has failed.
+Policies can either be categorized as a warning (using the `warn` rule) or a failure (using the `deny` or `violation` rules). By default, Conftest only returns an exit code of `1` when a policy has failed.
 
 The `--fail-on-warn` flag changes this behavior to the following:
 
