@@ -166,9 +166,9 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().Bool("all-namespaces", false, "Test policies found in all namespaces")
 	cmd.Flags().Bool("quiet", false, "Disable successful test output")
 
-	cmd.Flags().BoolP("trace", "", false, "Enable more verbose trace output for Rego queries")
-	cmd.Flags().BoolP("strict", "", false, "Enable strict mode for Rego policies")
-	cmd.Flags().BoolP("combine", "", false, "Combine all config files to be evaluated together")
+	cmd.Flags().Bool("trace", false, "Enable more verbose trace output for Rego queries")
+	cmd.Flags().Bool("strict", false, "Enable strict mode for Rego policies")
+	cmd.Flags().Bool("combine", false, "Combine all config files to be evaluated together")
 
 	cmd.Flags().String("ignore", "", "A regex pattern which can be used for ignoring paths")
 	cmd.Flags().String("parser", "", fmt.Sprintf("Parser to use to parse the configurations. Valid parsers: %s", parser.Parsers()))
