@@ -172,6 +172,7 @@ As of today Conftest supports the following output types:
 - Table `--output=table`
 - JUnit `--output=junit`
 - GitHub `--output=github`
+- AzureDevOps `--output=azuredevops`
 
 ### Plaintext
 
@@ -304,6 +305,21 @@ jobs:
       - name: Validate Kubernetes policy
         run: |
           conftest test -o github -p examples/kubernetes/policy examples/kubernetes/deployment.yaml
+```
+
+### Azure DevOps
+
+```console
+$ conftest test -o azuredevops -p examples/kubernetes/policy examples/kubernetes/deployment.yaml
+##[section]Testing 'examples/kubernetes/deployment.yaml' against 5 policies in namespace 'main'
+##[group]See conftest results
+##vso[task.logissue type=error] file=examples/kubernetes/deployment.yaml --> Containers must not run as root in Deployment hello-kubernetes
+##vso[task.logissue type=error] file=examples/kubernetes/deployment.yaml --> Deployment hello-kubernetes must provide app/release labels for pod selectors
+##vso[task.logissue type=error] file=examples/kubernetes/deployment.yaml --> hello-kubernetes must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels
+##vso[task.logissue type=error] file=examples/kubernetes/deployment.yaml --> Found deployment hello-kubernetes but deployments are not allowed
+success file=examples/kubernetes/deployment.yaml 1
+##[endgroup]
+5 tests, 1 passed, 0 warnings, 4 failures, 0 exceptions
 ```
 
 ## `--parser`
