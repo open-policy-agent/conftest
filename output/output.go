@@ -26,12 +26,13 @@ type Options struct {
 // The defined output formats represent all of the supported formats
 // that can be used to format and render results.
 const (
-	OutputStandard = "stdout"
-	OutputJSON     = "json"
-	OutputTAP      = "tap"
-	OutputTable    = "table"
-	OutputJUnit    = "junit"
-	OutputGitHub   = "github"
+	OutputStandard    = "stdout"
+	OutputJSON        = "json"
+	OutputTAP         = "tap"
+	OutputTable       = "table"
+	OutputJUnit       = "junit"
+	OutputGitHub      = "github"
+	OutputAzureDevOps = "azuredevops"
 )
 
 // Get returns a type that can render output in the given format.
@@ -49,6 +50,8 @@ func Get(format string, options Options) Outputter {
 		return NewJUnit(os.Stdout, options.JUnitHideMessage)
 	case OutputGitHub:
 		return NewGitHub(os.Stdout)
+	case OutputAzureDevOps:
+		return NewAzureDevOps(os.Stdout)
 	default:
 		return NewStandard(os.Stdout)
 	}
