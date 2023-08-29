@@ -49,6 +49,7 @@ func TestCycloneDXParserValid(t *testing.T) {
 		t.Error("There should be information parsed but its nil")
 	}
 
+	//#nosec until https://github.com/securego/gosec/issues/1001 is fixed
 	expectedSHA256 := "sha256:d7ec60cf8390612b360c857688b383068b580d9a6ab78417c9493170ad3f1616"
 
 	metadata := input.(map[string]interface{})["metadata"]
@@ -103,6 +104,7 @@ func TestCycloneDXParserInValid(t *testing.T) {
 		t.Error("There should be information parsed but its nil")
 	}
 
+	//#nosec until https://github.com/securego/gosec/issues/1001 is fixed
 	expectedSHA256 := "sha256:d7ec60cf8390612b360c857688b383068b580d9a6ab78417c9493170ad3f1616"
 
 	metadata := input.(map[string]interface{})["metadata"]
