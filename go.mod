@@ -10,7 +10,6 @@ require (
 	github.com/basgys/goxml2json v1.1.0
 	github.com/bufbuild/protocompile v0.5.1
 	github.com/cpuguy83/dockercfg v0.3.1
-	github.com/ghodss/yaml v1.0.0
 	github.com/go-akka/configuration v0.0.0-20200606091224-a002c0330665
 	github.com/go-ini/ini v1.67.0
 	github.com/google/go-cmp v0.5.9
@@ -36,6 +35,7 @@ require (
 	muzzammil.xyz/jsonc v1.0.0
 	olympos.io/encoding/edn v0.0.0-20201019073823-d3554ca0b0a3
 	oras.land/oras-go/v2 v2.3.0
+	sigs.k8s.io/yaml v1.3.0
 )
 
 require (
@@ -125,5 +125,4 @@ require (
 	gopkg.in/ini.v1 v1.66.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	sigs.k8s.io/yaml v1.3.0 // indirect
 )
