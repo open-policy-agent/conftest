@@ -5,7 +5,6 @@ linter-settings:
 linters:
   disable-all: true
   enable:
-    - deadcode
     - errcheck
     - goconst
     - gofmt
@@ -20,10 +19,8 @@ linters:
     - predeclared
     - revive
     - staticcheck
-    - structcheck
     - typecheck
     - unconvert
     - unparam
     - unused
-    - varcheck
     - wastedassign
