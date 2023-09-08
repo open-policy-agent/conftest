@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/spdx/tools-golang/tvloader"
+	"github.com/spdx/tools-golang/tagvalue"
 )
 
 // Parser is a SPDX parser.
@@ -13,7 +13,7 @@ type Parser struct{}
 
 // Unmarshal unmarshals SPDX files.
 func (*Parser) Unmarshal(p []byte, v interface{}) error {
-	doc, err := tvloader.Load2_2(bytes.NewBuffer(p))
+	doc, err := tagvalue.Read(bytes.NewBuffer(p))
 	if err != nil {
 		return fmt.Errorf("error while parsing %v: %v", p, err)
 	}
