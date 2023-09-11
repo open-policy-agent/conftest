@@ -470,6 +470,15 @@ EOF"
   [[ "$output" =~ "rego_compile_error: unused argument y" ]]
 }
 
+@test "Should fail when verifying if strict is set and there are unused variables in the policy" {
+  run ./conftest verify -p examples/strict-rules/policy/ examples/kubernetes/deployment.yaml --strict
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "rego_compile_error: assigned var b unused" ]]
+  [[ "$output" =~ "rego_compile_error: assigned var x unused" ]]
+  [[ "$output" =~ "rego_compile_error: assigned var c unused" ]]
+  [[ "$output" =~ "rego_compile_error: unused argument y" ]]
+}
+
 @test "Should fail if an opa function is not defined given capabilities file" {
   run ./conftest test examples/kubernetes/deployment.yaml -p examples/kubernetes/policy/ -p examples/capabilities/malicious.rego --capabilities examples/capabilities/capabilities.json
   [ "$status" -eq 1 ]
