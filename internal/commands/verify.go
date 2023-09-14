@@ -78,6 +78,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 				"quiet",
 				"junit-hide-message",
 				"capabilities",
+				"strict",
 				"proto-file-dirs",
 			}
 			for _, name := range flagNames {
