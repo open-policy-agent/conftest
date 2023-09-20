@@ -25,12 +25,13 @@ import (
 
 // Engine represents the policy engine.
 type Engine struct {
-	trace    bool
-	modules  map[string]*ast.Module
-	compiler *ast.Compiler
-	store    storage.Store
-	policies map[string]string
-	docs     map[string]string
+	trace         bool
+	builtinErrors bool
+	modules       map[string]*ast.Module
+	compiler      *ast.Compiler
+	store         storage.Store
+	policies      map[string]string
+	docs          map[string]string
 }
 
 type compilerOptions struct {
@@ -154,6 +155,10 @@ func LoadWithData(policyPaths []string, dataPaths []string, capabilities string,
 
 func (e *Engine) EnableTracing() {
 	e.trace = true
+}
+
+func (e *Engine) ShowBuiltinErrors() {
+	e.builtinErrors = true
 }
 
 // Check executes all of the loaded policies against the input and returns the results.
@@ -446,7 +451,7 @@ func (e *Engine) query(ctx context.Context, input interface{}, query string) (ou
 		return output.QueryResult{}, fmt.Errorf("evaluating policy: %w", err)
 	}
 
-	if len(*builtInErrors) > 0 {
+	if e.builtinErrors && len(*builtInErrors) > 0 {
 		return output.QueryResult{}, fmt.Errorf("built-in error: %+v", (*builtInErrors))
 	}
 

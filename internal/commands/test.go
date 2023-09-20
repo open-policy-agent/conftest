@@ -100,6 +100,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				"capabilities",
 				"trace",
 				"strict",
+				"show-builtin-errors",
 				"update",
 				"junit-hide-message",
 				"quiet",
@@ -168,6 +169,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 
 	cmd.Flags().Bool("trace", false, "Enable more verbose trace output for Rego queries")
 	cmd.Flags().Bool("strict", false, "Enable strict mode for Rego policies")
+	cmd.Flags().Bool("show-builtin-errors", false, "Collect and return all encountered built-in errors")
 	cmd.Flags().Bool("combine", false, "Combine all config files to be evaluated together")
 
 	cmd.Flags().String("ignore", "", "A regex pattern which can be used for ignoring paths")
