@@ -505,7 +505,7 @@ EOF"
 }
 
 @test "Should fail evaluation if a builtin function returns error" {
-  run ./conftest test -p examples/builtin-errors/invalid-dns.rego examples/kubernetes/deployment.yaml
+  run ./conftest test --show-builtin-errors -p examples/builtin-errors/invalid-dns.rego examples/kubernetes/deployment.yaml
   [ "$status" -eq 1 ]
   [[ "$output" =~ "built-in error" ]]
 }

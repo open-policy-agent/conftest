@@ -30,6 +30,7 @@ type TestRunner struct {
 	NoColor            bool `mapstructure:"no-color"`
 	NoFail             bool `mapstructure:"no-fail"`
 	SuppressExceptions bool `mapstructure:"suppress-exceptions"`
+	ShowBuiltinErrors  bool `mapstructure:"show-builtin-errors"`
 	Combine            bool
 	Quiet              bool
 	Output             string
@@ -68,6 +69,10 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) ([]output.Check
 
 	if t.Trace {
 		engine.EnableTracing()
+	}
+
+	if t.ShowBuiltinErrors {
+		engine.ShowBuiltinErrors()
 	}
 
 	namespaces := t.Namespace
