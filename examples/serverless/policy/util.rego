@@ -11,7 +11,7 @@ has_field(object, field) {
 	object[field] == false
 }
 
-has_field(object, field) = false {
+has_field(object, field) := false {
 	not object[field]
 	not object[field] == false
 }

@@ -1,6 +1,6 @@
 package main
 
-denylist = [
+denylist := [
 	"google_iam",
 	"google_container",
 ]
@@ -8,7 +8,7 @@ denylist = [
 deny[msg] {
 	check_resources(input.resource_changes, denylist)
 	banned := concat(", ", denylist)
-	msg = sprintf("Terraform plan will change prohibited resources in the following namespaces: %v", [banned])
+	msg := sprintf("Terraform plan will change prohibited resources in the following namespaces: %v", [banned])
 }
 
 # Checks whether the plan will cause resources with certain prefixes to change

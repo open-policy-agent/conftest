@@ -1,0 +1,19 @@
+rules:
+  idiomatic:
+    no-defined-entrypoint:
+      level: ignore
+  imports:
+    prefer-package-imports:
+      level: error
+      ignore-import-paths:
+        - data.services
+  style:
+    line-length:
+      non-breakable-word-threshold: 80
+    opa-fmt:
+      level: ignore
+    prefer-some-in-iteration:
+      level: ignore
+  testing:
+    test-outside-test-package:
+      level: ignore

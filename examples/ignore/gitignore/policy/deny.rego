@@ -1,7 +1,7 @@
 package main
 
 any_id_rsa_ignored {
-	entry := input[i]
+	entry := input[_]
 
 	entry.Kind == "Path"
 	entry.Value == "id_rsa"

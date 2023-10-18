@@ -176,7 +176,7 @@
 @test "Supports print() output" {
   run ./conftest test -p examples/report/policy_print/labels.rego examples/kubernetes/deployment.yaml --no-color
   [ "$status" -eq 1 ]
-  [[ "${lines[0]}" == "PRNT   examples/report/policy_print/labels.rego:12: hello-kubernetes" ]]
+  [[ "${lines[0]}" == "PRNT   examples/report/policy_print/labels.rego:13: hello-kubernetes" ]]
 }
 
 @test "Can parse hcl1 files" {
@@ -282,7 +282,7 @@
 }
 
 @test "Can parse newly introduced keywords for docker" {
-  run bash -c "cat <<EOF | ./conftest parse --parser dockerfile - 
+  run bash -c "cat <<EOF | ./conftest parse --parser dockerfile -
 # syntax=docker/dockerfile:1.4
 FROM alpine
 COPY --link /foo /bar
@@ -415,14 +415,14 @@ EOF"
 }
 
 @test "Can combine yaml files" {
-  run ./conftest test -p examples/combine/policy examples/combine/team.yaml examples/combine/user1.yaml examples/combine/user2.yaml --combine 
+  run ./conftest test -p examples/combine/policy examples/combine/team.yaml examples/combine/user1.yaml examples/combine/user2.yaml --combine
 
   [ "$status" -eq 1 ]
   [[ "$output" =~ "2 tests, 1 passed, 0 warnings, 1 failure" ]]
 }
 
 @test "Combining multi-document yaml file has same result" {
-  run ./conftest test -p examples/combine/policy examples/combine/team.yaml examples/combine/users.yaml --combine 
+  run ./conftest test -p examples/combine/policy examples/combine/team.yaml examples/combine/users.yaml --combine
 
   [ "$status" -eq 1 ]
   [[ "$output" =~ "2 tests, 1 passed, 0 warnings, 1 failure" ]]
@@ -438,7 +438,7 @@ EOF"
   run ./conftest test -p examples/spdx/policy examples/spdx/sbom.spdx
 
   [ "$status" -eq 0 ]
-  [[ "$output" =~ "1 test, 1 passed, 0 warnings, 0 failures, 0 exceptions" ]] 
+  [[ "$output" =~ "1 test, 1 passed, 0 warnings, 0 failures, 0 exceptions" ]]
 }
 
 @test "Can test cyclonedx against policy" {
@@ -499,7 +499,7 @@ EOF"
 }
 
 @test "Should show output because of failure" {
-  run ./conftest test -p examples/kubernetes/policy/ examples/kubernetes/deployment.yaml  --all-namespaces --quiet 
+  run ./conftest test -p examples/kubernetes/policy/ examples/kubernetes/deployment.yaml  --all-namespaces --quiet
   [ "$status" -eq 1 ]
   [[ "$output" =~ "5 tests, 1 passed, 0 warnings, 4 failures, 0 exceptions" ]]
 }

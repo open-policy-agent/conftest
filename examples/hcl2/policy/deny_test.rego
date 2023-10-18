@@ -13,7 +13,9 @@ test_blank_input {
 }
 
 test_correctly_encrypted_azure_disk {
-	no_violations with input as {"resource": {"azurerm_managed_disk": {"sample": {"encryption_settings": {"enabled": true}}}}}
+	no_violations with input as {
+		"resource": {"azurerm_managed_disk": {"sample": {"encryption_settings": {"enabled": true}}}}
+	}
 }
 
 test_unencrypted_azure_disk {
