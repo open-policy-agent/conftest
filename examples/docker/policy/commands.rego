@@ -1,6 +1,6 @@
 package commands
 
-denylist = [
+denylist := [
 	"apk",
 	"apt",
 	"pip",
@@ -9,9 +9,10 @@ denylist = [
 ]
 
 deny[msg] {
+	some i
 	input[i].Cmd == "run"
 	val := input[i].Value
 	contains(val[_], denylist[_])
 
-	msg = sprintf("unallowed commands found %s", [val])
+	msg := sprintf("unallowed commands found %s", [val])
 }

@@ -56,6 +56,14 @@ jobs:
       - name: test examples
         run: make test-examples
 
+      - name: setup regal
+        uses: StyraInc/setup-regal@v0.2.0
+        with:
+          version: v0.11.0
+
+      - name: lint examples
+        run: regal lint --format github examples
+
       - name: acceptance
         run: make test-acceptance
 

@@ -1,15 +1,15 @@
 package main
 
-denylist = ["*"]
+denylist := ["*"]
 
-sensitive_denylist = [
+sensitive_denylist := [
 	"password",
 	"Password",
 	"Pass",
 	"pass",
 ]
 
-runtime_denylist = [
+runtime_denylist := [
 	"python2.7",
 	"node4.3",
 ]

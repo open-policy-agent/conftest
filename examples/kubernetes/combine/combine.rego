@@ -1,6 +1,7 @@
 package main
 
 violation[msg] {
+    some i
     input[i].contents.kind == "Deployment"
     deployment := input[i].contents
     not service_selects_app(deployment.spec.selector.matchLabels.app)
@@ -8,6 +9,7 @@ violation[msg] {
 }
 
 service_selects_app(app) {
+    some i
     input[i].contents.kind == "Service"
     service := input[i].contents
     service.spec.selector.app == app

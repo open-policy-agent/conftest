@@ -6,6 +6,7 @@ deny[msg] {
 }
 
 runtime[name] {
+	some i
 	input.functions[i].runtime = name
 }
 

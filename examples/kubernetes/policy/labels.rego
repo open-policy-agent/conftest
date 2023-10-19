@@ -2,7 +2,7 @@ package main
 
 import data.kubernetes
 
-name = input.metadata.name
+name := input.metadata.name
 
 required_deployment_labels {
 	input.metadata.labels["app.kubernetes.io/name"]

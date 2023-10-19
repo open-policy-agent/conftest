@@ -5,12 +5,14 @@ has_field(obj, field) {
 }
 
 deny[msg] {
+	some lb
 	proto := input.resource.aws_alb_listener[lb].protocol
 	proto == "HTTP"
 	msg = sprintf("ALB `%v` is using HTTP rather than HTTPS", [lb])
 }
 
 deny[msg] {
+	some name
 	rule := input.resource.aws_security_group_rule[name]
 	rule.type == "ingress"
 	contains(rule.cidr_blocks[_], "0.0.0.0/0")
@@ -18,6 +20,7 @@ deny[msg] {
 }
 
 deny[msg] {
+	some name
 	disk = input.resource.azurerm_managed_disk[name]
 	has_field(disk, "encryption_settings")
 	disk.encryption_settings.enabled != true

@@ -2,7 +2,7 @@ package main
 
 import data.kubernetes
 
-name = input.metadata.name
+name := input.metadata.name
 
 deny[msg] {
 	kubernetes.is_deployment

@@ -3,7 +3,7 @@ package main
 # Check that no name attribute exists twice among all resources
 deny[msg] {
 	name := input[_].contents.metadata.name
-	occurrences := [name | input[i].contents.metadata.name == name; name := input[i].metadata.name]
+	occurrences := [name | some i; input[i].contents.metadata.name == name; name := input[i].metadata.name]
 	count(occurrences) > 1
 	msg = sprintf("Error duplicate name : %s", [name])
 }
@@ -13,8 +13,10 @@ deny[msg] {
 	name := input[_].contents.metadata.name
 	kind == "team"
 
+	some i, j
+
 	# list all existing users
-	existing_users = {email | input[i].contents.kind == "user"; email := input[i].contents.metadata.email}
+	existing_users = {email | some i; input[i].contents.kind == "user"; email := input[i].contents.metadata.email}
 
 	# gather all configured users in teams
 	configured_owner_users_array = [user | input[i].contents.kind == "team"; user := input[i].contents.spec.owner]
@@ -31,5 +33,8 @@ deny[msg] {
 	# missing users are the ones configured in teams but not in Github
 	count(missing_users) > 0
 
-	msg = sprintf("Existing users %s | Configured users %s | Missing users %s", [sort(existing_users), sort(configured_users), sort(missing_users)])
+	msg = sprintf(
+		"Existing users %s | Configured users %s | Missing users %s",
+		[sort(existing_users), sort(configured_users), sort(missing_users)],
+	)
 }
