@@ -21,6 +21,7 @@ type Options struct {
 	SuppressExceptions bool
 	ShowSkipped        bool
 	JUnitHideMessage   bool
+	File               *os.File
 }
 
 // The defined output formats represent all of the supported formats
@@ -37,23 +38,27 @@ const (
 
 // Get returns a type that can render output in the given format.
 func Get(format string, options Options) Outputter {
+	if options.File == nil {
+		options.File = os.Stdout
+	}
+
 	switch format {
 	case OutputStandard:
-		return &Standard{Writer: os.Stdout, NoColor: options.NoColor, SuppressExceptions: options.SuppressExceptions, Tracing: options.Tracing, ShowSkipped: options.ShowSkipped}
+		return &Standard{Writer: options.File, NoColor: options.NoColor, SuppressExceptions: options.SuppressExceptions, Tracing: options.Tracing, ShowSkipped: options.ShowSkipped}
 	case OutputJSON:
-		return NewJSON(os.Stdout)
+		return NewJSON(options.File)
 	case OutputTAP:
-		return NewTAP(os.Stdout)
+		return NewTAP(options.File)
 	case OutputTable:
-		return NewTable(os.Stdout)
+		return NewTable(options.File)
 	case OutputJUnit:
-		return NewJUnit(os.Stdout, options.JUnitHideMessage)
+		return NewJUnit(options.File, options.JUnitHideMessage)
 	case OutputGitHub:
-		return NewGitHub(os.Stdout)
+		return NewGitHub(options.File)
 	case OutputAzureDevOps:
-		return NewAzureDevOps(os.Stdout)
+		return NewAzureDevOps(options.File)
 	default:
-		return NewStandard(os.Stdout)
+		return NewStandard(options.File)
 	}
 }
 
