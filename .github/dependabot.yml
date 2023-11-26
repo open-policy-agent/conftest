@@ -6,7 +6,19 @@ updates:
   - package-ecosystem: "gomod"
     directory: "/"
     allow:
+      # OPA
       - dependency-name: "github.com/open-policy-agent/opa"
+      # Upstream Parsers
+      - dependency-name: "cuelang.org/go"
+      - dependency-name: "github.com/BurntSushi/toml"
+      - dependency-name: "github.com/CycloneDX/cyclonedx-go"
+      - dependency-name: "github.com/cpuguy83/dockercfg"
+      - dependency-name: "github.com/go-ini/ini"
+      - dependency-name: "github.com/google/go-jsonnet"
+      - dependency-name: "github.com/hashicorp/hcl"
+      - dependency-name: "github.com/magiconair/properties"
+      - dependency-name: "github.com/spdx/tools-golang"
+      - dependency-name: "github.com/subosito/gotenv"
     schedule:
       interval: "daily"
 
