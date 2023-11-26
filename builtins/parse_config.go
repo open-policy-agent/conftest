@@ -66,7 +66,7 @@ func parseConfig(bctx rego.BuiltinContext, op1, op2 *ast.Term) (*ast.Term, error
 	if err != nil {
 		return nil, fmt.Errorf("create config parser: %w", err)
 	}
-	var cfg map[string]any
+	var cfg any
 	if err := parser.Unmarshal([]byte(config), &cfg); err != nil {
 		return nil, fmt.Errorf("unmarshal config: %w", err)
 	}
@@ -92,7 +92,7 @@ func parseConfigFile(bctx rego.BuiltinContext, op1 *ast.Term) (*ast.Term, error)
 		return nil, fmt.Errorf("read config file %s: %w", filePath, err)
 	}
 
-	var cfg map[string]any
+	var cfg any
 	if err := parser.Unmarshal(contents, &cfg); err != nil {
 		return nil, fmt.Errorf("unmarshal config: %w", err)
 	}
