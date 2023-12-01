@@ -46,10 +46,10 @@ changelog:
   use: github
   groups:
   - title: New Features
-    regexp: '^feat(ure)?:'
+    regexp: '^.*?feat(ure)?(\([[:word:]]+\))??!?:.+$'
     order: 0
   - title: Bug Fixes
-    regexp: '^(bug|fix):'
+    regexp: '^.*?(bug|fix)(\([[:word:]]+\))??!?:.+$'
     order: 1
   - title: OPA Changes
     regexp: '(?i)bump (opa|github.com/open-policy-agent/opa)'
@@ -59,10 +59,10 @@ changelog:
   sort: asc
   filters:
     exclude:
-    - '^docs:'
-    - '^test:'
-    - '^misc:'
-    - '^typo:'
+    - '^.*?docs(\([[:word:]]+\))??!?:.+$'
+    - '^.*?test(\([[:word:]]+\))??!?:.+$'
+    - '^.*?misc(\([[:word:]]+\))??!?:.+$'
+    - '^.*?typo(\([[:word:]]+\))??!?:.+$'
     - '(?i) typo( |\.|\r?\n)'
 
 # Publishes the deb and rpm files to the GitHub releases page.
