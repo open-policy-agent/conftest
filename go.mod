@@ -5,7 +5,7 @@ go 1.19
 require (
 	cuelang.org/go v0.6.0
 	github.com/BurntSushi/toml v1.3.2
-	github.com/CycloneDX/cyclonedx-go v0.7.2
+	github.com/CycloneDX/cyclonedx-go v0.8.0
 	github.com/KeisukeYamashita/go-vcl v0.4.0
 	github.com/basgys/goxml2json v1.1.0
 	github.com/bufbuild/protocompile v0.6.0

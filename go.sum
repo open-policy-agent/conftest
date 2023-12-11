@@ -194,8 +194,8 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/BurntSushi/toml v1.3.2 h1:o7IhLm0Msx3BaB+n3Ag7L8EVlByGnpq14C4YWiu/gL8=
 github.com/BurntSushi/toml v1.3.2/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
-github.com/CycloneDX/cyclonedx-go v0.7.2 h1:kKQ0t1dPOlugSIYVOMiMtFqeXI2wp/f5DBIdfux8gnQ=
-github.com/CycloneDX/cyclonedx-go v0.7.2/go.mod h1:K2bA+324+Og0X84fA8HhN2X066K7Bxz4rpMQ4ZhjtSk=
+github.com/CycloneDX/cyclonedx-go v0.8.0 h1:FyWVj6x6hoJrui5uRQdYZcSievw3Z32Z88uYzG/0D6M=
+github.com/CycloneDX/cyclonedx-go v0.8.0/go.mod h1:K2bA+324+Og0X84fA8HhN2X066K7Bxz4rpMQ4ZhjtSk=
 github.com/KeisukeYamashita/go-vcl v0.4.0 h1:dFxZq2yVeaCWBJAT7Oh9Z+Pp8y32i7b11QHdzsuBcsk=
 github.com/KeisukeYamashita/go-vcl v0.4.0/go.mod h1:af2qGlXbsHDQN5abN7hyGNKtGhcFSaDdbLl4sfud+AU=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
