@@ -15,15 +15,16 @@ import (
 // VerifyRunner is the runner for the Verify command, executing
 // Rego policy unit-tests.
 type VerifyRunner struct {
-	Capabilities string
-	Policy       []string
-	Data         []string
-	Output       string
-	NoColor      bool `mapstructure:"no-color"`
-	Trace        bool
-	Strict       bool
-	Report       string
-	Quiet        bool
+	Capabilities      string
+	Policy            []string
+	Data              []string
+	Output            string
+	NoColor           bool `mapstructure:"no-color"`
+	Trace             bool
+	Strict            bool
+	Report            string
+	Quiet             bool
+	ShowBuiltinErrors bool `mapstructure:"show-builtin-errors"`
 }
 
 const (
@@ -51,7 +52,8 @@ func (r *VerifyRunner) Run(ctx context.Context) ([]output.CheckResult, []*tester
 		SetStore(engine.Store()).
 		SetModules(engine.Modules()).
 		EnableTracing(enableTracing).
-		SetRuntime(engine.Runtime())
+		SetRuntime(engine.Runtime()).
+		RaiseBuiltinErrors(r.ShowBuiltinErrors)
 	ch, err := runner.RunTests(ctx, nil)
 	if err != nil {
 		return nil, nil, fmt.Errorf("running tests: %w", err)
