@@ -4,8 +4,10 @@ import (
 	"context"
 	"testing"
 
+	"github.com/open-policy-agent/conftest/internal/testing/memfs"
 	"github.com/open-policy-agent/conftest/parser"
 	"github.com/open-policy-agent/opa/ast"
+	"github.com/open-policy-agent/opa/loader"
 )
 
 func TestException(t *testing.T) {
@@ -309,6 +311,55 @@ deny[{"msg": msg}] {
 			}
 			if qr.Results[0].Message != tt.name {
 				t.Errorf("mismatch. have [%v], want [%v]", qr.Results[0].Message, tt.name)
+			}
+		})
+	}
+}
+
+func TestProblematicIf(t *testing.T) {
+	testCases := []struct {
+		desc    string
+		body    string
+		wantErr bool
+	}{
+		{
+			desc: "No rules",
+			body: "",
+		},
+		{
+			desc: "Rule not using if statement",
+			body: "deny[msg] {\n 1 == 1\nmsg := \"foo\"\n}\n",
+		},
+		{
+			desc: "Unrelated rule using problematic if",
+			body: "import future.keywords.if\nunrelated[msg] if {\n 1 == 1\nmsg := \"foo\"\n}\n",
+		},
+		{
+			desc:    "Rule using if without contains",
+			body:    "import future.keywords.if\ndeny[msg] if {\n 1 == 1\nmsg := \"foo\"\n}\n",
+			wantErr: true,
+		},
+		{
+			desc: "Rule using if with contains",
+			body: "import future.keywords.if\nimport future.keywords.contains\ndeny contains msg if {\n 1 == 1\nmsg := \"foo\"\n}\n",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			files := map[string][]byte{
+				"policy.rego": []byte("package main\n\n" + tc.body),
+			}
+			fs := memfs.New(files)
+			l := loader.NewFileLoader().WithFS(fs)
+
+			pols, err := l.All([]string{"policy.rego"})
+			if err != nil {
+				t.Fatalf("Load policies: %v", err)
+			}
+			err = problematicIf(pols.ParsedModules())
+			if gotErr := err != nil; gotErr != tc.wantErr {
+				t.Errorf("problematicIf = %v, want %v", gotErr, tc.wantErr)
 			}
 		})
 	}
