@@ -6,5 +6,9 @@ site
 # IDEs
 .vscode
 .DS*
-
 .idea
+
+# NodeJS files/dirs created when installing bats
+node_modules/
+package.json
+package-lock.json

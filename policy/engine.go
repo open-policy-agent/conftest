@@ -39,6 +39,11 @@ type compilerOptions struct {
 	capabilities *ast.Capabilities
 }
 
+var (
+	warningRegex = regexp.MustCompile("^warn(_[a-zA-Z0-9]+)*$")
+	failureRegex = regexp.MustCompile("^(deny|violation)(_[a-zA-Z0-9]+)*$")
+)
+
 func newCompilerOptions(strict bool, capabilities string) (compilerOptions, error) {
 	c := ast.CapabilitiesForThisVersion()
 	if capabilities != "" {
@@ -81,6 +86,10 @@ func Load(policyPaths []string, c compilerOptions) (*Engine, error) {
 		return nil, fmt.Errorf("get compiler: %w", compiler.Errors)
 	}
 
+	if err := problematicIf(modules); err != nil {
+		return nil, fmt.Errorf("rule is using 'if' keyword without 'contains' keyword: %w", err)
+	}
+
 	policyContents := make(map[string]string, len(modules))
 	for path, module := range policies.Modules {
 		path = filepath.Clean(path)
@@ -90,7 +99,7 @@ func Load(policyPaths []string, c compilerOptions) (*Engine, error) {
 	}
 
 	engine := Engine{
-		modules:  policies.ParsedModules(),
+		modules:  modules,
 		compiler: compiler,
 		policies: policyContents,
 	}
@@ -107,7 +116,6 @@ func LoadWithData(policyPaths []string, dataPaths []string, capabilities string,
 
 	engine := &Engine{}
 	if len(policyPaths) > 0 {
-		var err error
 		engine, err = Load(policyPaths, compilerOptions)
 		if err != nil {
 			return nil, fmt.Errorf("loading policies: %w", err)
@@ -519,13 +527,30 @@ func (e *Engine) query(ctx context.Context, input interface{}, query string) (ou
 }
 
 func isWarning(rule string) bool {
-	warningRegex := regexp.MustCompile("^warn(_[a-zA-Z0-9]+)*$")
 	return warningRegex.MatchString(rule)
 }
 
 func isFailure(rule string) bool {
-	failureRegex := regexp.MustCompile("^(deny|violation)(_[a-zA-Z0-9]+)*$")
 	return failureRegex.MatchString(rule)
+}
+
+func problematicIf(modules map[string]*ast.Module) error {
+	// https://github.com/open-policy-agent/opa/issues/6509
+	for _, module := range modules {
+		for _, rule := range module.Rules {
+			if rule.Head == nil || rule.Head.Value == nil || len(rule.Head.Reference) == 0 {
+				continue
+			}
+			refName := rule.Head.Reference[0].Value.String()
+			if isFailure(refName) || isWarning(refName) {
+				// Value being "true" here indicates usage of "if" without "contains".
+				if rule.Head.Value.String() == "true" {
+					return fmt.Errorf("rule in %s at line %d", module.Package.Loc().File, rule.Head.Location.Row)
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func contains(collection []string, item string) bool {
