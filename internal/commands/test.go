@@ -104,6 +104,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				"update",
 				"junit-hide-message",
 				"quiet",
+				"tls",
 			}
 			for _, name := range flagNames {
 				if err := viper.BindPFlag(name, cmd.Flags().Lookup(name)); err != nil {
@@ -185,6 +186,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().StringSliceP("data", "d", []string{}, "A list of paths from which data for the rego policies will be recursively loaded")
 
 	cmd.Flags().StringSlice("proto-file-dirs", []string{}, "A list of directories containing Protocol Buffer definitions")
+	cmd.Flags().Bool("tls", true, "Use TLS to access the registry")
 
 	return &cmd
 }
