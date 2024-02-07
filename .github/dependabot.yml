@@ -17,6 +17,7 @@ updates:
       - dependency-name: "github.com/google/go-jsonnet"
       - dependency-name: "github.com/hashicorp/hcl"
       - dependency-name: "github.com/magiconair/properties"
+      - dependency-name: "github.com/moby/buildkit"
       - dependency-name: "github.com/spdx/tools-golang"
       - dependency-name: "github.com/subosito/gotenv"
     schedule:
