@@ -50,7 +50,7 @@ func NewPullCommand(ctx context.Context) *cobra.Command {
 		Use:   "pull <repository>",
 		Short: "Download individual policies",
 		Long:  pullDesc,
-		PreRunE: func(cmd *cobra.Command, args []string) error {
+		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			if err := viper.BindPFlag("policy", cmd.Flags().Lookup("policy")); err != nil {
 				return fmt.Errorf("bind flag: %w", err)
 			}

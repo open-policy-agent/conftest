@@ -18,14 +18,14 @@ func NewFormatCommand() *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "fmt <path> [path [...]]",
 		Short: "Format Rego files",
-		PreRunE: func(cmd *cobra.Command, args []string) error {
+		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			if err := viper.BindPFlag("check", cmd.Flags().Lookup("check")); err != nil {
 				return fmt.Errorf("bind flag: %w", err)
 			}
 
 			return nil
 		},
-		RunE: func(cmd *cobra.Command, files []string) error {
+		RunE: func(_ *cobra.Command, files []string) error {
 			policies, err := loader.AllRegos(files)
 			if err != nil {
 				return fmt.Errorf("get rego files: %w", err)

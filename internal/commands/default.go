@@ -31,7 +31,7 @@ func NewDefaultCommand() *cobra.Command {
 		Short:        "Test your configuration files using Open Policy Agent",
 		Version:      createVersionString(),
 		SilenceUsage: true,
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			if err := viper.BindPFlag("config-file", cmd.Flags().Lookup("config-file")); err != nil {
 				return fmt.Errorf("bind flag: %s", err)
 			}
@@ -80,7 +80,7 @@ func newCommandFromPlugin(ctx context.Context, p *plugin.Plugin) *cobra.Command 
 		Use:   p.Name,
 		Short: p.Usage,
 		Long:  p.Description,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, args []string) error {
 			if err := p.Exec(ctx, args); err != nil {
 				return fmt.Errorf("execute plugin: %v", err)
 			}

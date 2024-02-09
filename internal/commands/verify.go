@@ -67,7 +67,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 		Use:   "verify <path> [path [...]]",
 		Short: "Verify Rego unit tests",
 		Long:  verifyDesc,
-		PreRunE: func(cmd *cobra.Command, args []string) error {
+		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			flagNames := []string{
 				"data",
 				"no-color",
@@ -90,7 +90,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 
 			return nil
 		},
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			var runner runner.VerifyRunner
 			if err := viper.Unmarshal(&runner); err != nil {
 				return fmt.Errorf("unmarshal parameters: %w", err)

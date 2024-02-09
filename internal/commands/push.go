@@ -59,7 +59,7 @@ func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 		Use:   "push <repository>",
 		Short: "Push OPA bundles to an OCI registry",
 		Long:  pushDesc,
-		PreRunE: func(cmd *cobra.Command, args []string) error {
+		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			if err := viper.BindPFlag("policy", cmd.Flags().Lookup("policy")); err != nil {
 				return fmt.Errorf("bind flag: %w", err)
 			}

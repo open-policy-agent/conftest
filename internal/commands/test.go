@@ -82,7 +82,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 		Use:   "test <path> [path [...]]",
 		Short: "Test your configuration files using Open Policy Agent",
 		Long:  testDesc,
-		PreRunE: func(cmd *cobra.Command, args []string) error {
+		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			flagNames := []string{
 				"all-namespaces",
 				"combine",
