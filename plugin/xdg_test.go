@@ -99,7 +99,7 @@ func TestFind(t *testing.T) {
 				os.Unsetenv(XDGDataDirs)
 				return "/does/not/exist", nil
 			},
-			func(path string) error {
+			func(_ string) error {
 				return nil
 			},
 			func(_ string) string {

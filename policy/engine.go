@@ -69,7 +69,7 @@ func newCompiler(c compilerOptions) *ast.Compiler {
 
 // Load returns an Engine after loading all of the specified policies.
 func Load(policyPaths []string, c compilerOptions) (*Engine, error) {
-	policies, err := loader.NewFileLoader().WithProcessAnnotation(true).Filtered(policyPaths, func(_ string, info os.FileInfo, depth int) bool {
+	policies, err := loader.NewFileLoader().WithProcessAnnotation(true).Filtered(policyPaths, func(_ string, info os.FileInfo, _ int) bool {
 		return !info.IsDir() && !strings.HasSuffix(info.Name(), bundle.RegoExt)
 	})
 
@@ -124,7 +124,7 @@ func LoadWithData(policyPaths []string, dataPaths []string, capabilities string,
 
 	// FilteredPaths will recursively find all file paths that contain a valid document
 	// extension from the given list of data paths.
-	allDocumentPaths, err := loader.FilteredPaths(dataPaths, func(abspath string, info os.FileInfo, depth int) bool {
+	allDocumentPaths, err := loader.FilteredPaths(dataPaths, func(_ string, info os.FileInfo, _ int) bool {
 		if info.IsDir() {
 			return false
 		}

@@ -42,7 +42,7 @@ func NewParseCommand() *cobra.Command {
 
 			return nil
 		},
-		RunE: func(cmd *cobra.Command, files []string) error {
+		RunE: func(_ *cobra.Command, files []string) error {
 			var configurations map[string]interface{}
 			var err error
 			if viper.GetString("parser") != "" {

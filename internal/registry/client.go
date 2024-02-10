@@ -22,7 +22,7 @@ func SetupClient(repository *remote.Repository) {
 
 	client := auth.DefaultClient
 	client.SetUserAgent("conftest")
-	client.Credential = func(ctx context.Context, registry string) (auth.Credential, error) {
+	client.Credential = func(_ context.Context, registry string) (auth.Credential, error) {
 		host := dockercfg.ResolveRegistryHost(registry)
 		username, password, err := dockercfg.GetRegistryCredentials(host)
 		if err != nil {
