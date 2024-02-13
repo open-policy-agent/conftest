@@ -49,7 +49,9 @@ func TestSetupClient(t *testing.T) {
 
 			t.Setenv("DOCKER_CONFIG", ".")
 
-			SetupClient(repository)
+			if err := SetupClient(repository); err != nil {
+				t.Fatal(err)
+			}
 
 			if repository.PlainHTTP != c.plaintext {
 				t.Errorf(`expecting repository.PlainHTTP == %v, but it was %v`, c.plaintext, repository.PlainHTTP)

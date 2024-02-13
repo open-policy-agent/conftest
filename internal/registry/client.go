@@ -1,16 +1,17 @@
 package registry
 
 import (
-	"context"
+	"net/http"
 
-	"github.com/cpuguy83/dockercfg"
 	"github.com/open-policy-agent/conftest/internal/network"
 	"github.com/spf13/viper"
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
+	"oras.land/oras-go/v2/registry/remote/credentials"
+	"oras.land/oras-go/v2/registry/remote/retry"
 )
 
-func SetupClient(repository *remote.Repository) {
+func SetupClient(repository *remote.Repository) error {
 	registry := repository.Reference.Host()
 
 	// If `--tls=false` was provided or accessing the registry via loopback with
@@ -20,20 +21,26 @@ func SetupClient(repository *remote.Repository) {
 		repository.PlainHTTP = true
 	}
 
-	client := auth.DefaultClient
-	client.SetUserAgent("conftest")
-	client.Credential = func(_ context.Context, registry string) (auth.Credential, error) {
-		host := dockercfg.ResolveRegistryHost(registry)
-		username, password, err := dockercfg.GetRegistryCredentials(host)
-		if err != nil {
-			return auth.EmptyCredential, err
-		}
-
-		return auth.Credential{
-			Username: username,
-			Password: password,
-		}, nil
+	httpClient := &http.Client{
+		Transport: retry.NewTransport(http.DefaultTransport),
 	}
 
+	store, err := credentials.NewStoreFromDocker(credentials.StoreOptions{
+		AllowPlaintextPut:        true,
+		DetectDefaultNativeStore: true,
+	})
+	if err != nil {
+		return err
+	}
+
+	client := &auth.Client{
+		Client:     httpClient,
+		Credential: credentials.Credential(store),
+		Cache:      auth.NewCache(),
+	}
+	client.SetUserAgent("conftest")
+
 	repository.Client = client
+
+	return nil
 }
