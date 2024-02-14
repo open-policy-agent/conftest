@@ -3,7 +3,7 @@ module github.com/open-policy-agent/conftest
 go 1.19
 
 require (
-	cuelang.org/go v0.7.0
+	cuelang.org/go v0.7.1
 	github.com/BurntSushi/toml v1.3.2
 	github.com/CycloneDX/cyclonedx-go v0.8.0
 	github.com/KeisukeYamashita/go-vcl v0.4.0
@@ -55,7 +55,6 @@ require (
 	github.com/bitly/go-simplejson v0.5.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cockroachdb/apd/v3 v3.2.1 // indirect
-	github.com/containerd/typeurl v1.0.2 // indirect
 	github.com/containerd/typeurl/v2 v2.1.1 // indirect
 	github.com/docker/docker v24.0.0-rc.2.0.20230718135204-8e51b8b59cb8+incompatible // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
@@ -131,4 +130,5 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	gotest.tools/v3 v3.5.1 // indirect
 )
