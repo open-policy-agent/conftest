@@ -57,7 +57,7 @@ jobs:
         run: make test-examples
 
       - name: setup regal
-        uses: StyraInc/setup-regal@v0.2.0
+        uses: StyraInc/setup-regal@v1
         with:
           version: v0.11.0
 
