@@ -38,9 +38,10 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: "1.22.x"
+          cache: false
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v4
         with:
           args: --timeout=5m --color=always --max-same-issues=0 --max-issues-per-linter=0
 
@@ -52,12 +53,17 @@ jobs:
 
       - name: setup bats
         uses: bats-core/bats-action@1.5.4
+        with:
+          support-install: false
+          assert-install: false
+          detik-install: false
+          file-install: false
 
       - name: test examples
         run: make test-examples
 
       - name: setup regal
-        uses: StyraInc/setup-regal@v0.2.0
+        uses: StyraInc/setup-regal@v1
         with:
           version: v0.11.0
 
