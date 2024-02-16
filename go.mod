@@ -9,7 +9,6 @@ require (
 	github.com/KeisukeYamashita/go-vcl v0.4.0
 	github.com/basgys/goxml2json v1.1.0
 	github.com/bufbuild/protocompile v0.6.0
-	github.com/cpuguy83/dockercfg v0.3.1
 	github.com/go-akka/configuration v0.0.0-20200606091224-a002c0330665
 	github.com/go-ini/ini v1.67.0
 	github.com/google/go-cmp v0.6.0
@@ -22,7 +21,7 @@ require (
 	github.com/moby/buildkit v0.12.5
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/open-policy-agent/opa v0.61.0
-	github.com/opencontainers/image-spec v1.1.0-rc5
+	github.com/opencontainers/image-spec v1.1.0-rc6
 	github.com/pkg/errors v0.9.1
 	github.com/shteou/go-ignore v0.3.1
 	github.com/spdx/tools-golang v0.5.3
@@ -34,7 +33,7 @@ require (
 	google.golang.org/protobuf v1.31.0
 	muzzammil.xyz/jsonc v1.0.0
 	olympos.io/encoding/edn v0.0.0-20201019073823-d3554ca0b0a3
-	oras.land/oras-go/v2 v2.3.1
+	oras.land/oras-go/v2 v2.4.0
 	sigs.k8s.io/yaml v1.4.0
 )
 
@@ -116,7 +115,7 @@ require (
 	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/net v0.19.0 // indirect
 	golang.org/x/oauth2 v0.15.0 // indirect
-	golang.org/x/sync v0.5.0 // indirect
+	golang.org/x/sync v0.6.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect

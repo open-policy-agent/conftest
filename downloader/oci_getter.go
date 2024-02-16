@@ -46,7 +46,9 @@ func (g *OCIGetter) Get(path string, u *url.URL) error {
 		return fmt.Errorf("repository: %w", err)
 	}
 
-	reg.SetupClient(src)
+	if err := reg.SetupClient(src); err != nil {
+		return fmt.Errorf("registry client setup: %w", err)
+	}
 
 	if err := os.MkdirAll(path, os.ModePerm); err != nil {
 		return fmt.Errorf("make policy directory: %w", err)
