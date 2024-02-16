@@ -27,7 +27,7 @@ conftest pull git::https://<PersonalAccessToken>@github.com/<Organization>/<Repo
 ### OCI Registry
 
 ```console
-conftest pull opa.azurecr.io/test
+conftest pull oci://opa.azurecr.io/test
 ```
 
 See the [go-getter](https://github.com/hashicorp/go-getter) repository for more examples.
