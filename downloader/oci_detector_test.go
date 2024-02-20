@@ -19,6 +19,11 @@ func TestOCIDetector_Detect(t *testing.T) {
 			"oci://gcr.io/conftest/policies:tag",
 		},
 		{
+			"should detect google artifact registry",
+			"region-docker.pkg.dev/conftest/policies:tag",
+			"oci://region-docker.pkg.dev/conftest/policies:tag",
+		},
+		{
 			"should detect ecr",
 			"123456789012.dkr.ecr.us-east-1.amazonaws.com/conftest/policies:tag",
 			"oci://123456789012.dkr.ecr.us-east-1.amazonaws.com/conftest/policies:tag",
@@ -69,17 +74,21 @@ func TestOCIDetector_Detect(t *testing.T) {
 			"oci://::1:32123/policies:tag",
 		},
 	}
+
 	pwd := "/pwd"
 	d := &OCIDetector{}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			out, ok, err := d.Detect(tt.input, pwd)
 			if err != nil {
 				t.Fatalf("OCIDetector.Detect() error = %v", err)
 			}
+
 			if !ok {
 				t.Fatal("OCIDetector.Detect() not ok, should have detected")
 			}
+
 			if out != tt.expected {
 				t.Errorf("OCIDetector.Detect() output = %v, want %v", out, tt.expected)
 			}
