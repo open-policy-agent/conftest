@@ -138,7 +138,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().Bool("trace", false, "Enable more verbose trace output for Rego queries")
 	cmd.Flags().Bool("strict", false, "Enable strict mode for Rego policies")
 	cmd.Flags().String("report", "", "Shows output for Rego queries as a report with summary. Available options are {full|notes|fails}.")
-	cmd.Flags().Bool("show-builtin-errors", false, "Collect and return all encountered built-in errors")
+	cmd.Flags().Bool("show-builtin-errors", true, "Collect and return all encountered built-in errors")
 
 	cmd.Flags().StringP("output", "o", output.OutputStandard, fmt.Sprintf("Output format for conftest results - valid options are: %s", output.Outputs()))
 	cmd.Flags().Bool("junit-hide-message", false, "Do not include the violation message in the JUnit test name")
