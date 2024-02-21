@@ -10,7 +10,7 @@ import (
 // them into URLs that the OCI getter can understand.
 type OCIDetector struct{}
 
-// Detect will detect if the source is an OCI registry
+// Detect will detect if the source is an OCI registry.
 func (d *OCIDetector) Detect(src, _ string) (string, bool, error) {
 	if len(src) == 0 {
 		return "", false, nil
@@ -33,6 +33,7 @@ func containsOCIRegistry(src string) bool {
 		regexp.MustCompile("azurecr.io"),
 		regexp.MustCompile("gcr.io"),
 		regexp.MustCompile("registry.gitlab.com"),
+		regexp.MustCompile("pkg.dev"),
 		regexp.MustCompile("[0-9]{12}.dkr.ecr.[a-z0-9-]*.amazonaws.com"),
 		regexp.MustCompile("^quay.io"),
 	}
