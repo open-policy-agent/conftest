@@ -519,8 +519,8 @@ github.com/mitchellh/go-wordwrap v1.0.1/go.mod h1:R62XHJLzvMFRBbcrT7m7WgmE1eOyTS
 github.com/mitchellh/mapstructure v1.1.2/go.mod h1:FVVH3fgwuzCH5S8UJGiWEs2h04kUh9fWfEaFds41c1Y=
 github.com/mitchellh/mapstructure v1.5.0 h1:jeMsZIYE/09sWLaz43PL7Gy6RuMjD2eJVyuac5Z2hdY=
 github.com/mitchellh/mapstructure v1.5.0/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
-github.com/moby/buildkit v0.13.0 h1:reVR1Y+rbNIUQ9jf0Q1YZVH5a/nhOixZsl+HJ9qQEGI=
-github.com/moby/buildkit v0.13.0/go.mod h1:aNmNQKLBFYAOFuzQjR3VA27/FijlvtBD1pjNwTSN37k=
+github.com/moby/buildkit v0.13.1 h1:L8afOFhPq2RPJJSr/VyzbufwID7jquZVB7oFHbPRcPE=
+github.com/moby/buildkit v0.13.1/go.mod h1:aNmNQKLBFYAOFuzQjR3VA27/FijlvtBD1pjNwTSN37k=
 github.com/olekukonko/tablewriter v0.0.5 h1:P2Ga83D34wi1o9J6Wh1mRuqd4mF/x/lgBS7N7AbDhec=
 github.com/olekukonko/tablewriter v0.0.5/go.mod h1:hPp6KlRPjbx+hW8ykQs1w3UBbZlj6HuIJcUGPhkA7kY=
 github.com/open-policy-agent/opa v0.62.1 h1:UcxBQ0fe6NEjkYc775j4PWoUFFhx4f6yXKIKSTAuTVk=
