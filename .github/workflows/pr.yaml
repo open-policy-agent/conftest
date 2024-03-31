@@ -54,6 +54,8 @@ jobs:
       - name: setup bats
         uses: bats-core/bats-action@1.5.4
         with:
+          # Pin bats version to fix CI issue: https://github.com/bats-core/bats-action/pull/4
+          bats-version: "1.10.0"
           support-install: false
           assert-install: false
           detik-install: false
