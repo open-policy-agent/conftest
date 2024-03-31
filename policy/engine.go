@@ -538,7 +538,7 @@ func problematicIf(modules map[string]*ast.Module) error {
 	// https://github.com/open-policy-agent/opa/issues/6509
 	for _, module := range modules {
 		for _, rule := range module.Rules {
-			if rule.Head == nil || rule.Head.Value == nil || len(rule.Head.Reference) == 0 {
+			if rule.Head == nil || rule.Head.Name != "" || rule.Head.Value == nil || len(rule.Head.Reference) == 0 {
 				continue
 			}
 			refName := rule.Head.Reference[0].Value.String()

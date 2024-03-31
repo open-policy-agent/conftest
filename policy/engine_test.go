@@ -327,6 +327,10 @@ func TestProblematicIf(t *testing.T) {
 			body: "",
 		},
 		{
+			desc: "Bare deny",
+			body: "deny { true }\n",
+		},
+		{
 			desc: "Rule not using if statement",
 			body: "deny[msg] {\n 1 == 1\nmsg := \"foo\"\n}\n",
 		},
