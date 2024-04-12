@@ -230,7 +230,7 @@ resource "azurerm_managed_disk" "sample" {
 ```
 
 If you prefer combined multiple configurations you can use the `parse_combined_config_files`
-builtin. It acceptss a list of file paths as the parameter and returns the parsed
+builtin. It accepts a list of file paths as the parameter and returns the parsed
 configuration as an list of Rego objects. When iterating over the combined input,
 the policy will return an list of results for each iteration of the policy over the
 input list. The example below shows a violation for deployments not matching a service
@@ -263,6 +263,7 @@ test_parse_combined_config_file {
 ```
 
 **combine.yaml**
+
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
