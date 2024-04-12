@@ -229,6 +229,95 @@ resource "azurerm_managed_disk" "sample" {
 }
 ```
 
+If you prefer combined multiple configurations you can use the `parse_combined_config_files`
+builtin. It acceptss a list of file paths as the parameter and returns the parsed
+configuration as an list of Rego objects. When iterating over the combined input,
+the policy will return an list of results for each iteration of the policy over the
+input list. The example below shows a violation for deployments not matching a service
+spec selector from a combined manifest file input.
+
+**combine.rego**
+
+```rego
+violation[msg] {
+    some i
+    input[i].contents.kind == "Deployment"
+    deployment := input[i].contents
+    not service_selects_app(deployment.spec.selector.matchLabels.app)
+    msg := sprintf("Deployment '%v' has no matching service", [deployment.metadata.name])
+}
+service_selects_app(app) {
+    some i
+    input[i].contents.kind == "Service"
+    service := input[i].contents
+    service.spec.selector.app == app
+}
+```
+
+**combine_test.rego**
+
+```rego
+test_parse_combined_config_file {
+	count(violation) == 1 with input as parse_combined_config_files(["combine.yaml"])
+}
+```
+
+**combine.yaml**
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-kubernetes
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: hello-kubernetes
+  template:
+    metadata:
+      labels:
+        app: hello-kubernetes
+    spec:
+      containers:
+      - name: hello-kubernetes
+        image: paulbouwer/hello-kubernetes:1.5
+        ports:
+        - containerPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: goodbye-kubernetes
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: goodbye-kubernetes
+  template:
+    metadata:
+      labels:
+        app: goodbye-kubernetes
+    spec:
+      containers:
+      - name: goodbye-kubernetes
+        image: paulbouwer/hello-kubernetes:1.5
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-kubernetes
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8080
+  selector:
+    app: hello-kubernetes
+```
+
+> To use the builtin functions, you need to include `github.com/open-policy-agent/conftest/builtins` in your Go file import section if you did not include it elsewhere for default go commands configuration.
 
 ##### Using `deny_` as a prefix to simplify testing
 
