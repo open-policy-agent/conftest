@@ -31,3 +31,17 @@ test_fails_with_http_alb {
 	`)
 	deny["ALB `name` is using HTTP rather than HTTPS"] with input as cfg
 }
+
+test_fails_with_aws_resource_is_missing_required_tags {
+	cfg := parse_config("hcl2", `
+		resource "aws_s3_bucket" "invalid" {
+			bucket = "InvalidBucket"
+			acl    = "private"
+
+			tags = {
+				environment = "prod"
+			}
+		}
+	`)
+	deny["AWS resource: \"aws_s3_bucket\" named \"invalid\" is missing required tags: {\"owner\"}"] with input as cfg
+}

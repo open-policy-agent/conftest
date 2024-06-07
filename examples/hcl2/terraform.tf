@@ -17,3 +17,13 @@ resource "azurerm_managed_disk" "source" {
     enabled = false
   }
 }
+
+resource "aws_s3_bucket" "valid" {
+  bucket = "validBucket"
+  acl    = "private"
+
+  tags = {
+    environment = "prod"
+    owner = "devops"
+  }
+}

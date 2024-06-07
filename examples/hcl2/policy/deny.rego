@@ -26,3 +26,17 @@ deny[msg] {
 	disk.encryption_settings.enabled != true
 	msg = sprintf("Azure disk `%v` is not encrypted", [name])
 }
+
+# Required tags for all AWS resources
+required_tags := {"environment", "owner"}
+missing_tags(resource) := {tag | tag := required_tags[_]; not resource.tags[tag]}
+
+deny[msg] {
+	some aws_resource, name
+	resource := input.resource[aws_resource][name] # all resources
+	startswith(aws_resource, "aws_") # only AWS resources
+	missing := missing_tags(resource)
+	count(missing) > 0
+
+	msg = sprintf("AWS resource: %q named %q is missing required tags: %v", [aws_resource, name, missing])
+}
