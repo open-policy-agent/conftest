@@ -38,5 +38,5 @@ deny[msg] {
 	missing := missing_tags(resource)
 	count(missing) > 0
 
-	msg = sprintf("AWS resource: \"%s\" named \"%s\" is missing required tags: %v", [aws_resource, name, missing])
+	msg = sprintf("AWS resource: %q named %q is missing required tags: %v", [aws_resource, name, missing])
 }
