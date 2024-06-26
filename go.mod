@@ -13,7 +13,7 @@ require (
 	github.com/go-ini/ini v1.67.0
 	github.com/google/go-cmp v0.6.0
 	github.com/google/go-jsonnet v0.20.0
-	github.com/hashicorp/go-getter v1.7.4
+	github.com/hashicorp/go-getter v1.7.5
 	github.com/hashicorp/hcl v1.0.0
 	github.com/jstemmer/go-junit-report v1.0.0
 	github.com/logrusorgru/aurora v2.0.3+incompatible
