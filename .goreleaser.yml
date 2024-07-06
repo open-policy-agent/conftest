@@ -1,3 +1,5 @@
+version: 1
+
 before:
   hooks:
   - go mod download
