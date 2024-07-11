@@ -30,12 +30,12 @@ func (d *OCIDetector) Detect(src, _ string) (string, bool, error) {
 
 func containsOCIRegistry(src string) bool {
 	matchRegistries := []*regexp.Regexp{
-		regexp.MustCompile("azurecr.io"),
-		regexp.MustCompile("gcr.io"),
-		regexp.MustCompile("registry.gitlab.com"),
-		regexp.MustCompile("pkg.dev"),
-		regexp.MustCompile("[0-9]{12}.dkr.ecr.[a-z0-9-]*.amazonaws.com"),
-		regexp.MustCompile("^quay.io"),
+		regexp.MustCompile(`azurecr\.io`),
+		regexp.MustCompile(`gcr\.io`),
+		regexp.MustCompile(`registry\.gitlab\.com`),
+		regexp.MustCompile(`pkg\.dev`),
+		regexp.MustCompile(`[0-9]{12}\.dkr\.ecr\.[a-z0-9-]*\.amazonaws\.com`),
+		regexp.MustCompile(`^quay\.io`),
 	}
 
 	for _, matchRegistry := range matchRegistries {
