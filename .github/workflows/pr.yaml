@@ -41,7 +41,7 @@ jobs:
           cache: false
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v4
+        uses: golangci/golangci-lint-action@v6
         with:
           args: --timeout=5m --color=always --max-same-issues=0 --max-issues-per-linter=0
 
