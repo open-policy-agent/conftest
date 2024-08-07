@@ -24,6 +24,11 @@ conftest pull git::https://github.com/<Organization>/<Repository>.git//sub/folde
 conftest pull git::https://<PersonalAccessToken>@github.com/<Organization>/<Repository>.git//sub/folder
 ```
 
+### S3
+```console
+conftest pull s3://s3-<region>.amazonaws.com/<bucket-name>/<path>
+```
+
 ### OCI Registry
 
 ```console
