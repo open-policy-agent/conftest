@@ -45,7 +45,7 @@ func (t *AzureDevOps) Output(checkResults []CheckResult) error {
 		}
 
 		for _, exception := range result.Exceptions {
-			fmt.Fprintf(t.writer, "##vso[task.logissuetype=warning] file=%v --> %v\n", result.FileName, exception.Message)
+			fmt.Fprintf(t.writer, "##vso[task.logissue type=warning] file=%v --> %v\n", result.FileName, exception.Message)
 		}
 
 		for _, skipped := range result.Skipped {
