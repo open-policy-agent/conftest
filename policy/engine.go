@@ -134,7 +134,7 @@ func LoadWithData(policyPaths []string, dataPaths []string, capabilities string,
 		return nil, fmt.Errorf("filter data paths: %w", err)
 	}
 
-	documents, err := loader.NewFileLoader().WithProcessAnnotation(true).Filtered(dataPaths, func(_ string, info os.FileInfo, _ int) bool {
+	documents, err := loader.NewFileLoader().Filtered(dataPaths, func(_ string, info os.FileInfo, _ int) bool {
 		return !info.IsDir() && !contains([]string{".yaml", ".yml", ".json"}, filepath.Ext(info.Name()))
 	})
 	if err != nil {
