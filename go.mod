@@ -7,7 +7,7 @@ toolchain go1.23.1
 require (
 	cuelang.org/go v0.10.0
 	github.com/BurntSushi/toml v1.4.0
-	github.com/CycloneDX/cyclonedx-go v0.9.0
+	github.com/CycloneDX/cyclonedx-go v0.9.1
 	github.com/KeisukeYamashita/go-vcl v0.4.0
 	github.com/basgys/goxml2json v1.1.0
 	github.com/bufbuild/protocompile v0.6.0
