@@ -124,7 +124,7 @@ func LoadWithData(policyPaths []string, dataPaths []string, capabilities string,
 
 	// FilteredPaths will recursively find all file paths that contain a valid document
 	// extension from the given list of data paths.
-	allDocumentPaths, err := loader.FilteredPaths(dataPaths, func(_ string, info os.FileInfo, _ int) bool {
+	documents, err := loader.NewFileLoader().Filtered(dataPaths, func(_ string, info os.FileInfo, _ int) bool {
 		if info.IsDir() {
 			return false
 		}
@@ -134,29 +134,12 @@ func LoadWithData(policyPaths []string, dataPaths []string, capabilities string,
 		return nil, fmt.Errorf("filter data paths: %w", err)
 	}
 
-	documents, err := loader.NewFileLoader().All(allDocumentPaths)
-	if err != nil {
-		return nil, fmt.Errorf("load documents: %w", err)
-	}
 	store, err := documents.Store()
 	if err != nil {
 		return nil, fmt.Errorf("get documents store: %w", err)
 	}
 
-	documentContents := make(map[string]string)
-	for _, documentPath := range allDocumentPaths {
-		contents, err := os.ReadFile(documentPath)
-		if err != nil {
-			return nil, fmt.Errorf("read file: %w", err)
-		}
-
-		documentPath = filepath.Clean(documentPath)
-		documentPath = filepath.ToSlash(documentPath)
-		documentContents[documentPath] = string(contents)
-	}
-
 	engine.store = store
-	engine.docs = documentContents
 
 	return engine, nil
 }
