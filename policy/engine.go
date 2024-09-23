@@ -31,7 +31,7 @@ type Engine struct {
 	compiler      *ast.Compiler
 	store         storage.Store
 	policies      map[string]string
-	docs          map[string]string
+	docs          map[string]interface{}
 }
 
 type compilerOptions struct {
@@ -137,26 +137,8 @@ func LoadWithData(policyPaths []string, dataPaths []string, capabilities string,
 		return nil, fmt.Errorf("get documents store: %w", err)
 	}
 
-	// FilteredPaths will recursively find all file paths that contain a valid document
-	// extension from the given list of data paths.
-	allDocumentPaths, err := loader.FilteredPaths(dataPaths, filter)
-	if err != nil {
-		return nil, fmt.Errorf("filter data paths: %w", err)
-	}
-	documentContents := make(map[string]string)
-	for _, documentPath := range allDocumentPaths {
-		contents, err := os.ReadFile(documentPath)
-		if err != nil {
-			return nil, fmt.Errorf("read file: %w", err)
-		}
-
-		documentPath = filepath.Clean(documentPath)
-		documentPath = filepath.ToSlash(documentPath)
-		documentContents[documentPath] = string(contents)
-	}
-
 	engine.store = store
-	engine.docs = documentContents
+	engine.docs = documents.Documents
 
 	return engine, nil
 }
@@ -242,7 +224,7 @@ func (e *Engine) Namespaces() []string {
 // Documents returns all of the documents loaded into the engine.
 // The result is a map where the key is the filepath of the document
 // and its value is the raw contents of the loaded document.
-func (e *Engine) Documents() map[string]string {
+func (e *Engine) Documents() map[string]interface{} {
 	return e.docs
 }
 
