@@ -1,13 +1,13 @@
 module github.com/open-policy-agent/conftest
 
-go 1.21.0
+go 1.23
 
-toolchain go1.22.5
+toolchain go1.23.1
 
 require (
-	cuelang.org/go v0.9.2
+	cuelang.org/go v0.10.0
 	github.com/BurntSushi/toml v1.4.0
-	github.com/CycloneDX/cyclonedx-go v0.9.0
+	github.com/CycloneDX/cyclonedx-go v0.9.1
 	github.com/KeisukeYamashita/go-vcl v0.4.0
 	github.com/basgys/goxml2json v1.1.0
 	github.com/bufbuild/protocompile v0.6.0
@@ -20,7 +20,7 @@ require (
 	github.com/jstemmer/go-junit-report v1.0.0
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/magiconair/properties v1.8.7
-	github.com/moby/buildkit v0.15.2
+	github.com/moby/buildkit v0.16.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/open-policy-agent/opa v0.68.0
 	github.com/opencontainers/image-spec v1.1.0
@@ -55,7 +55,7 @@ require (
 	github.com/bitly/go-simplejson v0.5.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cockroachdb/apd/v3 v3.2.1 // indirect
-	github.com/containerd/typeurl/v2 v2.1.1 // indirect
+	github.com/containerd/typeurl/v2 v2.2.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
@@ -117,8 +117,9 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/crypto v0.26.0 // indirect
+	golang.org/x/mod v0.20.0 // indirect
 	golang.org/x/net v0.28.0 // indirect
-	golang.org/x/oauth2 v0.21.0 // indirect
+	golang.org/x/oauth2 v0.22.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.23.0 // indirect
 	golang.org/x/text v0.17.0 // indirect
