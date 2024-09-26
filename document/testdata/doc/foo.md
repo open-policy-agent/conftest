@@ -1,7 +1,9 @@
-# foo
+# Policies - bar
 
-## Rule: My Rule A
+## Rules
 
-## Package: bar
+### My Rule P
 
-### Rule My Rule B
+```opa
+p := 7
+```

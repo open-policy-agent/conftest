@@ -1,5 +1,5 @@
 # METADATA
-# title: bar
+# title: My package bar
 # description: A couple of useful rules
 package foo.bar
 
