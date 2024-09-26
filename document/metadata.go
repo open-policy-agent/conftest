@@ -10,8 +10,7 @@ import (
 )
 
 // ParseRegoWithAnnotations parse the rego in the indicated directory
-// This can be later used to access the annotation and generate the documentation
-func ParseRegoWithAnnotations(directory string) (*ast.Compiler, error) {
+func ParseRegoWithAnnotations(directory string) (ast.FlatAnnotationsRefSet, error) {
 	// Recursively find all rego files (ignoring test files), starting at the given directory.
 	result, err := loader.NewFileLoader().
 		WithProcessAnnotation(true).
@@ -37,6 +36,40 @@ func ParseRegoWithAnnotations(directory string) (*ast.Compiler, error) {
 
 	compiler := ast.NewCompiler()
 	compiler.Compile(result.ParsedModules())
+	as := compiler.GetAnnotationSet().Flatten()
 
-	return compiler, nil
+	return as, nil
+}
+
+type Section struct {
+	H          int
+	Path       string
+	Annotation *ast.Annotations
+}
+
+func (s Section) Equal(s2 Section) bool {
+	if s.H == s2.H && s.Path == s2.Path {
+		return true
+	}
+
+	return false
+}
+
+func GetDocument(as ast.FlatAnnotationsRefSet) []Section {
+
+	var s []Section
+
+	for _, entry := range as {
+
+		depth := len(entry.Path) - 1
+		path := strings.TrimPrefix(entry.Path.String(), "data.")
+
+		s = append(s, Section{
+			H:          depth,
+			Path:       path,
+			Annotation: entry.Annotations,
+		})
+	}
+
+	return s
 }

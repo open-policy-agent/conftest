@@ -1,5 +1,5 @@
 # METADATA
-# title: foo
+# title: My package foo
 # scope: subpackages
 # organizations:
 # - Acme Corp.
