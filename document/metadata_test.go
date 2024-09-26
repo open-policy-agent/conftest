@@ -111,8 +111,11 @@ p := 7
 			},
 			want: []Section{
 				{
-					H:    2,
+					H:    "##",
 					Path: "foo.p",
+					Annotations: &ast.Annotations{
+						Title: "My Rule P",
+					},
 				},
 			},
 		},
@@ -135,23 +138,23 @@ q := 8
 			},
 			want: []Section{
 				{
-					H:    1,
+					H:    "##",
 					Path: "foo",
-					Annotation: &ast.Annotations{
-						Title: "My Rule P",
+					Annotations: &ast.Annotations{
+						Title: "My Package foo",
 					},
 				},
 				{
-					H:    2,
+					H:    "###",
 					Path: "foo.p",
-					Annotation: &ast.Annotations{
+					Annotations: &ast.Annotations{
 						Title: "My Rule P",
 					},
 				},
 				{
-					H:    2,
+					H:    "###",
 					Path: "foo.q",
-					Annotation: &ast.Annotations{
+					Annotations: &ast.Annotations{
 						Title: "My Rule Q",
 					},
 				},

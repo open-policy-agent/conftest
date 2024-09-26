@@ -42,32 +42,35 @@ func ParseRegoWithAnnotations(directory string) (ast.FlatAnnotationsRefSet, erro
 }
 
 type Section struct {
-	H          int
-	Path       string
-	Annotation *ast.Annotations
+	H           string
+	Path        string
+	Annotations *ast.Annotations
 }
 
 func (s Section) Equal(s2 Section) bool {
-	if s.H == s2.H && s.Path == s2.Path {
+	if s.H == s2.H &&
+		s.Path == s2.Path &&
+		s.Annotations.Title == s2.Annotations.Title {
 		return true
 	}
 
 	return false
 }
 
+// GetDocument generate a more convenient struct that can be used to generate the doc
 func GetDocument(as ast.FlatAnnotationsRefSet) []Section {
 
 	var s []Section
 
 	for _, entry := range as {
 
-		depth := len(entry.Path) - 1
+		depth := strings.Repeat("#", len(entry.Path))
 		path := strings.TrimPrefix(entry.Path.String(), "data.")
 
 		s = append(s, Section{
-			H:          depth,
-			Path:       path,
-			Annotation: entry.Annotations,
+			H:           depth,
+			Path:        path,
+			Annotations: entry.Annotations,
 		})
 	}
 
