@@ -1,17 +1,15 @@
-# Policies
-{{ range . }}
+{{ range . -}}
 {{ .H }} {{ .Path }} - {{ .Annotations.Title }}
 
 {{ .Annotations.Description }}
-{{- if .Annotations.RelatedResources }}
-
+{{ if .Annotations.RelatedResources }}
 Related Resources:
 {{ range .Annotations.RelatedResources }}
-{{- if .Description -}}
+{{ if .Description -}}
 * [{{.Description}}]({{ .Ref }})
-{{- else }}
+{{- else -}}
 * {{ .Ref }}
-{{ end -}}
 {{- end -}}
 {{ end }}
 {{ end }}
+{{ end -}}
