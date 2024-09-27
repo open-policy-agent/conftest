@@ -2,11 +2,12 @@ package commands
 
 import (
 	"fmt"
-	"github.com/open-policy-agent/conftest/document"
-	"github.com/spf13/cobra"
 	"log"
 	"os"
 	"path/filepath"
+
+	"github.com/open-policy-agent/conftest/document"
+	"github.com/spf13/cobra"
 )
 
 func NewDocumentCommand() *cobra.Command {
@@ -23,7 +24,6 @@ func NewDocumentCommand() *cobra.Command {
 			}
 
 			for _, path := range dir {
-				// This returns an *os.FileInfo type
 				fileInfo, err := os.Stat(path)
 				if err != nil {
 					return err
@@ -40,9 +40,10 @@ func NewDocumentCommand() *cobra.Command {
 				}
 
 				name := filepath.Base(path)
-				if name == "." {
+				if name == "." || name == ".." {
 					name = "policy"
 				}
+
 				outPath := filepath.Join(outDir, name+".md")
 				f, err := os.OpenFile(outPath, os.O_CREATE|os.O_RDWR, 0600)
 				if err != nil {
@@ -54,7 +55,12 @@ func NewDocumentCommand() *cobra.Command {
 					}
 				}(f)
 
-				err = document.GenerateDocument(path, f)
+				template, err := cmd.Flags().GetString("template")
+				if err != nil {
+					return fmt.Errorf("invalid template: %s", err)
+				}
+
+				err = document.GenerateDocument(path, template, f)
 				if err != nil {
 					return fmt.Errorf("generating document: %w", err)
 				}
@@ -65,6 +71,7 @@ func NewDocumentCommand() *cobra.Command {
 	}
 
 	cmd.Flags().StringP("outDir", "o", ".", "Path to the output documentation file")
+	cmd.Flags().StringP("template", "t", "", "Go template for the document generation")
 
 	return cmd
 }

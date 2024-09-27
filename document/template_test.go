@@ -2,16 +2,18 @@ package document
 
 import (
 	"bytes"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_generateDocument(t *testing.T) {
 	tests := []struct {
 		name     string
 		testdata string
+		Option   []RenderDocumentOption
 		wantOut  string
 		wantErr  bool
 	}{
@@ -20,6 +22,14 @@ func Test_generateDocument(t *testing.T) {
 			testdata: "./testdata/foo",
 			wantOut:  "./testdata/doc/foo.md",
 			wantErr:  false,
+		}, {
+			name:     "Nested packages",
+			testdata: "./testdata/foo",
+			wantOut:  "./testdata/doc/foo.md",
+			Option: []RenderDocumentOption{
+				WithTemplate("testdata/template.md"),
+			},
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
@@ -32,7 +42,7 @@ func Test_generateDocument(t *testing.T) {
 				assert.NoError(t, err)
 
 				gotOut := &bytes.Buffer{}
-				err = RenderDocument(gotOut, s)
+				err = RenderDocument(gotOut, s, tt.Option...)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("GenVariableDoc() error = %v, wantErr %v", err, tt.wantErr)
 					return
@@ -42,8 +52,10 @@ func Test_generateDocument(t *testing.T) {
 				require.NoError(t, err)
 				assert.Equal(t, string(wantOut), gotOut.String())
 
-				// un comment this to generate the golden file when changing the template
-				os.WriteFile(tt.wantOut+".golden", gotOut.Bytes(), 0644)
+				// prospective golden file, much simpler to see what's the result in case the test fails
+				// this does not override the existing test, but create a new file called xxx.golden
+				err = os.WriteFile(tt.wantOut+".golden", gotOut.Bytes(), 0600)
+				assert.NoError(t, err)
 			},
 		)
 	}

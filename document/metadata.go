@@ -2,11 +2,12 @@ package document
 
 import (
 	"fmt"
-	"github.com/open-policy-agent/opa/ast"
-	"github.com/open-policy-agent/opa/loader"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/open-policy-agent/opa/ast"
+	"github.com/open-policy-agent/opa/loader"
 )
 
 // ParseRegoWithAnnotations parse the rego in the indicated directory

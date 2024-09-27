@@ -1,3 +1,6 @@
+# METADATA
+# title: Example using annotations
+# description: This package validates that ...
 package main
 
 import data.services

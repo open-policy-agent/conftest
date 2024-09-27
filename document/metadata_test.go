@@ -2,11 +2,12 @@ package document
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func validateAnnotation(t *testing.T, as ast.FlatAnnotationsRefSet, want []string) {
@@ -51,7 +52,6 @@ func PartialEqual(t *testing.T, expected, actual any, diffOpts cmp.Option, msgAn
 	assert.Fail(t, fmt.Sprintf("Not equal: \n"+
 		"expected: %s\n"+
 		"actual  : %s%s", expected, actual, diff), msgAndArgs...)
-	return
 }
 
 func TestGetAnnotations(t *testing.T) {
