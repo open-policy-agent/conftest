@@ -57,22 +57,44 @@ func (s Section) Equal(s2 Section) bool {
 	return false
 }
 
-// GetDocument generate a more convenient struct that can be used to generate the doc
-func GetDocument(as ast.FlatAnnotationsRefSet) []Section {
+// ConvertAnnotationsToSections generate a more convenient struct that can be used to generate the doc
+// First concern is to build a coherent title structure, the ideal case is that each package and each rule as a doc,
+// but this is not guarantied. I couldn't find a way to call strings.Repeat inside go-template, this the title key is
+// directly provided as markdown (#, ##, ###, etc.)
+// Second the attribute Path of ast.Annotations are not easy to used on go-template, thus we extract it as a string
+func ConvertAnnotationsToSections(as ast.FlatAnnotationsRefSet) ([]Section, error) {
 
 	var s []Section
+	var currentDepth = 0
+	var offset = 1
 
-	for _, entry := range as {
+	for i, entry := range as {
+		// offset at least by one because all path starts with `data.`
+		depth := len(entry.Path) - offset
 
-		depth := strings.Repeat("#", len(entry.Path))
+		// If the user is targeting a submodule we need to adjust the depth an offset base on the first annotation found
+		if i == 0 && depth > 1 {
+			offset = depth
+		}
+
+		// We need to compensate for unexpected jump in depth
+		// otherwise we would start at h3 if no package documentation is present
+		// or jump form h2 to h4 unexpectedly in subpackages
+		if (depth - currentDepth) > 1 {
+			depth = currentDepth + 1
+		}
+
+		currentDepth = depth
+
+		h := strings.Repeat("#", depth)
 		path := strings.TrimPrefix(entry.Path.String(), "data.")
 
 		s = append(s, Section{
-			H:           depth,
+			H:           h,
 			Path:        path,
 			Annotations: entry.Annotations,
 		})
 	}
 
-	return s
+	return s, nil
 }

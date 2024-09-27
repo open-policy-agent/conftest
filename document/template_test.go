@@ -28,10 +28,11 @@ func Test_generateDocument(t *testing.T) {
 				as, err := ParseRegoWithAnnotations(tt.testdata)
 				assert.NoError(t, err)
 
-				s := GetDocument(as)
+				s, err := ConvertAnnotationsToSections(as)
+				assert.NoError(t, err)
 
 				gotOut := &bytes.Buffer{}
-				err = generateDocument(gotOut, s)
+				err = RenderDocument(gotOut, s)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("GenVariableDoc() error = %v, wantErr %v", err, tt.wantErr)
 					return
@@ -42,7 +43,7 @@ func Test_generateDocument(t *testing.T) {
 				assert.Equal(t, string(wantOut), gotOut.String())
 
 				// un comment this to generate the golden file when changing the template
-				//os.WriteFile(tt.wantOut+".golden", gotOut.Bytes(), 0644)
+				os.WriteFile(tt.wantOut+".golden", gotOut.Bytes(), 0644)
 			},
 		)
 	}

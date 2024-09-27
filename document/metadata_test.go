@@ -97,11 +97,14 @@ func TestGetDocument(t *testing.T) {
 		name    string
 		modules [][]string
 		want    []Section
+		wantErr bool
 	}{
 		{
-			name: "Single file no package metadata",
+			name: "Single file",
 			modules: [][]string{
 				{"foo.rego", `
+# METADATA 
+# title: My Package foo
 package foo
 
 # METADATA 
@@ -111,8 +114,45 @@ p := 7
 			},
 			want: []Section{
 				{
+					H:    "#",
+					Path: "foo",
+					Annotations: &ast.Annotations{
+						Title: "My Package foo",
+					},
+				},
+				{
 					H:    "##",
 					Path: "foo.p",
+					Annotations: &ast.Annotations{
+						Title: "My Rule P",
+					},
+				},
+			},
+		},
+		{
+			name: "Single file of a subpackage",
+			modules: [][]string{
+				{"foo/bar.rego", `
+# METADATA 
+# title: My Package bar
+package foo.bar
+
+# METADATA 
+# title: My Rule P
+p := 7
+`},
+			},
+			want: []Section{
+				{
+					H:    "#",
+					Path: "foo.bar",
+					Annotations: &ast.Annotations{
+						Title: "My Package bar",
+					},
+				},
+				{
+					H:    "##",
+					Path: "foo.bar.p",
 					Annotations: &ast.Annotations{
 						Title: "My Rule P",
 					},
@@ -138,24 +178,76 @@ q := 8
 			},
 			want: []Section{
 				{
-					H:    "##",
+					H:    "#",
 					Path: "foo",
 					Annotations: &ast.Annotations{
 						Title: "My Package foo",
 					},
 				},
 				{
-					H:    "###",
+					H:    "##",
 					Path: "foo.p",
 					Annotations: &ast.Annotations{
 						Title: "My Rule P",
 					},
 				},
 				{
-					H:    "###",
+					H:    "##",
 					Path: "foo.q",
 					Annotations: &ast.Annotations{
 						Title: "My Rule Q",
+					},
+				},
+			},
+		}, {
+			name: "Multiple file and subpackage",
+			modules: [][]string{
+				{"foo.rego", `
+# METADATA 
+# title: My Package foo
+package foo
+
+# METADATA 
+# title: My Rule P
+p := 7
+
+`},
+				{"bar/bar.rego", `
+# METADATA 
+# title: My Package bar
+package foo.bar
+
+# METADATA 
+# title: My Rule R
+r := 9
+
+`},
+			},
+			want: []Section{
+				{
+					H:    "#",
+					Path: "foo",
+					Annotations: &ast.Annotations{
+						Title: "My Package foo",
+					},
+				},
+				{
+					H:    "##",
+					Path: "foo.bar",
+					Annotations: &ast.Annotations{
+						Title: "My Package bar",
+					},
+				}, {
+					H:    "###",
+					Path: "foo.bar.r",
+					Annotations: &ast.Annotations{
+						Title: "My Rule R",
+					},
+				}, {
+					H:    "##",
+					Path: "foo.p",
+					Annotations: &ast.Annotations{
+						Title: "My Rule P",
 					},
 				},
 			},
@@ -164,7 +256,11 @@ q := 8
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m := getTestModules(t, tt.modules)
-			got := GetDocument(m)
+			got, err := ConvertAnnotationsToSections(m)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ConvertAnnotationsToSections() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
 
 			PartialEqual(t, tt.want, got, nil)
 		})

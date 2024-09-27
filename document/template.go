@@ -10,7 +10,7 @@ import (
 //go:embed resources/*
 var resources embed.FS
 
-func generateDocument(out io.Writer, s []Section) error {
+func RenderDocument(out io.Writer, s []Section) error {
 
 	err := renderTemplate(resources, "resources/document.md", s, out)
 	if err != nil {
