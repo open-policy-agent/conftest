@@ -29,7 +29,6 @@ require (
 	github.com/spdx/tools-golang v0.5.5
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.18.2
-	github.com/stretchr/testify v1.9.0
 	github.com/subosito/gotenv v1.6.0
 	github.com/tmccombs/hcl2json v0.3.1
 	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0
