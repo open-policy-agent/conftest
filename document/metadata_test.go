@@ -96,7 +96,7 @@ func TestGetDocument(t *testing.T) {
 	tests := []struct {
 		name    string
 		modules [][]string
-		want    []Section
+		want    Document
 		wantErr bool
 	}{
 		{
@@ -112,7 +112,7 @@ package foo
 p := 7
 `},
 			},
-			want: []Section{
+			want: Document{
 				{
 					H:    "#",
 					Path: "foo",
@@ -142,7 +142,7 @@ package foo.bar
 p := 7
 `},
 			},
-			want: []Section{
+			want: Document{
 				{
 					H:    "#",
 					Path: "foo.bar",
@@ -176,7 +176,7 @@ p := 7
 q := 8
 `},
 			},
-			want: []Section{
+			want: Document{
 				{
 					H:    "#",
 					Path: "foo",
@@ -223,7 +223,7 @@ r := 9
 
 `},
 			},
-			want: []Section{
+			want: Document{
 				{
 					H:    "#",
 					Path: "foo",
