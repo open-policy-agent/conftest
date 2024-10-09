@@ -42,12 +42,24 @@ func ParseRegoWithAnnotations(directory string) (ast.FlatAnnotationsRefSet, erro
 	return as, nil
 }
 
+// Document represent a page of the documentation
+type Document []Section
+
+// Section sequencial piece of documention comprise of ast.Annotations and some pre-processed fields
+// This struct exist because some fields of ast.Annotations are not easy to manipulate in go-template
 type Section struct {
-	H           string
-	Path        string
+	// Path is the string representation of ast.Annotations.Path
+	Path string
+	// Depth represent title depth for this section (h1, h2, h3, etc.). This values is derived from len(ast.Annotations.Path)
+	// and smoothed such that subsequent section only defer by +/- 1
+	Depth int
+	// H represent the markdown title symbol #, ##, ###, etc. (produced by strings.Repeat("#", depth))
+	H string
+	// Annotations is the raw metada provided by OPA compiler
 	Annotations *ast.Annotations
 }
 
+// Equal is only relevant for test ans asset that two ection are partially Equal
 func (s Section) Equal(s2 Section) bool {
 	if s.H == s2.H &&
 		s.Path == s2.Path &&
@@ -60,12 +72,12 @@ func (s Section) Equal(s2 Section) bool {
 
 // ConvertAnnotationsToSections generate a more convenient struct that can be used to generate the doc
 // First concern is to build a coherent title structure, the ideal case is that each package and each rule as a doc,
-// but this is not guarantied. I couldn't find a way to call strings.Repeat inside go-template, this the title key is
+// but this is not guaranteed. I couldn't find a way to call strings.Repeat inside go-template, thus the title symbol is
 // directly provided as markdown (#, ##, ###, etc.)
 // Second the attribute Path of ast.Annotations are not easy to used on go-template, thus we extract it as a string
-func ConvertAnnotationsToSections(as ast.FlatAnnotationsRefSet) ([]Section, error) {
+func ConvertAnnotationsToSections(as ast.FlatAnnotationsRefSet) (Document, error) {
 
-	var s []Section
+	var d Document
 	var currentDepth = 0
 	var offset = 1
 
@@ -90,12 +102,13 @@ func ConvertAnnotationsToSections(as ast.FlatAnnotationsRefSet) ([]Section, erro
 		h := strings.Repeat("#", depth)
 		path := strings.TrimPrefix(entry.Path.String(), "data.")
 
-		s = append(s, Section{
+		d = append(d, Section{
+			Depth:       depth,
 			H:           h,
 			Path:        path,
 			Annotations: entry.Annotations,
 		})
 	}
 
-	return s, nil
+	return d, nil
 }

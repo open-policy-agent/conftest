@@ -10,14 +10,16 @@ import (
 //go:embed resources/*
 var resources embed.FS
 
-// TemplateKind helps us to select where to find the template. It can either be embedded or on the host filesystem
+// TemplateKind helps us to select where to find the template. 
+// It can either be embedded or on the host filesystem
 type TemplateKind int
 
-const ( // iota is reset to 0
+const (
 	FS   TemplateKind = iota
 	FSYS              // fsys is used for embedded templates
 )
 
+// TemplateConfig represent the location of the template file(s)
 type TemplateConfig struct {
 	kind TemplateKind
 	path string
@@ -33,6 +35,7 @@ func NewTemplateConfig() *TemplateConfig {
 type RenderDocumentOption func(*TemplateConfig)
 
 // WithTemplate is a functional option to override the documentation template
+// when overriding the template we assume it is located on the host file system
 func WithTemplate(tpl string) RenderDocumentOption {
 	return func(c *TemplateConfig) {
 		c.kind = FS
@@ -42,7 +45,7 @@ func WithTemplate(tpl string) RenderDocumentOption {
 
 // RenderDocument takes a slice of Section and generate the markdown documentation either using the default
 // embedded template or the user provided template
-func RenderDocument(out io.Writer, s []Section, opts ...RenderDocumentOption) error {
+func RenderDocument(out io.Writer, d Document, opts ...RenderDocumentOption) error {
 	var tpl = NewTemplateConfig()
 
 	// Apply all the functional options to the template configurations
@@ -50,7 +53,7 @@ func RenderDocument(out io.Writer, s []Section, opts ...RenderDocumentOption) er
 		opt(tpl)
 	}
 
-	err := renderTemplate(tpl, s, out)
+	err := renderTemplate(tpl, d, out)
 	if err != nil {
 		return err
 	}
@@ -58,6 +61,8 @@ func RenderDocument(out io.Writer, s []Section, opts ...RenderDocumentOption) er
 	return nil
 }
 
+// renderTemplate is an utility function to use go-template it handles fetching the template file(s)
+// whether they are embeded or on the host file system.
 func renderTemplate(tpl *TemplateConfig, args interface{}, out io.Writer) error {
 	var t *template.Template
 	var err error

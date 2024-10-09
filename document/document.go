@@ -5,9 +5,9 @@ import (
 	"io"
 )
 
-// GenerateDocument generated a documentation file for a given module by parting
-// A single page is generated for the module located in the indicated directory this includes the package subpackages
-// and rules of the provided path, if you want to split the documentation.
+// GenerateDocument generate a documentation file for a given module
+// A single page is generated for the module located in the indicated directory this includes all package, subpackages
+// and rules of the provided path.
 func GenerateDocument(dir string, tpl string, out io.Writer) error {
 
 	as, err := ParseRegoWithAnnotations(dir)
