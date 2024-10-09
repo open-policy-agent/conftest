@@ -10,7 +10,7 @@ import (
 //go:embed resources/*
 var resources embed.FS
 
-// TemplateKind helps us to select where to find the template. 
+// TemplateKind helps us to select where to find the template.
 // It can either be embedded or on the host filesystem
 type TemplateKind int
 
@@ -62,7 +62,7 @@ func RenderDocument(out io.Writer, d Document, opts ...RenderDocumentOption) err
 }
 
 // renderTemplate is an utility function to use go-template it handles fetching the template file(s)
-// whether they are embeded or on the host file system.
+// whether they are embedded or on the host file system.
 func renderTemplate(tpl *TemplateConfig, args interface{}, out io.Writer) error {
 	var t *template.Template
 	var err error
