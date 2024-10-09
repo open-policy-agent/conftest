@@ -38,11 +38,11 @@ func Test_generateDocument(t *testing.T) {
 				as, err := ParseRegoWithAnnotations(tt.testdata)
 				assert.NoError(t, err)
 
-				s, err := ConvertAnnotationsToSections(as)
+				d, err := ConvertAnnotationsToSections(as)
 				assert.NoError(t, err)
 
 				gotOut := &bytes.Buffer{}
-				err = RenderDocument(gotOut, s, tt.Option...)
+				err = RenderDocument(gotOut, d, tt.Option...)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("GenVariableDoc() error = %v, wantErr %v", err, tt.wantErr)
 					return
