@@ -40,7 +40,7 @@ func getTestModules(t *testing.T, modules [][]string) ast.FlatAnnotationsRefSet 
 
 // PartialEqual asserts that two objects are equal, depending on what equal means
 // For instance, you may pass options to ignore certain fields
-// Also if a struct export an Equal func this will be used for the assertion
+// Also, if a struct exports an Equal func this will be used for the assertion
 func PartialEqual(t *testing.T, expected, actual any, diffOpts cmp.Option, msgAndArgs ...any) {
 	t.Helper()
 
