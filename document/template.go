@@ -35,7 +35,7 @@ func NewTemplateConfig() *TemplateConfig {
 type RenderDocumentOption func(*TemplateConfig)
 
 // WithTemplate is a functional option to override the documentation template
-// when overriding the template we assume it is located on the host file system
+// When overriding the template, we assume it is located on the host file system
 func WithTemplate(tpl string) RenderDocumentOption {
 	return func(c *TemplateConfig) {
 		c.kind = FS

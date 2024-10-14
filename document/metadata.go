@@ -45,7 +45,7 @@ func ParseRegoWithAnnotations(directory string) (ast.FlatAnnotationsRefSet, erro
 // Document represent a page of the documentation
 type Document []Section
 
-// Section sequencial piece of documention comprise of ast.Annotations and some pre-processed fields
+// Section is a sequential piece of documentation comprised of ast.Annotations and some pre-processed fields
 // This struct exist because some fields of ast.Annotations are not easy to manipulate in go-template
 type Section struct {
 	// Path is the string representation of ast.Annotations.Path
@@ -59,7 +59,7 @@ type Section struct {
 	Annotations *ast.Annotations
 }
 
-// Equal is only relevant for test ans asset that two ection are partially Equal
+// Equal is only relevant for tests and assert that two sections are partially Equal
 func (s Section) Equal(s2 Section) bool {
 	if s.H == s2.H &&
 		s.Path == s2.Path &&
@@ -70,11 +70,11 @@ func (s Section) Equal(s2 Section) bool {
 	return false
 }
 
-// ConvertAnnotationsToSections generate a more convenient struct that can be used to generate the doc
-// First concern is to build a coherent title structure, the ideal case is that each package and each rule as a doc,
-// but this is not guaranteed. I couldn't find a way to call strings.Repeat inside go-template, thus the title symbol is
+// ConvertAnnotationsToSections generates a more convenient struct that can be used to generate the doc
+// First concern is to build a coherent title structure; the ideal case is that each package and each rule has a doc,
+// but this is not guaranteed. I couldn't find a way to call `strings.Repeat` inside go-template; thus, the title symbol is
 // directly provided as markdown (#, ##, ###, etc.)
-// Second the attribute Path of ast.Annotations are not easy to used on go-template, thus we extract it as a string
+// Second, the attribute Path of ast.Annotations are not easy to use on go-template; thus, we extract it as a string
 func ConvertAnnotationsToSections(as ast.FlatAnnotationsRefSet) (Document, error) {
 
 	var d Document
