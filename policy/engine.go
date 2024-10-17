@@ -224,7 +224,7 @@ func (e *Engine) Namespaces() []string {
 // Documents returns all of the documents loaded into the engine.
 // The result is a map where the key is the filepath of the document
 // and its value is the raw contents of the loaded document.
-func (e *Engine) Documents() map[string]interface{} {
+func (e *Engine) Documents() map[string]any {
 	return e.docs
 }
 
