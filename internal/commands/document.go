@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -49,11 +48,7 @@ func NewDocumentCommand() *cobra.Command {
 				if err != nil {
 					return fmt.Errorf("opening %s for writing output: %w", outPath, err)
 				}
-				defer func(file *os.File) {
-					if err := file.Close(); err != nil {
-						log.Fatalln(err)
-					}
-				}(f)
+				defer f.Close() //nolint // CLI is exiting anyway and there's not much we can do.
 
 				template, err := cmd.Flags().GetString("template")
 				if err != nil {
