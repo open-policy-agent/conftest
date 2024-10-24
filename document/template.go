@@ -15,8 +15,8 @@ var resources embed.FS
 type TemplateKind int
 
 const (
-	FS   TemplateKind = iota
-	FSYS              // fsys is used for embedded templates
+	TemplateKindInternal TemplateKind = iota
+	TemplateKindExternal
 )
 
 // TemplateConfig represent the location of the template file(s)
@@ -27,18 +27,18 @@ type TemplateConfig struct {
 
 func NewTemplateConfig() *TemplateConfig {
 	return &TemplateConfig{
-		kind: FSYS,
+		kind: TemplateKindInternal,
 		path: "resources/document.md",
 	}
 }
 
 type RenderDocumentOption func(*TemplateConfig)
 
-// WithTemplate is a functional option to override the documentation template
+// ExternalTemplate is a functional option to override the documentation template
 // When overriding the template, we assume it is located on the host file system
-func WithTemplate(tpl string) RenderDocumentOption {
+func ExternalTemplate(tpl string) RenderDocumentOption {
 	return func(c *TemplateConfig) {
-		c.kind = FS
+		c.kind = TemplateKindExternal
 		c.path = tpl
 	}
 }
@@ -46,7 +46,7 @@ func WithTemplate(tpl string) RenderDocumentOption {
 // RenderDocument takes a slice of Section and generate the markdown documentation either using the default
 // embedded template or the user provided template
 func RenderDocument(out io.Writer, d Document, opts ...RenderDocumentOption) error {
-	var tpl = NewTemplateConfig()
+	tpl := NewTemplateConfig()
 
 	// Apply all the functional options to the template configurations
 	for _, opt := range opts {
@@ -63,18 +63,18 @@ func RenderDocument(out io.Writer, d Document, opts ...RenderDocumentOption) err
 
 // renderTemplate is an utility function to use go-template it handles fetching the template file(s)
 // whether they are embedded or on the host file system.
-func renderTemplate(tpl *TemplateConfig, args interface{}, out io.Writer) error {
+func renderTemplate(tpl *TemplateConfig, sections []Section, out io.Writer) error {
 	var t *template.Template
 	var err error
 
 	switch tpl.kind {
-	case FSYS:
+	case TemplateKindInternal:
 		// read the embedded template
 		t, err = template.ParseFS(resources, tpl.path)
 		if err != nil {
 			return err
 		}
-	case FS:
+	case TemplateKindExternal:
 		t, err = template.ParseFiles(tpl.path)
 		if err != nil {
 			return err
@@ -84,7 +84,7 @@ func renderTemplate(tpl *TemplateConfig, args interface{}, out io.Writer) error 
 	}
 
 	// we render the template
-	err = t.Execute(out, args)
+	err = t.Execute(out, sections)
 	if err != nil {
 		return err
 	}

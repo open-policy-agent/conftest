@@ -1,6 +1,7 @@
 package document
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -8,6 +9,10 @@ import (
 
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/loader"
+)
+
+var (
+	ErrNoAnnotations = errors.New("no annotations found")
 )
 
 // ParseRegoWithAnnotations parse the rego in the indicated directory
@@ -28,16 +33,18 @@ func ParseRegoWithAnnotations(directory string) (ast.FlatAnnotationsRefSet, erro
 		})
 
 	if err != nil {
-		return nil, fmt.Errorf("filter rego files: %w", err)
+		return nil, fmt.Errorf("load rego files: %w", err)
 	}
 
-	if _, err := result.Compiler(); err != nil {
+	compiler, err := result.Compiler()
+	if err != nil {
 		return nil, fmt.Errorf("compile: %w", err)
 	}
-
-	compiler := ast.NewCompiler()
-	compiler.Compile(result.ParsedModules())
 	as := compiler.GetAnnotationSet().Flatten()
+
+	if len(as) == 0 {
+		return nil, ErrNoAnnotations
+	}
 
 	return as, nil
 }
@@ -48,21 +55,21 @@ type Document []Section
 // Section is a sequential piece of documentation comprised of ast.Annotations and some pre-processed fields
 // This struct exist because some fields of ast.Annotations are not easy to manipulate in go-template
 type Section struct {
-	// Path is the string representation of ast.Annotations.Path
-	Path string
-	// Depth represent title depth for this section (h1, h2, h3, etc.). This values is derived from len(ast.Annotations.Path)
+	// RegoPackageName is the string representation of ast.Annotations.Path
+	RegoPackageName string
+	// Depth represent title depth for this section (h1, h2, h3, etc.). This values is derived from len(ast.Annotations.RegoPackageName)
 	// and smoothed such that subsequent section only defer by +/- 1
 	Depth int
-	// H represent the markdown title symbol #, ##, ###, etc. (produced by strings.Repeat("#", depth))
-	H string
+	// MarkdownHeading represent the markdown title symbol #, ##, ###, etc. (produced by strings.Repeat("#", depth))
+	MarkdownHeading string
 	// Annotations is the raw metada provided by OPA compiler
 	Annotations *ast.Annotations
 }
 
 // Equal is only relevant for tests and assert that two sections are partially Equal
 func (s Section) Equal(s2 Section) bool {
-	if s.H == s2.H &&
-		s.Path == s2.Path &&
+	if s.MarkdownHeading == s2.MarkdownHeading &&
+		s.RegoPackageName == s2.RegoPackageName &&
 		s.Annotations.Title == s2.Annotations.Title {
 		return true
 	}
@@ -74,7 +81,7 @@ func (s Section) Equal(s2 Section) bool {
 // First concern is to build a coherent title structure; the ideal case is that each package and each rule has a doc,
 // but this is not guaranteed. I couldn't find a way to call `strings.Repeat` inside go-template; thus, the title symbol is
 // directly provided as markdown (#, ##, ###, etc.)
-// Second, the attribute Path of ast.Annotations are not easy to use on go-template; thus, we extract it as a string
+// Second, the attribute RegoPackageName of ast.Annotations are not easy to use on go-template; thus, we extract it as a string
 func ConvertAnnotationsToSections(as ast.FlatAnnotationsRefSet) (Document, error) {
 
 	var d Document
@@ -103,10 +110,10 @@ func ConvertAnnotationsToSections(as ast.FlatAnnotationsRefSet) (Document, error
 		path := strings.TrimPrefix(entry.Path.String(), "data.")
 
 		d = append(d, Section{
-			Depth:       depth,
-			H:           h,
-			Path:        path,
-			Annotations: entry.Annotations,
+			Depth:           depth,
+			MarkdownHeading: h,
+			RegoPackageName: path,
+			Annotations:     entry.Annotations,
 		})
 	}
 

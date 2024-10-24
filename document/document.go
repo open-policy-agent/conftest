@@ -22,7 +22,7 @@ func GenerateDocument(dir string, tpl string, out io.Writer) error {
 
 	var opt []RenderDocumentOption
 	if tpl != "" {
-		opt = append(opt, WithTemplate(tpl))
+		opt = append(opt, ExternalTemplate(tpl))
 	}
 
 	err = RenderDocument(out, sec, opt...)

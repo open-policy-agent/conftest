@@ -4,16 +4,13 @@ import (
 	"bytes"
 	"os"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
-func Test_generateDocument(t *testing.T) {
+func TestRenderDocument(t *testing.T) {
 	tests := []struct {
 		name     string
 		testdata string
-		Option   []RenderDocumentOption
+		Options  []RenderDocumentOption
 		wantOut  string
 		wantErr  bool
 	}{
@@ -26,37 +23,49 @@ func Test_generateDocument(t *testing.T) {
 			name:     "Nested packages",
 			testdata: "./testdata/foo",
 			wantOut:  "./testdata/doc/foo.md",
-			Option: []RenderDocumentOption{
-				WithTemplate("testdata/template.md"),
+			Options: []RenderDocumentOption{
+				ExternalTemplate("testdata/template.md"),
 			},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
-		t.Run(
-			tt.name, func(t *testing.T) {
-				as, err := ParseRegoWithAnnotations(tt.testdata)
-				assert.NoError(t, err)
+		t.Run(tt.name, func(t *testing.T) {
+			as, err := ParseRegoWithAnnotations(tt.testdata)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ParseRegoWithAnnotations() error = %v, wantErr %v", err, tt.wantErr)
+			}
 
-				d, err := ConvertAnnotationsToSections(as)
-				assert.NoError(t, err)
+			d, err := ConvertAnnotationsToSections(as)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ConvertAnnotationsToSections() error = %v, wantErr %v", err, tt.wantErr)
+			}
 
-				gotOut := &bytes.Buffer{}
-				err = RenderDocument(gotOut, d, tt.Option...)
-				if (err != nil) != tt.wantErr {
-					t.Errorf("GenVariableDoc() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
+			gotOut := &bytes.Buffer{}
+			err = RenderDocument(gotOut, d, tt.Options...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("RenderDocument() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
 
-				wantOut, err := os.ReadFile(tt.wantOut)
-				require.NoError(t, err)
-				assert.Equal(t, string(wantOut), gotOut.String())
+			wantOut, err := os.ReadFile(tt.wantOut)
+			if err != nil {
+				t.Errorf("unexpected test error: %v", err)
+				return
+			}
 
-				// prospective golden file, much simpler to see what's the result in case the test fails
-				// this does not override the existing test, but create a new file called xxx.golden
-				err = os.WriteFile(tt.wantOut+".golden", gotOut.Bytes(), 0600)
-				assert.NoError(t, err)
-			},
+			if gotOut.String() != string(wantOut) {
+				t.Errorf("ReadFile() = %v, want %v", gotOut.String(), wantOut)
+			}
+
+			// prospective golden file, much simpler to see what's the result in case the test fails
+			// this does not override the existing test, but create a new file called xxx.golden
+			err = os.WriteFile(tt.wantOut+".golden", gotOut.Bytes(), 0600)
+			if err != nil {
+				t.Errorf("unexpected test error: %v", err)
+				return
+			}
+		},
 		)
 	}
 }

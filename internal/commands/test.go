@@ -175,12 +175,12 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 
 	cmd.Flags().String("ignore", "", "A regex pattern which can be used for ignoring paths")
 	cmd.Flags().String("parser", "", fmt.Sprintf("Parser to use to parse the configurations. Valid parsers: %s", parser.Parsers()))
-	cmd.Flags().String("capabilities", "", "Path to JSON file that can restrict opa functionality against a given policy. Default: all operations allowed")
+	cmd.Flags().String("capabilities", "", "RegoPackageName to JSON file that can restrict opa functionality against a given policy. Default: all operations allowed")
 
 	cmd.Flags().StringP("output", "o", output.OutputStandard, fmt.Sprintf("Output format for conftest results - valid options are: %s", output.Outputs()))
 	cmd.Flags().Bool("junit-hide-message", false, "Do not include the violation message in the JUnit test name")
 
-	cmd.Flags().StringSliceP("policy", "p", []string{"policy"}, "Path to the Rego policy files directory")
+	cmd.Flags().StringSliceP("policy", "p", []string{"policy"}, "RegoPackageName to the Rego policy files directory")
 	cmd.Flags().StringSliceP("update", "u", []string{}, "A list of URLs can be provided to the update flag, which will download before the tests run")
 	cmd.Flags().StringSliceP("namespace", "n", []string{"main"}, "Test policies in a specific namespace")
 	cmd.Flags().StringSliceP("data", "d", []string{}, "A list of paths from which data for the rego policies will be recursively loaded")
