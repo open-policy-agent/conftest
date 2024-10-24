@@ -143,9 +143,9 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().StringP("output", "o", output.OutputStandard, fmt.Sprintf("Output format for conftest results - valid options are: %s", output.Outputs()))
 	cmd.Flags().Bool("junit-hide-message", false, "Do not include the violation message in the JUnit test name")
 
-	cmd.Flags().String("capabilities", "", "RegoPackageName to JSON file that can restrict opa functionality against a given policy. Default: all operations allowed")
+	cmd.Flags().String("capabilities", "", "Path to JSON file that can restrict opa functionality against a given policy. Default: all operations allowed")
 	cmd.Flags().StringSliceP("data", "d", []string{}, "A list of paths from which data for the rego policies will be recursively loaded")
-	cmd.Flags().StringSliceP("policy", "p", []string{"policy"}, "RegoPackageName to the Rego policy files directory")
+	cmd.Flags().StringSliceP("policy", "p", []string{"policy"}, "Path to the Rego policy files directory")
 
 	cmd.Flags().StringSlice("proto-file-dirs", []string{}, "A list of directories containing Protocol Buffer definitions")
 
