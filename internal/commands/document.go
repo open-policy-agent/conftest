@@ -70,7 +70,7 @@ func NewDocumentCommand() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringP("outDir", "o", ".", "Path to the output documentation file")
+	cmd.Flags().StringP("outDir", "o", ".", "RegoPackageName to the output documentation file")
 	cmd.Flags().StringP("template", "t", "", "Go template for the document generation")
 
 	return cmd

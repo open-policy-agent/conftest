@@ -76,7 +76,7 @@ func NewPullCommand(ctx context.Context) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringP("policy", "p", "policy", "Path to download the policies to")
+	cmd.Flags().StringP("policy", "p", "policy", "RegoPackageName to download the policies to")
 	cmd.Flags().BoolP("tls", "s", true, "Use TLS to access the registry")
 
 	return &cmd

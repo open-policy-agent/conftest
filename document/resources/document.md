@@ -1,5 +1,5 @@
 {{ range . -}}
-{{ .H }} {{ .Path }} - {{ .Annotations.Title }}
+{{ .MarkdownHeading }} {{ .RegoPackageName }} - {{ .Annotations.Title }}
 
 {{ .Annotations.Description }}
 {{ if .Annotations.RelatedResources }}
