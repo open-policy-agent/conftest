@@ -31,7 +31,7 @@ type Engine struct {
 	compiler      *ast.Compiler
 	store         storage.Store
 	policies      map[string]string
-	docs          map[string]any
+	docs          map[string]interface{}
 }
 
 type compilerOptions struct {
@@ -224,7 +224,7 @@ func (e *Engine) Namespaces() []string {
 // Documents returns all of the documents loaded into the engine.
 // The result is a map where the key is the filepath of the document
 // and its value is the raw contents of the loaded document.
-func (e *Engine) Documents() map[string]any {
+func (e *Engine) Documents() map[string]interface{} {
 	return e.docs
 }
 
