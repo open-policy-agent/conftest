@@ -1,3 +1,3 @@
 {{ range . -}}
-{{ .Path }} has annotations {{ .Annotations }}
+{{ .RegoPackageName }} has annotations {{ .Annotations }}
 {{ end -}}
