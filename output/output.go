@@ -34,6 +34,7 @@ const (
 	OutputJUnit       = "junit"
 	OutputGitHub      = "github"
 	OutputAzureDevOps = "azuredevops"
+	OutputSARIF       = "sarif"
 )
 
 // Get returns a type that can render output in the given format.
@@ -57,6 +58,8 @@ func Get(format string, options Options) Outputter {
 		return NewGitHub(options.File)
 	case OutputAzureDevOps:
 		return NewAzureDevOps(options.File)
+	case OutputSARIF:
+		return NewSARIF(options.File)
 	default:
 		return NewStandard(options.File)
 	}
@@ -71,5 +74,6 @@ func Outputs() []string {
 		OutputTable,
 		OutputJUnit,
 		OutputGitHub,
+		OutputSARIF,
 	}
 }

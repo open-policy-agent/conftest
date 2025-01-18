@@ -173,6 +173,7 @@ As of today Conftest supports the following output types:
 - JUnit `--output=junit`
 - GitHub `--output=github`
 - AzureDevOps `--output=azuredevops`
+- SARIF `--output=sarif`
 
 ### Plaintext
 
@@ -320,6 +321,71 @@ $ conftest test -o azuredevops -p examples/kubernetes/policy examples/kubernetes
 success file=examples/kubernetes/deployment.yaml 1
 ##[endgroup]
 5 tests, 1 passed, 0 warnings, 4 failures, 0 exceptions
+```
+
+### SARIF
+
+```console
+$ conftest test --proto-file-dirs examples/textproto/protos -p examples/textproto/policy examples/textproto/fail.textproto -o sarif
+{
+  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "conftest",
+          "informationUri": "https://github.com/open-policy-agent/conftest",
+          "rules": [
+            {
+              "id": "conftest-failure-main-deny",
+              "shortDescription": {
+                "text": "fail: Power level must be over 9000"
+              },
+              "properties": {
+                "namespace": "main",
+                "query": "data.main.deny"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "conftest-failure-main-deny",
+          "ruleIndex": 0,
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "fail: Power level must be over 9000"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "examples/textproto/fail.textproto"
+                }
+              }
+            }
+          ],
+          "properties": {
+            "namespace": "main",
+            "query": "data.main.deny"
+          }
+        }
+      ],
+      "invocations": [
+        {
+          "executionSuccessful": true,
+          "exitCode": 1,
+          "exitCodeDescription": "Policy violations found",
+          "startTimeUtc": "2025-01-19T13:14:11Z",
+          "endTimeUtc": "2025-01-19T13:14:11Z"
+        }
+      ]
+    }
+  ]
+}
 ```
 
 ## `--parser`
