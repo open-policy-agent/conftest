@@ -32,6 +32,14 @@ func TestGetOutputter(t *testing.T) {
 			expected: NewJUnit(os.Stdout, false),
 		},
 		{
+			input:    OutputGitHub,
+			expected: NewGitHub(os.Stdout),
+		},
+		{
+			input:    OutputAzureDevOps,
+			expected: NewAzureDevOps(os.Stdout),
+		},
+		{
 			input:    "unknown_format",
 			expected: NewStandard(os.Stdout),
 		},
