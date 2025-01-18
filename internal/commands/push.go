@@ -141,9 +141,6 @@ func pushBundle(ctx context.Context, repository, policyPath, dataPath string) (*
 
 	configBytes := []byte("{}")
 	configDesc := content.NewDescriptorFromBytes(oras.MediaTypeUnknownConfig, configBytes)
-	if err != nil {
-		return nil, fmt.Errorf("serializing manifest conifg: %w", err)
-	}
 
 	if err := dest.Push(ctx, configDesc, bytes.NewReader(configBytes)); err != nil && !errors.Is(err, errdef.ErrAlreadyExists) {
 		return nil, fmt.Errorf("pushing manifest conifg: %w", err)
