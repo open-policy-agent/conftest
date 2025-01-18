@@ -29,12 +29,35 @@ func (yp *Parser) Unmarshal(p []byte, v interface{}) error {
 }
 
 func separateSubDocuments(data []byte) [][]byte {
+	// Determine line ending style
 	linebreak := "\n"
-	if bytes.Contains(data, []byte("\r\n---\r\n")) {
+	if bytes.Contains(data, []byte("\r\n")) {
 		linebreak = "\r\n"
 	}
+	separator := fmt.Sprintf("%s---%s", linebreak, linebreak)
 
-	return bytes.Split(data, []byte(linebreak+"---"+linebreak))
+	// Count actual document separators
+	parts := bytes.Split(data, []byte(separator))
+
+	// If we have a directive, first part is not a separate document
+	if bytes.HasPrefix(data, []byte("%")) {
+		if len(parts) <= 2 {
+			// Single document with directive
+			return [][]byte{data}
+		}
+		// Multiple documents - combine directive with first real document
+		firstDoc := append(parts[0], append([]byte(separator), parts[1]...)...)
+		result := [][]byte{firstDoc}
+		result = append(result, parts[2:]...)
+		return result
+	}
+
+	// No directive case
+	if len(parts) <= 1 {
+		// Single document
+		return [][]byte{data}
+	}
+	return parts
 }
 
 func unmarshalMultipleDocuments(subDocuments [][]byte, v interface{}) error {
