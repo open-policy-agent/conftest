@@ -3,6 +3,8 @@ package downloader
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 
 	getter "github.com/hashicorp/go-getter"
@@ -36,6 +38,13 @@ func Download(ctx context.Context, dst string, urls []string) error {
 		detectedURL, err := Detect(url, dst)
 		if err != nil {
 			return fmt.Errorf("detecting url: %w", err)
+		}
+
+		// Check if file already exists
+		filename := filepath.Base(detectedURL)
+		targetPath := filepath.Join(dst, filename)
+		if _, err := os.Stat(targetPath); err == nil {
+			return fmt.Errorf("policy file already exists at %s, refusing to overwrite", targetPath)
 		}
 
 		client := &getter.Client{
