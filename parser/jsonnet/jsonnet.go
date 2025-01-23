@@ -13,7 +13,6 @@ type Parser struct{}
 // Unmarshal unmarshals Jsonnet files.
 func (p *Parser) Unmarshal(data []byte, v interface{}) error {
 	vm := jsonnet.MakeVM()
-	vm.MaxStack = 500
 	vm.ErrorFormatter.SetMaxStackTraceSize(20)
 	snippetStream, err := vm.EvaluateAnonymousSnippet("", string(data))
 	if err != nil {
