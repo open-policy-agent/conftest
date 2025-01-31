@@ -3,12 +3,19 @@ package yaml
 import (
 	"bytes"
 	"fmt"
+	"slices"
 
 	"sigs.k8s.io/yaml"
 )
 
 // Parser is a YAML parser.
 type Parser struct{}
+
+var (
+	lf   = []byte{'\n'}
+	crlf = []byte{'\r', '\n'}
+	sep  = []byte{'-', '-', '-'}
+)
 
 // Unmarshal unmarshals YAML files.
 func (yp *Parser) Unmarshal(p []byte, v interface{}) error {
@@ -30,14 +37,15 @@ func (yp *Parser) Unmarshal(p []byte, v interface{}) error {
 
 func separateSubDocuments(data []byte) [][]byte {
 	// Determine line ending style
-	linebreak := "\n"
-	if bytes.Contains(data, []byte("\r\n")) {
-		linebreak = "\r\n"
+	linebreak := lf
+	if bytes.Contains(data, crlf) {
+		linebreak = crlf
 	}
-	separator := fmt.Sprintf("%s---%s", linebreak, linebreak)
+
+	separator := slices.Concat(linebreak, sep, linebreak)
 
 	// Count actual document separators
-	parts := bytes.Split(data, []byte(separator))
+	parts := bytes.Split(data, separator)
 
 	// If we have a directive, first part is not a separate document
 	if bytes.HasPrefix(data, []byte("%")) {
@@ -46,7 +54,7 @@ func separateSubDocuments(data []byte) [][]byte {
 			return [][]byte{data}
 		}
 		// Multiple documents - combine directive with first real document
-		firstDoc := append(parts[0], append([]byte(separator), parts[1]...)...)
+		firstDoc := append(parts[0], append(separator, parts[1]...)...)
 		result := [][]byte{firstDoc}
 		result = append(result, parts[2:]...)
 		return result
