@@ -20,7 +20,7 @@ func (*Parser) Unmarshal(p []byte, v interface{}) error {
 
 	out, err := json.Marshal(doc)
 	if err != nil {
-		return fmt.Errorf("error while marshalling %v: %v", p, err)
+		return fmt.Errorf("error while marshaling %v: %v", p, err)
 	}
 
 	if err := json.Unmarshal(out, v); err != nil {
