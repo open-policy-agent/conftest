@@ -71,5 +71,6 @@ func Outputs() []string {
 		OutputTable,
 		OutputJUnit,
 		OutputGitHub,
+		OutputAzureDevOps,
 	}
 }
