@@ -85,10 +85,10 @@ func formatSingleJSON(configurations map[string]interface{}) (string, error) {
 	for _, cfg := range configurations {
 		config = cfg
 	}
-	marshalled, err := json.MarshalIndent(config, "", "  ")
+	marshaled, err := json.MarshalIndent(config, "", "  ")
 	if err != nil {
 		return "", err
 	}
 
-	return string(marshalled), nil
+	return string(marshaled), nil
 }

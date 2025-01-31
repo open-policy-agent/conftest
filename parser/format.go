@@ -27,12 +27,12 @@ func Format(configurations map[string]interface{}) (string, error) {
 // object where each key is the path to the file and the contents are the
 // parsed configurations.
 func FormatJSON(configurations map[string]interface{}) (string, error) {
-	marshalled, err := json.MarshalIndent(configurations, "", "  ")
+	marshaled, err := json.MarshalIndent(configurations, "", "  ")
 	if err != nil {
 		return "", fmt.Errorf("marshal configs: %w", err)
 	}
 
-	return string(marshalled), nil
+	return string(marshaled), nil
 }
 
 // FormatCombined takes in multiple configurations, combines them, and formats the
