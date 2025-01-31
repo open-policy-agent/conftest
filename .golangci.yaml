@@ -1,6 +1,9 @@
 linters-settings:
   misspell:
     locale: US
+  govet:
+    enable:
+      - nilness
 
 linters:
   disable-all: true
