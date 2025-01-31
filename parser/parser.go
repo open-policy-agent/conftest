@@ -66,6 +66,13 @@ type Parser interface {
 	Unmarshal(p []byte, v interface{}) error
 }
 
+// PathAwareParser is an optional interface that parsers may implement
+// if they need the original file path for relative imports or other logic.
+type PathAwareParser interface {
+	Parser
+	SetPath(path string)
+}
+
 // New returns a new Parser.
 func New(parser string) (Parser, error) {
 	switch parser {
@@ -324,6 +331,11 @@ func parseConfigurations(paths []string, parser string) (map[string]interface{},
 		contents, err := getConfigurationContent(path)
 		if err != nil {
 			return nil, errWithPathInfo(err, "get configuration content", path)
+		}
+
+		// If our parser needs the path, give it the path
+		if p, ok := fileParser.(PathAwareParser); ok {
+			p.SetPath(path)
 		}
 
 		var parsed interface{}
