@@ -3,6 +3,8 @@ package registry
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/open-policy-agent/conftest/internal/network"
@@ -74,5 +76,30 @@ func TestSetupClient(t *testing.T) {
 				t.Errorf(`unexpected error while fetching credentials: %v`, err)
 			}
 		})
+	}
+}
+
+func TestSetupClientCredentialsError(t *testing.T) {
+	tmpDir := t.TempDir()
+	configFilePath := filepath.Join(tmpDir, "config.json")
+
+	// Write file with no permissions
+	err := os.WriteFile(configFilePath, []byte(`{"auths":{}}`), 0o000)
+	if err != nil {
+		t.Fatalf("failed to write to config file: %v", err)
+	}
+
+	// Ensure permissions are restored for cleanup
+	t.Cleanup(func() {
+		if err := os.Chmod(configFilePath, 0o600); err != nil {
+			t.Errorf("failed to restore permissions during cleanup: %v", err)
+		}
+	})
+
+	repository := mustParseReference("local-test-registry/image:tag")
+	t.Setenv("DOCKER_CONFIG", configFilePath)
+
+	if err := SetupClient(repository); err == nil {
+		t.Error("expected error when credentials store initialization fails, got nil")
 	}
 }
