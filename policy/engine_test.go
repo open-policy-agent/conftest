@@ -7,8 +7,8 @@ import (
 	"reflect"
 	"sort"
 	"testing"
+	"testing/fstest"
 
-	"github.com/open-policy-agent/conftest/internal/testing/memfs"
 	"github.com/open-policy-agent/conftest/parser"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/loader"
@@ -355,10 +355,12 @@ func TestProblematicIf(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
-			files := map[string][]byte{
-				"policy.rego": []byte("package main\n\n" + tc.body),
+			files := fstest.MapFS{
+				"policy.rego": &fstest.MapFile{
+					Data: []byte("package main\n\n" + tc.body),
+				},
 			}
-			fs := memfs.New(files)
+			fs := fstest.MapFS(files)
 			l := loader.NewFileLoader().WithFS(fs)
 
 			pols, err := l.All([]string{"policy.rego"})
@@ -534,7 +536,13 @@ deny[msg] { msg := "denied" }`),
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fs := memfs.New(tt.policies)
+			// Convert policies to fstest.MapFS format
+			files := make(map[string]*fstest.MapFile)
+			for name, data := range tt.policies {
+				files[name] = &fstest.MapFile{Data: data}
+			}
+			fs := fstest.MapFS(files)
+
 			l := loader.NewFileLoader().WithFS(fs)
 
 			keys := make([]string, 0, len(tt.policies))
