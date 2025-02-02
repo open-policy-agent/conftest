@@ -360,7 +360,10 @@ func TestProblematicIf(t *testing.T) {
 					Data: []byte("package main\n\n" + tc.body),
 				},
 			}
-			fs := fstest.MapFS(files)
+
+			// Explicit conversion needed despite files being fstest.MapFS type
+			// to ensure fs.FS interface implementation for loader.WithFS
+			fs := fstest.MapFS(files) //nolint:unconvert
 			l := loader.NewFileLoader().WithFS(fs)
 
 			pols, err := l.All([]string{"policy.rego"})
@@ -541,7 +544,9 @@ deny[msg] { msg := "denied" }`),
 			for name, data := range tt.policies {
 				files[name] = &fstest.MapFile{Data: data}
 			}
-			fs := fstest.MapFS(files)
+			// Explicit conversion needed despite files being fstest.MapFS type
+			// to ensure fs.FS interface implementation for loader.WithFS
+			fs := fstest.MapFS(files) //nolint:unconvert
 
 			l := loader.NewFileLoader().WithFS(fs)
 
