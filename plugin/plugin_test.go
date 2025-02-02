@@ -131,9 +131,8 @@ func TestFindAll(t *testing.T) {
 
 func TestPluginExec(t *testing.T) {
 	t.Run("basic command", func(t *testing.T) {
-		// Create a test plugin that writes to a file
-		dir := t.TempDir()
-		testFile := filepath.Join(dir, "output.txt")
+		tmpDir := t.TempDir()
+		testFile := filepath.Join(tmpDir, "output.txt")
 
 		p := &Plugin{
 			Name:    "exec-test",
@@ -161,6 +160,9 @@ func TestPluginExec(t *testing.T) {
 	})
 
 	t.Run("with arguments", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		testFile := filepath.Join(tmpDir, "args.txt")
+
 		p := &Plugin{
 			Name:    "args-test",
 			Command: "echo",
@@ -172,13 +174,13 @@ func TestPluginExec(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		// Capture output by writing to a temp file
-		dir := t.TempDir()
-		testFile := filepath.Join(dir, "args.txt")
 		originalStdout := os.Stdout
 		defer func() { os.Stdout = originalStdout }()
 
-		f, _ := os.Create(testFile)
+		f, err := os.Create(testFile)
+		if err != nil {
+			t.Fatal(err)
+		}
 		os.Stdout = f
 		defer f.Close()
 
@@ -215,9 +217,21 @@ func TestPluginExec(t *testing.T) {
 // Helper to create a test plugin in the cache directory
 func createTestPlugin(t *testing.T, plugin *Plugin) string {
 	t.Helper()
+	tmpDir := t.TempDir()
 
-	dir := filepath.Join(CacheDirectory(), plugin.Name)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	// Create a specific plugins directory structure
+	pluginsDir := filepath.Join(tmpDir, ".conftest", "plugins")
+	if err := os.MkdirAll(pluginsDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	// Set both XDG variables to use our temp directory
+	t.Setenv("XDG_CACHE_HOME", tmpDir)
+	t.Setenv("XDG_DATA_HOME", tmpDir)
+
+	// Create the plugin directory
+	resolveDir := filepath.Join(CacheDirectory(), plugin.Name)
+	if err := os.MkdirAll(resolveDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -226,10 +240,10 @@ func createTestPlugin(t *testing.T, plugin *Plugin) string {
 		t.Fatal(err)
 	}
 
-	configPath := filepath.Join(dir, "plugin.yaml")
+	configPath := filepath.Join(resolveDir, "plugin.yaml")
 	if err := os.WriteFile(configPath, data, 0o600); err != nil {
 		t.Fatal(err)
 	}
 
-	return dir
+	return resolveDir
 }
