@@ -12,3 +12,8 @@ site
 node_modules/
 package.json
 package-lock.json
+
+# ignore generated doc in tests
+/tests/document/*.md
+# ignore prospective golden files
+/document/testdata/doc/*.golden
