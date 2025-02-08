@@ -2,9 +2,13 @@ package policy
 
 import (
 	"context"
+	"os"
+	"path/filepath"
+	"reflect"
+	"sort"
 	"testing"
+	"testing/fstest"
 
-	"github.com/open-policy-agent/conftest/internal/testing/memfs"
 	"github.com/open-policy-agent/conftest/parser"
 	"github.com/open-policy-agent/opa/ast"
 	"github.com/open-policy-agent/opa/loader"
@@ -351,10 +355,15 @@ func TestProblematicIf(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
-			files := map[string][]byte{
-				"policy.rego": []byte("package main\n\n" + tc.body),
+			files := fstest.MapFS{
+				"policy.rego": &fstest.MapFile{
+					Data: []byte("package main\n\n" + tc.body),
+				},
 			}
-			fs := memfs.New(files)
+
+			// Explicit conversion needed despite files being fstest.MapFS type
+			// to ensure fs.FS interface implementation for loader.WithFS
+			fs := fstest.MapFS(files) //nolint:unconvert
 			l := loader.NewFileLoader().WithFS(fs)
 
 			pols, err := l.All([]string{"policy.rego"})
@@ -364,6 +373,202 @@ func TestProblematicIf(t *testing.T) {
 			err = problematicIf(pols.ParsedModules())
 			if gotErr := err != nil; gotErr != tc.wantErr {
 				t.Errorf("problematicIf = %v, want %v", gotErr, tc.wantErr)
+			}
+		})
+	}
+}
+
+func TestLoadWithData(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	inaccessibleCapabilitiesPath := filepath.Join(tmpDir, "capabilities")
+	err := os.WriteFile(inaccessibleCapabilitiesPath, []byte(""), 0o000)
+	if err != nil {
+		t.Fatalf("failed to write empty policy file: %v", err)
+	}
+
+	t.Cleanup(func() {
+		err := os.Chmod(inaccessibleCapabilitiesPath, 0o600)
+		if err != nil {
+			t.Fatalf("failed to restore capabilities file permissions: %v", err)
+		}
+	})
+
+	invalidCapabilitiesPath := filepath.Join(tmpDir, "invalid-capabilities")
+	err = os.WriteFile(invalidCapabilitiesPath, []byte("invalid json"), 0o600)
+	if err != nil {
+		t.Fatalf("failed to write invalid capabilities file: %v", err)
+	}
+
+	testCases := []struct {
+		desc         string
+		policyPaths  []string
+		dataPaths    []string
+		capabilities string
+		strict       bool
+		wantPolicies bool
+		wantDocs     bool
+		wantErr      bool
+	}{
+		{
+			desc:         "Load both policies and data",
+			policyPaths:  []string{"../examples/kubernetes/policy"},
+			dataPaths:    []string{"../examples/kubernetes/service.yaml"},
+			wantPolicies: true,
+			wantDocs:     true,
+		},
+		{
+			desc:         "Load only data",
+			dataPaths:    []string{"../examples/kubernetes/service.yaml"},
+			wantPolicies: false,
+			wantDocs:     true,
+		},
+		{
+			desc:         "Load only policies",
+			policyPaths:  []string{"../examples/kubernetes/policy"},
+			wantPolicies: true,
+			wantDocs:     false,
+		},
+		{
+			desc:        "Invalid policy path",
+			policyPaths: []string{"nonexistent/path"},
+			dataPaths:   []string{"../examples/kubernetes/service.yaml"},
+			wantErr:     true,
+		},
+		{
+			desc:        "Invalid data path",
+			policyPaths: []string{"../examples/kubernetes/policy"},
+			dataPaths:   []string{"nonexistent/data.yaml"},
+			wantErr:     true,
+		},
+		{
+			desc:         "Inaccessible capabilities file",
+			policyPaths:  []string{"../examples/kubernetes/policy"},
+			dataPaths:    []string{"../examples/kubernetes/service.yaml"},
+			capabilities: inaccessibleCapabilitiesPath,
+			wantErr:      true,
+		},
+		{
+			desc:         "Invalid capabilities file",
+			policyPaths:  []string{"../examples/kubernetes/policy"},
+			dataPaths:    []string{"../examples/kubernetes/service.yaml"},
+			capabilities: invalidCapabilitiesPath,
+			wantErr:      true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			engine, err := LoadWithData(tc.policyPaths, tc.dataPaths, tc.capabilities, tc.strict)
+			if tc.wantErr {
+				if err == nil {
+					t.Fatal("expected error but got none")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if tc.wantPolicies {
+				if len(engine.Policies()) == 0 {
+					t.Error("expected policies to be loaded but got none")
+				}
+				if len(engine.Modules()) == 0 {
+					t.Error("expected modules to be loaded but got none")
+				}
+				if engine.Compiler() == nil {
+					t.Error("expected compiler to be initialized")
+				}
+			} else {
+				if len(engine.Policies()) > 0 {
+					t.Error("expected no policies but got some")
+				}
+			}
+
+			if tc.wantDocs {
+				if len(engine.Documents()) == 0 {
+					t.Error("expected documents to be loaded but got none")
+				}
+				if engine.Store() == nil {
+					t.Error("expected store to be initialized")
+				}
+			} else {
+				if len(engine.Documents()) > 0 {
+					t.Error("expected no documents but got some")
+				}
+			}
+		})
+	}
+}
+
+func TestNamespaces(t *testing.T) {
+	tests := []struct {
+		name     string
+		policies map[string][]byte
+		want     []string
+	}{
+		{
+			name: "multiple namespaces",
+			policies: map[string][]byte{
+				"main.rego": []byte(`package main
+deny[msg] { msg := "denied" }`),
+				"k8s.rego": []byte(`package kubernetes
+deny[msg] { msg := "denied" }`),
+				"nested.rego": []byte(`package main.sub
+deny[msg] { msg := "denied" }`),
+				"main_duplicate.rego": []byte(`package main
+warn[msg] { msg := "warning" }`),
+			},
+			want: []string{"main", "kubernetes", "main.sub"},
+		},
+		{
+			name: "single namespace",
+			policies: map[string][]byte{
+				"main.rego": []byte(`package main
+deny[msg] { msg := "denied" }`),
+			},
+			want: []string{"main"},
+		},
+		{
+			name:     "no policies",
+			policies: map[string][]byte{},
+			want:     nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Convert policies to fstest.MapFS format
+			files := make(map[string]*fstest.MapFile)
+			for name, data := range tt.policies {
+				files[name] = &fstest.MapFile{Data: data}
+			}
+			// Explicit conversion needed despite files being fstest.MapFS type
+			// to ensure fs.FS interface implementation for loader.WithFS
+			fs := fstest.MapFS(files) //nolint:unconvert
+
+			l := loader.NewFileLoader().WithFS(fs)
+
+			keys := make([]string, 0, len(tt.policies))
+			for k := range tt.policies {
+				keys = append(keys, k)
+			}
+			pols, err := l.All(keys)
+			if err != nil {
+				t.Fatalf("Load policies: %v", err)
+			}
+
+			engine := Engine{
+				modules: pols.ParsedModules(),
+			}
+
+			got := engine.Namespaces()
+			sort.Strings(got)
+			sort.Strings(tt.want)
+
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Namespaces() = %v, want %v", got, tt.want)
 			}
 		})
 	}
