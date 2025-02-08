@@ -63,7 +63,7 @@ const (
 // Parser defines all of the methods that every parser
 // definition must implement.
 type Parser interface {
-	Unmarshal(p []byte, v interface{}) error
+	Unmarshal(p []byte, v any) error
 }
 
 // PathAwareParser is an optional interface that parsers may implement
@@ -247,7 +247,7 @@ func FileSupported(path string) bool {
 // ParseConfigurations parses and returns the configurations from the given
 // list of files. The result will be a map where the key is the file name of
 // the configuration.
-func ParseConfigurations(files []string) (map[string]interface{}, error) {
+func ParseConfigurations(files []string) (map[string]any, error) {
 	configurations, err := parseConfigurations(files, "")
 	if err != nil {
 		return nil, err
@@ -259,7 +259,7 @@ func ParseConfigurations(files []string) (map[string]interface{}, error) {
 // ParseConfigurationsAs parses the files as the given file type and returns the
 // configurations given in the file list. The result will be a map where the key
 // is the file name of the configuration.
-func ParseConfigurationsAs(files []string, parser string) (map[string]interface{}, error) {
+func ParseConfigurationsAs(files []string, parser string) (map[string]any, error) {
 	configurations, err := parseConfigurations(files, parser)
 	if err != nil {
 		return nil, err
@@ -271,15 +271,15 @@ func ParseConfigurationsAs(files []string, parser string) (map[string]interface{
 // CombineConfigurations takes the given configurations and combines them into a single
 // configuration. The result will be a map that contains a single key with a value of
 // Combined.
-func CombineConfigurations(configs map[string]interface{}) map[string]interface{} {
+func CombineConfigurations(configs map[string]any) map[string]any {
 	type configuration struct {
-		Path     string      `json:"path"`
-		Contents interface{} `json:"contents"`
+		Path     string `json:"path"`
+		Contents any    `json:"contents"`
 	}
 
 	var allConfigurations []configuration
 	for path, config := range configs {
-		if subconfigs, exist := config.([]interface{}); exist {
+		if subconfigs, exist := config.([]any); exist {
 			for _, subconfig := range subconfigs {
 				configuration := configuration{
 					Path:     path,
@@ -305,14 +305,14 @@ func CombineConfigurations(configs map[string]interface{}) map[string]interface{
 		return allConfigurations[i].Path < allConfigurations[j].Path
 	})
 
-	combinedConfigurations := make(map[string]interface{})
+	combinedConfigurations := make(map[string]any)
 	combinedConfigurations["Combined"] = allConfigurations
 
 	return combinedConfigurations
 }
 
-func parseConfigurations(paths []string, parser string) (map[string]interface{}, error) {
-	parsedConfigurations := make(map[string]interface{})
+func parseConfigurations(paths []string, parser string) (map[string]any, error) {
+	parsedConfigurations := make(map[string]any)
 	errWithPathInfo := func(err error, msg, path string) error {
 		return fmt.Errorf("%s: %w, path: %s", msg, err, path)
 	}
@@ -338,7 +338,7 @@ func parseConfigurations(paths []string, parser string) (map[string]interface{},
 			p.SetPath(path)
 		}
 
-		var parsed interface{}
+		var parsed any
 		if err := fileParser.Unmarshal(contents, &parsed); err != nil {
 			return nil, errWithPathInfo(err, "parser unmarshal", path)
 		}

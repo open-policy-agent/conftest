@@ -13,7 +13,7 @@ func TestDotenvParser(t *testing.T) {
 	MYSQL_USER=root
 	MYSQL_PASSWORD=root`
 
-	var input interface{}
+	var input any
 	if err := parser.Unmarshal([]byte(sample), &input); err != nil {
 		t.Fatalf("parser should not have thrown an error: %v", err)
 	}
@@ -22,7 +22,7 @@ func TestDotenvParser(t *testing.T) {
 		t.Error("there should be information parsed but its nil")
 	}
 
-	inputMap := input.(map[string]interface{})
+	inputMap := input.(map[string]any)
 	if len(inputMap) == 0 {
 		t.Error("there should be at least one item defined in the parsed file, but none found")
 	}

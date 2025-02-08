@@ -12,7 +12,7 @@ func TestJsonnetParser(t *testing.T) {
 	tests := []struct {
 		name    string
 		input   string
-		want    map[string]interface{}
+		want    map[string]any
 		wantErr bool
 		errMsg  string
 	}{
@@ -25,12 +25,12 @@ func TestJsonnetParser(t *testing.T) {
 				},
 				person2: self.person1 { name: "Bob" },
 			}`,
-			want: map[string]interface{}{
-				"person1": map[string]interface{}{
+			want: map[string]any{
+				"person1": map[string]any{
 					"name":    "Alice",
 					"welcome": "Hello Alice!",
 				},
-				"person2": map[string]interface{}{
+				"person2": map[string]any{
 					"name":    "Bob",
 					"welcome": "Hello Bob!",
 				},
@@ -45,7 +45,7 @@ func TestJsonnetParser(t *testing.T) {
 				c: 10 - 5,
 				d: 15 / 3,
 			}`,
-			want: map[string]interface{}{
+			want: map[string]any{
 				"a": float64(3),
 				"b": float64(18),
 				"c": float64(5),
@@ -68,11 +68,11 @@ func TestJsonnetParser(t *testing.T) {
 					a: { b: { c: "deep" } },
 				},
 			}`,
-			want: map[string]interface{}{
-				"numbers": []interface{}{float64(1), float64(2), float64(3)},
-				"nested": map[string]interface{}{
-					"a": map[string]interface{}{
-						"b": map[string]interface{}{
+			want: map[string]any{
+				"numbers": []any{float64(1), float64(2), float64(3)},
+				"nested": map[string]any{
+					"a": map[string]any{
+						"b": map[string]any{
 							"c": "deep",
 						},
 					},
@@ -100,7 +100,7 @@ func TestJsonnetParser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var got interface{}
+			var got any
 			err := parser.Unmarshal([]byte(tt.input), &got)
 
 			if (err != nil) != tt.wantErr {
@@ -155,15 +155,15 @@ func TestJsonnetImports(t *testing.T) {
 		path     string
 		content  []byte
 		wantErr  bool
-		validate func(t *testing.T, result interface{})
+		validate func(t *testing.T, result any)
 	}{
 		{
 			name:    "successful import",
 			path:    mainPath,
 			content: []byte(mainContent),
-			validate: func(t *testing.T, result interface{}) {
+			validate: func(t *testing.T, result any) {
 				t.Helper()
-				m, ok := result.(map[string]interface{})
+				m, ok := result.(map[string]any)
 				if !ok {
 					t.Fatal("result is not a map")
 				}
@@ -190,7 +190,7 @@ func TestJsonnetImports(t *testing.T) {
 				parser.SetPath(tt.path)
 			}
 
-			var result interface{}
+			var result any
 			err := parser.Unmarshal(tt.content, &result)
 
 			// Check error expectation

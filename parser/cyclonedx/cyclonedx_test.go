@@ -40,7 +40,7 @@ func TestCycloneDXParserValid(t *testing.T) {
 
 	parser := &Parser{}
 
-	var input interface{}
+	var input any
 	if err := parser.Unmarshal([]byte(sbom), &input); err != nil {
 		t.Fatalf("parser should not have thrown an error: %v", err)
 	}
@@ -52,9 +52,9 @@ func TestCycloneDXParserValid(t *testing.T) {
 	//#nosec until https://github.com/securego/gosec/issues/1001 is fixed
 	expectedSHA256 := "sha256:d7ec60cf8390612b360c857688b383068b580d9a6ab78417c9493170ad3f1616"
 
-	metadata := input.(map[string]interface{})["metadata"]
-	component := metadata.(map[string]interface{})["component"]
-	currentSHA256 := component.(map[string]interface{})["version"]
+	metadata := input.(map[string]any)["metadata"]
+	component := metadata.(map[string]any)["component"]
+	currentSHA256 := component.(map[string]any)["version"]
 
 	if expectedSHA256 != currentSHA256 {
 		t.Fatalf("current SHA256 %s is different from the expected SHA256 %s", currentSHA256, expectedSHA256)
@@ -95,7 +95,7 @@ func TestCycloneDXParserInValid(t *testing.T) {
 
 	parser := &Parser{}
 
-	var input interface{}
+	var input any
 	if err := parser.Unmarshal([]byte(sbom), &input); err != nil {
 		t.Fatalf("parser should not have thrown an error: %v", err)
 	}
@@ -107,9 +107,9 @@ func TestCycloneDXParserInValid(t *testing.T) {
 	//#nosec until https://github.com/securego/gosec/issues/1001 is fixed
 	expectedSHA256 := "sha256:d7ec60cf8390612b360c857688b383068b580d9a6ab78417c9493170ad3f1616"
 
-	metadata := input.(map[string]interface{})["metadata"]
-	component := metadata.(map[string]interface{})["component"]
-	currentSHA256 := component.(map[string]interface{})["version"]
+	metadata := input.(map[string]any)["metadata"]
+	component := metadata.(map[string]any)["component"]
+	currentSHA256 := component.(map[string]any)["version"]
 
 	var err error
 	if expectedSHA256 != currentSHA256 {

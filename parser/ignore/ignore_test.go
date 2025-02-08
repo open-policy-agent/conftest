@@ -11,7 +11,7 @@ func TestParser_Unmarshal(t *testing.T) {
 
 # Test`
 
-	var listOfEntryLists [][]interface{}
+	var listOfEntryLists [][]any
 	if err := parser.Unmarshal([]byte(sample), &listOfEntryLists); err != nil {
 		t.Fatalf("parser should not have thrown an error: %v", err)
 	}
@@ -34,21 +34,21 @@ func TestParser_Unmarshal(t *testing.T) {
 	firstIgnoreEntry := input[0]
 
 	expectedKind := "NegatedPath"
-	actualKind := firstIgnoreEntry.(map[string]interface{})["Kind"]
+	actualKind := firstIgnoreEntry.(map[string]any)["Kind"]
 
 	if actualKind != expectedKind {
 		t.Errorf("first ignore entry's Kind should be '%v', was '%v'", expectedKind, actualKind)
 	}
 
 	expectedValue := "bar"
-	actualValue := firstIgnoreEntry.(map[string]interface{})["Value"]
+	actualValue := firstIgnoreEntry.(map[string]any)["Value"]
 
 	if actualValue != expectedValue {
 		t.Errorf("first ignore entry's Value should be '%v', was '%v'", expectedValue, actualValue)
 	}
 
 	expectedOriginal := "!bar"
-	actualOriginal := firstIgnoreEntry.(map[string]interface{})["Original"]
+	actualOriginal := firstIgnoreEntry.(map[string]any)["Original"]
 
 	if actualOriginal != expectedOriginal {
 		t.Errorf("first ignore entry's Kind should be '%v', was '%v'", expectedOriginal, actualOriginal)

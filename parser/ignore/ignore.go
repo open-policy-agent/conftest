@@ -11,7 +11,7 @@ import (
 type Parser struct{}
 
 // Unmarshal unmarshals ignore files.
-func (pp *Parser) Unmarshal(p []byte, v interface{}) error {
+func (pp *Parser) Unmarshal(p []byte, v any) error {
 	ignoreEntries, err := ignore.ParseIgnoreBytes(p)
 	if err != nil {
 		return fmt.Errorf("parse ignore bytes: %w", err)

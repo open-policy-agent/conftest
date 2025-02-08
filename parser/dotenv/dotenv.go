@@ -12,7 +12,7 @@ import (
 type Parser struct{}
 
 // Unmarshal unmarshals dotenv files.
-func (i *Parser) Unmarshal(p []byte, v interface{}) error {
+func (i *Parser) Unmarshal(p []byte, v any) error {
 	r := bytes.NewReader(p)
 	cfg, err := gotenv.StrictParse(r)
 	if err != nil {

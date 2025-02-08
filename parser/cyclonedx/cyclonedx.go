@@ -13,7 +13,7 @@ import (
 type Parser struct{}
 
 // Unmarshal unmarshals CycloneDX files.
-func (*Parser) Unmarshal(p []byte, v interface{}) error {
+func (*Parser) Unmarshal(p []byte, v any) error {
 	bomFileFormat := cyclonedx.BOMFileFormatJSON
 	if !json.Valid(p) {
 		bomFileFormat = cyclonedx.BOMFileFormatXML

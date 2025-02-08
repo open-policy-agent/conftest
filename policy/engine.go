@@ -172,7 +172,7 @@ func (e *Engine) ShowBuiltinErrors() {
 }
 
 // Check executes all of the loaded policies against the input and returns the results.
-func (e *Engine) Check(ctx context.Context, configs map[string]interface{}, namespace string) ([]output.CheckResult, error) {
+func (e *Engine) Check(ctx context.Context, configs map[string]any, namespace string) ([]output.CheckResult, error) {
 	var checkResults []output.CheckResult
 	for path, config := range configs {
 
@@ -181,7 +181,7 @@ func (e *Engine) Check(ctx context.Context, configs map[string]interface{}, name
 		//
 		// If the current configuration contains multiple configurations, evaluate each policy
 		// independent from one another and aggregate the results under the same file name.
-		if subconfigs, exist := config.([]interface{}); exist {
+		if subconfigs, exist := config.([]any); exist {
 
 			checkResult := output.CheckResult{
 				FileName:  path,
@@ -215,7 +215,7 @@ func (e *Engine) Check(ctx context.Context, configs map[string]interface{}, name
 }
 
 // CheckCombined combines the input and evaluates the policies against the combined result.
-func (e *Engine) CheckCombined(ctx context.Context, configs map[string]interface{}, namespace string) (output.CheckResult, error) {
+func (e *Engine) CheckCombined(ctx context.Context, configs map[string]any, namespace string) (output.CheckResult, error) {
 	combinedConfigs := parser.CombineConfigurations(configs)
 
 	result, err := e.check(ctx, "Combined", combinedConfigs["Combined"], namespace)
@@ -290,7 +290,7 @@ func (e *Engine) Runtime() *ast.Term {
 	return ast.NewTerm(obj)
 }
 
-func (e *Engine) check(ctx context.Context, path string, config interface{}, namespace string) (output.CheckResult, error) {
+func (e *Engine) check(ctx context.Context, path string, config any, namespace string) (output.CheckResult, error) {
 	if err := e.addFileInfo(ctx, path); err != nil {
 		return output.CheckResult{}, fmt.Errorf("add file info: %w", err)
 	}
@@ -441,7 +441,7 @@ func (e *Engine) addFileInfo(ctx context.Context, path string) error {
 // Example queries could include:
 // data.main.deny to query the deny rule in the main namespace
 // data.main.warn to query the warn rule in the main namespace
-func (e *Engine) query(ctx context.Context, input interface{}, query string) (output.QueryResult, error) {
+func (e *Engine) query(ctx context.Context, input any, query string) (output.QueryResult, error) {
 	ph := printHook{s: &[]string{}}
 	builtInErrors := &[]topdown.Error{}
 	options := []func(r *rego.Rego){
@@ -486,9 +486,9 @@ func (e *Engine) query(ctx context.Context, input interface{}, query string) (ou
 			//
 			// When an expression does not have a slice of values, the expression did not
 			// evaluate to true, and no message was returned.
-			var expressionValues []interface{}
-			if _, ok := expression.Value.([]interface{}); ok {
-				expressionValues = expression.Value.([]interface{})
+			var expressionValues []any
+			if _, ok := expression.Value.([]any); ok {
+				expressionValues = expression.Value.([]any)
 			}
 			if len(expressionValues) == 0 {
 				results = append(results, output.Result{})
@@ -509,7 +509,7 @@ func (e *Engine) query(ctx context.Context, input interface{}, query string) (ou
 					results = append(results, result)
 
 				// Policies that return metadata (e.g. deny[{"msg": msg}])
-				case map[string]interface{}:
+				case map[string]any:
 					result, err := output.NewResult(val)
 					if err != nil {
 						return output.QueryResult{}, fmt.Errorf("new result: %w", err)

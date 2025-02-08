@@ -10,7 +10,7 @@ import (
 // Parser is a properties parser.
 type Parser struct{}
 
-func (pp *Parser) Unmarshal(p []byte, v interface{}) error {
+func (pp *Parser) Unmarshal(p []byte, v any) error {
 	rawProps, err := prop.LoadString(string(p))
 	if err != nil {
 		return fmt.Errorf("Could not parse properties file: %w", err)

@@ -25,7 +25,7 @@ func TestCueParser(t *testing.T) {
 
 	parser := &Parser{}
 
-	var input interface{}
+	var input any
 	if err := parser.Unmarshal([]byte(p), &input); err != nil {
 		t.Fatalf("parser should not have thrown an error: %v", err)
 	}
@@ -34,7 +34,7 @@ func TestCueParser(t *testing.T) {
 		t.Error("There should be information parsed but its nil")
 	}
 
-	inputMap := input.(map[string]interface{})
+	inputMap := input.(map[string]any)
 	kind := inputMap["kind"]
 	if kind != "Deployment" {
 		t.Error("Parsed cuelang file should be a deployment, but was not")

@@ -16,7 +16,7 @@ Created: 2021-08-26T01:46:00Z
 
 	parser := &Parser{}
 
-	var input interface{}
+	var input any
 	if err := parser.Unmarshal([]byte(p), &input); err != nil {
 		t.Fatalf("parser should not have thrown an error: %v", err)
 	}
@@ -25,7 +25,7 @@ Created: 2021-08-26T01:46:00Z
 		t.Error("There should be information parsed but its nil")
 	}
 
-	inputMap := input.(map[string]interface{})
+	inputMap := input.(map[string]any)
 	currentDataLicense := inputMap["dataLicense"]
 	expectedDataLicense := "conftest-demo"
 	if currentDataLicense != expectedDataLicense {

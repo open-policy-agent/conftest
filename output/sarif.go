@@ -149,7 +149,7 @@ func (s *SARIF) Output(results []CheckResult) error {
 		if hasSuccesses {
 			statusResult := Result{
 				Message: successDesc,
-				Metadata: map[string]interface{}{
+				Metadata: map[string]any{
 					"description": successDesc,
 				},
 			}
@@ -157,7 +157,7 @@ func (s *SARIF) Output(results []CheckResult) error {
 		} else {
 			statusResult := Result{
 				Message: skippedDesc,
-				Metadata: map[string]interface{}{
+				Metadata: map[string]any{
 					"description": skippedDesc,
 				},
 			}

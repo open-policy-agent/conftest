@@ -51,7 +51,7 @@ func TestSARIF_Output(t *testing.T) {
 					Failures: []Result{
 						{
 							Message: "test failure",
-							Metadata: map[string]interface{}{
+							Metadata: map[string]any{
 								"package": "test",
 								"rule":    "rule1",
 							},
@@ -121,7 +121,7 @@ func TestSARIF_Output(t *testing.T) {
 					Warnings: []Result{
 						{
 							Message: "test warning",
-							Metadata: map[string]interface{}{
+							Metadata: map[string]any{
 								"foo": "bar",
 							},
 						},
@@ -189,7 +189,7 @@ func TestSARIF_Output(t *testing.T) {
 					Exceptions: []Result{
 						{
 							Message: "test exception",
-							Metadata: map[string]interface{}{
+							Metadata: map[string]any{
 								"description": "test exception description",
 							},
 						},
@@ -344,14 +344,14 @@ func TestSARIF_Output(t *testing.T) {
 					Failures: []Result{
 						{
 							Message: "test failure 1",
-							Metadata: map[string]interface{}{
+							Metadata: map[string]any{
 								"package": "test",
 								"rule":    "rule1",
 							},
 						},
 						{
 							Message: "test failure 2",
-							Metadata: map[string]interface{}{
+							Metadata: map[string]any{
 								"package": "test",
 								"rule":    "rule1",
 							},
@@ -575,7 +575,7 @@ func TestSARIF_Report(t *testing.T) {
 // JSON strings are normalised to their canonical form without whitespace.
 func compareJSON(t *testing.T, got, want string) {
 	t.Helper()
-	var gotJSON, wantJSON interface{}
+	var gotJSON, wantJSON any
 	if err := json.Unmarshal([]byte(got), &gotJSON); err != nil {
 		t.Fatalf("failed to unmarshal actual JSON: %v", err)
 	}

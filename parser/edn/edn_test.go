@@ -11,12 +11,12 @@ func TestEDNParser(t *testing.T) {
 	testTable := []struct {
 		name           string
 		controlConfigs []byte
-		expectedResult interface{}
+		expectedResult any
 	}{
 		{
 			name:           "a single config",
 			controlConfigs: []byte(`{:sample true}`),
-			expectedResult: map[string]interface{}{
+			expectedResult: map[string]any{
 				":sample": "true",
 			},
 		},
@@ -26,7 +26,7 @@ func TestEDNParser(t *testing.T) {
 :sample1 "my-username",
 :sample2 false,
 :sample3 5432}`),
-			expectedResult: map[string]interface{}{
+			expectedResult: map[string]any{
 				":sample1": "my-username",
 				":sample2": "false",
 				":sample3": "5432",
@@ -36,7 +36,7 @@ func TestEDNParser(t *testing.T) {
 
 	for _, test := range testTable {
 		t.Run(test.name, func(t *testing.T) {
-			var unmarshalledConfigs interface{}
+			var unmarshalledConfigs any
 			ednParser := new(edn.Parser)
 
 			if err := ednParser.Unmarshal(test.controlConfigs, &unmarshalledConfigs); err != nil {
