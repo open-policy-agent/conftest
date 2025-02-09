@@ -1,13 +1,14 @@
 package main
+import rego.v1
 
 name := input.metadata.name
 
-required_deployment_labels {
+required_deployment_labels if {
 	input.metadata.labels["app.kubernetes.io/name"]
 	input.metadata.labels["app.kubernetes.io/instance"]
 }
 
-deny[msg] {
+deny contains msg if {
 	input.kind = "Deployment"
 	not required_deployment_labels
 	# regal ignore:print-or-trace-call

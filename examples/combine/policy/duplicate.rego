@@ -1,19 +1,21 @@
 package main
+import rego.v1
 
 # Check that no name attribute exists twice among all resources
-deny[msg] {
+deny contains msg if {
 	name := input[_].contents.metadata.name
 	occurrences := [name | some i; input[i].contents.metadata.name == name; name := input[i].metadata.name]
 	count(occurrences) > 1
 	msg = sprintf("Error duplicate name : %s", [name])
 }
 
-deny[msg] {
+deny contains msg if {
 	kind := input[_].contents.kind
-	name := input[_].contents.metadata.name
 	kind == "team"
 
-	some i, j
+	name := input[_].contents.metadata.name	
+
+	some i
 
 	# list all existing users
 	existing_users = {email | some i; input[i].contents.kind == "user"; email := input[i].contents.metadata.email}
@@ -25,7 +27,7 @@ deny[msg] {
 	configured_users_array = array.concat(configured_owner_users_array, configured_member_users_array)
 
 	# create a set to remove duplicates
-	configured_users = {team | team := configured_users_array[i][j]}
+	configured_users = {team | team := configured_users_array[i][_]}
 
 	# sets can be substracted
 	missing_users := configured_users - existing_users

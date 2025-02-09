@@ -1,6 +1,7 @@
 package main
+import rego.v1
 
-violation[msg] {
+violation := [msg] if {
     some i
     input[i].contents.kind == "Deployment"
     deployment := input[i].contents
@@ -8,7 +9,7 @@ violation[msg] {
     msg := sprintf("Deployment '%v' has no matching service", [deployment.metadata.name])
 }
 
-service_selects_app(app) {
+service_selects_app(app) if {
     some i
     input[i].contents.kind == "Service"
     service := input[i].contents

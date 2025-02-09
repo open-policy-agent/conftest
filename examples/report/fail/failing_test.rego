@@ -1,11 +1,12 @@
 package main
+import rego.v1
 
-no_violations {
+no_violations if {
 	count(deny) == 0
 }
 
-test_missing_required_label_fail {
-	input := {
+test_missing_required_label_fail if {
+	deployment := {
 		"kind": "Deployment",
 		"metadata": {
 			"name": "sample",
@@ -15,5 +16,5 @@ test_missing_required_label_fail {
 		}
 	}
 
-	no_violations with input as input
+	no_violations with input as deployment
 }

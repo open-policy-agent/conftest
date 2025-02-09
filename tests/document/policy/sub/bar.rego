@@ -4,6 +4,7 @@
 # custom:
 #   template: 'Cannot expose port %v on LoadBalancer. Denied ports: %v'
 package main.sub
+import rego.v1
 
 import data.services
 
@@ -16,7 +17,7 @@ type := input.spec.type
 # description: This rule validates that ...
 # custom:
 #   template: 'Cannot expose port %v on LoadBalancer. Denied ports: %v'
-deny[msg] {
+deny contains msg if {
 	kind == "Service"
 	type == "LoadBalancer"
 
@@ -34,7 +35,7 @@ deny[msg] {
 # description: This rule validates that ...
 # custom:
 #   template: 'Cannot expose port %v on LoadBalancer. Denied ports: %v'
-deny[msg] {
+deny contains msg if {
 	kind == "Service"
 	type == "LoadBalancer"
 

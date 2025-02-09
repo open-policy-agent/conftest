@@ -1,4 +1,5 @@
 package commands
+import rego.v1
 
 denylist := [
 	"apk",
@@ -8,7 +9,7 @@ denylist := [
 	"wget",
 ]
 
-deny[msg] {
+deny contains msg if {
 	some i
 	input[i].Cmd == "run"
 	val := input[i].Value

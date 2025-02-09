@@ -1,6 +1,7 @@
 package main
+import rego.v1
 
-deny[{"msg": msg}] {
+deny contains {"msg": msg} if {
     input.number <= 9000
     msg := sprintf("%s: Power level must be over 9000", [input.name])
 }

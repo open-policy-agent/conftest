@@ -1,26 +1,27 @@
 package main
+import rego.v1
 
-empty(value) {
+empty(value) if {
 	count(value) == 0
 }
 
-no_violations {
+no_violations if {
 	empty(deny)
 }
 
-no_warnings {
+no_warnings if {
 	empty(warn)
 }
 
-test_deployment_without_security_context {
+test_deployment_without_security_context if {
 	deny["Containers must not run as root in Deployment sample"] with input as {
 		"kind": "Deployment",
 		"metadata": {"name": "sample"}
 	}
 }
 
-test_deployment_with_security_context {
-	input := {
+test_deployment_with_security_context if {
+	deployment := {
 		"kind": "Deployment",
 		"metadata": {
 			"name": "sample",
@@ -42,14 +43,14 @@ test_deployment_with_security_context {
 		},
 	}
 
-	no_violations with input as input
+	no_violations with input as deployment
 }
 
-test_services_not_denied {
+test_services_not_denied if {
 	no_violations with input as {"kind": "Service", "metadata": {"name": "sample"}}
 }
 
-test_services_issue_warning {
+test_services_issue_warning if {
 	warn["Found service sample but services are not allowed"] with input as {
 		"kind": "Service",
 		"metadata": {

@@ -5,6 +5,7 @@
 # organizations:
 # - Acme Corp.
 package foo
+import rego.v1
 
 # METADATA
 # title: My Rule A

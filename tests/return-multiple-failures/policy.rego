@@ -1,7 +1,8 @@
 package main
+import rego.v1
 
 failures = ["one", "two", "three"]
 
-deny[resource_name] {
+deny contains resource_name if {
 	resource_name = failures[_]
 }

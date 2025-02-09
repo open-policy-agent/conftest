@@ -1,31 +1,32 @@
 package main
+import rego.v1
 
-deny[msg] {
+deny contains msg if {
 	not input.alerting.enabled = true
 	msg = "Alerting should turned on"
 }
 
-deny[msg] {
+deny contains msg if {
 	not input["auth.basic"].enabled = true
 	msg = "Basic auth should be enabled"
 }
 
-deny[msg] {
+deny contains msg if {
 	not input.server.http_port = 3000
 	msg = "Grafana port should be 3000"
 }
 
-deny[msg] {
+deny contains msg if {
 	not input.server.protocol = "http"
 	msg = "Grafana should use default http"
 }
 
-deny[msg] {
+deny contains msg if {
 	not input.users.allow_sign_up = false
 	msg = "Users cannot sign up themselves"
 }
 
-deny[msg] {
+deny contains msg if {
 	not input.users.verify_email_enabled = true
 	msg = "Users should verify their e-mail address"
 }
