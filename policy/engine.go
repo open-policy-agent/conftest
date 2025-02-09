@@ -478,6 +478,7 @@ func (e *Engine) query(ctx context.Context, input interface{}, query string) (ou
 	var results []output.Result
 	for _, result := range resultSet {
 		for _, expression := range result.Expressions {
+
 			// Rego rules that are intended for evaluation should return a slice of values.
 			// For example, deny[msg] or violation[{"msg": msg}].
 			//
@@ -494,13 +495,11 @@ func (e *Engine) query(ctx context.Context, input interface{}, query string) (ou
 
 			for _, v := range expressionValues {
 				switch val := v.(type) {
+
 				// Policies that only return a single string (e.g. deny[msg])
 				case string:
 					result := output.Result{
 						Message: val,
-						Metadata: map[string]interface{}{
-							"query": query,
-						},
 					}
 					results = append(results, result)
 
@@ -510,12 +509,6 @@ func (e *Engine) query(ctx context.Context, input interface{}, query string) (ou
 					if err != nil {
 						return output.QueryResult{}, fmt.Errorf("new result: %w", err)
 					}
-
-					// Add query to metadata
-					if result.Metadata == nil {
-						result.Metadata = make(map[string]interface{})
-					}
-					result.Metadata["query"] = query
 
 					results = append(results, result)
 				}

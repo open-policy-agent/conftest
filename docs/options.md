@@ -327,65 +327,7 @@ success file=examples/kubernetes/deployment.yaml 1
 
 ```console
 $ conftest test --proto-file-dirs examples/textproto/protos -p examples/textproto/policy examples/textproto/fail.textproto -o sarif
-{
-  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",
-  "version": "2.1.0",
-  "runs": [
-    {
-      "tool": {
-        "driver": {
-          "name": "conftest",
-          "informationUri": "https://github.com/open-policy-agent/conftest",
-          "rules": [
-            {
-              "id": "conftest-failure-main-deny",
-              "shortDescription": {
-                "text": "fail: Power level must be over 9000"
-              },
-              "properties": {
-                "namespace": "main",
-                "query": "data.main.deny"
-              }
-            }
-          ]
-        }
-      },
-      "results": [
-        {
-          "ruleId": "conftest-failure-main-deny",
-          "ruleIndex": 0,
-          "kind": "fail",
-          "level": "error",
-          "message": {
-            "text": "fail: Power level must be over 9000"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "examples/textproto/fail.textproto"
-                }
-              }
-            }
-          ],
-          "properties": {
-            "namespace": "main",
-            "query": "data.main.deny"
-          }
-        }
-      ],
-      "invocations": [
-        {
-          "executionSuccessful": true,
-          "exitCode": 1,
-          "exitCodeDescription": "Policy violations found",
-          "startTimeUtc": "2025-01-19T13:14:11Z",
-          "endTimeUtc": "2025-01-19T13:14:11Z"
-        }
-      ]
-    }
-  ]
-}
+{"version":"2.1.0","$schema":"https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json","runs":[{"tool":{"driver":{"informationUri":"https://github.com/open-policy-agent/conftest","name":"conftest","rules":[{"id":"main/deny","shortDescription":{"text":"Policy violation"}}]}},"invocations":[{"executionSuccessful":true,"exitCode":1,"exitCodeDescription":"Policy violations found"}],"results":[{"ruleId":"main/deny","ruleIndex":0,"level":"error","message":{"text":"fail: Power level must be over 9000"},"locations":[{"physicalLocation":{"artifactLocation":{"uri":"examples/textproto/fail.textproto"}}}]}]}]}
 ```
 
 ## `--parser`
