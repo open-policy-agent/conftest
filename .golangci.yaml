@@ -4,6 +4,10 @@ linters-settings:
   govet:
     enable:
       - nilness
+  staticcheck:
+    checks:
+      - "all" # Include all checks except the ones below.
+      - "-SA1019" # Do not block the build if deprecated functions or packages are used.
 
 linters:
   disable-all: true
