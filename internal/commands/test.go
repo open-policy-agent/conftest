@@ -65,7 +65,8 @@ It expects one or more urls to fetch the latest policies from, e.g.:
 See the pull command for more details on supported protocols for fetching policies.
 
 When debugging policies it can be useful to use a more verbose policy evaluation output. By using the '--trace' flag
-the output will include a detailed trace of how the policy was evaluated, e.g.
+the output will include a detailed trace of how the policy was evaluated. When both '--trace' and '--output' are specified,
+the output format takes priority and tracing will not be used.
 
 	$ conftest test --trace <input-file>
 `
