@@ -69,6 +69,9 @@ func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 			if err := viper.BindPFlag("tls", cmd.Flags().Lookup("tls")); err != nil {
 				return fmt.Errorf("bind flag: %w", err)
 			}
+			if err := viper.BindPFlag("rego-version", cmd.Flags().Lookup("rego-version")); err != nil {
+				return fmt.Errorf("bind flag: %w", err)
+			}
 			return nil
 		},
 
@@ -107,7 +110,8 @@ func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 			if dataPath == "" {
 				dataPath = policyPath
 			}
-			manifest, err := pushBundle(ctx, repository, policyPath, dataPath)
+			regoVersion := viper.GetString("rego-version")
+			manifest, err := pushBundle(ctx, repository, policyPath, dataPath, regoVersion)
 			if err != nil {
 				return fmt.Errorf("push bundle: %w", err)
 			}
@@ -120,11 +124,12 @@ func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 	cmd.Flags().StringP("policy", "p", "policy", "Directory to push as a bundle")
 	cmd.Flags().StringP("data", "d", "", "Directory containing data to include in the bundle, defaults to the value of the policy flag")
 	cmd.Flags().BoolP("tls", "s", true, "Use TLS to access the registry")
+	cmd.Flags().String("rego-version", "v0", "Which version of Rego syntax to use. Options: v0, v1")
 
 	return &cmd
 }
 
-func pushBundle(ctx context.Context, repository, policyPath, dataPath string) (*ocispec.Descriptor, error) {
+func pushBundle(ctx context.Context, repository, policyPath, dataPath, regoVersion string) (*ocispec.Descriptor, error) {
 	dest, err := remote.NewRepository(repository)
 	if err != nil {
 		return nil, fmt.Errorf("constructing repository: %w", err)
@@ -134,7 +139,7 @@ func pushBundle(ctx context.Context, repository, policyPath, dataPath string) (*
 		return nil, fmt.Errorf("setting up the registry client: %w", err)
 	}
 
-	layers, err := pushLayers(ctx, dest, policyPath, dataPath)
+	layers, err := pushLayers(ctx, dest, policyPath, dataPath, regoVersion)
 	if err != nil {
 		return nil, fmt.Errorf("pushing layers: %w", err)
 	}
@@ -171,7 +176,7 @@ func pushBundle(ctx context.Context, repository, policyPath, dataPath string) (*
 	return &manifestDesc, nil
 }
 
-func pushLayers(ctx context.Context, pusher content.Pusher, policyPath, dataPath string) ([]ocispec.Descriptor, error) {
+func pushLayers(ctx context.Context, pusher content.Pusher, policyPath, dataPath, regoVersion string) ([]ocispec.Descriptor, error) {
 	var policyPaths []string
 	if policyPath != "" {
 		policyPaths = append(policyPaths, policyPath)
@@ -180,7 +185,15 @@ func pushLayers(ctx context.Context, pusher content.Pusher, policyPath, dataPath
 	if dataPath != "" {
 		dataPaths = append(dataPaths, dataPath)
 	}
-	engine, err := policy.LoadWithData(policyPaths, dataPaths, "", false)
+	capabilities, err := policy.LoadCapabilities("")
+	if err != nil {
+		return nil, fmt.Errorf("load capabilities: %w", err)
+	}
+	opts := policy.CompilerOptions{
+		Capabilities: capabilities,
+		RegoVersion:  regoVersion,
+	}
+	engine, err := policy.LoadWithData(policyPaths, dataPaths, opts)
 	if err != nil {
 		return nil, fmt.Errorf("load: %w", err)
 	}

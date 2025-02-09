@@ -16,6 +16,7 @@ import (
 // Rego policy unit-tests.
 type VerifyRunner struct {
 	Capabilities      string
+	RegoVersion       string `mapstructure:"rego-version"`
 	Policy            []string
 	Data              []string
 	Output            string
@@ -35,7 +36,16 @@ const (
 
 // Run executes the Rego tests for the given policies.
 func (r *VerifyRunner) Run(ctx context.Context) ([]output.CheckResult, []*tester.Result, error) {
-	engine, err := policy.LoadWithData(r.Policy, r.Data, r.Capabilities, r.Strict)
+	capabilities, err := policy.LoadCapabilities(r.Capabilities)
+	if err != nil {
+		return nil, nil, fmt.Errorf("load capabilities: %w", err)
+	}
+	opts := policy.CompilerOptions{
+		Strict:       r.Strict,
+		RegoVersion:  r.RegoVersion,
+		Capabilities: capabilities,
+	}
+	engine, err := policy.LoadWithData(r.Policy, r.Data, opts)
 	if err != nil {
 		return nil, nil, fmt.Errorf("load: %w", err)
 	}

@@ -78,6 +78,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 				"quiet",
 				"junit-hide-message",
 				"capabilities",
+				"rego-version",
 				"strict",
 				"proto-file-dirs",
 				"show-builtin-errors",
@@ -144,6 +145,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().Bool("junit-hide-message", false, "Do not include the violation message in the JUnit test name")
 
 	cmd.Flags().String("capabilities", "", "Path to JSON file that can restrict opa functionality against a given policy. Default: all operations allowed")
+	cmd.Flags().String("rego-version", "v0", "Which version of Rego syntax to use. Options: v0, v1")
 	cmd.Flags().StringSliceP("data", "d", []string{}, "A list of paths from which data for the rego policies will be recursively loaded")
 	cmd.Flags().StringSliceP("policy", "p", []string{"policy"}, "Path to the Rego policy files directory")
 

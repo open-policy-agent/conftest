@@ -34,9 +34,11 @@ type Engine struct {
 	docs          map[string]string
 }
 
-type compilerOptions struct {
-	strict       bool
-	capabilities *ast.Capabilities
+// CompilerOptions defines the options for the Rego compiler.
+type CompilerOptions struct {
+	Strict       bool
+	RegoVersion  string
+	Capabilities *ast.Capabilities
 }
 
 var (
@@ -44,32 +46,36 @@ var (
 	failureRegex = regexp.MustCompile("^(deny|violation)(_[a-zA-Z0-9]+)*$")
 )
 
-func newCompilerOptions(strict bool, capabilities string) (compilerOptions, error) {
-	c := ast.CapabilitiesForThisVersion()
-	if capabilities != "" {
-		f, err := os.Open(capabilities)
-		if err != nil {
-			return compilerOptions{}, fmt.Errorf("capabilities not opened: %w", err)
-		}
-		defer f.Close()
-		c, err = ast.LoadCapabilitiesJSON(f)
-		if err != nil {
-			return compilerOptions{}, fmt.Errorf("capabilities not loaded: %w", err)
-		}
-	}
-	return compilerOptions{
-		strict:       strict,
-		capabilities: c,
-	}, nil
+func newCompiler(opts CompilerOptions) *ast.Compiler {
+	return ast.NewCompiler().
+		WithEnablePrintStatements(true).
+		WithCapabilities(opts.Capabilities).
+		WithStrict(opts.Strict)
 }
 
-func newCompiler(c compilerOptions) *ast.Compiler {
-	return ast.NewCompiler().WithEnablePrintStatements(true).WithCapabilities(c.capabilities).WithStrict(c.strict)
+// LoadCapabilities loads Rego JSON capabilities given a path. If no path is supplied, the default
+// capabilities are returned.
+func LoadCapabilities(path string) (*ast.Capabilities, error) {
+	if path == "" {
+		return ast.CapabilitiesForThisVersion(), nil
+	}
+	return ast.LoadCapabilitiesFile(path)
 }
 
 // Load returns an Engine after loading all of the specified policies.
-func Load(policyPaths []string, c compilerOptions) (*Engine, error) {
-	policies, err := loader.NewFileLoader().WithProcessAnnotation(true).Filtered(policyPaths, func(_ string, info os.FileInfo, _ int) bool {
+func Load(policyPaths []string, opts CompilerOptions) (*Engine, error) {
+	var regoVer ast.RegoVersion
+	switch opts.RegoVersion {
+	case "v0", "V0":
+		regoVer = ast.RegoV0
+	case "v1", "V1":
+		regoVer = ast.RegoV1
+	default:
+		return nil, fmt.Errorf("invalid Rego version: %s", opts.RegoVersion)
+	}
+
+	l := loader.NewFileLoader().WithProcessAnnotation(true).WithRegoVersion(regoVer)
+	policies, err := l.Filtered(policyPaths, func(_ string, info os.FileInfo, _ int) bool {
 		return !info.IsDir() && !strings.HasSuffix(info.Name(), bundle.RegoExt)
 	})
 
@@ -80,7 +86,7 @@ func Load(policyPaths []string, c compilerOptions) (*Engine, error) {
 	}
 
 	modules := policies.ParsedModules()
-	compiler := newCompiler(c)
+	compiler := newCompiler(opts)
 	compiler.Compile(modules)
 	if compiler.Failed() {
 		return nil, fmt.Errorf("get compiler: %w", compiler.Errors)
@@ -108,15 +114,11 @@ func Load(policyPaths []string, c compilerOptions) (*Engine, error) {
 }
 
 // LoadWithData returns an Engine after loading all of the specified policies and data paths.
-func LoadWithData(policyPaths []string, dataPaths []string, capabilities string, strict bool) (*Engine, error) {
-	compilerOptions, err := newCompilerOptions(strict, capabilities)
-	if err != nil {
-		return nil, fmt.Errorf("get compiler options: %w", err)
-	}
-
+func LoadWithData(policyPaths []string, dataPaths []string, opts CompilerOptions) (*Engine, error) {
 	engine := &Engine{}
 	if len(policyPaths) > 0 {
-		engine, err = Load(policyPaths, compilerOptions)
+		var err error
+		engine, err = Load(policyPaths, opts)
 		if err != nil {
 			return nil, fmt.Errorf("loading policies: %w", err)
 		}
