@@ -1,4 +1,4 @@
-FROM golang:1.23.5-alpine as base
+FROM golang:1.23.6-alpine as base
 ARG TARGETARCH
 ARG VERSION
 ARG COMMIT
