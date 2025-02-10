@@ -573,3 +573,129 @@ deny[msg] { msg := "denied" }`),
 		})
 	}
 }
+
+func TestQueryMetadata(t *testing.T) {
+	type want struct {
+		msg  string
+		meta map[string]any
+	}
+
+	tests := []struct {
+		name   string
+		policy []byte
+		query  string
+		want   []want
+	}{
+		{
+			name: "string return type",
+			policy: []byte(`package main
+deny[msg] {
+	msg := "simple denial"
+}`),
+			query: "data.main.deny",
+			want: []want{
+				{
+					msg:  "simple denial",
+					meta: map[string]any{"query": "data.main.deny"},
+				},
+			},
+		},
+		{
+			name: "map return type",
+			policy: []byte(`package main
+violation[result] {
+	result := {
+		"msg": "violation with metadata",
+		"severity": "high"
+	}
+}`),
+			query: "data.main.violation",
+			want: []want{
+				{
+					msg: "violation with metadata",
+					meta: map[string]any{
+						"query":    "data.main.violation",
+						"severity": "high",
+					},
+				},
+			},
+		},
+		{
+			name: "multiple results",
+			policy: []byte(`package main
+deny[msg] {
+	msg := "first denial"
+}
+deny[msg] {
+	msg := "second denial"
+}
+violation[result] {
+	result := {
+		"msg": "violation one",
+		"severity": "high"
+	}
+}
+violation[result] {
+	result := {
+		"msg": "violation two",
+		"severity": "low"
+	}
+}`),
+			query: "data.main.deny",
+			want: []want{
+				{
+					msg:  "first denial",
+					meta: map[string]any{"query": "data.main.deny"},
+				},
+				{
+					msg:  "second denial",
+					meta: map[string]any{"query": "data.main.deny"},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+
+			files := fstest.MapFS{
+				"policy.rego": &fstest.MapFile{
+					Data: tt.policy,
+				},
+			}
+
+			l := loader.NewFileLoader().WithFS(files)
+			pols, err := l.All([]string{"policy.rego"})
+			if err != nil {
+				t.Fatalf("Load policies: %v", err)
+			}
+
+			engine := Engine{
+				modules:  pols.ParsedModules(),
+				compiler: ast.NewCompiler().WithEnablePrintStatements(true),
+			}
+			engine.compiler.Compile(engine.modules)
+			if engine.compiler.Failed() {
+				t.Fatalf("Compiler error: %v", engine.compiler.Errors)
+			}
+
+			result, err := engine.query(ctx, nil, tt.query)
+			if err != nil {
+				t.Fatalf("Query error: %v", err)
+			}
+
+			if len(result.Results) != len(tt.want) {
+				t.Fatalf("got %d results, want %d", len(result.Results), len(tt.want))
+			}
+
+			for i, got := range result.Results {
+				want := tt.want[i]
+				if got.Message != want.msg || !reflect.DeepEqual(got.Metadata, want.meta) {
+					t.Errorf("result[%d]: got Message=%q, Metadata=%v; want Message=%q, Metadata=%v",
+						i, got.Message, got.Metadata, want.msg, want.meta)
+				}
+			}
+		})
+	}
+}
