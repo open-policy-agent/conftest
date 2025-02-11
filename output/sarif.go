@@ -28,7 +28,6 @@ const (
 	exitNoViolations = "No policy violations found"
 	exitViolations   = "Policy violations found"
 	exitWarnings     = "Policy warnings found"
-	exitExceptions   = "Policy exceptions found"
 )
 
 // SARIF represents an Outputter that outputs results in SARIF format.
@@ -64,13 +63,6 @@ func getRuleDescription(ruleID string) string {
 	}
 }
 
-// getRuleIndex returns the index for a rule if it exists in the indices map.
-// The bool return indicates if the rule was found.
-func getRuleIndex(ruleID string, indices map[string]int) (int, bool) {
-	idx, ok := indices[ruleID]
-	return idx, ok
-}
-
 // addRuleIndex adds a new rule to the SARIF run and returns its index.
 func addRuleIndex(run *sarif.Run, ruleID string, result Result, indices map[string]int) int {
 	addRule(run, ruleID, result)
@@ -97,6 +89,28 @@ func addRule(run *sarif.Run, ruleID string, result Result) {
 	}
 }
 
+// addResult adds a result to the SARIF run
+func addResult(run *sarif.Run, result Result, namespace, ruleType, level, fileName string, indices map[string]int) {
+	ruleID := getRuleID(namespace, ruleType)
+	idx, ok := indices[ruleID]
+	if !ok {
+		idx = addRuleIndex(run, ruleID, result, indices)
+	}
+
+	run.CreateResultForRule(ruleID).
+		WithRuleIndex(idx).
+		WithLevel(level).
+		WithMessage(sarif.NewTextMessage(result.Message)).
+		AddLocation(
+			sarif.NewLocationWithPhysicalLocation(
+				sarif.NewPhysicalLocation().
+					WithArtifactLocation(
+						sarif.NewSimpleArtifactLocation(filepath.ToSlash(fileName)),
+					),
+			),
+		)
+}
+
 // Output outputs the results in SARIF format.
 func (s *SARIF) Output(results []CheckResult) error {
 	report, err := sarif.New(sarifVersion)
@@ -110,111 +124,44 @@ func (s *SARIF) Output(results []CheckResult) error {
 	for _, result := range results {
 		// Process failures
 		for _, failure := range result.Failures {
-			ruleID := getRuleID(result.Namespace, "deny")
-			var idx int
-			if existingIdx, ok := getRuleIndex(ruleID, indices); ok {
-				idx = existingIdx
-			} else {
-				idx = addRuleIndex(run, ruleID, failure, indices)
-			}
-
-			run.CreateResultForRule(ruleID).
-				WithRuleIndex(idx).
-				WithLevel("error").
-				WithMessage(sarif.NewTextMessage(failure.Message)).
-				AddLocation(
-					sarif.NewLocationWithPhysicalLocation(
-						sarif.NewPhysicalLocation().
-							WithArtifactLocation(
-								sarif.NewSimpleArtifactLocation(filepath.ToSlash(result.FileName)),
-							),
-					),
-				)
+			addResult(run, failure, result.Namespace, "deny", "error", result.FileName, indices)
 		}
 
 		// Process warnings
 		for _, warning := range result.Warnings {
-			ruleID := getRuleID(result.Namespace, "warn")
-			var idx int
-			if existingIdx, ok := getRuleIndex(ruleID, indices); ok {
-				idx = existingIdx
-			} else {
-				idx = addRuleIndex(run, ruleID, warning, indices)
-			}
-
-			run.CreateResultForRule(ruleID).
-				WithRuleIndex(idx).
-				WithLevel("warning").
-				WithMessage(sarif.NewTextMessage(warning.Message)).
-				AddLocation(
-					sarif.NewLocationWithPhysicalLocation(
-						sarif.NewPhysicalLocation().
-							WithArtifactLocation(
-								sarif.NewSimpleArtifactLocation(filepath.ToSlash(result.FileName)),
-							),
-					),
-				)
+			addResult(run, warning, result.Namespace, "warn", "warning", result.FileName, indices)
 		}
 
-		// Process exceptions
+		// Process exceptions (treated as successes)
+		hasSuccesses := result.Successes > 0
 		for _, exception := range result.Exceptions {
-			ruleID := getRuleID(result.Namespace, "allow")
-			var idx int
-			if existingIdx, ok := getRuleIndex(ruleID, indices); ok {
-				idx = existingIdx
-			} else {
-				idx = addRuleIndex(run, ruleID, exception, indices)
-			}
-
-			run.CreateResultForRule(ruleID).
-				WithRuleIndex(idx).
-				WithLevel("note").
-				WithMessage(sarif.NewTextMessage(exception.Message)).
-				AddLocation(
-					sarif.NewLocationWithPhysicalLocation(
-						sarif.NewPhysicalLocation().
-							WithArtifactLocation(
-								sarif.NewSimpleArtifactLocation(filepath.ToSlash(result.FileName)),
-							),
-					),
-				)
+			addResult(run, exception, result.Namespace, "allow", "note", result.FileName, indices)
+			hasSuccesses = true
 		}
 
-		// Add success or skipped result if no other results
-		if len(result.Failures) == 0 && len(result.Warnings) == 0 && len(result.Exceptions) == 0 {
-			text := successDesc
-			ruleType := "success"
-			if result.Successes == 0 {
-				text = skippedDesc
-				ruleType = "skip"
-			}
+		// Don't add success/skip results if there are failures or warnings
+		hasErrors := len(result.Failures) > 0 || len(result.Warnings) > 0
+		if hasErrors {
+			continue
+		}
 
-			emptyResult := Result{
-				Message: text,
+		// Add success/exception results if there are no failures or warnings
+		if hasSuccesses {
+			statusResult := Result{
+				Message: successDesc,
 				Metadata: map[string]interface{}{
-					"description": text,
+					"description": successDesc,
 				},
 			}
-			ruleID := getRuleID(result.Namespace, ruleType)
-			var idx int
-			if existingIdx, ok := getRuleIndex(ruleID, indices); ok {
-				idx = existingIdx
-			} else {
-				idx = addRuleIndex(run, ruleID, emptyResult, indices)
+			addResult(run, statusResult, result.Namespace, "success", "none", result.FileName, indices)
+		} else {
+			statusResult := Result{
+				Message: skippedDesc,
+				Metadata: map[string]interface{}{
+					"description": skippedDesc,
+				},
 			}
-
-			run.CreateResultForRule(ruleID).
-				WithRuleIndex(idx).
-				WithLevel("none").
-				WithMessage(sarif.NewTextMessage(text)).
-				AddLocation(
-					sarif.NewLocationWithPhysicalLocation(
-						sarif.NewPhysicalLocation().
-							WithArtifactLocation(
-								sarif.NewSimpleArtifactLocation(filepath.ToSlash(result.FileName)),
-							),
-					),
-				)
+			addResult(run, statusResult, result.Namespace, "skip", "none", result.FileName, indices)
 		}
 	}
 
@@ -226,8 +173,6 @@ func (s *SARIF) Output(results []CheckResult) error {
 		exitDesc = exitViolations
 	} else if hasWarnings(results) {
 		exitDesc = exitWarnings
-	} else if hasExceptions(results) {
-		exitDesc = exitExceptions
 	}
 
 	successful := true
@@ -250,33 +195,16 @@ func (s *SARIF) Report(_ []*tester.Result, _ string) error {
 	return fmt.Errorf("report is not supported in SARIF output")
 }
 
-// hasResults returns true if any of the results contain items in the specified field
-func hasResults(results []CheckResult, field string) bool {
-	return slices.ContainsFunc(results, func(r CheckResult) bool {
-		switch field {
-		case "failures":
-			return len(r.Failures) > 0
-		case "warnings":
-			return len(r.Warnings) > 0
-		case "exceptions":
-			return len(r.Exceptions) > 0
-		default:
-			return false
-		}
-	})
-}
-
 // hasFailures returns true if any of the results contain failures
 func hasFailures(results []CheckResult) bool {
-	return hasResults(results, "failures")
+	return slices.ContainsFunc(results, func(r CheckResult) bool {
+		return len(r.Failures) > 0
+	})
 }
 
 // hasWarnings returns true if any of the results contain warnings
 func hasWarnings(results []CheckResult) bool {
-	return hasResults(results, "warnings")
-}
-
-// hasExceptions returns true if any of the results contain exceptions
-func hasExceptions(results []CheckResult) bool {
-	return hasResults(results, "exceptions")
+	return slices.ContainsFunc(results, func(r CheckResult) bool {
+		return len(r.Warnings) > 0
+	})
 }

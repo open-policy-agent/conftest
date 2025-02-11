@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/sergi/go-diff/diffmatchpatch"
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestSARIF_Output(t *testing.T) {
@@ -18,29 +18,29 @@ func TestSARIF_Output(t *testing.T) {
 		{
 			name:    "empty results",
 			results: []CheckResult{},
-			wantJSON: `{
+			wantJSON: mustJSON(t, map[string]any{
 				"version": "2.1.0",
 				"$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json",
-				"runs": [
+				"runs": []map[string]any{
 					{
-						"tool": {
-							"driver": {
+						"tool": map[string]any{
+							"driver": map[string]any{
 								"informationUri": "https://github.com/open-policy-agent/conftest",
-								"name": "conftest",
-								"rules": []
-							}
+								"name":           "conftest",
+								"rules":          []any{},
+							},
 						},
-						"invocations": [
+						"invocations": []map[string]any{
 							{
 								"executionSuccessful": true,
-								"exitCode": 0,
-								"exitCodeDescription": "No policy violations found"
-							}
-						],
-						"results": []
-					}
-				]
-			}`,
+								"exitCode":            0,
+								"exitCodeDescription": "No policy violations found",
+							},
+						},
+						"results": []any{},
+					},
+				},
+			}),
 		},
 		{
 			name: "single failure",
@@ -59,58 +59,58 @@ func TestSARIF_Output(t *testing.T) {
 					},
 				},
 			},
-			wantJSON: `{
+			wantJSON: mustJSON(t, map[string]any{
 				"version": "2.1.0",
 				"$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json",
-				"runs": [
+				"runs": []map[string]any{
 					{
-						"tool": {
-							"driver": {
+						"tool": map[string]any{
+							"driver": map[string]any{
 								"informationUri": "https://github.com/open-policy-agent/conftest",
-								"name": "conftest",
-								"rules": [
+								"name":           "conftest",
+								"rules": []map[string]any{
 									{
 										"id": "main/deny",
-										"shortDescription": {
-											"text": "Policy violation"
+										"shortDescription": map[string]any{
+											"text": "Policy violation",
 										},
-										"properties": {
+										"properties": map[string]any{
 											"package": "test",
-											"rule": "rule1"
-										}
-									}
-								]
-							}
+											"rule":    "rule1",
+										},
+									},
+								},
+							},
 						},
-						"invocations": [
+						"invocations": []map[string]any{
 							{
 								"executionSuccessful": true,
-								"exitCode": 1,
-								"exitCodeDescription": "Policy violations found"
-							}
-						],
-						"results": [
+								"exitCode":            1,
+								"exitCodeDescription": "Policy violations found",
+							},
+						},
+						"results": []map[string]any{
 							{
-								"ruleId": "main/deny",
+								"ruleId":    "main/deny",
 								"ruleIndex": 0,
-								"level": "error",
-								"message": {
-									"text": "test failure"
+								"level":     "error",
+								"message": map[string]any{
+									"text": "test failure",
 								},
-								"locations": [
+								"locations": []map[string]any{
 									{
-										"physicalLocation": {
-											"artifactLocation": {
-												"uri": "test.yaml"
-											}
-										}
-									}
-								]
-							}
-						]
-					}
-				]
-			}`,
+										"physicalLocation": map[string]any{
+											"artifactLocation": map[string]any{
+												"uri": "test.yaml",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}),
 		},
 		{
 			name: "single warning",
@@ -128,57 +128,57 @@ func TestSARIF_Output(t *testing.T) {
 					},
 				},
 			},
-			wantJSON: `{
+			wantJSON: mustJSON(t, map[string]any{
 				"version": "2.1.0",
 				"$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json",
-				"runs": [
+				"runs": []map[string]any{
 					{
-						"tool": {
-							"driver": {
+						"tool": map[string]any{
+							"driver": map[string]any{
 								"informationUri": "https://github.com/open-policy-agent/conftest",
-								"name": "conftest",
-								"rules": [
+								"name":           "conftest",
+								"rules": []map[string]any{
 									{
 										"id": "main/warn",
-										"shortDescription": {
-											"text": "Policy warning"
+										"shortDescription": map[string]any{
+											"text": "Policy warning",
 										},
-										"properties": {
-											"foo": "bar"
-										}
-									}
-								]
-							}
+										"properties": map[string]any{
+											"foo": "bar",
+										},
+									},
+								},
+							},
 						},
-						"invocations": [
+						"invocations": []map[string]any{
 							{
 								"executionSuccessful": true,
-								"exitCode": 0,
-								"exitCodeDescription": "Policy warnings found"
-							}
-						],
-						"results": [
+								"exitCode":            0,
+								"exitCodeDescription": "Policy warnings found",
+							},
+						},
+						"results": []map[string]any{
 							{
-								"ruleId": "main/warn",
+								"ruleId":    "main/warn",
 								"ruleIndex": 0,
-								"level": "warning",
-								"message": {
-									"text": "test warning"
+								"level":     "warning",
+								"message": map[string]any{
+									"text": "test warning",
 								},
-								"locations": [
+								"locations": []map[string]any{
 									{
-										"physicalLocation": {
-											"artifactLocation": {
-												"uri": "test.yaml"
-											}
-										}
-									}
-								]
-							}
-						]
-					}
-				]
-			}`,
+										"physicalLocation": map[string]any{
+											"artifactLocation": map[string]any{
+												"uri": "test.yaml",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}),
 		},
 		{
 			name: "single exception",
@@ -196,57 +196,83 @@ func TestSARIF_Output(t *testing.T) {
 					},
 				},
 			},
-			wantJSON: `{
+			wantJSON: mustJSON(t, map[string]any{
 				"version": "2.1.0",
 				"$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json",
-				"runs": [
+				"runs": []map[string]any{
 					{
-						"tool": {
-							"driver": {
+						"tool": map[string]any{
+							"driver": map[string]any{
 								"informationUri": "https://github.com/open-policy-agent/conftest",
-								"name": "conftest",
-								"rules": [
+								"name":           "conftest",
+								"rules": []map[string]any{
 									{
 										"id": "main/allow",
-										"shortDescription": {
-											"text": "Policy exception"
+										"shortDescription": map[string]any{
+											"text": "Policy exception",
 										},
-										"properties": {
-											"description": "test exception description"
-										}
-									}
-								]
-							}
+										"properties": map[string]any{
+											"description": "test exception description",
+										},
+									},
+									{
+										"id": "main/success",
+										"shortDescription": map[string]any{
+											"text": "Policy was satisfied successfully",
+										},
+										"properties": map[string]any{
+											"description": "Policy was satisfied successfully",
+										},
+									},
+								},
+							},
 						},
-						"invocations": [
+						"invocations": []map[string]any{
 							{
 								"executionSuccessful": true,
-								"exitCode": 0,
-								"exitCodeDescription": "Policy exceptions found"
-							}
-						],
-						"results": [
+								"exitCode":            0,
+								"exitCodeDescription": "No policy violations found",
+							},
+						},
+						"results": []map[string]any{
 							{
-								"ruleId": "main/allow",
+								"ruleId":    "main/allow",
 								"ruleIndex": 0,
-								"level": "note",
-								"message": {
-									"text": "test exception"
+								"level":     "note",
+								"message": map[string]any{
+									"text": "test exception",
 								},
-								"locations": [
+								"locations": []map[string]any{
 									{
-										"physicalLocation": {
-											"artifactLocation": {
-												"uri": "test.yaml"
-											}
-										}
-									}
-								]
-							}
-						]
-					}
-				]
-			}`,
+										"physicalLocation": map[string]any{
+											"artifactLocation": map[string]any{
+												"uri": "test.yaml",
+											},
+										},
+									},
+								},
+							},
+							{
+								"ruleId":    "main/success",
+								"ruleIndex": 1,
+								"level":     "none",
+								"message": map[string]any{
+									"text": "Policy was satisfied successfully",
+								},
+								"locations": []map[string]any{
+									{
+										"physicalLocation": map[string]any{
+											"artifactLocation": map[string]any{
+												"uri": "test.yaml",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}),
 		},
 		{
 			name: "skipped result",
@@ -257,57 +283,57 @@ func TestSARIF_Output(t *testing.T) {
 					Successes: 0,
 				},
 			},
-			wantJSON: `{
+			wantJSON: mustJSON(t, map[string]any{
 				"version": "2.1.0",
 				"$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json",
-				"runs": [
+				"runs": []map[string]any{
 					{
-						"tool": {
-							"driver": {
+						"tool": map[string]any{
+							"driver": map[string]any{
 								"informationUri": "https://github.com/open-policy-agent/conftest",
-								"name": "conftest",
-								"rules": [
+								"name":           "conftest",
+								"rules": []map[string]any{
 									{
 										"id": "main/skip",
-										"shortDescription": {
-											"text": "Policy check was skipped"
+										"shortDescription": map[string]any{
+											"text": "Policy check was skipped",
 										},
-										"properties": {
-											"description": "Policy check was skipped"
-										}
-									}
-								]
-							}
+										"properties": map[string]any{
+											"description": "Policy check was skipped",
+										},
+									},
+								},
+							},
 						},
-						"invocations": [
+						"invocations": []map[string]any{
 							{
 								"executionSuccessful": true,
-								"exitCode": 0,
-								"exitCodeDescription": "No policy violations found"
-							}
-						],
-						"results": [
+								"exitCode":            0,
+								"exitCodeDescription": "No policy violations found",
+							},
+						},
+						"results": []map[string]any{
 							{
-								"ruleId": "main/skip",
+								"ruleId":    "main/skip",
 								"ruleIndex": 0,
-								"level": "none",
-								"message": {
-									"text": "Policy check was skipped"
+								"level":     "none",
+								"message": map[string]any{
+									"text": "Policy check was skipped",
 								},
-								"locations": [
+								"locations": []map[string]any{
 									{
-										"physicalLocation": {
-											"artifactLocation": {
-												"uri": "test.yaml"
-											}
-										}
-									}
-								]
-							}
-						]
-					}
-				]
-			}`,
+										"physicalLocation": map[string]any{
+											"artifactLocation": map[string]any{
+												"uri": "test.yaml",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}),
 		},
 		{
 			name: "multiple results same rule",
@@ -333,75 +359,75 @@ func TestSARIF_Output(t *testing.T) {
 					},
 				},
 			},
-			wantJSON: `{
+			wantJSON: mustJSON(t, map[string]any{
 				"version": "2.1.0",
 				"$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json",
-				"runs": [
+				"runs": []map[string]any{
 					{
-						"tool": {
-							"driver": {
+						"tool": map[string]any{
+							"driver": map[string]any{
 								"informationUri": "https://github.com/open-policy-agent/conftest",
-								"name": "conftest",
-								"rules": [
+								"name":           "conftest",
+								"rules": []map[string]any{
 									{
 										"id": "main/deny",
-										"shortDescription": {
-											"text": "Policy violation"
+										"shortDescription": map[string]any{
+											"text": "Policy violation",
 										},
-										"properties": {
+										"properties": map[string]any{
 											"package": "test",
-											"rule": "rule1"
-										}
-									}
-								]
-							}
+											"rule":    "rule1",
+										},
+									},
+								},
+							},
 						},
-						"invocations": [
+						"invocations": []map[string]any{
 							{
 								"executionSuccessful": true,
-								"exitCode": 1,
-								"exitCodeDescription": "Policy violations found"
-							}
-						],
-						"results": [
+								"exitCode":            1,
+								"exitCodeDescription": "Policy violations found",
+							},
+						},
+						"results": []map[string]any{
 							{
-								"ruleId": "main/deny",
+								"ruleId":    "main/deny",
 								"ruleIndex": 0,
-								"level": "error",
-								"message": {
-									"text": "test failure 1"
+								"level":     "error",
+								"message": map[string]any{
+									"text": "test failure 1",
 								},
-								"locations": [
+								"locations": []map[string]any{
 									{
-										"physicalLocation": {
-											"artifactLocation": {
-												"uri": "test1.yaml"
-											}
-										}
-									}
-								]
+										"physicalLocation": map[string]any{
+											"artifactLocation": map[string]any{
+												"uri": "test1.yaml",
+											},
+										},
+									},
+								},
 							},
 							{
-								"ruleId": "main/deny",
+								"ruleId":    "main/deny",
 								"ruleIndex": 0,
-								"level": "error",
-								"message": {
-									"text": "test failure 2"
+								"level":     "error",
+								"message": map[string]any{
+									"text": "test failure 2",
 								},
-								"locations": [
+								"locations": []map[string]any{
 									{
-										"physicalLocation": {
-											"artifactLocation": {
-												"uri": "test1.yaml"
-											}
-										}
-									}
-								]
-							}
-						]
-					}
-				]
-			}`,
+										"physicalLocation": map[string]any{
+											"artifactLocation": map[string]any{
+												"uri": "test1.yaml",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}),
 		},
 		{
 			name: "successful policy check",
@@ -412,57 +438,57 @@ func TestSARIF_Output(t *testing.T) {
 					Successes: 1,
 				},
 			},
-			wantJSON: `{
+			wantJSON: mustJSON(t, map[string]any{
 				"version": "2.1.0",
 				"$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json",
-				"runs": [
+				"runs": []map[string]any{
 					{
-						"tool": {
-							"driver": {
+						"tool": map[string]any{
+							"driver": map[string]any{
 								"informationUri": "https://github.com/open-policy-agent/conftest",
-								"name": "conftest",
-								"rules": [
+								"name":           "conftest",
+								"rules": []map[string]any{
 									{
 										"id": "main/success",
-										"shortDescription": {
-											"text": "Policy was satisfied successfully"
+										"shortDescription": map[string]any{
+											"text": "Policy was satisfied successfully",
 										},
-										"properties": {
-											"description": "Policy was satisfied successfully"
-										}
-									}
-								]
-							}
+										"properties": map[string]any{
+											"description": "Policy was satisfied successfully",
+										},
+									},
+								},
+							},
 						},
-						"invocations": [
+						"invocations": []map[string]any{
 							{
 								"executionSuccessful": true,
-								"exitCode": 0,
-								"exitCodeDescription": "No policy violations found"
-							}
-						],
-						"results": [
+								"exitCode":            0,
+								"exitCodeDescription": "No policy violations found",
+							},
+						},
+						"results": []map[string]any{
 							{
-								"ruleId": "main/success",
+								"ruleId":    "main/success",
 								"ruleIndex": 0,
-								"level": "none",
-								"message": {
-									"text": "Policy was satisfied successfully"
+								"level":     "none",
+								"message": map[string]any{
+									"text": "Policy was satisfied successfully",
 								},
-								"locations": [
+								"locations": []map[string]any{
 									{
-										"physicalLocation": {
-											"artifactLocation": {
-												"uri": "test.yaml"
-											}
-										}
-									}
-								]
-							}
-						]
-					}
-				]
-			}`,
+										"physicalLocation": map[string]any{
+											"artifactLocation": map[string]any{
+												"uri": "test.yaml",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}),
 		},
 	}
 
@@ -557,12 +583,17 @@ func compareJSON(t *testing.T, got, want string) {
 		t.Fatalf("failed to unmarshal expected JSON: %v", err)
 	}
 
-	gotBytes, _ := json.Marshal(gotJSON)
-	wantBytes, _ := json.Marshal(wantJSON)
-
-	if string(gotBytes) != string(wantBytes) {
-		dmp := diffmatchpatch.New()
-		diffs := dmp.DiffMain(want, got, false)
-		t.Errorf("JSON mismatch:\n%s", dmp.DiffPrettyText(diffs))
+	if diff := cmp.Diff(wantJSON, gotJSON); diff != "" {
+		t.Errorf("JSON mismatch (-want +got):\n%s", diff)
 	}
+}
+
+// mustJSON converts a value to a JSON string, failing the test if marshaling fails
+func mustJSON(t *testing.T, value map[string]any) string {
+	t.Helper()
+	b, err := json.MarshalIndent(value, "", "  ")
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(b)
 }
