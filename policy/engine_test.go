@@ -691,9 +691,13 @@ violation[result] {
 
 			for i, got := range result.Results {
 				want := tt.want[i]
-				if got.Message != want.msg || !reflect.DeepEqual(got.Metadata, want.meta) {
-					t.Errorf("result[%d]: got Message=%q, Metadata=%v; want Message=%q, Metadata=%v",
-						i, got.Message, got.Metadata, want.msg, want.meta)
+				if got.Message != want.msg {
+					t.Errorf("result[%d]: got Message=%q, want Message=%q",
+						i, got.Message, want.msg)
+				}
+				if !reflect.DeepEqual(got.Metadata, want.meta) {
+					t.Errorf("result[%d]: got Metadata=%v, want Metadata=%v",
+						i, got.Metadata, want.meta)
 				}
 			}
 		})
