@@ -199,7 +199,7 @@ func pushLayers(ctx context.Context, pusher content.Pusher, policyPath, dataPath
 	}
 
 	for path, contents := range engine.Documents() {
-		data := []byte(contents)
+		data := []byte(contents.(string))
 		desc := content.NewDescriptorFromBytes(openPolicyAgentDataLayerMediaType, data)
 		desc.Annotations = map[string]string{
 			ocispec.AnnotationTitle: path,
