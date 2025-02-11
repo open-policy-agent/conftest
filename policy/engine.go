@@ -500,6 +500,9 @@ func (e *Engine) query(ctx context.Context, input interface{}, query string) (ou
 				case string:
 					result := output.Result{
 						Message: val,
+						Metadata: map[string]any{
+							"query": query,
+						},
 					}
 					results = append(results, result)
 
@@ -509,6 +512,9 @@ func (e *Engine) query(ctx context.Context, input interface{}, query string) (ou
 					if err != nil {
 						return output.QueryResult{}, fmt.Errorf("new result: %w", err)
 					}
+
+					// Safe to set as Metadata map is initialized by NewResult
+					result.Metadata["query"] = query
 
 					results = append(results, result)
 				}
