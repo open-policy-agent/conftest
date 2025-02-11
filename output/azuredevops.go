@@ -24,7 +24,7 @@ func NewAzureDevOps(w io.Writer) *AzureDevOps {
 }
 
 // Output outputs the results.
-func (t *AzureDevOps) Output(checkResults []CheckResult) error {
+func (t *AzureDevOps) Output(checkResults CheckResults) error {
 	var totalFailures int
 	var totalExceptions int
 	var totalWarnings int

@@ -172,8 +172,8 @@ func (e *Engine) ShowBuiltinErrors() {
 }
 
 // Check executes all of the loaded policies against the input and returns the results.
-func (e *Engine) Check(ctx context.Context, configs map[string]any, namespace string) ([]output.CheckResult, error) {
-	var checkResults []output.CheckResult
+func (e *Engine) Check(ctx context.Context, configs map[string]interface{}, namespace string) (output.CheckResults, error) {
+	var checkResults output.CheckResults
 	for path, config := range configs {
 
 		// It is possible for a configuration to have multiple configurations. An example of this

@@ -25,7 +25,7 @@ func NewJSON(w io.Writer) *JSON {
 }
 
 // Output outputs the results.
-func (j *JSON) Output(results []CheckResult) error {
+func (j *JSON) Output(results CheckResults) error {
 	for r := range results {
 		if results[r].FileName == "-" {
 			results[r].FileName = ""

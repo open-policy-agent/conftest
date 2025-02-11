@@ -102,7 +102,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("running verification: %w", err)
 			}
 
-			exitCode := output.ExitCode(results)
+			exitCode := results.ExitCode()
 			if !runner.Quiet || exitCode != 0 {
 				outputter := output.Get(runner.Output, output.Options{
 					NoColor:          runner.NoColor,

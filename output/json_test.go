@@ -9,12 +9,12 @@ import (
 func TestJSON(t *testing.T) {
 	tests := []struct {
 		name     string
-		input    []CheckResult
+		input    CheckResults
 		expected []string
 	}{
 		{
 			name: "No warnings or errors",
-			input: []CheckResult{
+			input: CheckResults{
 				{
 					FileName:  "examples/kubernetes/service.yaml",
 					Namespace: "namespace",
@@ -33,7 +33,7 @@ func TestJSON(t *testing.T) {
 		},
 		{
 			name: "A single failure",
-			input: []CheckResult{
+			input: CheckResults{
 				{
 					FileName:  "examples/kubernetes/service.yaml",
 					Namespace: "namespace",
@@ -58,7 +58,7 @@ func TestJSON(t *testing.T) {
 		},
 		{
 			name: "A warning, a failure and a skipped test",
-			input: []CheckResult{
+			input: CheckResults{
 				{
 					FileName:  "examples/kubernetes/service.yaml",
 					Namespace: "namespace",
@@ -95,7 +95,7 @@ func TestJSON(t *testing.T) {
 		},
 		{
 			name: "Renames standard input file name to empty string",
-			input: []CheckResult{
+			input: CheckResults{
 				{
 					FileName:  "-",
 					Namespace: "namespace",
@@ -120,7 +120,7 @@ func TestJSON(t *testing.T) {
 		},
 		{
 			name: "Multiple files",
-			input: []CheckResult{
+			input: CheckResults{
 				{FileName: "examples/kubernetes/service.yaml", Namespace: "namespace"},
 				{FileName: "examples/kubernetes/deployment.yaml", Namespace: "namespace"},
 			},
