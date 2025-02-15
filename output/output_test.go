@@ -40,6 +40,10 @@ func TestGetOutputter(t *testing.T) {
 			expected: NewAzureDevOps(os.Stdout),
 		},
 		{
+			input:    OutputSARIF,
+			expected: NewSARIF(os.Stdout),
+		},
+		{
 			input:    "unknown_format",
 			expected: NewStandard(os.Stdout),
 		},

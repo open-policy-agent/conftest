@@ -173,6 +173,7 @@ As of today Conftest supports the following output types:
 - JUnit `--output=junit`
 - GitHub `--output=github`
 - AzureDevOps `--output=azuredevops`
+- SARIF `--output=sarif`
 
 ### Plaintext
 
@@ -320,6 +321,13 @@ $ conftest test -o azuredevops -p examples/kubernetes/policy examples/kubernetes
 success file=examples/kubernetes/deployment.yaml 1
 ##[endgroup]
 5 tests, 1 passed, 0 warnings, 4 failures, 0 exceptions
+```
+
+### SARIF
+
+```console
+$ conftest test --proto-file-dirs examples/textproto/protos -p examples/textproto/policy examples/textproto/fail.textproto -o sarif
+{"version":"2.1.0","$schema":"https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json","runs":[{"tool":{"driver":{"informationUri":"https://github.com/open-policy-agent/conftest","name":"conftest","rules":[{"id":"main/deny","shortDescription":{"text":"Policy violation"}}]}},"invocations":[{"executionSuccessful":true,"exitCode":1,"exitCodeDescription":"Policy violations found"}],"results":[{"ruleId":"main/deny","ruleIndex":0,"level":"error","message":{"text":"fail: Power level must be over 9000"},"locations":[{"physicalLocation":{"artifactLocation":{"uri":"examples/textproto/fail.textproto"}}}]}]}]}
 ```
 
 ## `--parser`
