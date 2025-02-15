@@ -14,12 +14,19 @@ import (
 	"github.com/open-policy-agent/opa/loader"
 )
 
+func testOptions(t *testing.T) CompilerOptions {
+	t.Helper()
+	return CompilerOptions{
+		Capabilities: ast.CapabilitiesForThisVersion(),
+		RegoVersion:  "v0",
+	}
+}
+
 func TestException(t *testing.T) {
 	ctx := context.Background()
 
 	policies := []string{"../examples/exceptions/policy"}
-	compilerOptions, _ := newCompilerOptions(false, "")
-	engine, err := Load(policies, compilerOptions)
+	engine, err := Load(policies, testOptions(t))
 	if err != nil {
 		t.Fatalf("loading policies: %v", err)
 	}
@@ -59,8 +66,7 @@ func TestTracing(t *testing.T) {
 		ctx := context.Background()
 
 		policies := []string{"../examples/kubernetes/policy"}
-		compilerOptions, _ := newCompilerOptions(false, "")
-		engine, err := Load(policies, compilerOptions)
+		engine, err := Load(policies, testOptions(t))
 		if err != nil {
 			t.Fatalf("loading policies: %v", err)
 		}
@@ -89,8 +95,7 @@ func TestTracing(t *testing.T) {
 		ctx := context.Background()
 
 		policies := []string{"../examples/kubernetes/policy"}
-		compilerOptions, _ := newCompilerOptions(false, "")
-		engine, err := Load(policies, compilerOptions)
+		engine, err := Load(policies, testOptions(t))
 		if err != nil {
 			t.Fatalf("loading policies: %v", err)
 		}
@@ -119,8 +124,7 @@ func TestMultifileYaml(t *testing.T) {
 	ctx := context.Background()
 
 	policies := []string{"../examples/kubernetes/policy"}
-	compilerOptions, _ := newCompilerOptions(false, "")
-	engine, err := Load(policies, compilerOptions)
+	engine, err := Load(policies, testOptions(t))
 	if err != nil {
 		t.Fatalf("loading policies: %v", err)
 	}
@@ -166,8 +170,7 @@ func TestDockerfile(t *testing.T) {
 	ctx := context.Background()
 
 	policies := []string{"../examples/docker/policy"}
-	compilerOptions, _ := newCompilerOptions(false, "")
-	engine, err := Load(policies, compilerOptions)
+	engine, err := Load(policies, testOptions(t))
 	if err != nil {
 		t.Fatalf("loading policies: %v", err)
 	}
@@ -379,32 +382,10 @@ func TestProblematicIf(t *testing.T) {
 }
 
 func TestLoadWithData(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	inaccessibleCapabilitiesPath := filepath.Join(tmpDir, "capabilities")
-	err := os.WriteFile(inaccessibleCapabilitiesPath, []byte(""), 0o000)
-	if err != nil {
-		t.Fatalf("failed to write empty policy file: %v", err)
-	}
-
-	t.Cleanup(func() {
-		err := os.Chmod(inaccessibleCapabilitiesPath, 0o600)
-		if err != nil {
-			t.Fatalf("failed to restore capabilities file permissions: %v", err)
-		}
-	})
-
-	invalidCapabilitiesPath := filepath.Join(tmpDir, "invalid-capabilities")
-	err = os.WriteFile(invalidCapabilitiesPath, []byte("invalid json"), 0o600)
-	if err != nil {
-		t.Fatalf("failed to write invalid capabilities file: %v", err)
-	}
-
 	testCases := []struct {
 		desc         string
 		policyPaths  []string
 		dataPaths    []string
-		capabilities string
 		strict       bool
 		wantPolicies bool
 		wantDocs     bool
@@ -441,25 +422,16 @@ func TestLoadWithData(t *testing.T) {
 			dataPaths:   []string{"nonexistent/data.yaml"},
 			wantErr:     true,
 		},
-		{
-			desc:         "Inaccessible capabilities file",
-			policyPaths:  []string{"../examples/kubernetes/policy"},
-			dataPaths:    []string{"../examples/kubernetes/service.yaml"},
-			capabilities: inaccessibleCapabilitiesPath,
-			wantErr:      true,
-		},
-		{
-			desc:         "Invalid capabilities file",
-			policyPaths:  []string{"../examples/kubernetes/policy"},
-			dataPaths:    []string{"../examples/kubernetes/service.yaml"},
-			capabilities: invalidCapabilitiesPath,
-			wantErr:      true,
-		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
-			engine, err := LoadWithData(tc.policyPaths, tc.dataPaths, tc.capabilities, tc.strict)
+			opts := CompilerOptions{
+				Strict:       tc.strict,
+				Capabilities: ast.CapabilitiesForThisVersion(),
+				RegoVersion:  "v0",
+			}
+			engine, err := LoadWithData(tc.policyPaths, tc.dataPaths, opts)
 			if tc.wantErr {
 				if err == nil {
 					t.Fatal("expected error but got none")
@@ -497,6 +469,57 @@ func TestLoadWithData(t *testing.T) {
 				if len(engine.Documents()) > 0 {
 					t.Error("expected no documents but got some")
 				}
+			}
+		})
+	}
+}
+
+func TestLoadCapabilities(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	inaccessibleCapabilitiesPath := filepath.Join(tmpDir, "capabilities")
+	err := os.WriteFile(inaccessibleCapabilitiesPath, []byte(""), 0o000)
+	if err != nil {
+		t.Fatalf("failed to write empty policy file: %v", err)
+	}
+
+	t.Cleanup(func() {
+		err := os.Chmod(inaccessibleCapabilitiesPath, 0o600)
+		if err != nil {
+			t.Fatalf("failed to restore capabilities file permissions: %v", err)
+		}
+	})
+
+	invalidCapabilitiesPath := filepath.Join(tmpDir, "invalid-capabilities")
+	err = os.WriteFile(invalidCapabilitiesPath, []byte("invalid json"), 0o600)
+	if err != nil {
+		t.Fatalf("failed to write invalid capabilities file: %v", err)
+	}
+
+	tests := []struct {
+		desc    string
+		path    string
+		wantErr bool
+	}{
+		{
+			desc:    "Inaccessible capabilities file",
+			path:    inaccessibleCapabilitiesPath,
+			wantErr: true,
+		},
+		{
+			desc:    "Invalid capabilities file",
+			path:    invalidCapabilitiesPath,
+			wantErr: true,
+		},
+		{
+			desc: "No path does not error",
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.desc, func(t *testing.T) {
+			_, err := LoadCapabilities(tc.path)
+			if gotErr := err != nil; gotErr != tc.wantErr {
+				t.Errorf("LoadCapabilities(%s) error = %v, want %v", tc.path, gotErr, tc.wantErr)
 			}
 		})
 	}

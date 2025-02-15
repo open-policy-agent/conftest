@@ -98,6 +98,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				"policy",
 				"proto-file-dirs",
 				"capabilities",
+				"rego-version",
 				"trace",
 				"strict",
 				"show-builtin-errors",
@@ -176,6 +177,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().String("ignore", "", "A regex pattern which can be used for ignoring paths")
 	cmd.Flags().String("parser", "", fmt.Sprintf("Parser to use to parse the configurations. Valid parsers: %s", parser.Parsers()))
 	cmd.Flags().String("capabilities", "", "Path to JSON file that can restrict opa functionality against a given policy. Default: all operations allowed")
+	cmd.Flags().String("rego-version", "v0", "Which version of Rego syntax to use. Options: v0, v1")
 
 	cmd.Flags().StringP("output", "o", output.OutputStandard, fmt.Sprintf("Output format for conftest results - valid options are: %s", output.Outputs()))
 	cmd.Flags().Bool("junit-hide-message", false, "Do not include the violation message in the JUnit test name")

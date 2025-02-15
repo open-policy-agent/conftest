@@ -19,6 +19,7 @@ type TestRunner struct {
 	Trace              bool
 	Strict             bool
 	Capabilities       string
+	RegoVersion        string `mapstructure:"rego-version"`
 	Policy             []string
 	Data               []string
 	Update             []string
@@ -62,7 +63,16 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) ([]output.Check
 		}
 	}
 
-	engine, err := policy.LoadWithData(t.Policy, t.Data, t.Capabilities, t.Strict)
+	capabilities, err := policy.LoadCapabilities(t.Capabilities)
+	if err != nil {
+		return nil, fmt.Errorf("load capabilities: %w", err)
+	}
+	opts := policy.CompilerOptions{
+		Strict:       t.Strict,
+		RegoVersion:  t.RegoVersion,
+		Capabilities: capabilities,
+	}
+	engine, err := policy.LoadWithData(t.Policy, t.Data, opts)
 	if err != nil {
 		return nil, fmt.Errorf("load: %w", err)
 	}
