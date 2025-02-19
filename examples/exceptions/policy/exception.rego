@@ -1,6 +1,7 @@
 package main
+import rego.v1
 
-exception[rules] {
+exception contains rules if {
 	input.kind = "Deployment"
 	input.metadata.name = "can-run-as-root"
 

@@ -1,6 +1,6 @@
 package main
+import rego.v1
 
-import future.keywords.if
 
 deny[msg] if {
     msg := "foo"

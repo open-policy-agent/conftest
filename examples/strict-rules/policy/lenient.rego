@@ -1,6 +1,7 @@
 package main
+import rego.v1
 
-allow {
+allow if {
     input.b == "foo"
     a := 1
     b := 2
@@ -11,22 +12,22 @@ allow {
     c := 3
 }
 
-validate(x, y) {
+validate(x, y) if {
 	input.test == x
-} else := false {
+} else := false if {
     input.test == "foo"
     allow
 }
 
-test(x, y, z) {
+test(x, y, z) if {
 	input.test == x
-} else {
+} else if {
 	input.test == y
-} else {
+} else if {
 	input.test == z
 }
 
-deny[msg] {
+deny contains msg if {
     test("foo", "bar", "baz")
     validate("foo", "bar")
     msg = "deployment objects should have validated"

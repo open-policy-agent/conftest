@@ -1,7 +1,8 @@
 package main
+import rego.v1
 
-test_service_denied {
-	input := {
+test_service_denied if {
+	service := {
 		"kind": "Service",
 		"metadata": {"name": "sample"},
 		"spec": {
@@ -10,5 +11,5 @@ test_service_denied {
 		},
 	}
 
-	deny["Cannot expose port 22 on LoadBalancer. Denied ports: [22, 21]"] with input as input
+	deny["Cannot expose port 22 on LoadBalancer. Denied ports: [22, 21]"] with input as service
 }

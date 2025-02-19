@@ -1,68 +1,105 @@
-{ "builtins" : [
-  {
-    "decl" : {
-        "args" : [ {
-              "of" : [
-                  {
-                    "of" : { "type" : "any" },
-                    "type" : "set"
+{
+  "builtins": [
+    {
+      "decl": {
+        "args": [
+          {
+            "of": [
+              {
+                "of": {
+                  "type": "any"
+                },
+                "type": "set"
+              },
+              {
+                "dynamic": {
+                  "type": "any"
+                },
+                "type": "array"
+              },
+              {
+                "dynamic": {
+                  "key": {
+                    "type": "any"
                   },
-                  {
-                    "dynamic" : { "type" : "any" },
-                    "type" : "array"
-                  },
-                  {
-                    "dynamic" : {
-                        "key" : { "type" : "any" },
-                        "value" : { "type" : "any" }
-                      },
-                    "type" : "object"
-                  },
-                  { "type" : "string" }
-                ],
-              "type" : "any"
-            } ],
-        "result" : { "type" : "number" },
-        "type" : "function"
+                  "value": {
+                    "type": "any"
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "type": "any"
+          }
+        ],
+        "result": {
+          "type": "number"
+        },
+        "type": "function"
       },
-    "name" : "count"
-  },
-  {
-    "decl" : {
-        "args" : [
-            { "type" : "any" },
-            { "type" : "any" }
-          ],
-        "result" : { "type" : "boolean" },
-        "type" : "function"
+      "name": "count"
+    },
+    {
+      "decl": {
+        "args": [
+          {
+            "type": "any"
+          },
+          {
+            "type": "any"
+          }
+        ],
+        "result": {
+          "type": "boolean"
+        },
+        "type": "function"
       },
-    "infix" : "=",
-    "name" : "eq"
-  },
-  {
-    "decl" : {
-        "args" : [
-            { "type" : "string" },
-            {
-              "dynamic" : { "type" : "any" },
-              "type" : "array"
-            }
-          ],
-        "result" : { "type" : "string" },
-        "type" : "function"
+      "infix": "=",
+      "name": "eq"
+    },
+    {
+      "decl": {
+        "args": [
+          {
+            "type": "string"
+          },
+          {
+            "dynamic": {
+              "type": "any"
+            },
+            "type": "array"
+          }
+        ],
+        "result": {
+          "type": "string"
+        },
+        "type": "function"
       },
-    "name" : "sprintf"
-  },
-  {
-    "decl" : {
-        "args" : [
-            { "type" : "any" },
-            { "type" : "any" }
-          ],
-        "result" : { "type" : "boolean" },
-        "type" : "function"
+      "name": "sprintf"
+    },
+    {
+      "decl": {
+        "args": [
+          {
+            "type": "any"
+          },
+          {
+            "type": "any"
+          }
+        ],
+        "result": {
+          "type": "boolean"
+        },
+        "type": "function"
       },
-    "infix" : "==",
-    "name" : "equal"
-  }
-]}
+      "infix": "==",
+      "name": "equal"
+    }
+  ],
+  "features": [
+    "rego_v1"
+  ]
+}

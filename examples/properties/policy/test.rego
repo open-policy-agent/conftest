@@ -1,6 +1,7 @@
 package main
+import rego.v1
 
-deny_valid_uri[msg] {
+deny_valid_uri contains msg if {
   some name
   value := input[name]
   contains(lower(name), "url")
@@ -12,7 +13,7 @@ secret_exceptions := {
  "secret.value.exception"
 }
 
-deny_no_secrets[msg] {
+deny_no_secrets contains msg if {
   some name
   value := input[name]
   not secret_exceptions[name]

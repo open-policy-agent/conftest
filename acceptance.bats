@@ -176,7 +176,7 @@
 @test "Supports print() output" {
   run ./conftest test -p examples/report/policy_print/labels.rego examples/kubernetes/deployment.yaml --no-color
   [ "$status" -eq 1 ]
-  [[ "${lines[0]}" == "PRNT   examples/report/policy_print/labels.rego:13: hello-kubernetes" ]]
+  [[ "${lines[0]}" == "PRNT   examples/report/policy_print/labels.rego:14: hello-kubernetes" ]]
 }
 
 @test "Can parse hcl1 files" {

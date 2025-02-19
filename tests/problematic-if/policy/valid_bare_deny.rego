@@ -1,5 +1,6 @@
 package main
+import rego.v1
 
-deny {
+deny if {
     true
 }

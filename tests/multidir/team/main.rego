@@ -1,6 +1,7 @@
 package main
+import rego.v1
 
-deny[msg] {
+deny contains msg if {
 	input.baz = "qux"
 	msg = "Team policy forbids baz=qux"
 }

@@ -1,6 +1,7 @@
 package main
+import rego.v1
 
-deny[msg] {
+deny contains msg if {
 	input.foo = "bar"
 	msg = "Org policy forbids foo=bar"
 }

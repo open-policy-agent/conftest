@@ -28,6 +28,28 @@ jobs:
       working-directory: scripts
       run: ./validate-conventional-commit-prefix.sh
 
+    - name: setup regal
+      uses: StyraInc/setup-regal@v1
+      with:
+        version: v0.30
+
+    - name: lint examples - warnings
+      continue-on-error: true # Regal returns non-zero even with fail-level set to warning.
+      run: >-
+        regal lint
+        examples
+        --disable directory-package-mismatch
+        --disable unresolved-import
+        --format github
+
+    - name: lint examples - blocking
+      run: >-
+        regal lint
+        examples
+        --disable-all
+        --enable-category bugs
+        --format github
+
   validate:
     runs-on: ubuntu-latest
     steps:
@@ -63,14 +85,6 @@ jobs:
 
       - name: test examples
         run: make test-examples
-
-      - name: setup regal
-        uses: StyraInc/setup-regal@v1
-        with:
-          version: v0.11.0
-
-      - name: lint examples
-        run: regal lint --format github examples
 
       - name: acceptance
         run: make test-acceptance

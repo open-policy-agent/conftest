@@ -1,4 +1,5 @@
 package main
+import rego.v1
 
 import data.services
 
@@ -8,7 +9,7 @@ kind := input.kind
 
 type := input.spec.type
 
-deny[msg] {
+deny contains msg if {
 	kind == "Service"
 	type == "LoadBalancer"
 

@@ -1,4 +1,5 @@
 package main
+import rego.v1
 
 import data.services
 
@@ -12,7 +13,7 @@ type := input.spec.type
 # title: Example using annotations
 # custom:
 #   template: 'Cannot expose port %v on LoadBalancer. Denied ports: %v'
-deny[msg] {
+deny contains msg if {
 	kind == "Service"
 	type == "LoadBalancer"
 
