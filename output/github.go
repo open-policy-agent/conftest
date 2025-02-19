@@ -24,7 +24,7 @@ func NewGitHub(w io.Writer) *GitHub {
 }
 
 // Output outputs the results.
-func (t *GitHub) Output(checkResults []CheckResult) error {
+func (t *GitHub) Output(checkResults CheckResults) error {
 	var totalFailures int
 	var totalExceptions int
 	var totalWarnings int

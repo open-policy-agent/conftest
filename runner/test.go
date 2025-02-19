@@ -39,7 +39,7 @@ type TestRunner struct {
 
 // Run executes the TestRunner, verifying all Rego policies against the given
 // list of configuration files.
-func (t *TestRunner) Run(ctx context.Context, fileList []string) ([]output.CheckResult, error) {
+func (t *TestRunner) Run(ctx context.Context, fileList []string) (output.CheckResults, error) {
 	files, err := parseFileList(fileList, t.Ignore)
 	if err != nil {
 		return nil, fmt.Errorf("parse files: %w", err)
@@ -90,7 +90,7 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) ([]output.Check
 		namespaces = engine.Namespaces()
 	}
 
-	var results []output.CheckResult
+	var results output.CheckResults
 	for _, namespace := range namespaces {
 		if t.Combine {
 			result, err := engine.CheckCombined(ctx, configurations, namespace)

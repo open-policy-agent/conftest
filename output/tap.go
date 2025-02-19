@@ -23,7 +23,7 @@ func NewTAP(w io.Writer) *TAP {
 }
 
 // Output outputs the results.
-func (t *TAP) Output(checkResults []CheckResult) error {
+func (t *TAP) Output(checkResults CheckResults) error {
 	for _, result := range checkResults {
 		var indicator string
 		var namespace string

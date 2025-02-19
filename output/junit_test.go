@@ -11,13 +11,13 @@ import (
 func TestJUnit(t *testing.T) {
 	tests := []struct {
 		name        string
-		input       []CheckResult
+		input       CheckResults
 		hideMessage bool
 		expected    []string
 	}{
 		{
 			name: "No warnings or failures",
-			input: []CheckResult{
+			input: CheckResults{
 				{
 					FileName:  "examples/kubernetes/service.yaml",
 					Namespace: "namespace",
@@ -31,7 +31,7 @@ func TestJUnit(t *testing.T) {
 		},
 		{
 			name: "A warning, a failure and a skipped test",
-			input: []CheckResult{
+			input: CheckResults{
 				{
 					FileName:  "examples/kubernetes/service.yaml",
 					Namespace: "namespace",
@@ -63,7 +63,7 @@ func TestJUnit(t *testing.T) {
 		},
 		{
 			name: "Failure with a long description",
-			input: []CheckResult{
+			input: CheckResults{
 				{
 					FileName:  "examples/kubernetes/service.yaml",
 					Namespace: "namespace",
@@ -90,7 +90,7 @@ This is the rest of the description of the failed test`}},
 		{
 			name:        "Failure with --junit-hide-message set",
 			hideMessage: true,
-			input: []CheckResult{
+			input: CheckResults{
 				{
 					FileName:  "examples/kubernetes/service.yaml",
 					Namespace: "namespace",

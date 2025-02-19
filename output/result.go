@@ -1,6 +1,9 @@
 package output
 
-import "fmt"
+import (
+	"fmt"
+	"slices"
+)
 
 // Result describes the result of a single rule evaluation.
 type Result struct {
@@ -85,46 +88,67 @@ type CheckResult struct {
 	Queries    []QueryResult `json:"queries,omitempty"`
 }
 
+// HasFailure returns true if any failures were encountered.
+func (cr CheckResult) HasFailure() bool {
+	return len(cr.Failures) > 0
+}
+
+// HasWarning returns true if any warnings were encountered.
+func (cr CheckResult) HasWarning() bool {
+	return len(cr.Warnings) > 0
+}
+
+// HasException returns true if any exceptions were encountered.
+func (cr CheckResult) HasException() bool {
+	return len(cr.Exceptions) > 0
+}
+
+// OnlySuccess returns true if there are no failures, warnings, or exceptions.
+func (cr CheckResult) OnlySuccess() bool {
+	return len(cr.Failures) == 0 && len(cr.Warnings) == 0 && len(cr.Exceptions) == 0
+}
+
+// CheckResults is a slice of CheckResult.
+type CheckResults []CheckResult
+
+// HasFailure returns true if any of the checks in the list has a failure.
+func (cr CheckResults) HasFailure() bool {
+	return slices.ContainsFunc(cr, func(x CheckResult) bool { return x.HasFailure() })
+}
+
+// HasWarning returns true if any of the checks in the list has a warning.
+func (cr CheckResults) HasWarning() bool {
+	return slices.ContainsFunc(cr, func(x CheckResult) bool { return x.HasWarning() })
+}
+
+// HasException returns true if any of the checks in the list has an exception.
+func (cr CheckResults) HasException() bool {
+	return slices.ContainsFunc(cr, func(x CheckResult) bool { return x.HasException() })
+}
+
+// OnlySuccess returns true if all of the checks have only success messages.
+func (cr CheckResults) OnlySuccess() bool {
+	return !slices.ContainsFunc(cr, func(x CheckResult) bool { return !x.OnlySuccess() })
+}
+
 // ExitCode returns the exit code that should be returned
 // given all of the returned results.
-func ExitCode(results []CheckResult) int {
-	var hasFailure bool
-	for _, result := range results {
-		if len(result.Failures) > 0 {
-			hasFailure = true
-		}
-	}
-
-	if hasFailure {
+func (cr CheckResults) ExitCode() int {
+	if cr.HasFailure() {
 		return 1
 	}
-
 	return 0
 }
 
 // ExitCodeFailOnWarn returns the exit code that should be returned
 // given all of the returned results, and will consider warnings
 // as failures.
-func ExitCodeFailOnWarn(results []CheckResult) int {
-	var hasFailure bool
-	var hasWarning bool
-	for _, result := range results {
-		if len(result.Failures) > 0 {
-			hasFailure = true
-		}
-
-		if len(result.Warnings) > 0 {
-			hasWarning = true
-		}
-	}
-
-	if hasFailure {
+func (cr CheckResults) ExitCodeFailOnWarn() int {
+	if cr.HasFailure() {
 		return 2
 	}
-
-	if hasWarning {
+	if cr.HasWarning() {
 		return 1
 	}
-
 	return 0
 }

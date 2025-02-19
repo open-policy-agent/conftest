@@ -8,7 +8,6 @@ import (
 
 	"github.com/open-policy-agent/opa/tester"
 	"github.com/owenrumney/go-sarif/v2/sarif"
-	"golang.org/x/exp/slices"
 )
 
 const (
@@ -112,7 +111,7 @@ func addResult(run *sarif.Run, result Result, namespace, ruleType, level, fileNa
 }
 
 // Output outputs the results in SARIF format.
-func (s *SARIF) Output(results []CheckResult) error {
+func (s *SARIF) Output(results CheckResults) error {
 	report, err := sarif.New(sarifVersion)
 	if err != nil {
 		return fmt.Errorf("create sarif report: %w", err)
@@ -140,7 +139,7 @@ func (s *SARIF) Output(results []CheckResult) error {
 		}
 
 		// Don't add success/skip results if there are failures or warnings
-		hasErrors := len(result.Failures) > 0 || len(result.Warnings) > 0
+		hasErrors := result.HasFailure() || result.HasWarning()
 		if hasErrors {
 			continue
 		}
@@ -168,10 +167,10 @@ func (s *SARIF) Output(results []CheckResult) error {
 	// Add run metadata
 	exitCode := 0
 	exitDesc := exitNoViolations
-	if hasFailures(results) {
+	if results.HasFailure() {
 		exitCode = 1
 		exitDesc = exitViolations
-	} else if hasWarnings(results) {
+	} else if results.HasWarning() {
 		exitDesc = exitWarnings
 	}
 
@@ -193,18 +192,4 @@ func (s *SARIF) Output(results []CheckResult) error {
 // Report is not supported in SARIF output
 func (s *SARIF) Report(_ []*tester.Result, _ string) error {
 	return fmt.Errorf("report is not supported in SARIF output")
-}
-
-// hasFailures returns true if any of the results contain failures
-func hasFailures(results []CheckResult) bool {
-	return slices.ContainsFunc(results, func(r CheckResult) bool {
-		return len(r.Failures) > 0
-	})
-}
-
-// hasWarnings returns true if any of the results contain warnings
-func hasWarnings(results []CheckResult) bool {
-	return slices.ContainsFunc(results, func(r CheckResult) bool {
-		return len(r.Warnings) > 0
-	})
 }

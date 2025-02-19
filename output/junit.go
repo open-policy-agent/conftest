@@ -29,7 +29,7 @@ func NewJUnit(w io.Writer, hideMessage bool) *JUnit {
 }
 
 // Output outputs the results.
-func (j *JUnit) Output(results []CheckResult) error {
+func (j *JUnit) Output(results CheckResults) error {
 	namespaceTests := make(map[string][]*parser.Test)
 	for _, result := range results {
 		ns := result.Namespace

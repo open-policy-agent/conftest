@@ -132,11 +132,9 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("running test: %w", err)
 			}
 
-			var exitCode int
+			exitCode := results.ExitCode()
 			if runner.FailOnWarn {
-				exitCode = output.ExitCodeFailOnWarn(results)
-			} else {
-				exitCode = output.ExitCode(results)
+				exitCode = results.ExitCodeFailOnWarn()
 			}
 
 			if !runner.Quiet || exitCode != 0 {

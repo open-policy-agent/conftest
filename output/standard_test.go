@@ -10,13 +10,13 @@ import (
 func TestStandard(t *testing.T) {
 	tests := []struct {
 		name        string
-		input       []CheckResult
+		input       CheckResults
 		expected    []string
 		showSkipped bool
 	}{
 		{
 			name: "records failures, warnings and skipped",
-			input: []CheckResult{
+			input: CheckResults{
 				{
 					FileName:  "foo.yaml",
 					Namespace: "namespace",
@@ -34,7 +34,7 @@ func TestStandard(t *testing.T) {
 		},
 		{
 			name: "skips filenames for stdin",
-			input: []CheckResult{
+			input: CheckResults{
 				{
 					FileName:  "-",
 					Namespace: "namespace",
@@ -52,7 +52,7 @@ func TestStandard(t *testing.T) {
 		},
 		{
 			name: "records failures, warnings and skipped",
-			input: []CheckResult{
+			input: CheckResults{
 				{
 					FileName:  "foo.yaml",
 					Namespace: "namespace",
@@ -72,7 +72,7 @@ func TestStandard(t *testing.T) {
 		},
 		{
 			name: "skips filenames for stdin",
-			input: []CheckResult{
+			input: CheckResults{
 				{
 					FileName:  "-",
 					Namespace: "namespace",

@@ -9,7 +9,7 @@ import (
 // Outputter controls how results of an evaluation will
 // be recorded and reported to the end user.
 type Outputter interface {
-	Output([]CheckResult) error
+	Output(CheckResults) error
 	Report([]*tester.Result, string) error
 }
 

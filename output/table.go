@@ -24,7 +24,7 @@ func NewTable(w io.Writer) *Table {
 }
 
 // Output outputs the results.
-func (t *Table) Output(checkResults []CheckResult) error {
+func (t *Table) Output(checkResults CheckResults) error {
 	table := tablewriter.NewWriter(t.Writer)
 	table.SetHeader([]string{"result", "file", "namespace", "message"})
 

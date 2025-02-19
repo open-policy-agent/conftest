@@ -42,7 +42,7 @@ func NewStandard(w io.Writer) *Standard {
 }
 
 // Output outputs the results.
-func (s *Standard) Output(results []CheckResult) error {
+func (s *Standard) Output(results CheckResults) error {
 	colorizer := aurora.NewAurora(true)
 	if s.NoColor {
 		colorizer = aurora.NewAurora(false)
@@ -146,7 +146,7 @@ func (s *Standard) Output(results []CheckResult) error {
 	return nil
 }
 
-func (s *Standard) outputPrints(results []CheckResult, colorizer aurora.Aurora) {
+func (s *Standard) outputPrints(results CheckResults, colorizer aurora.Aurora) {
 	for _, result := range results {
 		for _, query := range result.Queries {
 			for _, t := range query.Outputs {
@@ -156,7 +156,7 @@ func (s *Standard) outputPrints(results []CheckResult, colorizer aurora.Aurora) 
 	}
 }
 
-func (s *Standard) outputTrace(results []CheckResult, colorizer aurora.Aurora) {
+func (s *Standard) outputTrace(results CheckResults, colorizer aurora.Aurora) {
 	for _, result := range results {
 		for _, query := range result.Queries {
 			var color aurora.Color

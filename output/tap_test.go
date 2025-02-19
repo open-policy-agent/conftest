@@ -9,12 +9,12 @@ import (
 func TestTAP(t *testing.T) {
 	tests := []struct {
 		name     string
-		input    []CheckResult
+		input    CheckResults
 		expected []string
 	}{
 		{
 			name: "no warnings or errors",
-			input: []CheckResult{
+			input: CheckResults{
 				{
 					FileName:  "examples/kubernetes/service.yaml",
 					Namespace: "namespace",
@@ -24,7 +24,7 @@ func TestTAP(t *testing.T) {
 		},
 		{
 			name: "records failure and warnings",
-			input: []CheckResult{
+			input: CheckResults{
 				{
 					FileName:  "examples/kubernetes/service.yaml",
 					Namespace: "namespace",
@@ -42,7 +42,7 @@ func TestTAP(t *testing.T) {
 		},
 		{
 			name: "mixed failure, warnings and skipped",
-			input: []CheckResult{
+			input: CheckResults{
 				{
 					FileName:  "examples/kubernetes/service.yaml",
 					Namespace: "namespace",
@@ -60,7 +60,7 @@ func TestTAP(t *testing.T) {
 		},
 		{
 			name: "handles stdin input",
-			input: []CheckResult{
+			input: CheckResults{
 				{
 					FileName:  "-",
 					Namespace: "namespace",
