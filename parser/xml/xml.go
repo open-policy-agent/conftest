@@ -12,7 +12,7 @@ import (
 type Parser struct{}
 
 // Unmarshal unmarshals XML files.
-func (xml *Parser) Unmarshal(p []byte, v interface{}) error {
+func (xml *Parser) Unmarshal(p []byte, v any) error {
 	res, err := x.Convert(bytes.NewReader(p))
 	if err != nil {
 		return fmt.Errorf("unmarshal xml: %w", err)

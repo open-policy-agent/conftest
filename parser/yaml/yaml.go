@@ -18,7 +18,7 @@ var (
 )
 
 // Unmarshal unmarshals YAML files.
-func (yp *Parser) Unmarshal(p []byte, v interface{}) error {
+func (yp *Parser) Unmarshal(p []byte, v any) error {
 	subDocuments := separateSubDocuments(p)
 	if len(subDocuments) > 1 {
 		if err := unmarshalMultipleDocuments(subDocuments, v); err != nil {
@@ -68,10 +68,10 @@ func separateSubDocuments(data []byte) [][]byte {
 	return parts
 }
 
-func unmarshalMultipleDocuments(subDocuments [][]byte, v interface{}) error {
-	var documentStore []interface{}
+func unmarshalMultipleDocuments(subDocuments [][]byte, v any) error {
+	var documentStore []any
 	for _, subDocument := range subDocuments {
-		var documentObject interface{}
+		var documentObject any
 		if err := yaml.Unmarshal(subDocument, &documentObject); err != nil {
 			return fmt.Errorf("unmarshal subdocument yaml: %w", err)
 		}

@@ -4,14 +4,14 @@ import "fmt"
 
 // Result describes the result of a single rule evaluation.
 type Result struct {
-	Message  string                 `json:"msg"`
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
-	Outputs  []string               `json:"outputs,omitempty"`
+	Message  string         `json:"msg"`
+	Metadata map[string]any `json:"metadata,omitempty"`
+	Outputs  []string       `json:"outputs,omitempty"`
 }
 
 // NewResult creates a new result. An error is returned if the
 // metadata could not be successfully parsed.
-func NewResult(metadata map[string]interface{}) (Result, error) {
+func NewResult(metadata map[string]any) (Result, error) {
 	if _, ok := metadata["msg"]; !ok {
 		return Result{}, fmt.Errorf("rule missing msg field: %v", metadata)
 	}
@@ -21,7 +21,7 @@ func NewResult(metadata map[string]interface{}) (Result, error) {
 
 	result := Result{
 		Message:  metadata["msg"].(string),
-		Metadata: make(map[string]interface{}),
+		Metadata: make(map[string]any),
 	}
 
 	for k, v := range metadata {

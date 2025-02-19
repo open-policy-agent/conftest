@@ -19,7 +19,7 @@ func (p *Parser) SetPath(path string) {
 }
 
 // Unmarshal unmarshals Jsonnet files.
-func (p *Parser) Unmarshal(data []byte, v interface{}) error {
+func (p *Parser) Unmarshal(data []byte, v any) error {
 	vm := jsonnet.MakeVM()
 	vm.ErrorFormatter.SetMaxStackTraceSize(20)
 

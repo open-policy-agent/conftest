@@ -13,9 +13,9 @@ import (
 type Parser struct{}
 
 // Unmarshal unmarshals HOCON files.
-func (i *Parser) Unmarshal(p []byte, v interface{}) error {
+func (i *Parser) Unmarshal(p []byte, v any) error {
 	rootCfg := configuration.ParseString(string(p))
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 
 	for _, key := range rootCfg.Root().GetObject().GetKeys() {
 		cfg := rootCfg.GetConfig(key)
@@ -34,8 +34,8 @@ func (i *Parser) Unmarshal(p []byte, v interface{}) error {
 	return nil
 }
 
-func getConfig(rootCfg, cfg *configuration.Config, path string) map[string]interface{} {
-	result := make(map[string]interface{})
+func getConfig(rootCfg, cfg *configuration.Config, path string) map[string]any {
+	result := make(map[string]any)
 
 	for _, key := range cfg.Root().GetObject().GetKeys() {
 		tmpKey := path + "." + key
@@ -50,7 +50,7 @@ func getConfig(rootCfg, cfg *configuration.Config, path string) map[string]inter
 	return result
 }
 
-func convertType(value *hocon.HoconValue) interface{} {
+func convertType(value *hocon.HoconValue) any {
 	str := value.String()
 	switch {
 	case isNumberLiteral(str):

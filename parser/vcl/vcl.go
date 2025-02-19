@@ -11,8 +11,8 @@ import (
 type Parser struct{}
 
 // Unmarshal unmarshals VCL files.
-func (p *Parser) Unmarshal(b []byte, v interface{}) error {
-	result := make(map[string]interface{})
+func (p *Parser) Unmarshal(b []byte, v any) error {
+	result := make(map[string]any)
 	if errs := vcl.Decode(b, &result); len(errs) > 0 {
 		return fmt.Errorf("decode vcl: %w", errs[0])
 	}

@@ -6,7 +6,7 @@ import (
 )
 
 func TestFormat(t *testing.T) {
-	configurations := make(map[string]interface{})
+	configurations := make(map[string]any)
 	config := struct {
 		Property string
 	}{
@@ -37,7 +37,7 @@ func TestFormat(t *testing.T) {
 }
 
 func TestFormatCombined(t *testing.T) {
-	configurations := make(map[string]interface{})
+	configurations := make(map[string]any)
 	config := struct {
 		Sut string
 	}{

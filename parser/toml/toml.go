@@ -10,7 +10,7 @@ import (
 type Parser struct{}
 
 // Unmarshal unmarshals TOML files.
-func (tp *Parser) Unmarshal(p []byte, v interface{}) error {
+func (tp *Parser) Unmarshal(p []byte, v any) error {
 	if err := toml.Unmarshal(p, v); err != nil {
 		return fmt.Errorf("unmarshal toml: %w", err)
 	}

@@ -36,7 +36,7 @@ type Command struct {
 }
 
 // Unmarshal unmarshals Dockerfiles
-func (dp *Parser) Unmarshal(p []byte, v interface{}) error {
+func (dp *Parser) Unmarshal(p []byte, v any) error {
 	r := bytes.NewReader(p)
 	res, err := parser.Parse(r)
 	if err != nil {

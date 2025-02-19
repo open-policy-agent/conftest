@@ -12,7 +12,7 @@ type Parser struct{}
 
 // Unmarshal unmarshals HCL files that are written using
 // version 2 of the HCL language.
-func (Parser) Unmarshal(p []byte, v interface{}) error {
+func (Parser) Unmarshal(p []byte, v any) error {
 	hclBytes, err := convert.Bytes(p, "", convert.Options{})
 	if err != nil {
 		return fmt.Errorf("convert to bytes: %w", err)

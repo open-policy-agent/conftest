@@ -11,7 +11,7 @@ func TestParser_Unmarshal(t *testing.T) {
 COPY . /
 RUN echo hello`
 
-	var input interface{}
+	var input any
 	if err := parser.Unmarshal([]byte(sample), &input); err != nil {
 		t.Fatalf("parser should not have thrown an error: %v", err)
 	}
@@ -20,11 +20,11 @@ RUN echo hello`
 		t.Error("there should be information parsed but its nil")
 	}
 
-	dockerFile := input.([]interface{})[0]
-	commands := dockerFile.([]interface{})[0]
+	dockerFile := input.([]any)[0]
+	commands := dockerFile.([]any)[0]
 
 	expected := "from"
-	actual := commands.(map[string]interface{})["Cmd"]
+	actual := commands.(map[string]any)["Cmd"]
 
 	if actual != expected {
 		t.Errorf("first Docker command should be '%v', was '%v'", expected, actual)
@@ -44,7 +44,7 @@ COPY . .
 FROM base as builder
 RUN go build -o conftest`
 
-	var input interface{}
+	var input any
 	if err := parser.Unmarshal([]byte(sample), &input); err != nil {
 		t.Fatalf("parser should not have thrown an error: %v", err)
 	}
@@ -53,17 +53,17 @@ RUN go build -o conftest`
 		t.Error("there should be information parsed but its nil")
 	}
 
-	dockerFile := input.([]interface{})[0]
-	commands := dockerFile.([]interface{})
+	dockerFile := input.([]any)[0]
+	commands := dockerFile.([]any)
 
 	cmd := commands[1]
-	stage := cmd.(map[string]interface{})["Stage"].(float64)
+	stage := cmd.(map[string]any)["Stage"].(float64)
 	if stage != 0 {
 		t.Errorf("expected command to be in stage 0, not stage: %v", stage)
 	}
 
 	cmd = commands[6]
-	stage = cmd.(map[string]interface{})["Stage"].(float64)
+	stage = cmd.(map[string]any)["Stage"].(float64)
 	if stage != 1 {
 		t.Errorf("expected command to be in stage 1, not stage: %v", stage)
 	}

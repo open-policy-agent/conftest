@@ -12,7 +12,7 @@ import (
 type Parser struct{}
 
 // Unmarshal unmarshals SPDX files.
-func (*Parser) Unmarshal(p []byte, v interface{}) error {
+func (*Parser) Unmarshal(p []byte, v any) error {
 	doc, err := tagvalue.Read(bytes.NewBuffer(p))
 	if err != nil {
 		return fmt.Errorf("error while parsing %v: %v", p, err)

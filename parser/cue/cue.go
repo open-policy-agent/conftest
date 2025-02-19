@@ -12,7 +12,7 @@ import (
 type Parser struct{}
 
 // Unmarshal unmarshals CUE files.
-func (*Parser) Unmarshal(p []byte, v interface{}) error {
+func (*Parser) Unmarshal(p []byte, v any) error {
 	out, err := cformat.Source(p)
 	if err != nil {
 		return fmt.Errorf("format cue: %w", err)

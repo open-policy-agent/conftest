@@ -13,7 +13,7 @@ func TestYAMLParser(t *testing.T) {
 		testTable := []struct {
 			name           string
 			controlConfigs []byte
-			expectedResult interface{}
+			expectedResult any
 			shouldError    bool
 		}{
 			{
@@ -25,7 +25,7 @@ func TestYAMLParser(t *testing.T) {
 			{
 				name:           "a single config",
 				controlConfigs: []byte(`sample: true`),
-				expectedResult: map[string]interface{}{
+				expectedResult: map[string]any{
 					"sample": true,
 				},
 				shouldError: false,
@@ -38,14 +38,14 @@ sample: true
 hello: true
 ---
 nice: true`),
-				expectedResult: []interface{}{
-					map[string]interface{}{
+				expectedResult: []any{
+					map[string]any{
 						"sample": true,
 					},
-					map[string]interface{}{
+					map[string]any{
 						"hello": true,
 					},
-					map[string]interface{}{
+					map[string]any{
 						"nice": true,
 					},
 				},
@@ -59,14 +59,14 @@ sample: true
 hello: true
 ---
 nice: true`, "\n", "\r\n")),
-				expectedResult: []interface{}{
-					map[string]interface{}{
+				expectedResult: []any{
+					map[string]any{
 						"sample": true,
 					},
-					map[string]interface{}{
+					map[string]any{
 						"hello": true,
 					},
-					map[string]interface{}{
+					map[string]any{
 						"nice": true,
 					},
 				},
@@ -90,7 +90,7 @@ also_valid: true`),
 				controlConfigs: []byte(`%YAML 1.1
 ---
 group_id: 1234`),
-				expectedResult: map[string]interface{}{
+				expectedResult: map[string]any{
 					"group_id": float64(1234),
 				},
 				shouldError: false,
@@ -104,14 +104,14 @@ group_id: 1234
 other_id: 5678
 ---
 third_id: 9012`),
-				expectedResult: []interface{}{
-					map[string]interface{}{
+				expectedResult: []any{
+					map[string]any{
 						"group_id": float64(1234),
 					},
-					map[string]interface{}{
+					map[string]any{
 						"other_id": float64(5678),
 					},
-					map[string]interface{}{
+					map[string]any{
 						"third_id": float64(9012),
 					},
 				},
@@ -121,7 +121,7 @@ third_id: 9012`),
 
 		for _, test := range testTable {
 			t.Run(test.name, func(t *testing.T) {
-				var unmarshalledConfigs interface{}
+				var unmarshalledConfigs any
 				yamlParser := new(yaml.Parser)
 
 				err := yamlParser.Unmarshal(test.controlConfigs, &unmarshalledConfigs)

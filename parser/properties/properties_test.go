@@ -11,7 +11,7 @@ func TestPropertiesParser(t *testing.T) {
 ! some comment=not-a-prop
 my-property=some-value`
 
-	var input interface{}
+	var input any
 	if err := parser.Unmarshal([]byte(sample), &input); err != nil {
 		t.Errorf("parser should not have thrown an error: %v", err)
 	}
@@ -20,7 +20,7 @@ my-property=some-value`
 		t.Errorf("there should be information parsed but its nil")
 	}
 
-	inputMap := input.(map[string]interface{})
+	inputMap := input.(map[string]any)
 	myProp := inputMap["my-property"].(string)
 	if myProp != "some-value" {
 		t.Errorf("Failed to parse property: %s", myProp)

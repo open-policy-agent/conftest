@@ -63,7 +63,7 @@ const sample = `provider "google" {
   }`
 
 func TestHcl1Parser(t *testing.T) {
-	var input interface{}
+	var input any
 	parser := &Parser{}
 	sampleFileBytes := []byte(sample)
 	if err := parser.Unmarshal(sampleFileBytes, &input); err != nil {
@@ -74,8 +74,8 @@ func TestHcl1Parser(t *testing.T) {
 		t.Error("there should be information parsed but its nil")
 	}
 
-	inputMap := input.(map[string]interface{})
-	if len(inputMap["resource"].([]map[string]interface{})) == 0 {
+	inputMap := input.(map[string]any)
+	if len(inputMap["resource"].([]map[string]any)) == 0 {
 		t.Error("there should be resources defined in the parsed file, but none found")
 	}
 }
