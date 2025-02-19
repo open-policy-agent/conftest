@@ -19,19 +19,21 @@ import (
 	"github.com/open-policy-agent/opa/storage"
 	"github.com/open-policy-agent/opa/storage/inmem"
 	"github.com/open-policy-agent/opa/topdown"
+	"github.com/open-policy-agent/opa/topdown/cache"
 	"github.com/open-policy-agent/opa/topdown/print"
 	"github.com/open-policy-agent/opa/version"
 )
 
 // Engine represents the policy engine.
 type Engine struct {
-	trace         bool
-	builtinErrors bool
-	modules       map[string]*ast.Module
-	compiler      *ast.Compiler
-	store         storage.Store
-	policies      map[string]string
-	docs          map[string]string
+	trace                 bool
+	builtinErrors         bool
+	modules               map[string]*ast.Module
+	compiler              *ast.Compiler
+	store                 storage.Store
+	policies              map[string]string
+	docs                  map[string]string
+	enableInterQueryCache bool
 }
 
 // CompilerOptions defines the options for the Rego compiler.
@@ -169,6 +171,10 @@ func (e *Engine) EnableTracing() {
 
 func (e *Engine) ShowBuiltinErrors() {
 	e.builtinErrors = true
+}
+
+func (e *Engine) EnableInterQueryCache() {
+	e.enableInterQueryCache = true
 }
 
 // Check executes all of the loaded policies against the input and returns the results.
@@ -453,6 +459,9 @@ func (e *Engine) query(ctx context.Context, input any, query string) (output.Que
 		rego.Trace(e.trace),
 		rego.PrintHook(ph),
 		rego.BuiltinErrorList(builtInErrors),
+	}
+	if e.enableInterQueryCache {
+		options = append(options, rego.InterQueryBuiltinCache(cache.NewInterQueryCacheWithContext(ctx, nil)))
 	}
 
 	regoInstance := rego.New(options...)
