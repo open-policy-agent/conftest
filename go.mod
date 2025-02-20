@@ -20,10 +20,11 @@ require (
 	github.com/jstemmer/go-junit-report v1.0.0
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/magiconair/properties v1.8.9
-	github.com/moby/buildkit v0.19.0
+	github.com/moby/buildkit v0.20.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/open-policy-agent/opa v1.1.0
 	github.com/opencontainers/image-spec v1.1.0
+	github.com/owenrumney/go-sarif/v2 v2.3.3
 	github.com/pkg/errors v0.9.1
 	github.com/shteou/go-ignore v0.3.1
 	github.com/spdx/tools-golang v0.5.5
@@ -31,7 +32,7 @@ require (
 	github.com/spf13/viper v1.18.2
 	github.com/subosito/gotenv v1.6.0
 	github.com/tmccombs/hcl2json v0.3.1
-	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0
+	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f
 	google.golang.org/protobuf v1.36.3
 	muzzammil.xyz/jsonc v1.0.0
 	olympos.io/encoding/edn v0.0.0-20201019073823-d3554ca0b0a3
@@ -85,7 +86,6 @@ require (
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
-	github.com/owenrumney/go-sarif/v2 v2.3.3 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
 	github.com/prometheus/client_golang v1.20.5 // indirect
