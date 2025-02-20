@@ -48,6 +48,16 @@ jobs:
             VERSION=${{ steps.get-version.outputs.VERSION }}
           tags: |
             ${{ env.IMAGE }}:${{ steps.get-version.outputs.VERSION }}
+          platforms: ${{ env.PLATFORMS }}
+
+      - name: Build and push Docker latest image
+        uses: docker/build-push-action@v6 
+        with:
+          context: .
+          push: true
+          build-args: |
+            VERSION=${{ steps.get-version.outputs.VERSION }}
+          tags: |
             ${{ env.IMAGE }}:latest
           platforms: ${{ env.PLATFORMS }}
 
