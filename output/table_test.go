@@ -9,12 +9,12 @@ import (
 func TestTable(t *testing.T) {
 	tests := []struct {
 		name     string
-		input    []CheckResult
+		input    CheckResults
 		expected []string
 	}{
 		{
 			name: "No warnings or errors",
-			input: []CheckResult{
+			input: CheckResults{
 				{
 					FileName: "examples/kubernetes/service.yaml",
 				},
@@ -23,7 +23,7 @@ func TestTable(t *testing.T) {
 		},
 		{
 			name: "A warning, a failure, a skipped",
-			input: []CheckResult{
+			input: CheckResults{
 				{
 					FileName:  "examples/kubernetes/service.yaml",
 					Namespace: "namespace",

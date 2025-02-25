@@ -35,7 +35,7 @@ const (
 )
 
 // Run executes the Rego tests for the given policies.
-func (r *VerifyRunner) Run(ctx context.Context) ([]output.CheckResult, []*tester.Result, error) {
+func (r *VerifyRunner) Run(ctx context.Context) (output.CheckResults, []*tester.Result, error) {
 	capabilities, err := policy.LoadCapabilities(r.Capabilities)
 	if err != nil {
 		return nil, nil, fmt.Errorf("load capabilities: %w", err)
@@ -52,7 +52,6 @@ func (r *VerifyRunner) Run(ctx context.Context) ([]output.CheckResult, []*tester
 
 	// Traces should be enabled when Trace or Report options are on
 	enableTracing := r.Trace || r.IsReportOptionOn()
-
 	if enableTracing {
 		engine.EnableTracing()
 	}
@@ -69,7 +68,7 @@ func (r *VerifyRunner) Run(ctx context.Context) ([]output.CheckResult, []*tester
 		return nil, nil, fmt.Errorf("running tests: %w", err)
 	}
 
-	var results []output.CheckResult
+	var results output.CheckResults
 	var rawResults []*tester.Result
 	for result := range ch {
 		if result.Error != nil {
