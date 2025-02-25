@@ -76,6 +76,7 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) (output.CheckRe
 	if err != nil {
 		return nil, fmt.Errorf("load: %w", err)
 	}
+	engine.EnableInterQueryCache()
 
 	if t.Trace {
 		engine.EnableTracing()
