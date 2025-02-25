@@ -47,7 +47,7 @@ jobs:
           build-args: |
             VERSION=${{ steps.get-version.outputs.VERSION }}
           tags: |
-            ${{ env.IMAGE }}:${{ env.VERSION }}
+            ${{ env.IMAGE }}:${{ steps.get-version.outputs.VERSION }}
             ${{ env.IMAGE }}:latest
           platforms: ${{ env.PLATFORMS }}
 
