@@ -4,6 +4,9 @@ on:
   push:
     tags:
       - 'v*'
+env:
+  IMAGE: openpolicyagent/conftest
+  PLATFORMS: linux/amd64,linux/arm64
 
 jobs:
   release:
@@ -36,10 +39,27 @@ jobs:
       - name: setup docker buildx
         run: docker buildx create --name conftestbuild --use
 
-      - name: push images
-        env:
-          VERSION: ${{ steps.get-version.outputs.VERSION }}
-        run: make push TAG=$VERSION
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6 
+        with:
+          context: .
+          push: true
+          build-args: |
+            VERSION=${{ steps.get-version.outputs.VERSION }}
+          tags: |
+            ${{ env.IMAGE }}:${{ steps.get-version.outputs.VERSION }}
+            ${{ env.IMAGE }}:latest
+          platforms: ${{ env.PLATFORMS }}
+
+      - name: Build and push examples image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          target: examples
+          tags: |
+            ${{ env.IMAGE }}:examples
+          platforms: ${{ env.PLATFORMS }}
 
       - name: setup go
         uses: actions/setup-go@v4
