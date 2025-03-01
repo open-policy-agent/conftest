@@ -330,6 +330,25 @@ $ conftest test --proto-file-dirs examples/textproto/protos -p examples/textprot
 {"version":"2.1.0","$schema":"https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json","runs":[{"tool":{"driver":{"informationUri":"https://github.com/open-policy-agent/conftest","name":"conftest","rules":[{"id":"main/deny","shortDescription":{"text":"Policy violation"}}]}},"invocations":[{"executionSuccessful":true,"exitCode":1,"exitCodeDescription":"Policy violations found"}],"results":[{"ruleId":"main/deny","ruleIndex":0,"level":"error","message":{"text":"fail: Power level must be over 9000"},"locations":[{"physicalLocation":{"artifactLocation":{"uri":"examples/textproto/fail.textproto"}}}]}]}]}
 ```
 
+## `--trace`
+
+When debugging policies, it can be useful to see exactly how the policy is being evaluated. The `--trace` flag provides detailed output showing how the Rego queries are processed.
+
+**Important**: The `--trace` flag only works with the default standard output format (`--output=stdout`). When both `--trace` and `--output` are specified, the output format takes priority and tracing will not be used.
+
+Example usage:
+
+```console
+$ conftest test --trace deployment.yaml
+file: deployment.yaml | query: data.main.deny
+TRAC Enter data.main.deny = _
+TRAC | Eval data.main.deny = _
+TRAC | Index data.main.deny = _ matched 3 rules)
+TRAC | Enter data.main.deny
+TRAC | | Eval data.kubernetes.is_deployment
+...
+```
+
 ## `--parser`
 
 Conftest normally detects which parser to used based on the file extension of the file, even when multiple input files are passed in. However, it is possible force a specific parser to be used with the `--parser` flag.
