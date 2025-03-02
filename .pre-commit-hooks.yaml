@@ -1,0 +1,19 @@
+- id: conftest-test
+  name: Conftest Test Policy Check
+  description: Validate configuration files against Open Policy Agent policies using Conftest
+  entry: conftest test
+  language: golang
+  pass_filenames: true
+  require_serial: true
+  minimum_pre_commit_version: "2.9.0"
+  stages: [pre-commit, pre-merge-commit, pre-push, manual]
+
+- id: conftest-verify
+  name: Conftest Verify Policy Tests
+  description: Run Rego unit tests for Conftest policies
+  entry: conftest verify
+  language: golang
+  pass_filenames: false
+  require_serial: true
+  minimum_pre_commit_version: "2.9.0"
+  stages: [pre-commit, pre-merge-commit, pre-push, manual]
