@@ -175,6 +175,18 @@ func (s *Standard) outputTrace(results CheckResults, colorizer aurora.Aurora) {
 	}
 }
 
+// outputTraceOnly outputs only the trace information to the writer
+// This is used by the TraceOutputter to output trace to stderr
+func (s *Standard) outputTraceOnly(results CheckResults) error {
+	colorizer := aurora.NewAurora(true)
+	if s.NoColor {
+		colorizer = aurora.NewAurora(false)
+	}
+
+	s.outputTrace(results, colorizer)
+	return nil
+}
+
 // Report outputs results similar to OPA test output
 func (s *Standard) Report(results []*tester.Result, flag string) error {
 	reporter := tester.PrettyReporter{

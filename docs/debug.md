@@ -108,3 +108,17 @@ TRAC | Exit data.main.deny = _
 TRAC Redo data.main.deny = _
 TRAC | Redo data.main.deny = _
 ```
+
+## Using trace with other output formats
+
+You can use the `--trace` flag together with any output format. When using `--trace` with formats like `--output=table` or `--output=json`, the trace information will be written to stderr while the formatted output will be written to stdout. This allows you to capture trace information for debugging while still using your preferred output format.
+
+For example:
+
+```console
+# Output trace to stderr and table format to stdout
+$ conftest test --trace --output=table deployment.yaml
+
+# Capture trace output to a file while viewing table output
+$ conftest test --trace --output=table deployment.yaml 2>trace.log
+```
