@@ -24,7 +24,7 @@ EOF
     # Update ref to latest commit
     run pre-commit autoupdate --bleeding-edge
     # Install the pre-commit hooks
-    run pre-commit try-repo . --verbose
+    run pre-commit try-repo .
     run pre-commit install --install-hooks
     [ "$status" -eq 0 ]
 }
