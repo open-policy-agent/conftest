@@ -29,6 +29,16 @@ EOF
     [ "$status" -eq 0 ]
 }
 
+teardown_file() {
+    cd "$DIR/../.."
+    # Remove the pre-commit config file created during setup
+    rm -f .pre-commit-config.yaml
+
+    # Uninstall the pre-commit hooks
+    run pre-commit uninstall
+    [ "$status" -eq 0 ]
+}
+
 @test "pre-commit: test hook validates as expected" {
     cd "$DIR/../.."
     run pre-commit run conftest-test --files examples/kubernetes/deployment.yaml
