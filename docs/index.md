@@ -84,6 +84,28 @@ As of today Conftest supports:
 * XML
 * YAML
 
+### Pre-commit Integration
+
+Conftest can be used as a [pre-commit](https://pre-commit.com/) hook to validate your configuration files before committing them.
+
+To use Conftest with pre-commit, add the following to your `.pre-commit-config.yaml`:
+
+```yaml
+repos:
+  - repo: https://github.com/open-policy-agent/conftest
+    rev: v0.59.0  # Use a specific tag or 'HEAD' for the latest commit
+    hooks:
+      - id: conftest-test
+        args: [--policy, path/to/your/policies]  # Specify your policy directory
+      # Optional: Add the verify hook to run policy unit tests
+      - id: conftest-verify
+        args: [--policy, path/to/your/policies]
+```
+
+The `conftest-test` hook validates your configuration files against policies, while the `conftest-verify` hook runs unit tests for your policies.
+
+For more information on pre-commit hooks, refer to the [pre-commit documentation](https://pre-commit.com/).
+
 ### Testing/Verifying Policies
 
 When authoring policies, it is helpful to test them. Consult the Rego [testing documentation](https://www.openpolicyagent.org/docs/latest/policy-testing)
