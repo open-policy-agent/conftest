@@ -73,14 +73,13 @@ jobs:
       - name: unit test
         run: make test
 
+      # Ensure Actions runner has Python installed
+      # This is required for pre-commit tests to work
       - name: setup python
         uses: actions/setup-python@v5
         with:
           python-version: '3.13'
           cache: 'pip'
-
-      - name: setup pre-commit
-        run: python -m pip install -r requirements-dev.txt
 
       - name: setup bats
         uses: bats-core/bats-action@1.5.4
