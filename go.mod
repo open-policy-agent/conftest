@@ -5,7 +5,7 @@ go 1.23.6
 toolchain go1.24.1
 
 require (
-	cuelang.org/go v0.12.0
+	cuelang.org/go v0.12.1
 	github.com/BurntSushi/toml v1.5.0
 	github.com/CycloneDX/cyclonedx-go v0.9.2
 	github.com/KeisukeYamashita/go-vcl v0.4.0
