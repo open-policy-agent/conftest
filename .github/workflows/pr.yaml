@@ -2,7 +2,12 @@ name: pr
 
 on: [pull_request]
 
+
 permissions: {}
+
+env:
+  IMAGE: openpolicyagent/conftest
+  PLATFORMS: linux/amd64,linux/arm64
 
 jobs:
   style:
@@ -59,6 +64,18 @@ jobs:
 
       - name: build
         run: make build
+
+      - name: setup docker buildx
+        run: docker buildx create --name conftestbuild --use
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6 
+        with:
+          context: .
+          push: false
+          tags: |
+            ${{ env.IMAGE }}:latest
+          platforms: ${{ env.PLATFORMS }}
 
       - name: unit test
         run: make test
