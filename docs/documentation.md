@@ -32,7 +32,7 @@ conftest doc path/to/policy
 
 ## Use your own template
 
-You can override the [default template](../document/resources/document.md) with your own template
+You can override the [default template](https://raw.githubusercontent.com/open-policy-agent/conftest/refs/heads/master/document/resources/document.md) with your own template
 
 ```aiignore
 conftest -t template.md path/tp/policies
