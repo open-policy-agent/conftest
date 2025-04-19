@@ -65,10 +65,19 @@ It expects one or more urls to fetch the latest policies from, e.g.:
 See the pull command for more details on supported protocols for fetching policies.
 
 When debugging policies it can be useful to use a more verbose policy evaluation output. By using the '--trace' flag
-the output will include a detailed trace of how the policy was evaluated. When both '--trace' and '--output' are specified,
-the output format takes priority and tracing will not be used.
+the output will include a detailed trace of how the policy was evaluated. The trace output will be written to stderr,
+while the regular output will be written to stdout. This allows you to use the '--trace' flag together with any output
+format, including table, JSON, etc. With the default output format, trace output will be written to stdout for backwards
+compatibility reasons.
 
+    # Trace output in stdout
 	$ conftest test --trace <input-file>
+
+	# Trace output in stderr with any non-standard output format
+	$ conftest test --trace --output=table <input-file>
+
+	# Redirect trace output to a file while viewing formatted output
+	$ conftest test --trace --output=json <input-file> 2>trace.log
 `
 
 // TestRun stores the compiler and store for a test run.
