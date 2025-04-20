@@ -67,13 +67,12 @@ See the pull command for more details on supported protocols for fetching polici
 When debugging policies it can be useful to use a more verbose policy evaluation output. By using the '--trace' flag
 the output will include a detailed trace of how the policy was evaluated. The trace output will be written to stderr,
 while the regular output will be written to stdout. This allows you to use the '--trace' flag together with any output
-format, including table, JSON, etc. With the default output format, trace output will be written to stdout for backwards
-compatibility reasons.
+format, including table, JSON, etc.
 
-    # Trace output in stdout
+    # Trace output
 	$ conftest test --trace <input-file>
 
-	# Trace output in stderr with any non-standard output format
+	# Trace output with any non-standard output format
 	$ conftest test --trace --output=table <input-file>
 
 	# Redirect trace output to a file while viewing formatted output

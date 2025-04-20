@@ -43,9 +43,9 @@ func Get(format string, options Options) Outputter {
 		options.File = os.Stdout
 	}
 
-	// If tracing is enabled and we're not using standard output,
-	// output trace to stderr first, then return the requested outputter
-	if options.Tracing && format != OutputStandard {
+	// If tracing is enabled, output trace to stderr first,
+	// then return the requested outputter
+	if options.Tracing {
 		traceHandler := &Standard{
 			Writer:  os.Stderr,
 			NoColor: options.NoColor,
@@ -56,7 +56,7 @@ func Get(format string, options Options) Outputter {
 		return newTraceOutputter(traceHandler, newOutputter(format, options))
 	}
 
-	// If no tracing or using standard output, return the regular outputter
+	// If no tracing, return the regular outputter
 	return newOutputter(format, options)
 }
 

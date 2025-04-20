@@ -76,8 +76,8 @@ func TestGetOutputter(t *testing.T) {
 		t.Run(testCase.input, func(t *testing.T) {
 			actual := Get(testCase.input, Options{NoColor: true, Tracing: testCase.tracing})
 
-			// If tracing is enabled and not standard output, we expect a traceOutputter
-			if testCase.tracing && testCase.input != OutputStandard {
+			// If tracing is enabled, we expect a traceOutputter
+			if testCase.tracing {
 				if _, ok := actual.(*traceOutputter); !ok {
 					t.Errorf("Expected traceOutputter but got %T", actual)
 				}
