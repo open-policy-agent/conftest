@@ -13,7 +13,7 @@ type Parser struct{}
 func (pp *Parser) Unmarshal(p []byte, v any) error {
 	rawProps, err := prop.LoadString(string(p))
 	if err != nil {
-		return fmt.Errorf("Could not parse properties file: %w", err)
+		return fmt.Errorf("parse properties file: %w", err)
 	}
 
 	result := rawProps.Map()
