@@ -156,7 +156,7 @@ func getWalkFn(visitedDirs map[string]bool, files *[]string, ignoreRegex string,
 		}
 
 		if info.IsDir() {
-			if _, ok := visitedDirs[currentPath]; ok {
+			if visitedDirs[currentPath] {
 				return filepath.SkipDir
 			}
 			visitedDirs[currentPath] = true
