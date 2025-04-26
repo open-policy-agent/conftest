@@ -521,3 +521,12 @@ EOF"
   [ "$status" -eq 1 ]
   [[ "$output" =~ "look up message type" ]]
 }
+
+@test "Can parse files from a symlinked directory" {
+  TMPDIR="$(mktemp -d -u)"
+  ln -s $(pwd)/examples/hcl2 ${TMPDIR}
+  run ./conftest test -p examples/hcl2/policy ${TMPDIR}
+  rm -rf ${TMPDIR}
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "10 tests, 3 passed, 0 warnings, 7 failures, 0 exceptions" ]]
+}
