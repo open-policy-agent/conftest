@@ -43,9 +43,34 @@ func Get(format string, options Options) Outputter {
 		options.File = os.Stdout
 	}
 
+	// If tracing is enabled, output trace to stderr first,
+	// then return the requested outputter
+	if options.Tracing {
+		traceHandler := &Standard{
+			Writer:  os.Stderr,
+			NoColor: options.NoColor,
+			Tracing: true,
+		}
+
+		// Return a trace outputter that handles both trace and regular output
+		return newTraceOutputter(traceHandler, newOutputter(format, options))
+	}
+
+	// If no tracing, return the regular outputter
+	return newOutputter(format, options)
+}
+
+// newOutputter creates an outputter based on the format and options
+func newOutputter(format string, options Options) Outputter {
 	switch format {
 	case OutputStandard:
-		return &Standard{Writer: options.File, NoColor: options.NoColor, SuppressExceptions: options.SuppressExceptions, Tracing: options.Tracing, ShowSkipped: options.ShowSkipped}
+		return &Standard{
+			Writer:             options.File,
+			NoColor:            options.NoColor,
+			SuppressExceptions: options.SuppressExceptions,
+			Tracing:            options.Tracing,
+			ShowSkipped:        options.ShowSkipped,
+		}
 	case OutputJSON:
 		return NewJSON(options.File)
 	case OutputTAP:
@@ -63,6 +88,36 @@ func Get(format string, options Options) Outputter {
 	default:
 		return NewStandard(options.File)
 	}
+}
+
+// traceOutputter handles outputting trace to stderr while sending regular output to stdout
+type traceOutputter struct {
+	traceHandler  *Standard
+	mainOutputter Outputter
+}
+
+// newTraceOutputter creates a new traceOutputter with the given trace handler and main outputter
+func newTraceOutputter(traceHandler *Standard, mainOutputter Outputter) *traceOutputter {
+	return &traceOutputter{
+		traceHandler:  traceHandler,
+		mainOutputter: mainOutputter,
+	}
+}
+
+// Output outputs the results, handling trace separately
+func (t *traceOutputter) Output(results CheckResults) error {
+	// First, output trace to stderr
+	if err := t.traceHandler.outputTraceOnly(results); err != nil {
+		return err
+	}
+
+	// Then, output regular format to stdout
+	return t.mainOutputter.Output(results)
+}
+
+// Report passes through to the main outputter
+func (t *traceOutputter) Report(results []*tester.Result, flag string) error {
+	return t.mainOutputter.Report(results, flag)
 }
 
 // Outputs returns the available output formats.
