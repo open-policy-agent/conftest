@@ -5,10 +5,10 @@ There might be cases where rules might not apply under certain circumstances. Fo
 Inputs matched by the `exception` will be exempted from the rules specified in `rules`, prefixed by `deny_` or `violation_`:
 
 ```rego
-exception[rules] {
+exception contains rules if {
   # Logic
 
-  rules = ["foo","bar"]
+  rules := ["foo","bar"]
 }
 ```
 
@@ -29,14 +29,14 @@ In the below example, a Kubernetes deployment named `can-run-as-root` will be al
 ```rego
 package main
 
-deny_run_as_root[msg] {
+deny_run_as_root contains msg if {
   input.kind == "Deployment"
   not input.spec.template.spec.securityContext.runAsNonRoot
 
   msg := "Containers must not run as root"
 }
 
-exception[rules] {
+exception contains rules if {
   input.kind == "Deployment"
   input.metadata.name == "can-run-as-root"
 
