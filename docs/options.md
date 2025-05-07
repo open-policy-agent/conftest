@@ -35,7 +35,7 @@ Save the following as `policy/combine.rego`:
 ```rego
 package main
 
-deny[msg] {
+deny contains msg if {
   input[i].contents.kind == "Deployment"
 
   deployment := input[i].contents
@@ -45,7 +45,7 @@ deny[msg] {
   msg := sprintf("Deployment %v with selector %v does not match any Services", [deployment.metadata.name, deployment.spec.selector.matchLabels])
 }
 
-service_selects_app(app) {
+service_selects_app(app) if {
   input[service].contents.kind == "Service"
   input[service].contents.spec.selector.app == app
 }

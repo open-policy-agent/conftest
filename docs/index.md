@@ -15,14 +15,14 @@ For instance, save the following as `policy/deployment.rego`:
 ```rego
 package main
 
-deny[msg] {
+deny contains msg if {
   input.kind == "Deployment"
   not input.spec.template.spec.securityContext.runAsNonRoot
 
   msg := "Containers must not run as root"
 }
 
-deny[msg] {
+deny contains msg if {
   input.kind == "Deployment"
   not input.spec.selector.matchLabels.app
 
@@ -127,7 +127,7 @@ When writing unit tests, it is common to use the `with` keyword to override the
 `input` and `data` documents. For example:
 
 ```rego
-test_foo {
+test_foo if {
   input := {
     "abc": 123,
     "foo": ["bar", "baz"],
@@ -157,7 +157,7 @@ in a unit test.
 **deny.rego**
 
 ```rego
-deny[msg] {
+deny contains msg if {
   proto := input.resource.aws_alb_listener[lb].protocol
   proto == "HTTP"
   msg = sprintf("ALB `%v` is using HTTP rather than HTTPS", [lb])
