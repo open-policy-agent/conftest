@@ -55,12 +55,21 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) (output.CheckRe
 		return nil, fmt.Errorf("parse configurations: %w", err)
 	}
 
-	// When there are policies to download, they are currently placed in the first
-	// directory that appears in the list of policies.
+	// When there are policies to download, they are placed in temporary
+	// directory which is passed to the policy engine.
+	// Downloaded policies are removed after the Run to keep the system intact.
 	if len(t.Update) > 0 {
-		if err := downloader.Download(ctx, t.Policy[0], t.Update); err != nil {
+		policyDir, err := os.MkdirTemp(".", "remote-policy-")
+		if err != nil {
+			return nil, fmt.Errorf("create temp dir: %w", err)
+		}
+		defer os.RemoveAll(policyDir)
+
+		if err := downloader.Download(ctx, policyDir, t.Update); err != nil {
 			return nil, fmt.Errorf("update policies: %w", err)
 		}
+
+		t.Policy = append(t.Policy, policyDir)
 	}
 
 	capabilities, err := policy.LoadCapabilities(t.Capabilities)
