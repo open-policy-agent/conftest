@@ -15,14 +15,14 @@ Here's a quick example. Save the following as `policy/deployment.rego`:
 ```rego
 package main
 
-deny[msg] {
+deny contains msg if {
   input.kind == "Deployment"
   not input.spec.template.spec.securityContext.runAsNonRoot
 
   msg := "Containers must not run as root"
 }
 
-deny[msg] {
+deny contains msg if {
   input.kind == "Deployment"
   not input.spec.selector.matchLabels.app
 
