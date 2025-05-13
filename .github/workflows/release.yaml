@@ -11,6 +11,9 @@ env:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Needed to create GitHub releases.
+      id-token: write # Used for Sigstore OIDC.
     steps:
       - name: checkout source
         uses: actions/checkout@v4
@@ -83,3 +86,17 @@ jobs:
           version: "~> v1"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: setup cosign
+        uses: sigstore/cosign-installer@e9a05e6d32d7ed22b5656cd874ef31af58d05bfa # 3.8.2
+        with:
+          cosign-release: 'v2.5.0'
+
+      - name: sign checksums
+        run: cosign sign-blob checksums.txt --yes
+        working-directory: dist # Folder used by GoReleaser for build artifacts
+
+      - name: sign container image
+        env:
+          CONFTEST_VERSION: ${{ steps.get-version.outputs.VERSION }}
+        run: cosign sign "$IMAGE:$CONFTEST_VERSION" --yes
