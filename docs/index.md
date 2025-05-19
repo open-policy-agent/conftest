@@ -158,9 +158,10 @@ in a unit test.
 
 ```rego
 deny contains msg if {
-  proto := input.resource.aws_alb_listener[lb].protocol
-  proto == "HTTP"
-  msg = sprintf("ALB `%v` is using HTTP rather than HTTPS", [lb])
+  some name
+  some lb in input.resource.aws_alb_listener[name]
+  lb.protocol == "HTTP"
+  msg = sprintf("ALB `%v` is using HTTP rather than HTTPS", [name])
 }
 ```
 
@@ -169,16 +170,16 @@ deny contains msg if {
 ```rego
 # "not deny" doesn't work because deny is a set.
 # Instead we need to define "no_violations" to be true when `deny` is empty.
-empty(value) {
+empty(value) if {
   count(value) == 0
 }
 
-no_violations {
+no_violations if {
   empty(deny)
 }
 
 # Now the actual tests start
-test_fails_with_http_alb {
+test_fails_with_http_alb if {
   cfg := parse_config("hcl2", `
     resource "aws_alb_listener" "name" {
       protocol = "HTTP"
@@ -187,7 +188,7 @@ test_fails_with_http_alb {
   deny["ALB `name` is using HTTP rather than HTTPS"] with input as cfg
 }
 
-test_allow_with_alb_https {
+test_allow_with_alb_https if {
   cfg := parse_config("hcl2", `
     resource "aws_alb_listener" "lb_with_https" {
       protocol = "HTTPS"
@@ -196,7 +197,7 @@ test_allow_with_alb_https {
   no_violations with input as cfg
 }
 
-test_deny_alb_protocol_unspecified {
+test_deny_alb_protocol_unspecified if {
   cfg := parse_config("hcl2", `
     resource "aws_alb_listener" "lb_with_unspecified_protocol" {
       foo = "bar"
@@ -224,7 +225,7 @@ disks with encryption disabled.
 **deny.rego**
 
 ```rego
-deny[msg] {
+deny contains msg if {
   disk = input.resource.azurerm_managed_disk[name]
   has_field(disk, "encryption_settings")
   disk.encryption_settings.enabled != true
@@ -235,7 +236,7 @@ deny[msg] {
 **deny_test.rego**
 
 ```rego
-test_unencrypted_azure_disk {
+test_unencrypted_azure_disk if {
   cfg := parse_config_file("unencrypted_azure_disk.tf")
   deny with input as cfg
 }
@@ -258,7 +259,7 @@ You may have noticed earlier the weird looking test:
 
 ```rego
 # Now the actual tests start
-test_fails_with_http_alb {
+test_fails_with_http_alb if {
   cfg := parse_config("hcl2", `
     resource "aws_alb_listener" "name" {
       protocol = "HTTP"
@@ -275,10 +276,11 @@ There is an alternative to this, which is to use `deny_` as a prefix, instead of
 **deny_v2.rego**
 
 ```rego
-deny_alb_http[msg] {
-  proto := input.resource.aws_alb_listener[lb].protocol
-  proto == "HTTP"
-  msg = sprintf("ALB `%v` is using HTTP rather than HTTPS", [lb])
+deny_alb_http contains msg if {
+  some name
+  some lb in input.resource.aws_alb_listener[name]
+  lb.protocol == "HTTP"
+  msg = sprintf("ALB `%v` is using HTTP rather than HTTPS", [name])
 }
 ```
 
@@ -287,7 +289,7 @@ And then we can test specifically that rule with
 **deny_v2_test.rego**
 
 ```rego
-test_fails_with_http_alb {
+test_fails_with_http_alb if {
   cfg := parse_config("hcl2", `
     resource "aws_alb_listener" "name" {
       protocol = "HTTP"
