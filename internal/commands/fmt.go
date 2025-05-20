@@ -5,7 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
+	"github.com/open-policy-agent/opa/ast"
+	"github.com/open-policy-agent/opa/bundle"
 	"github.com/open-policy-agent/opa/format"
 	"github.com/open-policy-agent/opa/loader"
 	"github.com/spf13/cobra"
@@ -19,14 +22,27 @@ func NewFormatCommand() *cobra.Command {
 		Use:   "fmt <path> [path [...]]",
 		Short: "Format Rego files",
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
-			if err := viper.BindPFlag("check", cmd.Flags().Lookup("check")); err != nil {
-				return fmt.Errorf("bind flag: %w", err)
+			flagNames := []string{
+				"check",
+				"rego-version",
+			}
+			for _, name := range flagNames {
+				if err := viper.BindPFlag(name, cmd.Flags().Lookup(name)); err != nil {
+					return fmt.Errorf("bind flag: %w", err)
+				}
 			}
 
 			return nil
 		},
 		RunE: func(_ *cobra.Command, files []string) error {
-			policies, err := loader.AllRegos(files)
+			selectedRegoVersion, err := parseRegoVersion(viper.GetString("rego-version"))
+			if err != nil {
+				return fmt.Errorf("failed to parse rego-version flag: %w", err)
+			}
+
+			policies, err := loader.NewFileLoader().WithRegoVersion(selectedRegoVersion).Filtered(files, func(_ string, info os.FileInfo, _ int) bool {
+				return !info.IsDir() && !strings.HasSuffix(info.Name(), bundle.RegoExt)
+			})
 			if err != nil {
 				return fmt.Errorf("get rego files: %w", err)
 			} else if len(policies.Modules) == 0 {
@@ -44,7 +60,7 @@ func NewFormatCommand() *cobra.Command {
 					return fmt.Errorf("read policy: %w", err)
 				}
 
-				formattedContents, err := format.Source(policy.Package.Location.File, contents)
+				formattedContents, err := format.SourceWithOpts(policy.Package.Location.File, contents, format.Opts{RegoVersion: selectedRegoVersion, ParserOptions: &ast.ParserOptions{RegoVersion: selectedRegoVersion}})
 				if err != nil {
 					return fmt.Errorf("format: %w", err)
 				}
@@ -78,6 +94,18 @@ func NewFormatCommand() *cobra.Command {
 	}
 
 	cmd.Flags().Bool("check", false, "Returns a non-zero exit code if the policies are not formatted")
+	cmd.Flags().String("rego-version", "v1", "Which version of Rego syntax to use. Options: v0, v1")
 
 	return &cmd
+}
+
+func parseRegoVersion(regoVersionStr string) (ast.RegoVersion, error) {
+	switch regoVersionStr {
+	case "v0", "V0":
+		return ast.RegoV0, nil
+	case "v1", "V1":
+		return ast.RegoV1, nil
+	default:
+		return -1, fmt.Errorf("invalid Rego version: %s", regoVersionStr)
+	}
 }
