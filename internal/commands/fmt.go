@@ -60,7 +60,8 @@ func NewFormatCommand() *cobra.Command {
 					return fmt.Errorf("read policy: %w", err)
 				}
 
-				formattedContents, err := format.SourceWithOpts(policy.Package.Location.File, contents, format.Opts{RegoVersion: selectedRegoVersion, ParserOptions: &ast.ParserOptions{RegoVersion: selectedRegoVersion}})
+				formatOpts := format.Opts{RegoVersion: selectedRegoVersion, ParserOptions: &ast.ParserOptions{RegoVersion: selectedRegoVersion}}
+				formattedContents, err := format.SourceWithOpts(policy.Package.Location.File, contents, formatOpts)
 				if err != nil {
 					return fmt.Errorf("format: %w", err)
 				}
