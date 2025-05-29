@@ -3,7 +3,7 @@ package jsonc
 import (
 	"fmt"
 
-	"muzzammil.xyz/jsonc"
+	"github.com/muhammadmuzzammil1998/jsonc"
 )
 
 // Parser is a JSON parser.
