@@ -1,0 +1,62 @@
+name: test-cosign
+
+on: [pull_request]
+
+permissions: read-all
+
+env:
+  IMAGE: openpolicyagent/conftest
+  PLATFORMS: linux/amd64,linux/arm64
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - name: checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: setup go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24.x"
+
+      - name: release
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          args: release --auto-snapshot --skip-validate --skip-publish
+          version: "~> v1"
+
+      - name: setup docker buildx
+        run: docker buildx create --name conftestbuild --use
+
+      - name: Build only Docker latest image
+        uses: docker/build-push-action@v6 
+        with:
+          context: .
+          push: false
+          build-args: |
+            VERSION=asdfg
+          tags: |
+            ${{ env.IMAGE }}:asdfg
+          platforms: ${{ env.PLATFORMS }}
+
+      - name: setup cosign
+        uses: sigstore/cosign-installer@e9a05e6d32d7ed22b5656cd874ef31af58d05bfa # 3.8.2
+        with:
+          cosign-release: 'v2.5.0'
+
+      - name: sign checksums
+        run: cosign sign-blob checksums.txt --yes --tlog-upload=false
+        working-directory: dist # Folder used by GoReleaser for build artifacts
+
+      - name: sign container image
+        env:
+          CONFTEST_VERSION: asdfg
+        run: |
+          echo "$IMAGE:$CONFTEST_VERSION"
+          cosign sign "$IMAGE:$CONFTEST_VERSION" --yes --upload=false --tlog-upload=false
+
