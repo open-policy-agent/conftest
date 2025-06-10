@@ -8,8 +8,8 @@ import (
 
 	"github.com/open-policy-agent/conftest/output"
 	"github.com/open-policy-agent/conftest/policy"
-	"github.com/open-policy-agent/opa/tester"
-	"github.com/open-policy-agent/opa/topdown"
+	"github.com/open-policy-agent/opa/v1/tester"
+	"github.com/open-policy-agent/opa/v1/topdown"
 )
 
 // VerifyRunner is the runner for the Verify command, executing

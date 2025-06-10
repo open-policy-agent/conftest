@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/open-policy-agent/opa/tester"
+	"github.com/open-policy-agent/opa/v1/tester"
 )
 
 // JSON represents an Outputter that outputs
