@@ -6,9 +6,9 @@ import (
 	"os"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/open-policy-agent/opa/tester"
-	"github.com/open-policy-agent/opa/topdown"
-	"github.com/open-policy-agent/opa/topdown/lineage"
+	"github.com/open-policy-agent/opa/v1/tester"
+	"github.com/open-policy-agent/opa/v1/topdown"
+	"github.com/open-policy-agent/opa/v1/topdown/lineage"
 )
 
 // Standard represents an Outputter that outputs

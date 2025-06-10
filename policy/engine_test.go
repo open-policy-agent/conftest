@@ -10,8 +10,8 @@ import (
 	"testing/fstest"
 
 	"github.com/open-policy-agent/conftest/parser"
-	"github.com/open-policy-agent/opa/ast"
-	"github.com/open-policy-agent/opa/loader"
+	"github.com/open-policy-agent/opa/v1/ast"
+	"github.com/open-policy-agent/opa/v1/loader"
 )
 
 func testOptions(t *testing.T) CompilerOptions {
@@ -287,7 +287,7 @@ func TestAddFileInfo(t *testing.T) {
 	modules := make(map[string]string, 1)
 	modules["test.rego"] = `package main
 
-deny[{"msg": msg}] {
+deny contains {"msg": msg} if {
 	msg := data.conftest.file.name
 }
 `
@@ -318,64 +318,6 @@ deny[{"msg": msg}] {
 			}
 			if qr.Results[0].Message != tt.name {
 				t.Errorf("mismatch. have [%v], want [%v]", qr.Results[0].Message, tt.name)
-			}
-		})
-	}
-}
-
-func TestProblematicIf(t *testing.T) {
-	testCases := []struct {
-		desc    string
-		body    string
-		wantErr bool
-	}{
-		{
-			desc: "No rules",
-			body: "",
-		},
-		{
-			desc: "Bare deny",
-			body: "deny { true }\n",
-		},
-		{
-			desc: "Rule not using if statement",
-			body: "deny[msg] {\n 1 == 1\nmsg := \"foo\"\n}\n",
-		},
-		{
-			desc: "Unrelated rule using problematic if",
-			body: "import future.keywords.if\nunrelated[msg] if {\n 1 == 1\nmsg := \"foo\"\n}\n",
-		},
-		{
-			desc:    "Rule using if without contains",
-			body:    "import future.keywords.if\ndeny[msg] if {\n 1 == 1\nmsg := \"foo\"\n}\n",
-			wantErr: true,
-		},
-		{
-			desc: "Rule using if with contains",
-			body: "import future.keywords.if\nimport future.keywords.contains\ndeny contains msg if {\n 1 == 1\nmsg := \"foo\"\n}\n",
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.desc, func(t *testing.T) {
-			files := fstest.MapFS{
-				"policy.rego": &fstest.MapFile{
-					Data: []byte("package main\n\n" + tc.body),
-				},
-			}
-
-			// Explicit conversion needed despite files being fstest.MapFS type
-			// to ensure fs.FS interface implementation for loader.WithFS
-			fs := fstest.MapFS(files) //nolint:unconvert
-			l := loader.NewFileLoader().WithFS(fs)
-
-			pols, err := l.All([]string{"policy.rego"})
-			if err != nil {
-				t.Fatalf("Load policies: %v", err)
-			}
-			err = problematicIf(pols.ParsedModules())
-			if gotErr := err != nil; gotErr != tc.wantErr {
-				t.Errorf("problematicIf = %v, want %v", gotErr, tc.wantErr)
 			}
 		})
 	}
@@ -535,13 +477,13 @@ func TestNamespaces(t *testing.T) {
 			name: "multiple namespaces",
 			policies: map[string][]byte{
 				"main.rego": []byte(`package main
-deny[msg] { msg := "denied" }`),
+deny contains msg if { msg := "denied" }`),
 				"k8s.rego": []byte(`package kubernetes
-deny[msg] { msg := "denied" }`),
+deny contains msg if { msg := "denied" }`),
 				"nested.rego": []byte(`package main.sub
-deny[msg] { msg := "denied" }`),
+deny contains msg if { msg := "denied" }`),
 				"main_duplicate.rego": []byte(`package main
-warn[msg] { msg := "warning" }`),
+warn contains msg if { msg := "warning" }`),
 			},
 			want: []string{"main", "kubernetes", "main.sub"},
 		},
@@ -549,7 +491,7 @@ warn[msg] { msg := "warning" }`),
 			name: "single namespace",
 			policies: map[string][]byte{
 				"main.rego": []byte(`package main
-deny[msg] { msg := "denied" }`),
+deny contains msg if { msg := "denied" }`),
 			},
 			want: []string{"main"},
 		},
@@ -612,7 +554,7 @@ func TestQueryMetadata(t *testing.T) {
 		{
 			name: "string return type",
 			policy: []byte(`package main
-deny[msg] {
+deny contains msg if {
 	msg := "simple denial"
 }`),
 			query: "data.main.deny",
@@ -626,7 +568,7 @@ deny[msg] {
 		{
 			name: "map return type",
 			policy: []byte(`package main
-violation[result] {
+violation contains result if {
 	result := {
 		"msg": "violation with metadata",
 		"severity": "high"
@@ -646,19 +588,19 @@ violation[result] {
 		{
 			name: "multiple results",
 			policy: []byte(`package main
-deny[msg] {
+deny contains msg if {
 	msg := "first denial"
 }
-deny[msg] {
+deny contains msg if {
 	msg := "second denial"
 }
-violation[result] {
+violation contains result if {
 	result := {
 		"msg": "violation one",
 		"severity": "high"
 	}
 }
-violation[result] {
+violation contains result if {
 	result := {
 		"msg": "violation two",
 		"severity": "low"

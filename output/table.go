@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/olekukonko/tablewriter"
-	"github.com/open-policy-agent/opa/tester"
+	"github.com/open-policy-agent/opa/v1/tester"
 )
 
 // Table represents an Outputter that outputs
