@@ -95,7 +95,7 @@ jobs:
       - name: test oci push/pull
         run: ./scripts/push-pull-e2e.sh
 
-  docker:
+  docker-conftest:
     runs-on: ubuntu-latest
     needs:
       - validate
@@ -111,6 +111,29 @@ jobs:
         with:
           context: .
           push: false
+          # The foo tag below validates putting one tag per line (like we do in the release flow)
+          # works as expected.
           tags: |
             ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:foo
+          platforms: ${{ env.PLATFORMS }}
+
+  docker-examples:
+    runs-on: ubuntu-latest
+    needs:
+      - validate
+    steps:
+      - name: checkout source
+        uses: actions/checkout@v4
+
+      - name: setup docker buildx
+        run: docker buildx create --name conftestbuild --use
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6 
+        with:
+          context: .
+          target: examples
+          push: false
+          tags: ${{ env.IMAGE }}:examples
           platforms: ${{ env.PLATFORMS }}

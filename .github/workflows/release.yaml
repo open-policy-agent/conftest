@@ -9,13 +9,13 @@ env:
   PLATFORMS: linux/amd64,linux/arm64
 
 jobs:
-  release:
+  check:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: checkout source
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       # It is important to check the GoReleaser config before pushing to
       # Dockerhub to avoid having mismatches between what is in Dockerhub
@@ -25,6 +25,16 @@ jobs:
         with:
           args: check
           version: "~> v1"
+
+  docker-conftest:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    needs:
+      - check
+    steps:
+      - name: checkout source
+        uses: actions/checkout@v4
 
       - name: login to docker hub
         uses: docker/login-action@v3
@@ -48,18 +58,27 @@ jobs:
             VERSION=${{ steps.get-version.outputs.VERSION }}
           tags: |
             ${{ env.IMAGE }}:${{ steps.get-version.outputs.VERSION }}
-          platforms: ${{ env.PLATFORMS }}
-
-      - name: Build and push Docker latest image
-        uses: docker/build-push-action@v6 
-        with:
-          context: .
-          push: true
-          build-args: |
-            VERSION=${{ steps.get-version.outputs.VERSION }}
-          tags: |
             ${{ env.IMAGE }}:latest
           platforms: ${{ env.PLATFORMS }}
+
+  docker-examples:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    needs:
+      - check
+    steps:
+      - name: checkout source
+        uses: actions/checkout@v4
+
+      - name: login to docker hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_LOGIN }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: setup docker buildx
+        run: docker buildx create --name conftestbuild --use
 
       - name: Build and push examples image
         uses: docker/build-push-action@v6
@@ -67,9 +86,21 @@ jobs:
           context: .
           push: true
           target: examples
-          tags: |
-            ${{ env.IMAGE }}:examples
-          platforms: ${{ env.PLATFORMS }}
+          tags: ${{ env.IMAGE }}:examples
+          platforms: ${{ env.PLATFORMS }}     
+
+  goreleaser:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # GoReleaser creates the GitHub release
+    needs:
+      - docker-conftest
+      - docker-examples
+    steps:
+      - name: checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Need to fetch the full history for the GoReleaser changelog.
 
       - name: setup go
         uses: actions/setup-go@v5
