@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	opaversion "github.com/open-policy-agent/opa/version"
+	opaversion "github.com/open-policy-agent/opa/v1/version"
 
 	// Load the custom builtins.
 	_ "github.com/open-policy-agent/conftest/builtins"

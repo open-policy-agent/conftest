@@ -7,10 +7,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/open-policy-agent/opa/ast"
-	"github.com/open-policy-agent/opa/bundle"
-	"github.com/open-policy-agent/opa/format"
-	"github.com/open-policy-agent/opa/loader"
+	"github.com/open-policy-agent/opa/v1/ast"
+	"github.com/open-policy-agent/opa/v1/bundle"
+	"github.com/open-policy-agent/opa/v1/format"
+	"github.com/open-policy-agent/opa/v1/loader"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

@@ -8,8 +8,8 @@ import (
 	"github.com/open-policy-agent/conftest/output"
 	"github.com/open-policy-agent/conftest/parser"
 	"github.com/open-policy-agent/conftest/runner"
-	"github.com/open-policy-agent/opa/ast"
-	"github.com/open-policy-agent/opa/storage"
+	"github.com/open-policy-agent/opa/v1/ast"
+	"github.com/open-policy-agent/opa/v1/storage"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/open-policy-agent/opa/tester"
+	"github.com/open-policy-agent/opa/v1/tester"
 )
 
 // TAP represents an Outputter that outputs

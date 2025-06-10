@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/open-policy-agent/conftest/parser"
-	"github.com/open-policy-agent/opa/ast"
-	"github.com/open-policy-agent/opa/rego"
+	"github.com/open-policy-agent/opa/v1/ast"
+	"github.com/open-policy-agent/opa/v1/rego"
 )
 
 func TestParseConfig(t *testing.T) {

@@ -3,7 +3,7 @@ package output
 import (
 	"os"
 
-	"github.com/open-policy-agent/opa/tester"
+	"github.com/open-policy-agent/opa/v1/tester"
 )
 
 // Outputter controls how results of an evaluation will
