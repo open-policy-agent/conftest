@@ -1018,8 +1018,8 @@ github.com/mitchellh/go-testing-interface v1.14.1/go.mod h1:gfgS7OtZj6MA4U1UrDRp
 github.com/mitchellh/go-wordwrap v1.0.1 h1:TLuKupo69TCn6TQSyGxwI1EblZZEsQ0vMlAFQflz0v0=
 github.com/mitchellh/go-wordwrap v1.0.1/go.mod h1:R62XHJLzvMFRBbcrT7m7WgmE1eOyTSsCt+hzestvNj0=
 github.com/mitchellh/mapstructure v1.1.2/go.mod h1:FVVH3fgwuzCH5S8UJGiWEs2h04kUh9fWfEaFds41c1Y=
-github.com/moby/buildkit v0.22.0 h1:aWN06w1YGSVN1XfeZbj2ZbgY+zi5xDAjEFI8Cy9fTjA=
-github.com/moby/buildkit v0.22.0/go.mod h1:j4pP5hxiTWcz7xuTK2cyxQislHl/N2WWHzOy43DlLJw=
+github.com/moby/buildkit v0.23.0 h1:HV+u7xM2IZhAjVautFR2l5FNhkxFR0jhF5ILXyc3398=
+github.com/moby/buildkit v0.23.0/go.mod h1:v5jMDvQgUyidk3wu3NvVAAd5JJo83nfet9Gf/o0+EAQ=
 github.com/moby/docker-image-spec v1.3.1 h1:jMKff3w6PgbfSa69GfNg+zN/XLhfXJGnEx3Nl2EsFP0=
 github.com/moby/docker-image-spec v1.3.1/go.mod h1:eKmb5VW8vQEh/BAr2yvVNvuiJuY6UIocYsFu/DxxRpo=
 github.com/muhammadmuzzammil1998/jsonc v1.0.0 h1:8o5gBQn4ZA3NBA9DlTujCj2a4w0tqWrPVjDwhzkgTIs=
@@ -1145,8 +1145,8 @@ github.com/terminalstatic/go-xsd-validate v0.1.6 h1:TenYeQ3eY631qNi1/cTmLH/s2slH
 github.com/terminalstatic/go-xsd-validate v0.1.6/go.mod h1:18lsvYFofBflqCrvo1umpABZ99+GneNTw2kEEc8UPJw=
 github.com/tmccombs/hcl2json v0.6.7 h1:RYKTs4kd/gzRsEiv7J3M2WQ7TYRYZVc+0H0pZdERkxA=
 github.com/tmccombs/hcl2json v0.6.7/go.mod h1:lJgBOOGDpbhjvdG2dLaWsqB4KBzul2HytfDTS3H465o=
-github.com/tonistiigi/go-csvvalue v0.0.0-20240710180619-ddb21b71c0b4 h1:7I5c2Ig/5FgqkYOh/N87NzoyI9U15qUPXhDD8uCupv8=
-github.com/tonistiigi/go-csvvalue v0.0.0-20240710180619-ddb21b71c0b4/go.mod h1:278M4p8WsNh3n4a1eqiFcV2FGk7wE5fwUpUom9mK9lE=
+github.com/tonistiigi/go-csvvalue v0.0.0-20240814133006-030d3b2625d0 h1:2f304B10LaZdB8kkVEaoXvAMVan2tl9AiK4G0odjQtE=
+github.com/tonistiigi/go-csvvalue v0.0.0-20240814133006-030d3b2625d0/go.mod h1:278M4p8WsNh3n4a1eqiFcV2FGk7wE5fwUpUom9mK9lE=
 github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8/go.mod h1:VFNgLljTbGfSG7qAOspJ7OScBnGdDN/yBr0sguwnwf0=
 github.com/ulikunitz/xz v0.5.10/go.mod h1:nbz6k7qbPmH4IRqmfOplQw/tblSgqTqBwxkY0oWt/14=
 github.com/ulikunitz/xz v0.5.11 h1:kpFauv27b6ynzBNT/Xy+1k+fK4WswhN/6PN5WhFAGw8=
@@ -1886,8 +1886,8 @@ google.golang.org/grpc v1.52.3/go.mod h1:pu6fVzoFb+NBYNAvQL08ic+lvB2IojljRYuun5v
 google.golang.org/grpc v1.53.0/go.mod h1:OnIrk0ipVdj4N5d9IUoFUx72/VlD7+jUsHwZgwSMQpw=
 google.golang.org/grpc v1.54.0/go.mod h1:PUSEXI6iWghWaB6lXM4knEgpJNu2qUcKfDtNci3EC2g=
 google.golang.org/grpc v1.56.3/go.mod h1:I9bI3vqKfayGqPUAwGdOSu7kt6oIJLixfffKrpXqQ9s=
-google.golang.org/grpc v1.72.0 h1:S7UkcVa60b5AAQTaO6ZKamFp1zMZSU0fGDK2WZLbBnM=
-google.golang.org/grpc v1.72.0/go.mod h1:wH5Aktxcg25y1I3w7H69nHfXdOG3UiadoBtjh3izSDM=
+google.golang.org/grpc v1.72.2 h1:TdbGzwb82ty4OusHWepvFWGLgIbNo1/SUynEN0ssqv8=
+google.golang.org/grpc v1.72.2/go.mod h1:wH5Aktxcg25y1I3w7H69nHfXdOG3UiadoBtjh3izSDM=
 google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0/go.mod h1:6Kw0yEErY5E/yWrBtf03jp27GLLJujG4z/JK95pnjjw=
 google.golang.org/protobuf v0.0.0-20200109180630-ec00e32a8dfd/go.mod h1:DFci5gLYBciE7Vtevhsrf46CRTquxDuWsQurQQe4oz8=
 google.golang.org/protobuf v0.0.0-20200221191635-4d8936d0db64/go.mod h1:kwYJMbMJ01Woi6D6+Kah6886xMZcty6N08ah7+eCXa0=

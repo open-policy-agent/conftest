@@ -20,7 +20,7 @@ require (
 	github.com/jstemmer/go-junit-report v1.0.0
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/magiconair/properties v1.8.10
-	github.com/moby/buildkit v0.22.0
+	github.com/moby/buildkit v0.23.0
 	github.com/muhammadmuzzammil1998/jsonc v1.0.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/open-policy-agent/opa v1.5.1
@@ -111,7 +111,7 @@ require (
 	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.5.0 // indirect
 	github.com/tchap/go-patricia/v2 v2.3.2 // indirect
-	github.com/tonistiigi/go-csvvalue v0.0.0-20240710180619-ddb21b71c0b4 // indirect
+	github.com/tonistiigi/go-csvvalue v0.0.0-20240814133006-030d3b2625d0 // indirect
 	github.com/ulikunitz/xz v0.5.11 // indirect
 	github.com/vektah/gqlparser/v2 v2.5.26 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
@@ -144,6 +144,6 @@ require (
 	google.golang.org/genproto v0.0.0-20241118233622-e639e219e697 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250218202821-56aae31c358a // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250218202821-56aae31c358a // indirect
-	google.golang.org/grpc v1.72.0 // indirect
+	google.golang.org/grpc v1.72.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
