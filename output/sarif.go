@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/open-policy-agent/opa/tester"
+	"github.com/open-policy-agent/opa/v1/tester"
 	"github.com/owenrumney/go-sarif/v2/sarif"
 )
 

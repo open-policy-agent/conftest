@@ -12,16 +12,16 @@ import (
 	"github.com/open-policy-agent/conftest/output"
 	"github.com/open-policy-agent/conftest/parser"
 
-	"github.com/open-policy-agent/opa/ast"
-	"github.com/open-policy-agent/opa/bundle"
-	"github.com/open-policy-agent/opa/loader"
-	"github.com/open-policy-agent/opa/rego"
-	"github.com/open-policy-agent/opa/storage"
-	"github.com/open-policy-agent/opa/storage/inmem"
-	"github.com/open-policy-agent/opa/topdown"
-	"github.com/open-policy-agent/opa/topdown/cache"
-	"github.com/open-policy-agent/opa/topdown/print"
-	"github.com/open-policy-agent/opa/version"
+	"github.com/open-policy-agent/opa/v1/ast"
+	"github.com/open-policy-agent/opa/v1/bundle"
+	"github.com/open-policy-agent/opa/v1/loader"
+	"github.com/open-policy-agent/opa/v1/rego"
+	"github.com/open-policy-agent/opa/v1/storage"
+	"github.com/open-policy-agent/opa/v1/storage/inmem"
+	"github.com/open-policy-agent/opa/v1/topdown"
+	"github.com/open-policy-agent/opa/v1/topdown/cache"
+	"github.com/open-policy-agent/opa/v1/topdown/print"
+	"github.com/open-policy-agent/opa/v1/version"
 )
 
 // Engine represents the policy engine.
@@ -491,7 +491,7 @@ func (e *Engine) query(ctx context.Context, input any, query string) (output.Que
 		for _, expression := range result.Expressions {
 
 			// Rego rules that are intended for evaluation should return a slice of values.
-			// For example, deny[msg] or violation[{"msg": msg}].
+			// For example, `deny contains msg if` or `violation contains {"msg": msg} if`.
 			//
 			// When an expression does not have a slice of values, the expression did not
 			// evaluate to true, and no message was returned.
@@ -507,7 +507,7 @@ func (e *Engine) query(ctx context.Context, input any, query string) (output.Que
 			for _, v := range expressionValues {
 				switch val := v.(type) {
 
-				// Policies that only return a single string (e.g. deny[msg])
+				// Policies that only return a single string (e.g. `deny contains msg if`)
 				case string:
 					result := output.Result{
 						Message: val,
@@ -517,7 +517,7 @@ func (e *Engine) query(ctx context.Context, input any, query string) (output.Que
 					}
 					results = append(results, result)
 
-				// Policies that return metadata (e.g. deny[{"msg": msg}])
+				// Policies that return metadata (e.g. `deny contains {"msg": msg} if`)
 				case map[string]any:
 					result, err := output.NewResult(val)
 					if err != nil {
