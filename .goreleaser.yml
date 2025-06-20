@@ -9,14 +9,14 @@ builds:
   env:
   - CGO_ENABLED=0
   goos:
-  - windows
+  # - windows
   - linux
-  - darwin
+  # - darwin
   goarch:
   - amd64
-  - arm64
-  - ppc64le
-  - s390x
+  # - arm64
+  # - ppc64le
+  # - s390x
   ldflags:
   - "-s"
   - "-w"
@@ -45,28 +45,28 @@ archives:
 checksum:
   name_template: 'checksums.txt'
 
-changelog:
-  use: github
-  groups:
-  - title: New Features
-    regexp: '^.*?feat(ure)?(\([[:word:]]+\))??!?:.+$'
-    order: 0
-  - title: Bug Fixes
-    regexp: '^.*?(bug|fix)(\([[:word:]]+\))??!?:.+$'
-    order: 1
-  - title: OPA Changes
-    regexp: '(?i)bump (opa|github.com/open-policy-agent/opa)'
-    order: 5
-  - title: Other Changes
-    order: 999
-  sort: asc
-  filters:
-    exclude:
-    - '^.*?docs(\([[:word:]]+\))??!?:.+$'
-    - '^.*?test(\([[:word:]]+\))??!?:.+$'
-    - '^.*?misc(\([[:word:]]+\))??!?:.+$'
-    - '^.*?typo(\([[:word:]]+\))??!?:.+$'
-    - '(?i) typo( |\.|\r?\n)'
+# changelog:
+#   use: github
+#   groups:
+#   - title: New Features
+#     regexp: '^.*?feat(ure)?(\([[:word:]]+\))??!?:.+$'
+#     order: 0
+#   - title: Bug Fixes
+#     regexp: '^.*?(bug|fix)(\([[:word:]]+\))??!?:.+$'
+#     order: 1
+#   - title: OPA Changes
+#     regexp: '(?i)bump (opa|github.com/open-policy-agent/opa)'
+#     order: 5
+#   - title: Other Changes
+#     order: 999
+#   sort: asc
+#   filters:
+#     exclude:
+#     - '^.*?docs(\([[:word:]]+\))??!?:.+$'
+#     - '^.*?test(\([[:word:]]+\))??!?:.+$'
+#     - '^.*?misc(\([[:word:]]+\))??!?:.+$'
+#     - '^.*?typo(\([[:word:]]+\))??!?:.+$'
+#     - '(?i) typo( |\.|\r?\n)'
 
 # Publishes the deb and rpm files to the GitHub releases page.
 nfpms:
