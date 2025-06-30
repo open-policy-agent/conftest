@@ -1,4 +1,4 @@
-FROM golang:1.24.3-alpine as base
+FROM golang:1.24.3-alpine AS base
 ARG TARGETARCH
 ARG VERSION
 ARG COMMIT
@@ -13,15 +13,15 @@ RUN go mod download
 COPY . .
 
 ## BUILDER STAGE ##
-FROM base as builder
+FROM base AS builder
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build -o conftest -ldflags="-w -s -X github.com/open-policy-agent/conftest/internal/commands.version=${VERSION}" main.go
 
 ## TEST STAGE ##
-FROM base as test
+FROM base AS test
 RUN go test -v ./...
 
 ## ACCEPTANCE STAGE ##
-FROM base as acceptance
+FROM base AS acceptance
 COPY --from=builder /app/conftest /app/conftest
 
 RUN apk add --no-cache npm bash
@@ -30,7 +30,7 @@ RUN npm install -g bats
 RUN bats acceptance.bats
 
 ## EXAMPLES STAGE ##
-FROM base as examples
+FROM base AS examples
 ENV TERRAFORM_VERSION=0.12.31 \
     KUSTOMIZE_VERSION=4.5.7
 
