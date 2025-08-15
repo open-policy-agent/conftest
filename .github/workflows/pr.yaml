@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: checkout all PR branch and commits
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         ref: ${{ github.event.pull_request.head.sha }}
         fetch-depth: ${{ github.event.pull_request.commits }}
@@ -49,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: setup go
         uses: actions/setup-go@v5
@@ -101,7 +101,7 @@ jobs:
       - validate
     steps:
       - name: checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: setup docker buildx
         run: docker buildx create --name conftestbuild --use
@@ -124,7 +124,7 @@ jobs:
       - validate
     steps:
       - name: checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: setup docker buildx
         run: docker buildx create --name conftestbuild --use
