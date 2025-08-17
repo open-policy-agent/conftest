@@ -4,10 +4,8 @@ DIR="$( cd "$( dirname "${BATS_TEST_FILENAME}" )" >/dev/null 2>&1 && pwd )"
 PROJECT_ROOT="$( cd "$DIR/../.." >/dev/null 2>&1 && pwd )"
 
 setup_file() {
-    cd "$PROJECT_ROOT"
-
     # Generate test JSON data by running conftest test (ignore exit status since policy may fail)
-    $CONFTEST test --output json -p examples/kubernetes/policy examples/kubernetes/deployment.yaml > "$DIR/test_results.json" || true
+    $CONFTEST test --output json -p "$PROJECT_ROOT/examples/kubernetes/policy" "$PROJECT_ROOT/examples/kubernetes/deployment.yaml" > "$DIR/test_results.json" || true
 }
 
 teardown_file() {
