@@ -60,6 +60,7 @@ func NewDefaultCommand() *cobra.Command {
 	cmd.AddCommand(NewVerifyCommand(ctx))
 	cmd.AddCommand(NewPluginCommand(ctx))
 	cmd.AddCommand(NewFormatCommand())
+	cmd.AddCommand(NewReformatCommand())
 	cmd.AddCommand(NewDocumentCommand())
 
 	plugins, err := plugin.FindAll()
