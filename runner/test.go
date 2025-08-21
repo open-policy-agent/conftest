@@ -35,6 +35,7 @@ type TestRunner struct {
 	Combine            bool
 	Quiet              bool
 	Output             string
+	Group              string
 }
 
 // Run executes the TestRunner, verifying all Rego policies against the given
@@ -107,6 +108,15 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) (output.CheckRe
 			}
 
 			results = append(results, result...)
+		}
+	}
+
+	// Override group name for stdin input if --group flag is provided
+	if t.Group != "" {
+		for i := range results {
+			if results[i].FileName == "-" {
+				results[i].FileName = t.Group
+			}
 		}
 	}
 
