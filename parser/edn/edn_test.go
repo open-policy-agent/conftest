@@ -1,6 +1,7 @@
 package edn_test
 
 import (
+	"bytes"
 	"reflect"
 	"testing"
 
@@ -11,35 +12,35 @@ func TestEDNParser(t *testing.T) {
 	testTable := []struct {
 		name           string
 		controlConfigs []byte
-		expectedResult any
+		expectedResult []any
 	}{
 		{
 			name:           "a single config",
 			controlConfigs: []byte(`{:sample true}`),
-			expectedResult: map[string]any{
+			expectedResult: []any{map[string]any{
 				":sample": "true",
 			},
-		},
+			}},
 		{
 			name: "a basic edn file with a sample of types",
 			controlConfigs: []byte(`{;; This is a comment and should be ignored by the parser
 :sample1 "my-username",
 :sample2 false,
 :sample3 5432}`),
-			expectedResult: map[string]any{
+			expectedResult: []any{map[string]any{
 				":sample1": "my-username",
 				":sample2": "false",
 				":sample3": "5432",
-			},
+			}},
 		},
 	}
 
 	for _, test := range testTable {
 		t.Run(test.name, func(t *testing.T) {
-			var unmarshalledConfigs any
 			ednParser := new(edn.Parser)
 
-			if err := ednParser.Unmarshal(test.controlConfigs, &unmarshalledConfigs); err != nil {
+			unmarshalledConfigs, err := ednParser.Parse(bytes.NewReader(test.controlConfigs))
+			if err != nil {
 				t.Errorf("err on unmarshalling: %v", err)
 			}
 

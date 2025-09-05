@@ -1,6 +1,7 @@
 package textproto
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 
@@ -45,43 +46,43 @@ option: OPTION_GOOD
 	testCases := []struct {
 		desc    string
 		input   string
-		want    map[string]any
+		want    []any
 		wantErr bool
 	}{
 		{
 			desc:  "valid case",
 			input: testTextProto,
-			want: map[string]any{
+			want: []any{map[string]any{
 				"name":   "foobarbaz",
 				"number": float64(123123123),
 				"truthy": true,
 				"option": "OPTION_GOOD",
-			},
+			}},
 		},
 		{
 			desc:  "omitted fields are OK",
 			input: "# proto-message: conftest.prototext.TestMessage\nnumber: 123123123",
-			want: map[string]any{
+			want: []any{map[string]any{
 				"number": float64(123123123),
-			},
+			}},
 		},
 		{
 			desc:    "missing proto-message raises error",
 			input:   "number: 123123123",
 			wantErr: true,
-			want:    make(map[string]any),
+			want:    []any(nil),
 		},
 		{
 			desc:    "unknown proto-message raises error",
 			input:   strings.ReplaceAll(testTextProto, "conftest", "another_package"),
 			wantErr: true,
-			want:    make(map[string]any),
+			want:    []any(nil),
 		},
 		{
 			desc:    "known but invalid message raises an error",
 			input:   strings.ReplaceAll(testTextProto, "conftest.prototext.TestMessage", "google.protobuf.FieldDescriptorProto"),
 			wantErr: true,
-			want:    make(map[string]any),
+			want:    []any(nil),
 		},
 	}
 
@@ -91,9 +92,8 @@ option: OPTION_GOOD
 			t.Parallel()
 
 			parser := &Parser{}
-			got := make(map[string]any)
 
-			err := parser.Unmarshal([]byte(tc.input), &got)
+			got, err := parser.Parse(bytes.NewBufferString(tc.input))
 			if err == nil && tc.wantErr || err != nil && !tc.wantErr {
 				t.Errorf("unexpected error state, got %v", err)
 				return

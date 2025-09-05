@@ -3,6 +3,7 @@ package ini
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"strconv"
 
 	"github.com/go-ini/ini"
@@ -11,11 +12,15 @@ import (
 // Parser is an INI parser.
 type Parser struct{}
 
-// Unmarshal unmarshals INI files.
-func (i *Parser) Unmarshal(p []byte, v any) error {
+// Parse parses INI files.
+func (i *Parser) Parse(r io.Reader) ([]any, error) {
+	p, err := io.ReadAll(r)
+	if err != nil {
+		return nil, fmt.Errorf("read: %w", err)
+	}
 	cfg, err := ini.Load(p)
 	if err != nil {
-		return fmt.Errorf("read ini file: %w", err)
+		return nil, fmt.Errorf("read ini file: %w", err)
 	}
 
 	result := make(map[string]map[string]any)
@@ -32,14 +37,15 @@ func (i *Parser) Unmarshal(p []byte, v any) error {
 
 	j, err := json.Marshal(result)
 	if err != nil {
-		return fmt.Errorf("marshal ini to json: %w", err)
+		return nil, fmt.Errorf("marshal ini to json: %w", err)
 	}
 
-	if err := json.Unmarshal(j, v); err != nil {
-		return fmt.Errorf("unmarshal ini json: %w", err)
+	var v any
+	if err := json.Unmarshal(j, &v); err != nil {
+		return nil, fmt.Errorf("unmarshal ini json: %w", err)
 	}
 
-	return nil
+	return []any{v}, nil
 }
 
 func convertKeyTypes(keysHash map[string]string) map[string]any {

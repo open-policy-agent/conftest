@@ -1,9 +1,8 @@
 package cyclonedx
 
 import (
+	"bytes"
 	"testing"
-
-	"github.com/pkg/errors"
 )
 
 func TestCycloneDXParserValid(t *testing.T) {
@@ -40,19 +39,19 @@ func TestCycloneDXParserValid(t *testing.T) {
 
 	parser := &Parser{}
 
-	var input any
-	if err := parser.Unmarshal([]byte(sbom), &input); err != nil {
+	input, err := parser.Parse(bytes.NewBufferString(sbom))
+	if err != nil {
 		t.Fatalf("parser should not have thrown an error: %v", err)
 	}
 
-	if input == nil {
+	if len(input) != 1 {
 		t.Error("There should be information parsed but its nil")
 	}
 
 	//#nosec until https://github.com/securego/gosec/issues/1001 is fixed
 	expectedSHA256 := "sha256:d7ec60cf8390612b360c857688b383068b580d9a6ab78417c9493170ad3f1616"
 
-	metadata := input.(map[string]any)["metadata"]
+	metadata := input[0].(map[string]any)["metadata"]
 	component := metadata.(map[string]any)["component"]
 	currentSHA256 := component.(map[string]any)["version"]
 
@@ -95,28 +94,21 @@ func TestCycloneDXParserInValid(t *testing.T) {
 
 	parser := &Parser{}
 
-	var input any
-	if err := parser.Unmarshal([]byte(sbom), &input); err != nil {
+	input, err := parser.Parse(bytes.NewBufferString(sbom))
+	if err != nil {
 		t.Fatalf("parser should not have thrown an error: %v", err)
 	}
 
-	if input == nil {
+	if len(input) != 1 {
 		t.Error("There should be information parsed but its nil")
 	}
 
-	//#nosec until https://github.com/securego/gosec/issues/1001 is fixed
-	expectedSHA256 := "sha256:d7ec60cf8390612b360c857688b383068b580d9a6ab78417c9493170ad3f1616"
-
-	metadata := input.(map[string]any)["metadata"]
+	expectedSHA256 := "COMPROMISED"
+	metadata := input[0].(map[string]any)["metadata"]
 	component := metadata.(map[string]any)["component"]
 	currentSHA256 := component.(map[string]any)["version"]
 
-	var err error
 	if expectedSHA256 != currentSHA256 {
-		err = errors.Errorf("current SHA256 %s is different from the expected SHA256 %s", currentSHA256, expectedSHA256)
-	}
-
-	if err == nil {
-		t.Error("current SHA256 and expected SHA256 should not be equal")
+		t.Errorf("current SHA256 '%s' and expected SHA256 '%s' should be equal", currentSHA256, expectedSHA256)
 	}
 }

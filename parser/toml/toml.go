@@ -2,6 +2,7 @@ package toml
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/BurntSushi/toml"
 )
@@ -9,11 +10,12 @@ import (
 // Parser is a TOML parser.
 type Parser struct{}
 
-// Unmarshal unmarshals TOML files.
-func (tp *Parser) Unmarshal(p []byte, v any) error {
-	if err := toml.Unmarshal(p, v); err != nil {
-		return fmt.Errorf("unmarshal toml: %w", err)
+// Parse parses TOML files.
+func (tp *Parser) Parse(r io.Reader) ([]any, error) {
+	var v any
+	if _, err := toml.NewDecoder(r).Decode(&v); err != nil {
+		return nil, fmt.Errorf("unmarshal toml: %w", err)
 	}
 
-	return nil
+	return []any{v}, nil
 }

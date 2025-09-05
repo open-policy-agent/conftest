@@ -2,6 +2,7 @@ package edn
 
 import (
 	"fmt"
+	"io"
 
 	"olympos.io/encoding/edn"
 )
@@ -9,17 +10,13 @@ import (
 // Parser is an EDN parser.
 type Parser struct{}
 
-// Unmarshal unmarshals EDN encoded files.
-func (tp *Parser) Unmarshal(p []byte, v any) error {
+// Parse parses EDN encoded files.
+func (tp *Parser) Parse(r io.Reader) ([]any, error) {
 	var res any
-
-	if err := edn.Unmarshal(p, &res); err != nil {
-		return fmt.Errorf("unmarshal EDN: %w", err)
+	if err := edn.NewDecoder(r).Decode(&res); err != nil {
+		return nil, fmt.Errorf("unmarshal EDN: %w", err)
 	}
-
-	*v.(*any) = cleanupMapValue(res)
-
-	return nil
+	return []any{cleanupMapValue(res)}, nil
 }
 
 func cleanupInterfaceArray(in []any) []any {

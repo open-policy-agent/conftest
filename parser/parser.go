@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -60,10 +60,11 @@ const (
 	DOTENV     = "dotenv"
 )
 
-// Parser defines all of the methods that every parser
-// definition must implement.
+// Parser parses the given input as [io.Reader].
+// It supports parsing more than one instance and thus returns a slice of any,
+// which is, for example, used by the YAML implementation.
 type Parser interface {
-	Unmarshal(p []byte, v any) error
+	Parse(r io.Reader) ([]any, error)
 }
 
 // PathAwareParser is an optional interface that parsers may implement
@@ -247,127 +248,100 @@ func FileSupported(path string) bool {
 // ParseConfigurations parses and returns the configurations from the given
 // list of files. The result will be a map where the key is the file name of
 // the configuration.
-func ParseConfigurations(files []string) (map[string]any, error) {
-	configurations, err := parseConfigurations(files, "")
-	if err != nil {
-		return nil, err
-	}
-
-	return configurations, nil
+func ParseConfigurations(paths []string) (map[string][]any, error) {
+	return parseConfigurations(paths, "")
 }
 
 // ParseConfigurationsAs parses the files as the given file type and returns the
 // configurations given in the file list. The result will be a map where the key
 // is the file name of the configuration.
-func ParseConfigurationsAs(files []string, parser string) (map[string]any, error) {
-	configurations, err := parseConfigurations(files, parser)
-	if err != nil {
-		return nil, err
-	}
-
-	return configurations, nil
+func ParseConfigurationsAs(paths []string, parser string) (map[string][]any, error) {
+	return parseConfigurations(paths, parser)
 }
 
 // CombineConfigurations takes the given configurations and combines them into a single
 // configuration. The result will be a map that contains a single key with a value of
 // Combined.
-func CombineConfigurations(configs map[string]any) map[string]any {
+func CombineConfigurations(configs map[string][]any) map[string]any {
 	type configuration struct {
 		Path     string `json:"path"`
 		Contents any    `json:"contents"`
 	}
 
 	var allConfigurations []configuration
-	for path, config := range configs {
-		if subconfigs, exist := config.([]any); exist {
-			for _, subconfig := range subconfigs {
-				configuration := configuration{
-					Path:     path,
-					Contents: subconfig,
-				}
-
-				allConfigurations = append(allConfigurations, configuration)
-			}
-			continue
+	for path, subconfigs := range configs {
+		for _, subconfig := range subconfigs {
+			allConfigurations = append(allConfigurations, configuration{
+				Path:     path,
+				Contents: subconfig,
+			})
 		}
-
-		configuration := configuration{
-			Path:     path,
-			Contents: config,
-		}
-
-		allConfigurations = append(allConfigurations, configuration)
 	}
 
 	// For consistency when printing the results, sort the configurations by
 	// their file paths.
-	sort.Slice(allConfigurations, func(i, j int) bool {
+	sort.SliceStable(allConfigurations, func(i, j int) bool {
 		return allConfigurations[i].Path < allConfigurations[j].Path
 	})
 
-	combinedConfigurations := make(map[string]any)
-	combinedConfigurations["Combined"] = allConfigurations
-
-	return combinedConfigurations
+	return map[string]any{
+		"Combined": allConfigurations,
+	}
 }
 
-func parseConfigurations(paths []string, parser string) (map[string]any, error) {
-	parsedConfigurations := make(map[string]any)
-	errWithPathInfo := func(err error, msg, path string) error {
-		return fmt.Errorf("%s: %w, path: %s", msg, err, path)
-	}
+func parseConfigurations(paths []string, parser string) (map[string][]any, error) {
+	parsedConfigs := make(map[string][]any)
 	for _, path := range paths {
-		var fileParser Parser
-		var err error
-		if parser == "" {
-			fileParser, err = NewFromPath(path)
-		} else {
-			fileParser, err = New(parser)
-		}
+		fileParser, err := getParser(path, parser)
 		if err != nil {
-			return nil, errWithPathInfo(err, "new parser", path)
+			return nil, fmt.Errorf("new parser: %w, path: %s", err, path)
 		}
-
-		contents, err := getConfigurationContent(path)
+		parsed, err := parseConfiguration(path, fileParser)
 		if err != nil {
-			return nil, errWithPathInfo(err, "get configuration content", path)
+			return nil, fmt.Errorf("parse configuration: %w, path: %s", err, path)
 		}
+		parsedConfigs[path] = parsed
+	}
+	return parsedConfigs, nil
+}
 
+func parseConfiguration(path string, fileParser Parser) (parsed []any, err error) {
+	reader, err := getReader(path)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		err = errors.Join(err, reader.Close())
+	}()
+	return fileParser.Parse(reader)
+}
+
+func getParser(path, parser string) (fileParser Parser, err error) {
+	defer func() {
 		// If our parser needs the path, give it the path
 		if p, ok := fileParser.(PathAwareParser); ok {
 			p.SetPath(path)
 		}
-
-		var parsed any
-		if err := fileParser.Unmarshal(contents, &parsed); err != nil {
-			return nil, errWithPathInfo(err, "parser unmarshal", path)
-		}
-
-		parsedConfigurations[path] = parsed
+	}()
+	if parser == "" {
+		return NewFromPath(path)
 	}
-
-	return parsedConfigurations, nil
+	return New(parser)
 }
 
-func getConfigurationContent(path string) ([]byte, error) {
+func getReader(path string) (io.ReadCloser, error) {
 	if path == "-" {
-		contents, err := io.ReadAll(bufio.NewReader(os.Stdin))
-		if err != nil {
-			return nil, fmt.Errorf("read standard in: %w", err)
-		}
-
-		return contents, nil
+		return os.Stdin, nil
 	}
 
 	filePath, err := filepath.Abs(path)
 	if err != nil {
-		return nil, fmt.Errorf("get abs: %w", err)
+		return nil, fmt.Errorf("get abs path of '%s': %w", path, err)
 	}
 
-	contents, err := os.ReadFile(filePath)
+	reader, err := os.Open(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("open file: %w", err)
 	}
-
-	return contents, nil
+	return reader, nil
 }

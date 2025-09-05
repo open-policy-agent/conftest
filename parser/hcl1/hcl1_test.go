@@ -1,6 +1,7 @@
 package hcl1
 
 import (
+	"bytes"
 	"testing"
 )
 
@@ -63,18 +64,17 @@ const sample = `provider "google" {
   }`
 
 func TestHcl1Parser(t *testing.T) {
-	var input any
 	parser := &Parser{}
-	sampleFileBytes := []byte(sample)
-	if err := parser.Unmarshal(sampleFileBytes, &input); err != nil {
+	input, err := parser.Parse(bytes.NewBufferString(sample))
+	if err != nil {
 		t.Fatalf("parser should not have thrown an error: %v", err)
 	}
 
-	if input == nil {
+	if len(input) != 1 {
 		t.Error("there should be information parsed but its nil")
 	}
 
-	inputMap := input.(map[string]any)
+	inputMap := input[0].(map[string]any)
 	if len(inputMap["resource"].([]map[string]any)) == 0 {
 		t.Error("there should be resources defined in the parsed file, but none found")
 	}

@@ -1,6 +1,7 @@
 package hcl2
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -11,7 +12,7 @@ func TestHCL2(t *testing.T) {
 	tests := []struct {
 		desc  string
 		input string
-		want  map[string]any
+		want  []any
 	}{
 		{
 			desc: "simple-resources",
@@ -48,7 +49,7 @@ resource "aws_elastic_beanstalk_environment" "example" {
     }
   }
 }`,
-			want: map[string]any{
+			want: []any{map[string]any{
 				"resource": map[string]any{
 					"aws_elastic_beanstalk_environment": map[string]any{
 						"example": []any{
@@ -86,7 +87,7 @@ resource "aws_elastic_beanstalk_environment" "example" {
 					},
 				},
 			},
-		},
+			}},
 		{
 			desc: "single-provider",
 			input: `
@@ -95,7 +96,7 @@ provider "aws" {
   alias   = "one"
 }
 `,
-			want: map[string]any{
+			want: []any{map[string]any{
 				"provider": map[string]any{
 					"aws": []any{
 						map[string]any{
@@ -105,7 +106,7 @@ provider "aws" {
 					},
 				},
 			},
-		},
+			}},
 		{
 			desc: "multiple-providers",
 			input: `
@@ -118,7 +119,7 @@ provider "aws" {
   alias   = "two"
 }
 `,
-			want: map[string]any{
+			want: []any{map[string]any{
 				"provider": map[string]any{
 					"aws": []any{
 						map[string]any{
@@ -132,15 +133,15 @@ provider "aws" {
 					},
 				},
 			},
-		},
-	}
+			},
+		}}
 
 	p := Parser{}
 	for _, tc := range tests {
 		t.Run(tc.desc, func(t *testing.T) {
-			var got map[string]any
-			if err := p.Unmarshal([]byte(tc.input), &got); err != nil {
-				t.Fatalf("Unmarshal: unexpected error %v", err)
+			got, err := p.Parse(bytes.NewBufferString(tc.input))
+			if err != nil {
+				t.Fatalf("Parse: unexpected error %v", err)
 			}
 			if diff := cmp.Diff(got, tc.want); diff != "" {
 				t.Errorf("HCL2 produced unexpected diff (-want,+got):\n%s", diff)

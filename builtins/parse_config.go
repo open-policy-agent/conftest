@@ -1,14 +1,14 @@
 package builtins
 
 import (
-	"encoding/json"
+	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 
 	"github.com/open-policy-agent/conftest/parser"
 	"github.com/open-policy-agent/opa/v1/ast"
-	"github.com/open-policy-agent/opa/v1/ast/location"
 	"github.com/open-policy-agent/opa/v1/rego"
 	"github.com/open-policy-agent/opa/v1/types"
 )
@@ -53,7 +53,7 @@ func registerParseCombinedConfigFiles() {
 }
 
 // parseConfig takes a parser name and configuration as strings and returns the
-// parsed configuration as a Rego object. This can be used to parse all of the
+// parsed configuration as a Rego object. This can be used to parse all the
 // configuration formats conftest supports in-line in Rego policies.
 func parseConfig(bctx rego.BuiltinContext, op1, op2 *ast.Term) (*ast.Term, error) {
 	args, err := decodeArgs[string](op1, op2)
@@ -61,17 +61,32 @@ func parseConfig(bctx rego.BuiltinContext, op1, op2 *ast.Term) (*ast.Term, error
 		return nil, fmt.Errorf("decode args: %w", err)
 	}
 	parserName, config := args[0], args[1]
-
-	parser, err := parser.New(parserName)
+	configParser, err := parser.New(parserName)
 	if err != nil {
 		return nil, fmt.Errorf("create config parser: %w", err)
 	}
-	var cfg any
-	if err := parser.Unmarshal([]byte(config), &cfg); err != nil {
+	if bctx.Location == nil {
+		bctx.Location = &ast.Location{
+			File: "-", // stdin (inline)
+			Text: []byte(config),
+		}
+	}
+	return parseConfigToAST(bctx, configParser, bytes.NewBufferString(config))
+}
+
+func parseConfigToAST(bctx rego.BuiltinContext, configParser parser.Parser, config io.Reader) (*ast.Term, error) {
+	parsed, err := configParser.Parse(config)
+	if err != nil {
 		return nil, fmt.Errorf("unmarshal config: %w", err)
 	}
-
-	return toAST(bctx, cfg, []byte(config))
+	// maintain backwards compatibility and provide single document as non-slice cfg
+	var cfg any
+	if len(parsed) == 1 {
+		cfg = parsed[0]
+	} else {
+		cfg = parsed
+	}
+	return toAST(bctx, cfg)
 }
 
 // parseConfigFile takes a config file path, parses the config file, and
@@ -83,21 +98,15 @@ func parseConfigFile(bctx rego.BuiltinContext, op1 *ast.Term) (*ast.Term, error)
 	}
 	filePath := filepath.Join(filepath.Dir(bctx.Location.File), path)
 
-	parser, err := parser.NewFromPath(filePath)
+	configParser, err := parser.NewFromPath(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("create config parser: %w", err)
 	}
-	contents, err := os.ReadFile(filePath)
+	file, err := os.Open(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("read config file %s: %w", filePath, err)
+		return nil, fmt.Errorf("open config file %s: %w", filePath, err)
 	}
-
-	var cfg any
-	if err := parser.Unmarshal(contents, &cfg); err != nil {
-		return nil, fmt.Errorf("unmarshal config: %w", err)
-	}
-
-	return toAST(bctx, cfg, contents)
+	return parseConfigToAST(bctx, configParser, file)
 }
 
 // parseCombinedConfigFiles takes multiple config file paths, parses the configs,
@@ -116,12 +125,7 @@ func parseCombinedConfigFiles(bctx rego.BuiltinContext, op1 *ast.Term) (*ast.Ter
 		return nil, fmt.Errorf("parse combine configurations: %w", err)
 	}
 	combined := parser.CombineConfigurations(cfg)
-	content, err := json.Marshal(combined)
-	if err != nil {
-		return nil, fmt.Errorf("marshal combined content: %w", err)
-	}
-
-	return toAST(bctx, combined["Combined"], content)
+	return toAST(bctx, combined["Combined"])
 }
 
 func decodeSliceArg[T any](arg *ast.Term) ([]T, error) {
@@ -173,20 +177,10 @@ func decodeArgs[T any](args ...*ast.Term) ([]T, error) {
 	return decoded, nil
 }
 
-func toAST(bctx rego.BuiltinContext, cfg any, contents []byte) (*ast.Term, error) {
+func toAST(bctx rego.BuiltinContext, cfg any) (*ast.Term, error) {
 	val, err := ast.InterfaceToValue(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("convert config to ast.Value: %w", err)
 	}
-	var loc *location.Location
-	if bctx.Location != nil {
-		loc = bctx.Location
-	} else {
-		loc = &ast.Location{
-			File: "-", // stdin
-			Text: contents,
-		}
-	}
-
-	return &ast.Term{Value: val, Location: loc}, nil
+	return &ast.Term{Value: val, Location: bctx.Location}, nil
 }

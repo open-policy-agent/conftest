@@ -1,9 +1,9 @@
 package spdx
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 
 	"github.com/spdx/tools-golang/tagvalue"
 )
@@ -11,21 +11,22 @@ import (
 // Parser is a SPDX parser.
 type Parser struct{}
 
-// Unmarshal unmarshals SPDX files.
-func (*Parser) Unmarshal(p []byte, v any) error {
-	doc, err := tagvalue.Read(bytes.NewBuffer(p))
+// Parse parses SPDX files.
+func (*Parser) Parse(r io.Reader) ([]any, error) {
+	doc, err := tagvalue.Read(r)
 	if err != nil {
-		return fmt.Errorf("error while parsing %v: %v", p, err)
+		return nil, fmt.Errorf("error while parsing %v: %v", r, err)
 	}
 
 	out, err := json.Marshal(doc)
 	if err != nil {
-		return fmt.Errorf("error while marshaling %v: %v", p, err)
+		return nil, fmt.Errorf("error while marshaling %v: %v", r, err)
 	}
 
-	if err := json.Unmarshal(out, v); err != nil {
-		return fmt.Errorf("unmarshal SPDX json: %w", err)
+	var v any
+	if err := json.Unmarshal(out, &v); err != nil {
+		return nil, fmt.Errorf("unmarshal SPDX json: %w", err)
 	}
 
-	return nil
+	return []any{v}, nil
 }

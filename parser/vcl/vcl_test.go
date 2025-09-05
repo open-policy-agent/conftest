@@ -1,6 +1,9 @@
 package vcl
 
-import "testing"
+import (
+	"bytes"
+	"testing"
+)
 
 func TestVCLParser(t *testing.T) {
 	parser := &Parser{}
@@ -9,8 +12,8 @@ func TestVCLParser(t *testing.T) {
 	"localhost";
 }`
 
-	var input any
-	if err := parser.Unmarshal([]byte(sample), &input); err != nil {
+	input, err := parser.Parse(bytes.NewBufferString(sample))
+	if err != nil {
 		t.Fatalf("parser should not have thrown an error: %v", err)
 	}
 
@@ -18,7 +21,7 @@ func TestVCLParser(t *testing.T) {
 		t.Error("there should be information parsed but its nil")
 	}
 
-	item := input.(map[string]any)
+	item := input[0].(map[string]any)
 
 	if len(item) == 0 {
 		t.Error("there should be at least one item defined in the parsed file, but none found")

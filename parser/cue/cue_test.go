@@ -1,6 +1,7 @@
 package cue
 
 import (
+	"bytes"
 	"testing"
 )
 
@@ -25,16 +26,16 @@ func TestCueParser(t *testing.T) {
 
 	parser := &Parser{}
 
-	var input any
-	if err := parser.Unmarshal([]byte(p), &input); err != nil {
+	input, err := parser.Parse(bytes.NewReader([]byte(p)))
+	if err != nil {
 		t.Fatalf("parser should not have thrown an error: %v", err)
 	}
 
-	if input == nil {
+	if len(input) != 1 {
 		t.Error("There should be information parsed but its nil")
 	}
 
-	inputMap := input.(map[string]any)
+	inputMap := input[0].(map[string]any)
 	kind := inputMap["kind"]
 	if kind != "Deployment" {
 		t.Error("Parsed cuelang file should be a deployment, but was not")
