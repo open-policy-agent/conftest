@@ -180,6 +180,10 @@ func NewFromPath(path string) (Parser, error) {
 		return New(Dockerfile)
 	}
 
+	if fileExtension == "ndjson" {
+		return New(JSON)
+	}
+
 	if fileExtension == "yml" || fileExtension == "yaml" {
 		return New(YAML)
 	}

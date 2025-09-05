@@ -91,6 +91,11 @@ func TestNewFromPath(t *testing.T) {
 			false,
 		},
 		{
+			"jsonlines.ndjson",
+			&json.Parser{},
+			false,
+		},
+		{
 			"noextension",
 			&yaml.Parser{},
 			false,
