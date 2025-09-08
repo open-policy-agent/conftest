@@ -71,7 +71,7 @@ jobs:
       # Ensure Actions runner has Python installed
       # This is required for pre-commit tests to work
       - name: setup python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.13'
           cache: 'pip'
