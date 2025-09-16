@@ -39,8 +39,8 @@ func TestGitHub(t *testing.T) {
 			},
 			expected: []string{
 				"::group::Testing 'examples/kubernetes/service.yaml' against 2 policies in namespace 'namespace'",
-				"::error file=examples/kubernetes/service.yaml::first failure",
-				"::warning file=examples/kubernetes/service.yaml::first warning",
+				"::error file=examples/kubernetes/service.yaml,line=1::first failure",
+				"::warning file=examples/kubernetes/service.yaml,line=1::first warning",
 				"::endgroup::",
 				"2 tests, 0 passed, 1 warning, 1 failure, 0 exceptions",
 				"",
@@ -58,7 +58,7 @@ func TestGitHub(t *testing.T) {
 			},
 			expected: []string{
 				"::group::Testing 'examples/kubernetes/service.yaml' against 2 policies in namespace 'namespace'",
-				"::error file=examples/kubernetes/service.yaml::first failure",
+				"::error file=examples/kubernetes/service.yaml,line=1::first failure",
 				"skipped file=examples/kubernetes/service.yaml first skipped",
 				"::endgroup::",
 				"2 tests, 0 passed, 0 warnings, 1 failure, 0 exceptions",
@@ -76,7 +76,7 @@ func TestGitHub(t *testing.T) {
 			},
 			expected: []string{
 				"::group::Testing '-' against 1 policies in namespace 'namespace'",
-				"::error file=-::first failure",
+				"::error file=-,line=1::first failure",
 				"::endgroup::",
 				"1 test, 0 passed, 0 warnings, 1 failure, 0 exceptions",
 				"",
