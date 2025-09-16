@@ -276,10 +276,10 @@ $ conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml -
 ```console
 $ conftest test -o github -p examples/kubernetes/policy examples/kubernetes/deployment.yaml
 ::group::Testing 'examples/kubernetes/deployment.yaml' against 5 policies in namespace 'main'
-::error file=examples/kubernetes/deployment.yaml::Containers must not run as root in Deployment hello-kubernetes
-::error file=examples/kubernetes/deployment.yaml::Deployment hello-kubernetes must provide app/release labels for pod selectors
-::error file=examples/kubernetes/deployment.yaml::hello-kubernetes must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels
-::error file=examples/kubernetes/deployment.yaml::Found deployment hello-kubernetes but deployments are not allowed
+::error file=examples/kubernetes/deployment.yaml,line=1::Containers must not run as root in Deployment hello-kubernetes
+::error file=examples/kubernetes/deployment.yaml,line=1::Deployment hello-kubernetes must provide app/release labels for pod selectors
+::error file=examples/kubernetes/deployment.yaml,line=1::hello-kubernetes must include Kubernetes recommended labels: https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels
+::error file=examples/kubernetes/deployment.yaml,line=1::Found deployment hello-kubernetes but deployments are not allowed
 success file=examples/kubernetes/deployment.yaml 1
 ::endgroup::
 5 tests, 1 passed, 0 warnings, 4 failures, 0 exceptions

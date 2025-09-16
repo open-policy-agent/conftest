@@ -35,15 +35,15 @@ func (t *GitHub) Output(checkResults CheckResults) error {
 
 		fmt.Fprintf(t.writer, "::group::Testing '%v' against %v policies in namespace '%v'\n", result.FileName, totalPolicies, result.Namespace)
 		for _, failure := range result.Failures {
-			fmt.Fprintf(t.writer, "::error file=%v::%v\n", result.FileName, failure.Message)
+			fmt.Fprintf(t.writer, "::error file=%v,line=1::%v\n", result.FileName, failure.Message)
 		}
 
 		for _, warning := range result.Warnings {
-			fmt.Fprintf(t.writer, "::warning file=%v::%v\n", result.FileName, warning.Message)
+			fmt.Fprintf(t.writer, "::warning file=%v,line=1::%v\n", result.FileName, warning.Message)
 		}
 
 		for _, exception := range result.Exceptions {
-			fmt.Fprintf(t.writer, "::notice file=%v::%v\n", result.FileName, exception.Message)
+			fmt.Fprintf(t.writer, "::notice file=%v,line=1::%v\n", result.FileName, exception.Message)
 		}
 
 		for _, skipped := range result.Skipped {
