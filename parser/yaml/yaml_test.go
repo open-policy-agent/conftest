@@ -1,6 +1,7 @@
 package yaml_test
 
 import (
+	"bytes"
 	"reflect"
 	"strings"
 	"testing"
@@ -19,15 +20,15 @@ func TestYAMLParser(t *testing.T) {
 			{
 				name:           "empty config",
 				controlConfigs: []byte(``),
-				expectedResult: nil,
+				expectedResult: []any(nil),
 				shouldError:    false,
 			},
 			{
 				name:           "a single config",
 				controlConfigs: []byte(`sample: true`),
-				expectedResult: map[string]any{
+				expectedResult: []any{map[string]any{
 					"sample": true,
-				},
+				}},
 				shouldError: false,
 			},
 			{
@@ -82,7 +83,7 @@ invalid:
 [
 ---
 also_valid: true`),
-				expectedResult: nil,
+				expectedResult: []any(nil),
 				shouldError:    true,
 			},
 			{
@@ -90,9 +91,9 @@ also_valid: true`),
 				controlConfigs: []byte(`%YAML 1.1
 ---
 group_id: 1234`),
-				expectedResult: map[string]any{
-					"group_id": float64(1234),
-				},
+				expectedResult: []any{map[string]any{
+					"group_id": 1234,
+				}},
 				shouldError: false,
 			},
 			{
@@ -106,13 +107,13 @@ other_id: 5678
 third_id: 9012`),
 				expectedResult: []any{
 					map[string]any{
-						"group_id": float64(1234),
+						"group_id": 1234,
 					},
 					map[string]any{
-						"other_id": float64(5678),
+						"other_id": 5678,
 					},
 					map[string]any{
-						"third_id": float64(9012),
+						"third_id": 9012,
 					},
 				},
 				shouldError: false,
@@ -121,10 +122,8 @@ third_id: 9012`),
 
 		for _, test := range testTable {
 			t.Run(test.name, func(t *testing.T) {
-				var unmarshalledConfigs any
 				yamlParser := new(yaml.Parser)
-
-				err := yamlParser.Unmarshal(test.controlConfigs, &unmarshalledConfigs)
+				unmarshalledConfigs, err := yamlParser.Parse(bytes.NewReader(test.controlConfigs))
 				if test.shouldError && err == nil {
 					t.Error("expected error but got none")
 				} else if !test.shouldError && err != nil {

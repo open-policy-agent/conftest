@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"sigs.k8s.io/yaml"
+	"go.yaml.in/yaml/v4"
 )
 
 func TestParseCommand(t *testing.T) {

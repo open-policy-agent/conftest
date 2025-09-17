@@ -64,7 +64,7 @@ func LoadCapabilities(path string) (*ast.Capabilities, error) {
 	return ast.LoadCapabilitiesFile(path)
 }
 
-// Load returns an Engine after loading all of the specified policies.
+// Load returns an Engine after loading all the specified policies.
 func Load(policyPaths []string, opts CompilerOptions) (*Engine, error) {
 	var regoVer ast.RegoVersion
 	switch opts.RegoVersion {
@@ -115,7 +115,7 @@ func Load(policyPaths []string, opts CompilerOptions) (*Engine, error) {
 	return &engine, nil
 }
 
-// LoadWithData returns an Engine after loading all of the specified policies and data paths.
+// LoadWithData returns an Engine after loading all the specified policies and data paths.
 func LoadWithData(policyPaths []string, dataPaths []string, opts CompilerOptions) (*Engine, error) {
 	engine := &Engine{}
 	if len(policyPaths) > 0 {
@@ -177,51 +177,38 @@ func (e *Engine) EnableInterQueryCache() {
 	e.enableInterQueryCache = true
 }
 
-// Check executes all of the loaded policies against the input and returns the results.
-func (e *Engine) Check(ctx context.Context, configs map[string]interface{}, namespace string) (output.CheckResults, error) {
+// Check executes all the loaded policies against the input and returns the results.
+func (e *Engine) Check(ctx context.Context, configs map[string][]any, namespace string) (output.CheckResults, error) {
 	var checkResults output.CheckResults
-	for path, config := range configs {
-
-		// It is possible for a configuration to have multiple configurations. An example of this
-		// are multi-document yaml files where a single filepath represents multiple configs.
-		//
-		// If the current configuration contains multiple configurations, evaluate each policy
-		// independent from one another and aggregate the results under the same file name.
-		if subconfigs, exist := config.([]any); exist {
-
-			checkResult := output.CheckResult{
-				FileName:  path,
-				Namespace: namespace,
-			}
-			for _, subconfig := range subconfigs {
-				result, err := e.check(ctx, path, subconfig, namespace)
-				if err != nil {
-					return nil, fmt.Errorf("check: %w", err)
-				}
-
-				checkResult.Successes = checkResult.Successes + result.Successes
-				checkResult.Failures = append(checkResult.Failures, result.Failures...)
-				checkResult.Warnings = append(checkResult.Warnings, result.Warnings...)
-				checkResult.Exceptions = append(checkResult.Exceptions, result.Exceptions...)
-				checkResult.Queries = append(checkResult.Queries, result.Queries...)
-			}
-			checkResults = append(checkResults, checkResult)
-			continue
+	// It is possible for a configuration to have multiple configurations. An example of this
+	// are multi-document yaml files where a single filepath represents multiple configs.
+	//
+	// If the current configuration contains multiple configurations, evaluate each policy
+	// independent of one another and aggregate the results under the same file name.
+	for path, subconfigs := range configs {
+		checkResult := output.CheckResult{
+			FileName:  path,
+			Namespace: namespace,
 		}
+		for _, subconfig := range subconfigs {
+			result, err := e.check(ctx, path, subconfig, namespace)
+			if err != nil {
+				return nil, fmt.Errorf("check: %w", err)
+			}
 
-		checkResult, err := e.check(ctx, path, config, namespace)
-		if err != nil {
-			return nil, fmt.Errorf("check: %w", err)
+			checkResult.Successes = checkResult.Successes + result.Successes
+			checkResult.Failures = append(checkResult.Failures, result.Failures...)
+			checkResult.Warnings = append(checkResult.Warnings, result.Warnings...)
+			checkResult.Exceptions = append(checkResult.Exceptions, result.Exceptions...)
+			checkResult.Queries = append(checkResult.Queries, result.Queries...)
 		}
-
 		checkResults = append(checkResults, checkResult)
 	}
-
 	return checkResults, nil
 }
 
 // CheckCombined combines the input and evaluates the policies against the combined result.
-func (e *Engine) CheckCombined(ctx context.Context, configs map[string]any, namespace string) (output.CheckResult, error) {
+func (e *Engine) CheckCombined(ctx context.Context, configs map[string][]any, namespace string) (output.CheckResult, error) {
 	combinedConfigs := parser.CombineConfigurations(configs)
 
 	result, err := e.check(ctx, "Combined", combinedConfigs["Combined"], namespace)
@@ -232,7 +219,7 @@ func (e *Engine) CheckCombined(ctx context.Context, configs map[string]any, name
 	return result, nil
 }
 
-// Namespaces returns all of the namespaces in the engine.
+// Namespaces returns all the namespaces in the engine.
 func (e *Engine) Namespaces() []string {
 	var namespaces []string
 	for _, module := range e.Modules() {
@@ -247,14 +234,14 @@ func (e *Engine) Namespaces() []string {
 	return namespaces
 }
 
-// Documents returns all of the documents loaded into the engine.
+// Documents returns all documents loaded into the engine.
 // The result is a map where the key is the filepath of the document
 // and its value is the raw contents of the loaded document.
 func (e *Engine) Documents() map[string]string {
 	return e.docs
 }
 
-// Policies returns all of the policies loaded into the engine.
+// Policies returns all policies loaded into the engine.
 // The result is a map where the key is the filepath of the policy
 // and its value is the raw contents of the loaded policy.
 func (e *Engine) Policies() map[string]string {
@@ -353,7 +340,7 @@ func (e *Engine) check(ctx context.Context, path string, config any, namespace s
 
 			// When an exception is found, set the message of the exception
 			// to the query that triggered the exception so that it is known
-			// which exception was trigged.
+			// which exception was triggered.
 			if exceptionResult.Passed() {
 				exceptionResult.Message = exceptionQuery
 				exceptions = append(exceptions, exceptionResult)
@@ -471,11 +458,11 @@ func (e *Engine) query(ctx context.Context, input any, query string) (output.Que
 	}
 
 	if e.builtinErrors && len(*builtInErrors) > 0 {
-		return output.QueryResult{}, fmt.Errorf("built-in error: %+v", (*builtInErrors))
+		return output.QueryResult{}, fmt.Errorf("built-in error: %+v", *builtInErrors)
 	}
 
 	// After the evaluation of the policy, the results of the trace (stdout) will be populated
-	// for the query. Once populated, format the trace results into a human readable format.
+	// for the query. Once populated, format the trace results into a human-readable format.
 	buf := new(bytes.Buffer)
 	rego.PrintTrace(buf, regoInstance)
 

@@ -45,7 +45,7 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) (output.CheckRe
 		return nil, fmt.Errorf("parse files: %w", err)
 	}
 
-	var configurations map[string]any
+	var configurations map[string][]any
 	if t.Parser != "" {
 		configurations, err = parser.ParseConfigurationsAs(files, t.Parser)
 	} else {

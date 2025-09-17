@@ -1,9 +1,9 @@
 package docker
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/moby/buildkit/frontend/dockerfile/instructions"
@@ -35,12 +35,11 @@ type Command struct {
 	Stage int
 }
 
-// Unmarshal unmarshals Dockerfiles
-func (dp *Parser) Unmarshal(p []byte, v any) error {
-	r := bytes.NewReader(p)
+// Parse parses Dockerfiles
+func (dp *Parser) Parse(r io.Reader) ([]any, error) {
 	res, err := parser.Parse(r)
 	if err != nil {
-		return fmt.Errorf("parse dockerfile: %w", err)
+		return nil, fmt.Errorf("parse dockerfile: %w", err)
 	}
 
 	var commands []Command
@@ -49,7 +48,7 @@ func (dp *Parser) Unmarshal(p []byte, v any) error {
 	for _, child := range res.AST.Children {
 		instr, err := instructions.ParseInstruction(child)
 		if err != nil {
-			return fmt.Errorf("process dockerfile instructions: %w", err)
+			return nil, fmt.Errorf("process dockerfile instructions: %w", err)
 		}
 
 		stage, ok := instr.(*instructions.Stage)
@@ -93,19 +92,17 @@ func (dp *Parser) Unmarshal(p []byte, v any) error {
 		commands = append(commands, cmd)
 	}
 
-	var dockerFile [][]Command
-	dockerFile = append(dockerFile, commands)
-
-	j, err := json.Marshal(dockerFile)
+	j, err := json.Marshal(commands)
 	if err != nil {
-		return fmt.Errorf("marshal dockerfile to json: %w", err)
+		return nil, fmt.Errorf("marshal dockerfile to json: %w", err)
 	}
 
-	if err := json.Unmarshal(j, v); err != nil {
-		return fmt.Errorf("unmarshal dockerfile json: %w", err)
+	var v any
+	if err := json.Unmarshal(j, &v); err != nil {
+		return nil, fmt.Errorf("unmarshal dockerfile json: %w", err)
 	}
 
-	return nil
+	return []any{v}, nil
 }
 
 // Return the index of the stages. If no stages are present,

@@ -461,6 +461,12 @@ EOF"
   [ "$status" -eq 0 ]
 }
 
+@test "Can validate newline-delimited JSON log files" {
+  run ./conftest test -p examples/ndjson/policy/ examples/ndjson/sample.ndjson
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "2 tests, 1 passed, 0 warnings, 1 failure, 0 exceptions" ]]
+}
+
 @test "Should fail if strict is set and there are unused variables in the policy" {
   run ./conftest test -p examples/strict-rules/policy/ examples/kubernetes/deployment.yaml --strict
   [ "$status" -eq 1 ]

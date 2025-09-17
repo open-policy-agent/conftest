@@ -8,6 +8,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -28,7 +29,7 @@ import (
 var TextProtoFileExtensions = []string{"textproto", "textpb"}
 
 var (
-	msgTypeRegexp = regexp.MustCompile(`#\s+proto-message:\s+([a-zA-Z0-9\.]+)`)
+	msgTypeRegexp = regexp.MustCompile(`#\s+proto-message:\s+([a-zA-Z0-9.]+)`)
 	marshaller    = protojson.MarshalOptions{
 		UseProtoNames: true, // Keep field names 1-to-1 with proto field definitions.
 	}
@@ -51,33 +52,38 @@ func (p *Parser) LoadProtoFiles(filePaths []string) error {
 	return nil
 }
 
-// Unmarshal unmarshals a textproto file.
-func (p *Parser) Unmarshal(data []byte, v any) error {
+// Parse parses a textproto file.
+func (p *Parser) Parse(r io.Reader) ([]any, error) {
+	data, err := io.ReadAll(r)
+	if err != nil {
+		return nil, fmt.Errorf("read: %w", err)
+	}
 	ty, err := extractMsgType(data)
 	if err != nil {
-		return fmt.Errorf("extract proto message type: %w", err)
+		return nil, fmt.Errorf("extract proto message type: %w", err)
 	}
 	desc, err := globalTypes.FindMessageByName(protoreflect.FullName(ty))
 	if err != nil {
-		return fmt.Errorf("look up message type %q: %w", ty, err)
+		return nil, fmt.Errorf("look up message type %q: %w", ty, err)
 	}
 	msg, ok := desc.Zero().(protoreflect.ProtoMessage)
 	if !ok {
-		return fmt.Errorf("could not assert ProtoMessage for %q", ty)
+		return nil, fmt.Errorf("could not assert ProtoMessage for %q", ty)
 	}
 	if err := prototext.Unmarshal(data, msg); err != nil {
-		return fmt.Errorf("unmarshal textproto: %w", err)
+		return nil, fmt.Errorf("unmarshal textproto: %w", err)
 	}
 
 	by, err := marshaller.Marshal(msg)
 	if err != nil {
-		return fmt.Errorf("marshal JSON: %w", err)
+		return nil, fmt.Errorf("marshal JSON: %w", err)
 	}
-	if err := json.Unmarshal(by, v); err != nil {
-		return fmt.Errorf("unmarshal JSON: %w", err)
+	var v any
+	if err := json.Unmarshal(by, &v); err != nil {
+		return nil, fmt.Errorf("unmarshal JSON: %w", err)
 	}
 
-	return nil
+	return []any{v}, nil
 }
 
 func loadFiles(paths []string) error {
@@ -89,13 +95,17 @@ func loadFiles(paths []string) error {
 	return nil
 }
 
-func loadFile(path string) error {
-	fh, err := os.OpenFile(path, os.O_RDONLY, os.ModePerm)
+func loadFile(path string) (err error) {
+	var fh *os.File
+	fh, err = os.OpenFile(path, os.O_RDONLY, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("open file: %w", err)
 	}
-	defer fh.Close()
-	return load(path, fh)
+	defer func() {
+		err = errors.Join(err, fh.Close())
+	}()
+	err = load(path, fh)
+	return
 }
 
 func load(fileName string, r io.Reader) error {

@@ -1,0 +1,2 @@
+{"level": "INFO", "message": "some message"}
+{"level": "ERROR", "message":  "some failure"}

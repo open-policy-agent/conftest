@@ -1,6 +1,7 @@
 package ignore
 
 import (
+	"bytes"
 	"testing"
 )
 
@@ -11,27 +12,22 @@ func TestParser_Unmarshal(t *testing.T) {
 
 # Test`
 
-	var listOfEntryLists [][]any
-	if err := parser.Unmarshal([]byte(sample), &listOfEntryLists); err != nil {
+	input, err := parser.Parse(bytes.NewBufferString(sample))
+	if err != nil {
 		t.Fatalf("parser should not have thrown an error: %v", err)
 	}
 
-	if listOfEntryLists == nil {
+	if len(input) != 1 {
 		t.Error("there should be information parsed but it's nil")
 	}
 
-	input := listOfEntryLists[0]
-	if input == nil {
-		t.Error("there should be a list of Entries but it's nil")
-	}
-
+	entries := input[0].([]any)
 	expectedEntryCount := 3
-
-	if len(input) != expectedEntryCount {
+	if len(entries) != expectedEntryCount {
 		t.Errorf("there should be exactly %v entries in the ignore array but there were %d", expectedEntryCount, len(input))
 	}
 
-	firstIgnoreEntry := input[0]
+	firstIgnoreEntry := entries[0]
 
 	expectedKind := "NegatedPath"
 	actualKind := firstIgnoreEntry.(map[string]any)["Kind"]

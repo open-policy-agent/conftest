@@ -23,6 +23,7 @@ You can find examples using various other tools in the `examples` directory, inc
 * [Jsonnet](https://github.com/open-policy-agent/conftest/tree/master/examples/jsonnet)
 * [Kubernetes](https://github.com/open-policy-agent/conftest/tree/master/examples/kubernetes)
 * [Kustomize](https://github.com/open-policy-agent/conftest/tree/master/examples/kustomize)
+* [Newline-delimited JSON](https://github.com/open-policy-agent/conftest/tree/master/examples/ndjson)
 * [Properties](https://github.com/open-policy-agent/conftest/tree/master/examples/properties)
 * [Report](https://github.com/open-policy-agent/conftest/tree/master/examples/report)
 * [Serverless Framework](https://github.com/open-policy-agent/conftest/tree/master/examples/serverless)
