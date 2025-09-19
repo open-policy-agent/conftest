@@ -35,7 +35,7 @@ type TestRunner struct {
 	Combine            bool
 	Quiet              bool
 	Output             string
-	Group              string
+	FileNameOverride   string `mapstructure:"file-name-override"`
 }
 
 // Run executes the TestRunner, verifying all Rego policies against the given
@@ -111,11 +111,11 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) (output.CheckRe
 		}
 	}
 
-	// Override group name for stdin input if --group flag is provided
-	if t.Group != "" {
+	// Override file name for stdin input if --file-name-override flag is provided
+	if t.FileNameOverride != "" {
 		for i := range results {
 			if results[i].FileName == "-" {
-				results[i].FileName = t.Group
+				results[i].FileName = t.FileNameOverride
 			}
 		}
 	}
