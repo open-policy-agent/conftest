@@ -527,3 +527,30 @@ EOF"
   [ "$status" -eq 1 ]
   [[ "$output" =~ "10 tests, 3 passed, 0 warnings, 7 failures, 0 exceptions" ]]
 }
+
+@test "File name override flag replaces stdin filename in output" {
+  run bash -c "./conftest test --file-name-override='my-custom-file.yaml' -p examples/kubernetes/policy - < examples/kubernetes/service.yaml"
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "my-custom-file.yaml" ]]
+  [[ ! "$output" =~ "-" ]]
+}
+
+@test "File name override flag does not affect regular files" {
+  run ./conftest test --file-name-override='override.yaml' -p examples/kubernetes/policy examples/kubernetes/service.yaml
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "examples/kubernetes/service.yaml" ]]
+  [[ ! "$output" =~ "override.yaml" ]]
+}
+
+@test "File name override flag works with JSON output" {
+  run bash -c "./conftest test --file-name-override='custom.json' --output json -p examples/kubernetes/policy - < examples/kubernetes/service.yaml"
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "\"filename\":\"custom.json\"" ]]
+  [[ ! "$output" =~ "\"filename\":\"-\"" ]]
+}
+
+@test "Without file name override flag, stdin shows as dash" {
+  run bash -c "./conftest test -p examples/kubernetes/policy - < examples/kubernetes/service.yaml"
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "-" ]]
+}
