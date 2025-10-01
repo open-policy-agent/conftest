@@ -18,7 +18,7 @@ require (
 	github.com/jstemmer/go-junit-report v1.0.0
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/magiconair/properties v1.8.10
-	github.com/moby/buildkit v0.24.0
+	github.com/moby/buildkit v0.25.0
 	github.com/muhammadmuzzammil1998/jsonc v1.0.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/open-policy-agent/opa v1.8.0
@@ -32,7 +32,7 @@ require (
 	github.com/subosito/gotenv v1.6.0
 	github.com/tmccombs/hcl2json v0.6.7
 	golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0
-	google.golang.org/protobuf v1.36.6
+	google.golang.org/protobuf v1.36.9
 	olympos.io/encoding/edn v0.0.0-20201019073823-d3554ca0b0a3
 	oras.land/oras-go/v2 v2.6.0
 	sigs.k8s.io/yaml v1.6.0
