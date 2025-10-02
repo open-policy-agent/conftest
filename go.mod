@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	cuelang.org/go v0.14.1
 	github.com/BurntSushi/toml v1.5.0
-	github.com/CycloneDX/cyclonedx-go v0.9.2
+	github.com/CycloneDX/cyclonedx-go v0.9.3
 	github.com/KeisukeYamashita/go-vcl v0.4.0
 	github.com/basgys/goxml2json v1.1.0
 	github.com/bufbuild/protocompile v0.6.0
