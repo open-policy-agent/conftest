@@ -45,6 +45,23 @@ jobs:
         --enable-category bugs
         --format github
 
+  coverage:
+      runs-on: ubuntu-latest
+      permissions:
+        pull-requests: write # Allow posting the coverage data to the PR as a comment.
+      steps:
+      - uses: actions/checkout@v5
+        with:
+          # default fetch-depth is insufficent to find previous coverage notes
+          fetch-depth: 10
+      - name: setup go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.25.x"
+          cache: false
+      - uses: gwatts/go-coverage-action@v2
+        id: coverage
+
   validate:
     runs-on: ubuntu-latest
     steps:
