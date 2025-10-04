@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"io"
 
 	"github.com/CycloneDX/cyclonedx-go"
 )
@@ -12,8 +13,12 @@ import (
 // Parser is a CycloneDX parser.
 type Parser struct{}
 
-// Unmarshal unmarshals CycloneDX files.
-func (*Parser) Unmarshal(p []byte, v any) error {
+// Parse parses CycloneDX files.
+func (*Parser) Parse(r io.Reader) ([]any, error) {
+	p, err := io.ReadAll(r)
+	if err != nil {
+		return nil, fmt.Errorf("read: %w", err)
+	}
 	bomFileFormat := cyclonedx.BOMFileFormatJSON
 	if !json.Valid(p) {
 		bomFileFormat = cyclonedx.BOMFileFormatXML
@@ -29,19 +34,19 @@ func (*Parser) Unmarshal(p []byte, v any) error {
 	if bomFileFormat == cyclonedx.BOMFileFormatXML {
 		var data cyclonedx.BOM
 		if err := xml.Unmarshal(p, &data); err != nil {
-			return fmt.Errorf("unmarshaling XML error: %v", err)
+			return nil, fmt.Errorf("unmarshaling XML error: %v", err)
 		}
 		if d, err := json.Marshal(data); err == nil {
 			temp = d
 		} else {
-			return fmt.Errorf("marshaling JSON error: %v", err)
+			return nil, fmt.Errorf("marshaling JSON error: %v", err)
 		}
 	}
 
-	err := json.Unmarshal(temp, v)
-	if err != nil {
-		return fmt.Errorf("unmarshaling JSON error: %v", err)
+	var v any
+	if err := json.Unmarshal(temp, &v); err != nil {
+		return nil, fmt.Errorf("unmarshaling JSON error: %v", err)
 	}
 
-	return nil
+	return []any{v}, nil
 }

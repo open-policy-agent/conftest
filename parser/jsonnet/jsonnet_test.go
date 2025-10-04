@@ -1,6 +1,7 @@
 package jsonnet
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -12,7 +13,7 @@ func TestJsonnetParser(t *testing.T) {
 	tests := []struct {
 		name    string
 		input   string
-		want    map[string]any
+		want    []any
 		wantErr bool
 		errMsg  string
 	}{
@@ -25,7 +26,7 @@ func TestJsonnetParser(t *testing.T) {
 				},
 				person2: self.person1 { name: "Bob" },
 			}`,
-			want: map[string]any{
+			want: []any{map[string]any{
 				"person1": map[string]any{
 					"name":    "Alice",
 					"welcome": "Hello Alice!",
@@ -34,7 +35,7 @@ func TestJsonnetParser(t *testing.T) {
 					"name":    "Bob",
 					"welcome": "Hello Bob!",
 				},
-			},
+			}},
 			wantErr: false,
 		},
 		{
@@ -45,12 +46,12 @@ func TestJsonnetParser(t *testing.T) {
 				c: 10 - 5,
 				d: 15 / 3,
 			}`,
-			want: map[string]any{
+			want: []any{map[string]any{
 				"a": float64(3),
 				"b": float64(18),
 				"c": float64(5),
 				"d": float64(5),
-			},
+			}},
 			wantErr: false,
 		},
 		{
@@ -68,7 +69,7 @@ func TestJsonnetParser(t *testing.T) {
 					a: { b: { c: "deep" } },
 				},
 			}`,
-			want: map[string]any{
+			want: []any{map[string]any{
 				"numbers": []any{float64(1), float64(2), float64(3)},
 				"nested": map[string]any{
 					"a": map[string]any{
@@ -77,7 +78,7 @@ func TestJsonnetParser(t *testing.T) {
 						},
 					},
 				},
-			},
+			}},
 			wantErr: false,
 		},
 		{
@@ -90,7 +91,7 @@ func TestJsonnetParser(t *testing.T) {
 						recurse(x-1) + 1;
 				{ result: recurse(1000) }
 			`,
-			want:    nil,
+			want:    []any(nil),
 			wantErr: true,
 			errMsg:  "max stack frames exceeded",
 		},
@@ -100,11 +101,10 @@ func TestJsonnetParser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var got any
-			err := parser.Unmarshal([]byte(tt.input), &got)
+			got, err := parser.Parse(bytes.NewBufferString(tt.input))
 
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Parser.Unmarshal() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Parser.Parse() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
@@ -120,7 +120,7 @@ func TestJsonnetParser(t *testing.T) {
 			}
 
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Parser.Unmarshal() = %v, want %v", got, tt.want)
+				t.Errorf("Parser.Parse() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -155,15 +155,15 @@ func TestJsonnetImports(t *testing.T) {
 		path     string
 		content  []byte
 		wantErr  bool
-		validate func(t *testing.T, result any)
+		validate func(t *testing.T, result []any)
 	}{
 		{
 			name:    "successful import",
 			path:    mainPath,
 			content: []byte(mainContent),
-			validate: func(t *testing.T, result any) {
+			validate: func(t *testing.T, result []any) {
 				t.Helper()
-				m, ok := result.(map[string]any)
+				m, ok := result[0].(map[string]any)
 				if !ok {
 					t.Fatal("result is not a map")
 				}
@@ -190,12 +190,11 @@ func TestJsonnetImports(t *testing.T) {
 				parser.SetPath(tt.path)
 			}
 
-			var result any
-			err := parser.Unmarshal(tt.content, &result)
+			result, err := parser.Parse(bytes.NewReader(tt.content))
 
 			// Check error expectation
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Unmarshal() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Parse() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 

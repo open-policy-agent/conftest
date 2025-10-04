@@ -1,9 +1,9 @@
 package xml
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 
 	x "github.com/basgys/goxml2json"
 )
@@ -11,16 +11,17 @@ import (
 // Parser is an XML parser.
 type Parser struct{}
 
-// Unmarshal unmarshals XML files.
-func (xml *Parser) Unmarshal(p []byte, v any) error {
-	res, err := x.Convert(bytes.NewReader(p))
+// Parse parses XML files.
+func (xml *Parser) Parse(r io.Reader) ([]any, error) {
+	res, err := x.Convert(r)
 	if err != nil {
-		return fmt.Errorf("unmarshal xml: %w", err)
+		return nil, fmt.Errorf("unmarshal xml: %w", err)
 	}
 
-	if err := json.Unmarshal(res.Bytes(), v); err != nil {
-		return fmt.Errorf("convert xml to json: %w", err)
+	var v any
+	if err := json.Unmarshal(res.Bytes(), &v); err != nil {
+		return nil, fmt.Errorf("convert xml to json: %w", err)
 	}
 
-	return nil
+	return []any{v}, nil
 }

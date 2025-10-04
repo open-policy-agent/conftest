@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/open-policy-agent/conftest/parser"
@@ -43,7 +42,7 @@ func NewParseCommand() *cobra.Command {
 			return nil
 		},
 		RunE: func(_ *cobra.Command, files []string) error {
-			var configurations map[string]any
+			var configurations map[string][]any
 			var err error
 			if viper.GetString("parser") != "" {
 				configurations, err = parser.ParseConfigurationsAs(files, viper.GetString("parser"))
@@ -57,10 +56,8 @@ func NewParseCommand() *cobra.Command {
 			var output string
 			if viper.GetBool("combine") {
 				output, err = parser.FormatCombined(configurations)
-			} else if len(configurations) == 1 {
-				output, err = formatSingleJSON(configurations)
 			} else {
-				output, err = parser.FormatJSON(configurations)
+				output, err = parser.Format(configurations)
 			}
 			if err != nil {
 				return fmt.Errorf("format output: %w", err)
@@ -75,20 +72,4 @@ func NewParseCommand() *cobra.Command {
 	cmd.Flags().String("parser", "", fmt.Sprintf("Parser to use to parse the configurations. Valid parsers: %s", parser.Parsers()))
 
 	return &cmd
-}
-
-func formatSingleJSON(configurations map[string]any) (string, error) {
-	if len(configurations) != 1 {
-		return "", fmt.Errorf("formatSingleJSON: only supports one configuration")
-	}
-	var config any
-	for _, cfg := range configurations {
-		config = cfg
-	}
-	marshaled, err := json.MarshalIndent(config, "", "  ")
-	if err != nil {
-		return "", err
-	}
-
-	return string(marshaled), nil
 }

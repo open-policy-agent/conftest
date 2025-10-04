@@ -10,7 +10,7 @@ import (
 	"strings"
 	"syscall"
 
-	"sigs.k8s.io/yaml"
+	"go.yaml.in/yaml/v4"
 )
 
 const (

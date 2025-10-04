@@ -3,6 +3,7 @@ package jsonnet
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"path/filepath"
 
 	"github.com/google/go-jsonnet"
@@ -18,8 +19,8 @@ func (p *Parser) SetPath(path string) {
 	p.path = path
 }
 
-// Unmarshal unmarshals Jsonnet files.
-func (p *Parser) Unmarshal(data []byte, v any) error {
+// Parse parses Jsonnet files.
+func (p *Parser) Parse(r io.Reader) ([]any, error) {
 	vm := jsonnet.MakeVM()
 	vm.ErrorFormatter.SetMaxStackTraceSize(20)
 
@@ -31,14 +32,19 @@ func (p *Parser) Unmarshal(data []byte, v any) error {
 		})
 	}
 
+	data, err := io.ReadAll(r)
+	if err != nil {
+		return nil, fmt.Errorf("read: %w", err)
+	}
 	snippetStream, err := vm.EvaluateAnonymousSnippet("", string(data))
 	if err != nil {
-		return fmt.Errorf("evaluate anonymous snippet: %w", err)
+		return nil, fmt.Errorf("evaluate anonymous snippet: %w", err)
 	}
 
-	if err := json.Unmarshal([]byte(snippetStream), v); err != nil {
-		return fmt.Errorf("unmarshal json failed: %w", err)
+	var v any
+	if err := json.Unmarshal([]byte(snippetStream), &v); err != nil {
+		return nil, fmt.Errorf("unmarshal json failed: %w", err)
 	}
 
-	return nil
+	return []any{v}, nil
 }

@@ -1,6 +1,8 @@
 package json
 
 import (
+	"bytes"
+	"reflect"
 	"testing"
 )
 
@@ -26,16 +28,16 @@ func TestJSONParser(t *testing.T) {
   }
 }`
 
-	var input any
-	if err := parser.Unmarshal([]byte(sample), &input); err != nil {
+	input, err := parser.Parse(bytes.NewReader([]byte(sample)))
+	if err != nil {
 		t.Fatalf("parser should not have thrown an error: %v", err)
 	}
 
-	if input == nil {
+	if len(input) != 1 {
 		t.Fatalf("there should be information parsed but its nil")
 	}
 
-	inputMap := input.(map[string]any)
+	inputMap := input[0].(map[string]any)
 	if len(inputMap) == 0 {
 		t.Error("there should be at least one item defined in the parsed file, but none found")
 	}
@@ -45,39 +47,34 @@ func TestJSONParserWithBOM(t *testing.T) {
 	tests := []struct {
 		name    string
 		input   []byte
-		want    map[string]any
+		want    []any
 		wantErr bool
 	}{
 		{
 			name:  "valid JSON with BOM",
 			input: append([]byte{0xEF, 0xBB, 0xBF}, []byte(`{"test": "value"}`)...),
-			want:  map[string]any{"test": "value"},
+			want:  []any{map[string]any{"test": "value"}},
 		},
 		{
 			name:  "valid JSON without BOM",
 			input: []byte(`{"test": "value"}`),
-			want:  map[string]any{"test": "value"},
+			want:  []any{map[string]any{"test": "value"}},
 		},
 	}
 
 	parser := &Parser{}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var got any
-			err := parser.Unmarshal(tt.input, &got)
+			got, err := parser.Parse(bytes.NewReader(tt.input))
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Unmarshal() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Parse() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !tt.wantErr && got == nil {
 				t.Fatal("expected parsed content, got nil")
 			}
-			if m, ok := got.(map[string]any); ok {
-				for k, want := range tt.want {
-					if got := m[k]; got != want {
-						t.Errorf("key %q = %v, want %v", k, got, want)
-					}
-				}
+			if !reflect.DeepEqual(tt.want, got) {
+				t.Errorf("Expected\n%T : %v\n to equal\n%T : %v\n", got, got, tt.want, tt.want)
 			}
 		})
 	}

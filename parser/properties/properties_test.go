@@ -1,6 +1,7 @@
 package properties
 
 import (
+	"bytes"
 	"testing"
 )
 
@@ -11,16 +12,16 @@ func TestPropertiesParser(t *testing.T) {
 ! some comment=not-a-prop
 my-property=some-value`
 
-	var input any
-	if err := parser.Unmarshal([]byte(sample), &input); err != nil {
+	input, err := parser.Parse(bytes.NewBufferString(sample))
+	if err != nil {
 		t.Errorf("parser should not have thrown an error: %v", err)
 	}
 
-	if input == nil {
+	if len(input) != 1 {
 		t.Errorf("there should be information parsed but its nil")
 	}
 
-	inputMap := input.(map[string]any)
+	inputMap := input[0].(map[string]any)
 	myProp := inputMap["my-property"].(string)
 	if myProp != "some-value" {
 		t.Errorf("Failed to parse property: %s", myProp)
