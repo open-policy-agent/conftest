@@ -7,62 +7,58 @@ import (
 )
 
 func TestPreferred(t *testing.T) {
+	t.Parallel()
+
 	userHome, err := os.UserHomeDir()
 	if err != nil {
 		t.Fatalf("unexpected error %v", err)
 	}
+	tempDir := t.TempDir()
 
 	const (
-		conftestDir = ".conftest"
+		conftestDir = ".conftestcache-test"
 		pluginsDir  = "plugins"
+		nonExistant = "/doesnotexist-349857042375"
 	)
 
 	tests := []struct {
-		name  string
-		xdg   xdgPath
-		path  string
-		setup func()
-		want  string
+		name        string
+		path        string
+		xdgDataHome string
+		xdgDataDirs string
+		want        string
 	}{
 		{
-			"should return homeDir if no XDG path is set.",
-			xdgPath(conftestDir),
-			pluginsDir,
-			func() {
-				os.Unsetenv(XDGDataHome)
-				os.Unsetenv(XDGDataDirs)
-			},
-			filepath.Join(userHome, conftestDir, pluginsDir),
+			name: "should return homeDir if no XDG path is set.",
+			path: pluginsDir,
+			want: filepath.Join(userHome, conftestDir, pluginsDir),
 		},
 		{
-			"should return XDG_DATA_HOME if both XDG_DATA_HOME and XDG_DATA_DIRS is set",
-			xdgPath(conftestDir),
-			pluginsDir,
-			func() {
-				os.Unsetenv(XDGDataHome)
-				os.Unsetenv(XDGDataDirs)
-				os.Setenv(XDGDataHome, "/tmp")
-				os.Setenv(XDGDataDirs, "/tmp2:/tmp3")
-			},
-			filepath.Join("/tmp", conftestDir, pluginsDir),
+			name:        "unwritble XDG_DATA_HOME also returns homeDir",
+			path:        pluginsDir,
+			xdgDataHome: nonExistant,
+			want:        filepath.Join(userHome, conftestDir, pluginsDir),
 		},
 		{
-			"should return first XDG_DATA_DIRS if only XDG_DATA_DIRS is set",
-			xdgPath(conftestDir),
-			pluginsDir,
-			func() {
-				os.Unsetenv(XDGDataHome)
-				os.Unsetenv(XDGDataDirs)
-				os.Setenv(XDGDataDirs, "/tmp2:/tmp3")
-			},
-			filepath.Join("/tmp2", conftestDir, pluginsDir),
+			name:        "should return XDG_DATA_HOME if both XDG_DATA_HOME and XDG_DATA_DIRS is set",
+			path:        pluginsDir,
+			xdgDataHome: tempDir,
+			xdgDataDirs: "/tmp2:/tmp3",
+			want:        filepath.Join(tempDir, conftestDir, pluginsDir),
+		},
+		{
+			name:        "should return first XDG_DATA_DIRS that exists if only XDG_DATA_DIRS is set",
+			path:        pluginsDir,
+			xdgDataDirs: nonExistant + ":" + tempDir,
+			want:        filepath.Join(tempDir, conftestDir, pluginsDir),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.setup()
+			t.Parallel()
 
-			if got := tt.xdg.Preferred(tt.path); got != tt.want {
+			xdg := xdgPath(conftestDir)
+			if got := xdg.preferred(tt.path, tt.xdgDataHome, tt.xdgDataDirs); got != tt.want {
 				t.Errorf("xdgPath.Preferred() = %v, want %v", got, tt.want)
 			}
 		})
@@ -70,184 +66,78 @@ func TestPreferred(t *testing.T) {
 }
 
 func TestFind(t *testing.T) {
+	t.Parallel()
+
+	const (
+		cacheDir    = ".conftestcache-test"
+		pluginsDir  = "plugins"
+		nonExistant = "/doesnotexist-349857042375"
+	)
+
 	userHome, err := os.UserHomeDir()
 	if err != nil {
 		t.Fatalf("unexpected error %v", err)
 	}
+	userTempDir := filepath.Join(userHome, cacheDir, pluginsDir)
+	if err := os.MkdirAll(userTempDir, os.ModePerm); err != nil {
+		t.Fatalf("create cache dir under homeDir: %v", err)
+	}
+	t.Cleanup(func() { os.RemoveAll(userTempDir) })
 
-	const (
-		cacheDir      = ".conftestcache"
-		pluginsDir    = "plugins"
-		xdgDataHome   = "xdgDataHome"
-		xdgDataDirOne = "xdgDataDirOne"
-		xdgDataDirTwo = "xdgDataDirTwo"
-	)
+	tempDir := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(tempDir, cacheDir, pluginsDir), os.ModePerm); err != nil {
+		t.Fatalf("create cache dir under temp dir: %v", err)
+	}
 
 	tests := []struct {
-		name     string
-		path     string
-		setup    func() (string, error)
-		teardown func(string) error
-		want     func(string) string
-		wantErr  bool
+		name        string
+		path        string
+		xdgDataHome string
+		xdgDataDirs string
+		want        string
 	}{
 		{
-			"should return error if dir does not exist.",
-			pluginsDir,
-			func() (string, error) {
-				os.Unsetenv(XDGDataHome)
-				os.Unsetenv(XDGDataDirs)
-				return "/does/not/exist", nil
-			},
-			func(_ string) error {
-				return nil
-			},
-			func(_ string) string {
-				return ""
-			},
-			true,
+			name: "should return error if dir does not exist",
+			path: nonExistant,
 		},
 		{
-			"should return homeDir if no XDG path is set.",
-			pluginsDir,
-			func() (string, error) {
-				os.Unsetenv(XDGDataHome)
-				os.Unsetenv(XDGDataDirs)
-
-				homeDir, err := os.UserHomeDir()
-				if err != nil {
-					return "", err
-				}
-
-				dir := filepath.ToSlash(filepath.Join(homeDir))
-				cache := filepath.Join(dir, cacheDir)
-
-				err = os.MkdirAll(filepath.Join(cache, pluginsDir), os.ModePerm)
-				if err != nil {
-					return "", err
-				}
-
-				return cache, nil
-			},
-			func(path string) error {
-				return os.RemoveAll(path)
-			},
-			func(_ string) string {
-				return filepath.Join(userHome, cacheDir, pluginsDir)
-			},
-			false,
+			name: "should use homeDir if no XDG path is set.",
+			path: pluginsDir,
+			want: filepath.ToSlash(filepath.Join(userHome, cacheDir, pluginsDir)),
 		},
 		{
-			"should return XDG_DATA_HOME if XDG_DATA_HOME is set.",
-			pluginsDir,
-			func() (string, error) {
-				os.Unsetenv(XDGDataHome)
-				os.Unsetenv(XDGDataDirs)
-
-				homeDir, err := os.UserHomeDir()
-				if err != nil {
-					return "", err
-				}
-
-				dir := filepath.ToSlash(filepath.Join(homeDir))
-				tmp, err := os.MkdirTemp(dir, "")
-				if err != nil {
-					return "", err
-				}
-
-				tmpXdg := filepath.Join(tmp, xdgDataHome)
-				err = os.Mkdir(tmpXdg, os.ModePerm)
-				if err != nil {
-					return "", err
-				}
-				os.Setenv(XDGDataHome, tmpXdg)
-
-				err = os.MkdirAll(filepath.Join(tmpXdg, cacheDir, pluginsDir), os.ModePerm)
-				if err != nil {
-					return "", err
-				}
-
-				return tmp, nil
-			},
-			func(path string) error {
-				return os.RemoveAll(path)
-			},
-			func(path string) string {
-				return filepath.Join(path, xdgDataHome, cacheDir, pluginsDir)
-			},
-			false,
+			name:        "should use XDG_DATA_HOME if set",
+			path:        pluginsDir,
+			xdgDataHome: tempDir,
+			want:        filepath.ToSlash(filepath.Join(tempDir, cacheDir, pluginsDir)),
 		},
 		{
-			"should return Data Dir with cache if XDG_DATA_DIRS is set.",
-			pluginsDir,
-			func() (string, error) {
-				os.Unsetenv(XDGDataHome)
-				os.Unsetenv(XDGDataDirs)
-
-				homeDir, err := os.UserHomeDir()
-				if err != nil {
-					return "", err
-				}
-
-				dir := filepath.ToSlash(filepath.Join(homeDir))
-				tmp, err := os.MkdirTemp(dir, "")
-				if err != nil {
-					return "", err
-				}
-
-				tmpXdg1 := filepath.Join(tmp, xdgDataDirOne)
-				err = os.Mkdir(tmpXdg1, os.ModePerm)
-				if err != nil {
-					return "", err
-				}
-
-				tmpXdg2 := filepath.Join(tmp, xdgDataDirTwo)
-				err = os.Mkdir(tmpXdg2, os.ModePerm)
-				if err != nil {
-					return "", err
-				}
-				os.Setenv(XDGDataDirs, tmpXdg1+":"+tmpXdg2)
-
-				err = os.MkdirAll(filepath.Join(tmpXdg2, cacheDir, pluginsDir), os.ModePerm)
-				if err != nil {
-					return "", err
-				}
-
-				return tmp, nil
-			},
-			func(path string) error {
-				return os.RemoveAll(path)
-			},
-			func(path string) string {
-				return filepath.Join(path, xdgDataDirTwo, cacheDir, pluginsDir)
-			},
-			false,
+			name:        "should use first existing XDG_DATA_DIRS if set",
+			path:        pluginsDir,
+			xdgDataDirs: "/does/not/exist:" + tempDir,
+			want:        filepath.ToSlash(filepath.Join(tempDir, cacheDir, pluginsDir)),
+		},
+		{
+			name:        "fall back to homeDir if XDG dirs point at non-existent paths",
+			path:        pluginsDir,
+			xdgDataHome: nonExistant,
+			xdgDataDirs: nonExistant,
+			want:        filepath.ToSlash(filepath.Join(userHome, cacheDir, pluginsDir)),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			dir, err := tt.setup()
-			if err != nil {
-				t.Fatalf("unexpected error %v", err)
-			}
-
-			defer func() {
-				err := tt.teardown(dir)
-				if err != nil {
-					t.Fatalf("unexpected error %v", err)
-				}
-			}()
+			t.Parallel()
 
 			xdg := xdgPath(cacheDir)
-			got, err := xdg.Find(tt.path)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("xdgPath.Find() error = %v, wantErr %v", err, tt.wantErr)
-				return
+			got, err := xdg.find(tt.path, tt.xdgDataHome, tt.xdgDataDirs)
+			gotErr := err != nil
+			wantErr := tt.want == ""
+			if gotErr != wantErr {
+				t.Fatalf("xdgPath.Find() error = %v, wantErr %v", err, wantErr)
 			}
-
-			want := tt.want(dir)
-			if got != want {
-				t.Errorf("xdgPath.Find() = %v, want %v", got, want)
+			if got != tt.want {
+				t.Errorf("xdgPath.Find() = %s, want %s", got, tt.want)
 			}
 		})
 	}
