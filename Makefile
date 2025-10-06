@@ -45,7 +45,7 @@ test-acceptance: build install-test-deps ## Runs the tests in the test folder.
 
 .PHONY: install-test-deps
 install-test-deps: ## Installs dependencies required for testing.
-	@command -v pre-commit >/dev/null 2>&1 || python -m pip install -r requirements-dev.txt
+	@command -v pre-commit >/dev/null 2>&1 || python3 -m pip install -r requirements-dev.txt
 
 .PHONY: test-oci
 test-oci: ## Runs the OCI integration test for push and pull.
