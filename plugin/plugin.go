@@ -142,8 +142,13 @@ func (p *Plugin) Directory() string {
 // CacheDirectory returns the full path to the
 // cache directory where all of the plugins are stored.
 func CacheDirectory() string {
-	dir, _ := cacheDirectory.Find("plugins")
-	return dir
+	// Use pre-existing cache directory if it exists, otherwise
+	// pick the preferred directory based on XDG environment vars.
+	dir, err := cacheDirectory.Find("plugins")
+	if err != nil {
+		return dir
+	}
+	return cacheDirectory.Preferred("plugins")
 }
 
 // FromDirectory returns a plugin from a specific directory.

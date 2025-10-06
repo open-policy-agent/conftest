@@ -4,7 +4,6 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
-	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -12,9 +11,13 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"sigs.k8s.io/yaml"
 )
 
 func TestIsDirectory(t *testing.T) {
+	t.Parallel()
+
 	testCases := []struct {
 		input    string
 		expected bool
@@ -26,23 +29,27 @@ func TestIsDirectory(t *testing.T) {
 		{input: "C:\\some\\path", expected: true},
 		{input: "unknown", expected: true},
 		{input: "unknown.com", expected: true},
-
 		{input: "github.com/username/repo", expected: false},
 	}
 
 	for _, testCase := range testCases {
-		actual, err := isDirectory(testCase.input)
-		if err != nil {
-			t.Fatal("is directory:", err)
-		}
+		t.Run(testCase.input, func(t *testing.T) {
+			t.Parallel()
 
-		if actual != testCase.expected {
-			t.Errorf("Directory check failed. expected %v, actual %v", testCase.expected, actual)
-		}
+			actual, err := isDirectory(testCase.input)
+			if err != nil {
+				t.Fatal("is directory:", err)
+			}
+			if actual != testCase.expected {
+				t.Errorf("Directory check failed. expected %v, actual %v", testCase.expected, actual)
+			}
+		})
 	}
 }
 
 func TestInstall(t *testing.T) {
+	tmpDir := t.TempDir()
+
 	tests := []struct {
 		name             string
 		setup            func(t *testing.T) (source string, wantPluginName string)
@@ -52,7 +59,7 @@ func TestInstall(t *testing.T) {
 		{
 			name: "install from directory",
 			setup: func(t *testing.T) (string, string) {
-				pluginDir := createInstallTestPlugin(t, "test-plugin")
+				pluginDir := createInstallTestPlugin(t, tmpDir, "test-plugin")
 				return pluginDir, "test-plugin"
 			},
 			wantErr: false,
@@ -85,11 +92,10 @@ func TestInstall(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tmpDir := t.TempDir()
-			t.Setenv("XDG_DATA_HOME", tmpDir)
+			t.Setenv(XDGDataHome, tmpDir)
 
 			source, wantPluginName := tt.setup(t)
-			err := Install(context.Background(), source)
+			err := Install(t.Context(), source)
 
 			assertError(t, tt.wantErr, tt.wantErrSubstring, err)
 			assertInstallationResult(t, tmpDir, wantPluginName, tt.wantErr)
@@ -98,19 +104,18 @@ func TestInstall(t *testing.T) {
 }
 
 // Helper functions
-func createInstallTestPlugin(t *testing.T, name string) string {
+func createInstallTestPlugin(t *testing.T, tmpDir, name string) string {
 	t.Helper()
 
-	pluginDir := filepath.Join(t.TempDir(), name)
+	pluginDir := filepath.Join(tmpDir, name)
 	if err := os.MkdirAll(pluginDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
-	configContent := []byte(fmt.Sprintf(`name: %s
-version: 1.0.0
-command: test-command`, name))
-	if err := os.WriteFile(filepath.Join(pluginDir, "plugin.yaml"), configContent, 0o600); err != nil {
-		t.Fatal(err)
+	pluginPath := filepath.Join(pluginDir, "plugin.yaml")
+	configContent := marshalTestPlugin(t, name)
+	if err := os.WriteFile(pluginPath, configContent, 0o600); err != nil {
+		t.Fatalf("Write test plugin: %v", err)
 	}
 
 	return pluginDir
@@ -123,9 +128,7 @@ func createTestArchiveServer(t *testing.T, pluginName string) *httptest.Server {
 	gw := gzip.NewWriter(&buf)
 	tw := tar.NewWriter(gw)
 
-	configContent := []byte(fmt.Sprintf(`name: %s
-version: 1.0.0
-command: test-command`, pluginName))
+	configContent := marshalTestPlugin(t, pluginName)
 
 	header := &tar.Header{
 		Name: "plugin.yaml",
@@ -150,6 +153,21 @@ command: test-command`, pluginName))
 		w.Header().Set("Content-Type", "application/x-gzip")
 		_, _ = w.Write(buf.Bytes())
 	}))
+}
+
+func marshalTestPlugin(t *testing.T, name string) []byte {
+	t.Helper()
+
+	plugin := Plugin{
+		Name:    name,
+		Version: "1.0.0",
+		Command: "test-command",
+	}
+	by, err := yaml.Marshal(plugin)
+	if err != nil {
+		t.Fatalf("Marshal test plugin: %v", err)
+	}
+	return by
 }
 
 func createInvalidArchiveServer(t *testing.T) *httptest.Server {
@@ -205,12 +223,11 @@ func assertInstallationResult(t *testing.T, tmpDir, wantPluginName string, wantE
 
 	pluginDir := filepath.Join(tmpDir, ".conftest", "plugins", wantPluginName)
 	if _, err := os.Stat(pluginDir); os.IsNotExist(err) {
-		t.Errorf("plugin directory %q not found", pluginDir)
+		t.Fatalf("plugin directory %q not found", pluginDir)
 	}
-
 	configPath := filepath.Join(pluginDir, "plugin.yaml")
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		t.Error("plugin.yaml not found in plugin directory")
+		t.Errorf("plugin.yaml not found in %s", pluginDir)
 	}
 }
 
