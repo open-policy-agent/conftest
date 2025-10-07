@@ -3,11 +3,8 @@ package plugin
 import (
 	"fmt"
 	"os"
-	"os/user"
 	"path/filepath"
-	"strconv"
 	"strings"
-	"syscall"
 )
 
 const (
@@ -26,19 +23,14 @@ func (p xdgPath) Preferred(path string) string {
 }
 
 func (p xdgPath) preferred(path, xdgDataHome, xdgDataDirs string) string {
-	user, err := user.Current()
-	if err != nil {
-		return p.homeDir(path)
-	}
-
-	if xdgDataHome != "" && p.writable(xdgDataHome, user) {
+	if xdgDataHome != "" && p.writable(xdgDataHome) {
 		return filepath.ToSlash(filepath.Join(xdgDataHome, string(p), path))
 	}
 
 	if xdgDataDirs != "" {
 		// Pick the first dir that is writable.
 		for dir := range strings.SplitSeq(xdgDataDirs, ":") {
-			if p.writable(dir, user) {
+			if p.writable(dir) {
 				return filepath.ToSlash(filepath.Join(dir, string(p), path))
 			}
 		}
@@ -52,33 +44,15 @@ func (p xdgPath) homeDir(path string) string {
 	return filepath.ToSlash(filepath.Join(dir, string(p), path))
 }
 
-func (p xdgPath) writable(path string, user *user.User) bool {
-	fd, err := os.Stat(path)
+func (p xdgPath) writable(path string) bool {
+	// The easiest cross-platform way to check if it is writable is
+	// to just create a directory and then remove it.
+	tempDir, err := os.MkdirTemp(path, ".conftestcheck-")
 	if err != nil {
 		return false
 	}
-	perms := fd.Mode().Perm()
-
-	// First check if the directory is world-writable.
-	if perms&os.FileMode(0002) != 0 {
-		return true
-	}
-
-	// Then check user and group permissions.
-	if fd.Sys() == nil {
-		return false
-	}
-	stat, ok := fd.Sys().(*syscall.Stat_t)
-	if !ok {
-		return false
-	}
-	if user.Uid == strconv.Itoa(int(stat.Uid)) && perms&os.FileMode(0200) != 0 {
-		return true
-	}
-	if user.Gid == strconv.Itoa(int(stat.Gid)) && perms&os.FileMode(0020) != 0 {
-		return true
-	}
-	return false
+	os.RemoveAll(tempDir)
+	return true
 }
 
 // Find verifies whether the file exists somewhere in the expected XDG
