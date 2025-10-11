@@ -43,7 +43,7 @@ func TestPreferred(t *testing.T) {
 			name:        "should return XDG_DATA_HOME if both XDG_DATA_HOME and XDG_DATA_DIRS is set",
 			path:        pluginsDir,
 			xdgDataHome: tempDir,
-			xdgDataDirs: "/tmp2:/tmp3",
+			xdgDataDirs: filepath.Join(tempDir, "subdir123"),
 			want:        filepath.ToSlash(filepath.Join(tempDir, conftestDir, pluginsDir)),
 		},
 		{
