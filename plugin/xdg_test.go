@@ -31,26 +31,26 @@ func TestPreferred(t *testing.T) {
 		{
 			name: "should return homeDir if no XDG path is set.",
 			path: pluginsDir,
-			want: filepath.Join(userHome, conftestDir, pluginsDir),
+			want: filepath.ToSlash(filepath.Join(userHome, conftestDir, pluginsDir)),
 		},
 		{
 			name:        "unwritble XDG_DATA_HOME also returns homeDir",
 			path:        pluginsDir,
 			xdgDataHome: nonExistant,
-			want:        filepath.Join(userHome, conftestDir, pluginsDir),
+			want:        filepath.ToSlash(filepath.Join(userHome, conftestDir, pluginsDir)),
 		},
 		{
 			name:        "should return XDG_DATA_HOME if both XDG_DATA_HOME and XDG_DATA_DIRS is set",
 			path:        pluginsDir,
 			xdgDataHome: tempDir,
 			xdgDataDirs: "/tmp2:/tmp3",
-			want:        filepath.Join(tempDir, conftestDir, pluginsDir),
+			want:        filepath.ToSlash(filepath.Join(tempDir, conftestDir, pluginsDir)),
 		},
 		{
 			name:        "should return first XDG_DATA_DIRS that exists if only XDG_DATA_DIRS is set",
 			path:        pluginsDir,
 			xdgDataDirs: nonExistant + ":" + tempDir,
-			want:        filepath.Join(tempDir, conftestDir, pluginsDir),
+			want:        filepath.ToSlash(filepath.Join(tempDir, conftestDir, pluginsDir)),
 		},
 	}
 	for _, tt := range tests {
