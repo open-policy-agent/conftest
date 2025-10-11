@@ -7,7 +7,7 @@ import (
 )
 
 func TestPreferred(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	userHome, err := os.UserHomeDir()
 	if err != nil {
@@ -55,7 +55,7 @@ func TestPreferred(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+			// t.Parallel()
 
 			xdg := xdgPath(conftestDir)
 			if got := xdg.preferred(tt.path, tt.xdgDataHome, tt.xdgDataDirs); got != tt.want {
