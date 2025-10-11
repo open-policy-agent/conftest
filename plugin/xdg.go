@@ -47,11 +47,17 @@ func (p xdgPath) homeDir(path string) string {
 func (p xdgPath) writable(path string) bool {
 	// The easiest cross-platform way to check if it is writable is
 	// to just create a directory and then remove it.
-	tempDir, err := os.MkdirTemp(path, ".conftestcheck-")
+	tempDir, err := os.MkdirTemp(path, "conftestcheck")
 	if err != nil {
+
+		fmt.Fprintln(os.Stderr, "dir is not writable:", path)
+
 		return false
 	}
 	os.RemoveAll(tempDir)
+
+	fmt.Fprintln(os.Stderr, "dir IS writable:", filepath.Join(path, "conftestcheck"))
+
 	return true
 }
 

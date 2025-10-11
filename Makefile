@@ -31,7 +31,7 @@ build: ## Builds Conftest.
 
 .PHONY: test
 test: ## Tests Conftest.
-	@go test -v ./...
+	@go test ./...
 
 .PHONY: test-examples
 test-examples: build ## Runs the tests for the examples.
