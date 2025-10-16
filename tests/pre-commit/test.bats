@@ -39,6 +39,14 @@ repos:
       args:
         - --policy
         - examples/kubernetes/policy
+    # This hook is intended to change/fmt this file
+    - id: conftest-fmt
+      files: examples/kubernetes/deployment.yaml
+    - id: conftest-pull
+      args:
+        - --policy
+        - ./pulled-policies
+        - git::https://github.com/open-policy-agent/conftest//examples/kubernetes/policy
 EOF
 
     # Add and commit files
@@ -68,3 +76,17 @@ teardown_file() {
     run pre-commit run conftest-verify
     [ "$status" -eq 0 ]
 }
+
+@test "pre-commit: verify fmt hook changes a policy file" {
+    cd "$TEST_REPO"
+    run pre-commit run conftest-fmt --files examples/kubernetes/deployment.yaml
+    [ "$status" -ne 0 ]
+}
+
+@test "pre-commit: pull hook downloads policies successfully" {
+  cd "$TEST_REPO"
+  run pre-commit run conftest-pull
+  [ "$status" -eq 0 ]
+}
+
+
