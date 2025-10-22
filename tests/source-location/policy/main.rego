@@ -3,5 +3,5 @@ package main
 deny contains {
     "msg": "test",
     "other": "metadata",
-    "_loc": input.loc
+    "_loc": data.loc
 }
