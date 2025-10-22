@@ -2,6 +2,7 @@ package output
 
 import (
 	"os"
+	"path/filepath"
 
 	"github.com/open-policy-agent/opa/v1/tester"
 )
@@ -132,4 +133,26 @@ func Outputs() []string {
 		OutputAzureDevOps,
 		OutputSARIF,
 	}
+}
+
+func plural(msg string, n int) string {
+	if n != 1 {
+		return msg + "s"
+	}
+	return msg
+}
+
+func relPath(path string) string {
+	if !filepath.IsAbs(path) {
+		return path
+	}
+	cwd, err := os.Getwd()
+	if err != nil {
+		return path
+	}
+	rel, err := filepath.Rel(cwd, path)
+	if err != nil {
+		return path
+	}
+	return rel
 }
