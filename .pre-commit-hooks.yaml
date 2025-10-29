@@ -17,3 +17,23 @@
   require_serial: true
   minimum_pre_commit_version: "2.9.0"
   stages: [pre-commit, pre-merge-commit, pre-push, manual]
+
+- id: conftest-pull
+  name: Pull Conftest Policy Rego files
+  description: Download Conftest Policies
+  entry: conftest pull
+  language: golang
+  pass_filenames: false
+  require_serial: true
+  minimum_pre_commit_version: "2.9.0"
+  stages: [pre-commit, pre-merge-commit, pre-push, manual]
+
+- id: conftest-fmt
+  name: Conftest Format Rego files
+  description: Format Rego unit tests for Conftest policies
+  entry: conftest fmt
+  language: golang
+  pass_filenames: true
+  require_serial: false
+  minimum_pre_commit_version: "2.9.0"
+  stages: [pre-commit, pre-merge-commit, pre-push, manual]
