@@ -391,7 +391,6 @@ func (e *Engine) check(ctx context.Context, path string, config any, namespace s
 		checkResult.Failures = append(checkResult.Failures, failures...)
 		checkResult.Warnings = append(checkResult.Warnings, warnings...)
 		checkResult.Exceptions = append(checkResult.Exceptions, exceptions...)
-
 		checkResult.Queries = append(checkResult.Queries, exceptionQueryResult, ruleQueryResult)
 	}
 
