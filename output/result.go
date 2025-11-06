@@ -1,6 +1,7 @@
 package output
 
 import (
+	"encoding/json"
 	"fmt"
 	"slices"
 )
@@ -8,32 +9,91 @@ import (
 // Result describes the result of a single rule evaluation.
 type Result struct {
 	Message  string         `json:"msg"`
+	Location *Location      `json:"loc,omitempty"`
 	Metadata map[string]any `json:"metadata,omitempty"`
 	Outputs  []string       `json:"outputs,omitempty"`
+}
+
+// Location describes the origin location in the configuration file that
+// caused the result to be produced.
+type Location struct {
+	File string      `json:"file,omitempty"`
+	Line json.Number `json:"line,omitempty"`
+}
+
+func (l Location) String() string {
+	return fmt.Sprintf("%s L%s", l.File, l.Line.String())
+}
+
+const (
+	msgField = "msg"
+	locField = "_loc"
+)
+
+var reservedFields = []string{
+	msgField,
+	locField,
 }
 
 // NewResult creates a new result. An error is returned if the
 // metadata could not be successfully parsed.
 func NewResult(metadata map[string]any) (Result, error) {
-	if _, ok := metadata["msg"]; !ok {
-		return Result{}, fmt.Errorf("rule missing msg field: %v", metadata)
+	if metadata == nil {
+		return Result{}, fmt.Errorf("metadata must be supplied")
 	}
-	if _, ok := metadata["msg"].(string); !ok {
-		return Result{}, fmt.Errorf("msg field must be string: %v", metadata)
+	msg, ok := lookup[string](metadata, msgField)
+	if !ok {
+		return Result{}, fmt.Errorf("%q field must be present and a string", msgField)
 	}
 
 	result := Result{
-		Message:  metadata["msg"].(string),
+		Message:  msg,
 		Metadata: make(map[string]any),
 	}
 
+	if loc, ok := metadata[locField]; ok {
+		if l := parseLocation(loc); l != nil {
+			result.Location = l
+		}
+	}
+
 	for k, v := range metadata {
-		if k != "msg" {
+		if !slices.Contains(reservedFields, k) {
 			result.Metadata[k] = v
 		}
 	}
 
 	return result, nil
+}
+
+func parseLocation(location any) *Location {
+	loc, ok := location.(map[string]any)
+	if !ok {
+		return nil
+	}
+
+	l := &Location{}
+	if file, ok := lookup[string](loc, "file"); ok {
+		l.File = file
+	}
+	if line, ok := lookup[json.Number](loc, "line"); ok {
+		l.Line = line
+	}
+
+	if l.File == "" && l.Line.String() == "" {
+		return nil
+	}
+
+	return l
+}
+
+func lookup[T any](m map[string]any, k string) (value T, ok bool) {
+	x, ok := m[k]
+	if !ok {
+		return
+	}
+	value, ok = x.(T)
+	return
 }
 
 // Passed returns true if the result did not fail a policy.
