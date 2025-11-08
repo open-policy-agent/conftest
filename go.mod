@@ -1,6 +1,6 @@
 module github.com/open-policy-agent/conftest
 
-go 1.25.0
+go 1.25.3
 
 require (
 	cuelang.org/go v0.15.0
@@ -31,6 +31,7 @@ require (
 	github.com/spf13/viper v1.21.0
 	github.com/subosito/gotenv v1.6.0
 	github.com/tmccombs/hcl2json v0.6.7
+	github.com/tzrikka/xdg v1.3.2
 	golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0
 	google.golang.org/protobuf v1.36.9
 	olympos.io/encoding/edn v0.0.0-20201019073823-d3554ca0b0a3

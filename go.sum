@@ -417,6 +417,8 @@ github.com/tmccombs/hcl2json v0.6.7 h1:RYKTs4kd/gzRsEiv7J3M2WQ7TYRYZVc+0H0pZdERk
 github.com/tmccombs/hcl2json v0.6.7/go.mod h1:lJgBOOGDpbhjvdG2dLaWsqB4KBzul2HytfDTS3H465o=
 github.com/tonistiigi/go-csvvalue v0.0.0-20240814133006-030d3b2625d0 h1:2f304B10LaZdB8kkVEaoXvAMVan2tl9AiK4G0odjQtE=
 github.com/tonistiigi/go-csvvalue v0.0.0-20240814133006-030d3b2625d0/go.mod h1:278M4p8WsNh3n4a1eqiFcV2FGk7wE5fwUpUom9mK9lE=
+github.com/tzrikka/xdg v1.3.2 h1:KhTyYLq58F0vs+Vw9uLMKw44qfEZDW5/ZQyCgTE9P2k=
+github.com/tzrikka/xdg v1.3.2/go.mod h1:qZP8butzr5W+sv0kS17GKvBnoUgKVty9fBo+W8LsnTY=
 github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8/go.mod h1:VFNgLljTbGfSG7qAOspJ7OScBnGdDN/yBr0sguwnwf0=
 github.com/ulikunitz/xz v0.5.15 h1:9DNdB5s+SgV3bQ2ApL10xRc35ck0DuIX/isZvIk+ubY=
 github.com/ulikunitz/xz v0.5.15/go.mod h1:nbz6k7qbPmH4IRqmfOplQw/tblSgqTqBwxkY0oWt/14=
