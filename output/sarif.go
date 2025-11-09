@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/open-policy-agent/opa/v1/tester"
@@ -73,19 +74,10 @@ func addRuleIndex(run *sarif.Run, ruleID string, result Result, indices map[stri
 // addRule adds a new rule to the SARIF run with the given ID and result metadata.
 func addRule(run *sarif.Run, ruleID string, result Result) {
 	desc := getRuleDescription(ruleID)
-	rule := run.AddRule(ruleID).
+	run.AddRule(ruleID).
 		WithDescription(desc).
-		WithShortDescription(&sarif.MultiformatMessageString{
-			Text: &desc,
-		})
-
-	if result.Metadata != nil {
-		props := sarif.NewPropertyBag()
-		for k, v := range result.Metadata {
-			props.Add(k, v)
-		}
-		rule.WithProperties(props.Properties)
-	}
+		WithProperties(result.Metadata).
+		WithShortDescription(sarif.NewMultiformatMessageString(desc))
 }
 
 // addResult adds a result to the SARIF run
@@ -96,18 +88,20 @@ func addResult(run *sarif.Run, result Result, namespace, ruleType, level, fileNa
 		idx = addRuleIndex(run, ruleID, result, indices)
 	}
 
+	location := sarif.NewPhysicalLocation()
+	if loc := result.Location; loc != nil {
+		line, _ := strconv.Atoi(loc.Line.String())
+		location.ArtifactLocation = sarif.NewSimpleArtifactLocation(filepath.ToSlash(loc.File))
+		location.Region = sarif.NewRegion().WithStartLine(line).WithEndLine(line)
+	} else {
+		location.ArtifactLocation = sarif.NewSimpleArtifactLocation(filepath.ToSlash(fileName))
+	}
+
 	run.CreateResultForRule(ruleID).
 		WithRuleIndex(idx).
 		WithLevel(level).
 		WithMessage(sarif.NewTextMessage(result.Message)).
-		AddLocation(
-			sarif.NewLocationWithPhysicalLocation(
-				sarif.NewPhysicalLocation().
-					WithArtifactLocation(
-						sarif.NewSimpleArtifactLocation(filepath.ToSlash(fileName)),
-					),
-			),
-		)
+		AddLocation(sarif.NewLocationWithPhysicalLocation(location))
 }
 
 // Output outputs the results in SARIF format.

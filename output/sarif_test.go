@@ -121,6 +121,10 @@ func TestSARIF_Output(t *testing.T) {
 					Warnings: []Result{
 						{
 							Message: "test warning",
+							Location: &Location{
+								File: "test.yaml",
+								Line: json.Number("123"),
+							},
 							Metadata: map[string]any{
 								"foo": "bar",
 							},
@@ -170,6 +174,10 @@ func TestSARIF_Output(t *testing.T) {
 										"physicalLocation": map[string]any{
 											"artifactLocation": map[string]any{
 												"uri": "test.yaml",
+											},
+											"region": map[string]any{
+												"startLine": float64(123),
+												"endLine":   float64(123),
 											},
 										},
 									},
