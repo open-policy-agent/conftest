@@ -22,6 +22,7 @@
             golangci-lint
             goreleaser
             gnumake
+            pipenv
             pre-commit
             ratchet
             regal

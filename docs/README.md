@@ -11,7 +11,7 @@ pipenv install
 With the dependencies installed you can run the site locally. Any modifications to the files in `docs` will be automatically rebuilt.
 
 ```console
-pipenv run mkdir serve
+pipenv run mkdocs serve
 INFO    -  Building documentation...
 INFO    -  Cleaning site directory
 INFO    -  Documentation built in 0.45 seconds
