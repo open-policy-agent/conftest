@@ -21,6 +21,7 @@
             go
             golangci-lint
             gnumake
+            pipenv
             pre-commit
             regal
           ];

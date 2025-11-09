@@ -84,31 +84,122 @@ As of today Conftest supports:
 * XML
 * YAML
 
-### Pre-commit Integration
+### Metadata
 
-Conftest can be used as a [pre-commit](https://pre-commit.com/) hook to validate your configuration files before committing them.
+In addition to the `msg`, Rego policies written for conftest can surface additional metadata. To do so, return an object from the Rego rule. The object must at a minimum contain a field called `msg`. All other fields are considered metadata. For example:
 
-To use Conftest with pre-commit, add the following to your `.pre-commit-config.yaml`:
+```rego
+# policy.json
+package main
 
-```yaml
-repos:
-  - repo: https://github.com/open-policy-agent/conftest
-    rev: v0.59.0  # Use a specific tag or 'HEAD' for the latest commit
-    hooks:
-      - id: conftest-test
-        args: [--policy, path/to/your/policies]  # Specify your policy directory
-      # Optional: Add the verify hook to run policy unit tests
-      - id: conftest-verify
-        args: [--policy, path/to/your/policies]
+deny contains violation if {
+  # ... other logic
+
+  violation := {
+    "msg": "Violation for some reason.",
+    "metadata_abc": 123,
+    "metadata_xyz": true,
+  }
+}
 ```
 
-The `conftest-test` hook validates your configuration files against policies, while the `conftest-verify` hook runs unit tests for your policies.
+This produces the following output. Note that the metadata is not surfaced by most [outputters](output.md), and using the JSON output is recommended if you need to access the metadata produced during the policy evaluation. 
 
-Additional hooks are available including `conftest-pull` for downloading policies and `conftest-fmt` for formatting Rego files.
-See the [.pre-commit-hooks.yaml](https://github.com/open-policy-agent/conftest/blob/main/.pre-commit-hooks.yaml) file
-for the complete list of available hooks and their configuration options.
+Running the above policy against an empty JSON document yields the following result.
 
-For more information on pre-commit hooks, refer to the [pre-commit documentation](https://pre-commit.com/).
+```json
+$ echo "{}" | conftest test -p policy.rego --output json -
+[
+  {
+    "filename": "",
+    "namespace": "main",
+    "successes": 0,
+    "failures": [
+      {
+        "msg": "Violation for some reason.",
+        "metadata": {
+          "metadata_abc": 123,
+          "metadata_xyz": true,
+          "query": "data.main.deny"
+        }
+      }
+    ]
+  }
+]
+```
+
+#### Well-known metadata
+
+##### Query
+
+All results include the `query` that produced the result. This is added without any changes required to the Rego policy.
+
+##### Location
+
+> **NOTE:** Location parsing was added in Conftest v0.64
+
+Rego policies can optionally include a `_loc` (location) metadata which is used to identify the exact source of the violation. This must be an object that specifies a `file`, and optionally a `line`. The `file` does not need to be in the same file as the one that was tested, which can be useful for pointing to the origin config file for generated resources.
+
+Supported outputters for `_loc`: `json`, `github`.
+
+Continuing the previous example:
+
+```rego
+# policy.rego
+package main
+
+deny contains violation if {
+  # ... other logic
+
+  violation := {
+    "msg": "Violation for some reason.",
+    "metadata_abc": 123,
+    "metadata_xyz": true,
+    "_loc": {
+      "file": "foo.txt",
+      "line": 99999,
+    },
+  }
+}
+```
+
+```json
+$ echo "{}" | conftest test -p policy.rego --output json -
+[
+  {
+    "filename": "",
+    "namespace": "main",
+    "successes": 0,
+    "failures": [
+      {
+        "msg": "Violation for some reason.",
+        "loc": {
+          "file": "foo.txt",
+          "line": 99999
+        },
+        "metadata": {
+          "metadata_abc": 123,
+          "metadata_xyz": true,
+          "query": "data.main.deny"
+        }
+      }
+    ]
+  }
+]
+```
+
+We can see that the `_loc` field was extracted and pulled into a `loc` field outside of the metadata. Running with the `github` outputter, we can see that it uses the syntax required for GitHub Actions to annotate the source files on the lines indicated by the policy.
+
+```console
+$ echo "{}" | conftest test -p /tmp/policy.rego --output github -
+::group::Testing "-" against 1 policies in namespace "main"
+::error file=foo.txt,line=99999::Violation for some reason.
+::error file=-,line=1::(ORIGINATING FROM foo.txt L99999) Violation for some reason.
+::notice file=-,line=1::Number of successful checks: 0
+::endgroup::
+1 test, 0 passed, 0 warnings, 1 failure, 0 exceptions
+```
+
 
 ### Testing/Verifying Policies
 

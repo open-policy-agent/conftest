@@ -8,6 +8,9 @@ site
 .DS*
 .idea
 
+# Running docs site locally
+Pipfile*
+
 # NodeJS files/dirs created when installing bats
 node_modules/
 package.json
