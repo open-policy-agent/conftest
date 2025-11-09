@@ -60,12 +60,12 @@ lint: ## Lints Conftest.
 ratchet-update:
 	@ratchet update .github/workflows/*.yaml
 
+.PHONY: format-docs
+format-docs:
+	@mdformat --wrap 80 docs
+
 .PHONY: all
 all: lint build test test-examples test-acceptance ## Runs all linting and tests.
 
 help:
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m\033[0m\n"} /^[$$()% a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
-
-#
-##@ Releases
-#

@@ -1,8 +1,12 @@
 # Exceptions
 
-There might be cases where rules might not apply under certain circumstances. For those occasions, you can use `exceptions`. Exceptions are also written in rego, and allow you to specify policies for when a given `deny` or `violation` rule does not apply. 
+There might be cases where rules might not apply under certain circumstances.
+For those occasions, you can use `exceptions`. Exceptions are also written in
+rego, and allow you to specify policies for when a given `deny` or `violation`
+rule does not apply.
 
-Inputs matched by the `exception` will be exempted from the rules specified in `rules`, prefixed by `deny_` or `violation_`:
+Inputs matched by the `exception` will be exempted from the rules specified in
+`rules`, prefixed by `deny_` or `violation_`:
 
 ```rego
 exception contains rules if {
@@ -12,19 +16,24 @@ exception contains rules if {
 }
 ```
 
-The above would provide an exception from `deny_foo` and `violation_foo` as well as `deny_bar` and `violation_bar`.
+The above would provide an exception from `deny_foo` and `violation_foo` as well
+as `deny_bar` and `violation_bar`.
 
-Note that if you specify the empty string, the exception will match *all* rules named `deny` or `violation`. It is recommended to use identifiers in your rule names to allow for targeted exceptions.
+Note that if you specify the empty string, the exception will match *all* rules
+named `deny` or `violation`. It is recommended to use identifiers in your rule
+names to allow for targeted exceptions.
 
 ## Reporting
 
-Exceptions are reported as a separate tally in Conftest's output, so you can detect when exceptions are being made. For example, you might see this summary: 
+Exceptions are reported as a separate tally in Conftest's output, so you can
+detect when exceptions are being made. For example, you might see this summary:
 
 `2 tests, 1 passed, 0 warnings, 0 failures, 1 exception`.
 
 ## Examples
 
-In the below example, a Kubernetes deployment named `can-run-as-root` will be allowed to run as root, while others will not:
+In the below example, a Kubernetes deployment named `can-run-as-root` will be
+allowed to run as root, while others will not:
 
 ```rego
 package main

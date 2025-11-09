@@ -1,6 +1,7 @@
 # Installation
 
-Conftest is available for Windows, macOS and Linux on the [releases page](https://github.com/open-policy-agent/conftest/releases). 
+Conftest is available for Windows, macOS and Linux on the
+[releases page](https://github.com/open-policy-agent/conftest/releases).
 
 On Linux and macOS you can download as follows:
 
@@ -31,7 +32,8 @@ scoop install conftest
 
 ## Docker
 
-Conftest Docker images are also available. Simply mount your configuration and policy at `/project` and specify the relevant command like so:
+Conftest Docker images are also available. Simply mount your configuration and
+policy at `/project` and specify the relevant command like so:
 
 ```console
 $ docker run --rm -v $(pwd):/project openpolicyagent/conftest test deployment.yaml
@@ -40,12 +42,13 @@ FAIL - deployment.yaml - Containers must not run as root in Deployment hello-kub
 1 test, 0 passed, 0 warnings, 1 failure, 0 exceptions
 ```
 
-> **NOTE:** The instrumenta/conftest image is deprecated and will no longer be updated. Please use the openpolicyagent/conftest image.
+> **NOTE:** The instrumenta/conftest image is deprecated and will no longer be
+> updated. Please use the openpolicyagent/conftest image.
 
 ## From Source
 
-If you have a working Go environment, you can install conftest from source. It will be installed
-to your configured `$GOPATH/bin` folder.
+If you have a working Go environment, you can install conftest from source. It
+will be installed to your configured `$GOPATH/bin` folder.
 
 ```sh
 CGO_ENABLED=0 go install github.com/open-policy-agent/conftest@latest

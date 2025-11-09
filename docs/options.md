@@ -2,17 +2,22 @@
 
 ## Configuration
 
-Options for Conftest can be configured on the command line as flag arguments, environment variables, or a configuration file.
+Options for Conftest can be configured on the command line as flag arguments,
+environment variables, or a configuration file.
 
-When multiple configuration sources are present, Conftest will process the configuration values in the following order:
+When multiple configuration sources are present, Conftest will process the
+configuration values in the following order:
 
 1. Flag Arguments
 1. Environment Variables
 1. Configuration File
 
-When using environment variables, the environment variable should be the same name as the flag, prefixed with `CONFTEST_`. For example, to set the policy directory, the environment variable would be `CONFTEST_POLICY`.
+When using environment variables, the environment variable should be the same
+name as the flag, prefixed with `CONFTEST_`. For example, to set the policy
+directory, the environment variable would be `CONFTEST_POLICY`.
 
-When using a configuration file, the configuration file should be in the working directory for Conftest and named `conftest.toml`. An example can be found below:
+When using a configuration file, the configuration file should be in the working
+directory for Conftest and named `conftest.toml`. An example can be found below:
 
 ```toml
 # You can override the directory in which to store and look for policies
@@ -24,9 +29,14 @@ namespace = "conftest"
 
 ## `--combine`
 
-This flag introduces *BREAKING CHANGES* in how Conftest provides input to rego policies. However, you may find it useful to use as it allows you to compare multiple values from different configurations simultaneously.
+This flag introduces *BREAKING CHANGES* in how Conftest provides input to rego
+policies. However, you may find it useful to use as it allows you to compare
+multiple values from different configurations simultaneously.
 
-The `--combine` flag combines files into one `input` data structure. The structure is an `array` where each element is a `map` with two keys: a `path` key with the relative file path of the file being evaluated and a `contents` key containing the actual document.
+The `--combine` flag combines files into one `input` data structure. The
+structure is an `array` where each element is a `map` with two keys: a `path`
+key with the relative file path of the file being evaluated and a `contents` key
+containing the actual document.
 
 Let's try it!
 
@@ -87,7 +97,8 @@ FAIL - Combined - Deployment hello-kubernetes has selector hello-kubernetes that
 1 test, 0 passed, 0 warnings, 1 failure, 0 exceptions
 ```
 
-It is also possible to pass in multiple files. Creating `.yaml` file for both the `Service` and the `Deployment`.
+It is also possible to pass in multiple files. Creating `.yaml` file for both
+the `Service` and the `Deployment`.
 
 ```console
 $ conftest test service.yaml deployment.yaml --combine
@@ -97,7 +108,8 @@ FAIL - Combined - Deployment hello-kubernetes has selector hello-kubernetes that
 1 test, 0 passed, 0 warnings, 1 failure, 0 exceptions
 ```
 
-This is just the tip of the iceberg. Now you can ensure that duplicate values match across the entirety of your configuration files.
+This is just the tip of the iceberg. Now you can ensure that duplicate values
+match across the entirety of your configuration files.
 
 ## `--config-file (-c)`
 
@@ -113,13 +125,16 @@ conftest -c examples/configfile/conftest.toml test -p examples/configfile/test e
 
 Sometimes policies require additional data in order to determine an answer.
 
-For example, an allowed list of resources that can be created. Instead of hardcoding this information inside of your policy, conftest allows passing paths to data files with the `--data` flag.
+For example, an allowed list of resources that can be created. Instead of
+hardcoding this information inside of your policy, conftest allows passing paths
+to data files with the `--data` flag.
 
 ```console
 conftest test -p examples/data/policy -d examples/data/exclusions examples/data/service.yaml
 ```
 
-The paths at the flag are recursively searched for JSON and YAML files. Data can be imported as follows:
+The paths at the flag are recursively searched for JSON and YAML files. Data can
+be imported as follows:
 
 Given the following yaml file:
 
@@ -139,7 +154,9 @@ ports := services.ports
 
 ## `--fail-on-warn`
 
-Policies can either be categorized as a warning (using the `warn` rule) or a failure (using the `deny` or `violation` rules). By default, Conftest only returns an exit code of `1` when a policy has failed.
+Policies can either be categorized as a warning (using the `warn` rule) or a
+failure (using the `deny` or `violation` rules). By default, Conftest only
+returns an exit code of `1` when a policy has failed.
 
 The `--fail-on-warn` flag changes this behavior to the following:
 
@@ -149,7 +166,10 @@ The `--fail-on-warn` flag changes this behavior to the following:
 
 ## `--ignore`
 
-When a directory is given as an input, Conftest will recursively find, and test all files that it supports. To ignore certain directories or files, the `--ignore` flag takes a regexp pattern that will ignore directories and files that match the pattern.
+When a directory is given as an input, Conftest will recursively find, and test
+all files that it supports. To ignore certain directories or files, the
+`--ignore` flag takes a regexp pattern that will ignore directories and files
+that match the pattern.
 
 Here are some examples:
 
@@ -332,9 +352,13 @@ $ conftest test --proto-file-dirs examples/textproto/protos -p examples/textprot
 
 ## `--trace`
 
-When debugging policies, it can be useful to see exactly how the policy is being evaluated. The `--trace` flag provides detailed output showing how the Rego queries are processed.
+When debugging policies, it can be useful to see exactly how the policy is being
+evaluated. The `--trace` flag provides detailed output showing how the Rego
+queries are processed.
 
-**Important**: The `--trace` flag only works with the default standard output format (`--output=stdout`). When both `--trace` and `--output` are specified, the output format takes priority and tracing will not be used.
+**Important**: The `--trace` flag only works with the default standard output
+format (`--output=stdout`). When both `--trace` and `--output` are specified,
+the output format takes priority and tracing will not be used.
 
 Example usage:
 
@@ -351,9 +375,12 @@ TRAC | | Eval data.kubernetes.is_deployment
 
 ## `--parser`
 
-Conftest normally detects which parser to used based on the file extension of the file, even when multiple input files are passed in. However, it is possible force a specific parser to be used with the `--parser` flag.
+Conftest normally detects which parser to used based on the file extension of
+the file, even when multiple input files are passed in. However, it is possible
+force a specific parser to be used with the `--parser` flag.
 
-For the available parsers, take a look at [parsers](https://github.com/open-policy-agent/conftest/tree/master/parser).
+For the available parsers, take a look at
+[parsers](https://github.com/open-policy-agent/conftest/tree/master/parser).
 
 For instance:
 
@@ -365,11 +392,17 @@ $ conftest test -p examples/hcl1/policy examples/hcl1/gke.tf --parser hcl2
 
 ## `--policy`
 
-Conftest will, by default, look for policies in the `policy` folder. This can be changed with the `--policy` (or `-p`) flag. 
+Conftest will, by default, look for policies in the `policy` folder. This can be
+changed with the `--policy` (or `-p`) flag.
 
-This flag can also be repeated, if you have multiple directories with policy files. For example one with organization-wide policies, and another one with team-specific policies. Keep in mind when using multiple directories that the rules are treated as if they had all been read from the same directory, so make sure any rules sharing the same name are compatible.
+This flag can also be repeated, if you have multiple directories with policy
+files. For example one with organization-wide policies, and another one with
+team-specific policies. Keep in mind when using multiple directories that the
+rules are treated as if they had all been read from the same directory, so make
+sure any rules sharing the same name are compatible.
 
 Read rules from the policy directory (default):
+
 ```console
 $ conftest test files/
 ```

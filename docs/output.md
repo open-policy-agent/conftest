@@ -2,8 +2,8 @@
 
 conftest is designed to be used in CI environments and integrated with other
 systems. To support this, the `test` command supports an `--output` flag to
-change the format depending on need. You can run `conftest test --help` to
-see the available values.
+change the format depending on need. You can run `conftest test --help` to see
+the available values.
 
 Using the `json` output is available for integration with other tooling that
 does not require a specific format. For example:
@@ -42,7 +42,8 @@ $ conftest test -p examples/kubernetes/policy/ examples/kubernetes/service.yaml 
 5 tests, 4 passed, 1 warning, 0 failures, 0 exceptions
 ```
 
-conftest can also be used to produce SARIF results for integration with systems that require SBOMs.
+conftest can also be used to produce SARIF results for integration with systems
+that require SBOMs.
 
 ```json
 $ conftest test -p examples/kubernetes/policy/ examples/kubernetes/service.yaml --output sarif | jq -M .
