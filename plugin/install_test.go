@@ -92,7 +92,7 @@ func TestInstall(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Setenv(XDGDataHome, tmpDir)
+			t.Setenv("XDG_DATA_HOME", tmpDir)
 
 			source, wantPluginName := tt.setup(t)
 			err := Install(t.Context(), source)

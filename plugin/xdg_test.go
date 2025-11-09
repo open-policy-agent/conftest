@@ -25,7 +25,7 @@ func TestPreferred(t *testing.T) {
 		name        string
 		path        string
 		xdgDataHome string
-		xdgDataDirs string
+		xdgDataDirs []string
 		want        string
 	}{
 		{
@@ -43,13 +43,13 @@ func TestPreferred(t *testing.T) {
 			name:        "should return XDG_DATA_HOME if both XDG_DATA_HOME and XDG_DATA_DIRS is set",
 			path:        pluginsDir,
 			xdgDataHome: tempDir,
-			xdgDataDirs: "/tmp2:/tmp3",
+			xdgDataDirs: []string{"/tmp2", "/tmp3"},
 			want:        filepath.Join(tempDir, conftestDir, pluginsDir),
 		},
 		{
 			name:        "should return first XDG_DATA_DIRS that exists if only XDG_DATA_DIRS is set",
 			path:        pluginsDir,
-			xdgDataDirs: nonExistant + ":" + tempDir,
+			xdgDataDirs: []string{nonExistant, tempDir},
 			want:        filepath.Join(tempDir, conftestDir, pluginsDir),
 		},
 	}
@@ -57,9 +57,11 @@ func TestPreferred(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
+			want := filepath.ToSlash(tt.want)
+
 			xdg := xdgPath(conftestDir)
-			if got := xdg.preferred(tt.path, tt.xdgDataHome, tt.xdgDataDirs); got != tt.want {
-				t.Errorf("xdgPath.Preferred() = %v, want %v", got, tt.want)
+			if got := xdg.preferred(tt.path, tt.xdgDataHome, tt.xdgDataDirs); got != want {
+				t.Errorf("xdgPath.Preferred() = %v, want %v", got, want)
 			}
 		})
 	}
@@ -93,7 +95,7 @@ func TestFind(t *testing.T) {
 		name        string
 		path        string
 		xdgDataHome string
-		xdgDataDirs string
+		xdgDataDirs []string
 		want        string
 	}{
 		{
@@ -103,31 +105,33 @@ func TestFind(t *testing.T) {
 		{
 			name: "should use homeDir if no XDG path is set.",
 			path: pluginsDir,
-			want: filepath.ToSlash(filepath.Join(userHome, cacheDir, pluginsDir)),
+			want: filepath.Join(userHome, cacheDir, pluginsDir),
 		},
 		{
 			name:        "should use XDG_DATA_HOME if set",
 			path:        pluginsDir,
 			xdgDataHome: tempDir,
-			want:        filepath.ToSlash(filepath.Join(tempDir, cacheDir, pluginsDir)),
+			want:        filepath.Join(tempDir, cacheDir, pluginsDir),
 		},
 		{
 			name:        "should use first existing XDG_DATA_DIRS if set",
 			path:        pluginsDir,
-			xdgDataDirs: "/does/not/exist:" + tempDir,
-			want:        filepath.ToSlash(filepath.Join(tempDir, cacheDir, pluginsDir)),
+			xdgDataDirs: []string{nonExistant, tempDir},
+			want:        filepath.Join(tempDir, cacheDir, pluginsDir),
 		},
 		{
 			name:        "fall back to homeDir if XDG dirs point at non-existent paths",
 			path:        pluginsDir,
 			xdgDataHome: nonExistant,
-			xdgDataDirs: nonExistant,
-			want:        filepath.ToSlash(filepath.Join(userHome, cacheDir, pluginsDir)),
+			xdgDataDirs: []string{nonExistant},
+			want:        filepath.Join(userHome, cacheDir, pluginsDir),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
+			want := filepath.ToSlash(tt.want)
 
 			xdg := xdgPath(cacheDir)
 			got, err := xdg.find(tt.path, tt.xdgDataHome, tt.xdgDataDirs)
@@ -136,8 +140,8 @@ func TestFind(t *testing.T) {
 			if gotErr != wantErr {
 				t.Fatalf("xdgPath.Find() error = %v, wantErr %v", err, wantErr)
 			}
-			if got != tt.want {
-				t.Errorf("xdgPath.Find() = %s, want %s", got, tt.want)
+			if got != want {
+				t.Errorf("xdgPath.Find() = %s, want %s", got, want)
 			}
 		})
 	}

@@ -19,9 +19,20 @@ jobs:
         ref: ${{ github.event.pull_request.head.sha }}
         fetch-depth: ${{ github.event.pull_request.commits }}
 
+    - name: setup go
+      uses: actions/setup-go@v6
+      with:
+        go-version: "1.25.x"
+        cache: false
+
     - name: validate conventional commit prefix
       working-directory: scripts
       run: ./validate-conventional-commit-prefix.sh
+
+    - name: golangci-lint
+      uses: golangci/golangci-lint-action@v8
+      with:
+        args: --timeout=5m --color=always --max-same-issues=0 --max-issues-per-linter=0
 
     - name: setup regal
       uses: StyraInc/setup-regal@v1
@@ -46,7 +57,13 @@ jobs:
         --format github
 
   validate:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os:
+          - 'ubuntu-latest'
+          - 'macos-latest'
+          - 'windows-latest'
+    runs-on: ${{ matrix.os }}
     steps:
       - name: checkout source
         uses: actions/checkout@v5
@@ -56,11 +73,6 @@ jobs:
         with:
           go-version: "1.25.x"
           cache: false
-
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v8
-        with:
-          args: --timeout=5m --color=always --max-same-issues=0 --max-issues-per-linter=0
 
       - name: build
         run: make build
@@ -86,13 +98,29 @@ jobs:
           detik-install: false
           file-install: false
 
-      - name: test examples
+      - name: test examples (nix)
+        if: ${{ matrix.os != 'windows-latest' }}
         run: make test-examples
 
-      - name: acceptance
+      - name: test examples (windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          $env:Path += ";C:\Users\runneradmin\.local\share\bats\bin"
+          make test-examples
+
+      - name: acceptance (ubuntu)
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         run: make test-acceptance
 
+      # TODO: Uncomment as a part of https://github.com/open-policy-agent/conftest/issues/1203
+      # - name: acceptance (windows)
+      #   if: ${{ matrix.os == 'windows-latest' }}
+      #   run: |
+      #     $env:Path += ";C:\Users\runneradmin\.local\share\bats\bin"
+      #     make test-acceptance
+
       - name: test oci push/pull
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         run: ./scripts/push-pull-e2e.sh
 
   docker-conftest:
