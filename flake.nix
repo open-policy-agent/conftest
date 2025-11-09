@@ -21,6 +21,7 @@
             go
             golangci-lint
             gnumake
+            mdformat
             pipenv
             pre-commit
             regal

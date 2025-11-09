@@ -2,7 +2,8 @@
 
 ## Document your policies
 
-OPA has introduced a standard way to document policies called [Metadata](https://www.openpolicyagent.org/docs/latest/policy-language/#metadata). 
+OPA has introduced a standard way to document policies called
+[Metadata](https://www.openpolicyagent.org/docs/latest/policy-language/#metadata).
 This format allows for structured in code documentation of policies.
 
 ```opa
@@ -17,14 +18,16 @@ allow if {
 }
 ```
 
-For the generated documentation to make sense your `packages` should be documented with at least the `title` field 
-and `rules` should have both `title` and `description`. This will ensure that no section is empty in your 
+For the generated documentation to make sense your `packages` should be
+documented with at least the `title` field and `rules` should have both `title`
+and `description`. This will ensure that no section is empty in your
 documentations.
 
 ## Generate the documentation
 
-In code documentation is great but what we often want it to later generated an actual static reference documentation.
-The `doc` command will retrieve all annotation of a targeted module and generate a markdown documentation for it.
+In code documentation is great but what we often want it to later generated an
+actual static reference documentation. The `doc` command will retrieve all
+annotation of a targeted module and generate a markdown documentation for it.
 
 ```bash
 conftest doc path/to/policy
@@ -32,14 +35,17 @@ conftest doc path/to/policy
 
 ## Use your own template
 
-You can override the [default template](https://raw.githubusercontent.com/open-policy-agent/conftest/refs/heads/master/document/resources/document.md) with your own template
+You can override the
+[default template](https://raw.githubusercontent.com/open-policy-agent/conftest/refs/heads/master/document/resources/document.md)
+with your own template
 
 ```aiignore
 conftest -t template.md path/tp/policies
 ```
 
-All annotation are returned as a sorted list of all annotations, grouped by the path and location of their targeted 
-package or rule. For instance using this template
+All annotation are returned as a sorted list of all annotations, grouped by the
+path and location of their targeted package or rule. For instance using this
+template
 
 ```bash
 {{ range . -}}
