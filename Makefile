@@ -40,6 +40,7 @@ test-examples: build ## Runs the tests for the examples.
 .PHONY: test-acceptance
 test-acceptance: build install-test-deps ## Runs the tests in the test folder.
 	@for testdir in $(TEST_DIRS) ; do \
+		echo Testing $$testdir; \
 		cd $(CURDIR)/$$testdir && CONFTEST=$(ROOT_DIR)/$(BIN) bats test.bats || exit 1; \
 	done
 
