@@ -98,11 +98,25 @@ jobs:
           detik-install: false
           file-install: false
 
-      - name: test examples
+      - name: test examples (nix)
+        if: ${{ matrix.os != 'windows-latest' }}
         run: make test-examples
 
-      - name: acceptance
+      - name: test examples (windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          $env:Path += ";C:\Users\runneradmin\.local\share\bats\bin"
+          make test-examples
+
+      - name: acceptance (nix)
+        if: ${{ matrix.os != 'windows-latest' }}
         run: make test-acceptance
+
+      - name: acceptance (windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          $env:Path += ";C:\Users\runneradmin\.local\share\bats\bin"
+          make test-acceptance
 
       - name: test oci push/pull
         run: ./scripts/push-pull-e2e.sh
