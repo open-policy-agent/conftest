@@ -15,13 +15,13 @@ jobs:
       contents: read
     steps:
       - name: checkout source
-        uses: actions/checkout@v5
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # ratchet:actions/checkout@v5
 
       # It is important to check the GoReleaser config before pushing to
       # Dockerhub to avoid having mismatches between what is in Dockerhub
       # and GitHub releases.
       - name: check releaser config
-        uses: goreleaser/goreleaser-action@v6
+        uses: goreleaser/goreleaser-action@e435ccd777264be153ace6237001ef4d979d3a7a # ratchet:goreleaser/goreleaser-action@v6
         with:
           args: check
           version: "~> v1"
@@ -34,10 +34,10 @@ jobs:
       - check
     steps:
       - name: checkout source
-        uses: actions/checkout@v5
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # ratchet:actions/checkout@v5
 
       - name: login to docker hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # ratchet:docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_LOGIN }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -50,7 +50,7 @@ jobs:
         run: docker buildx create --name conftestbuild --use
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v6 
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # ratchet:docker/build-push-action@v6
         with:
           context: .
           push: true
@@ -69,10 +69,10 @@ jobs:
       - check
     steps:
       - name: checkout source
-        uses: actions/checkout@v5
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # ratchet:actions/checkout@v5
 
       - name: login to docker hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # ratchet:docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_LOGIN }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -81,13 +81,13 @@ jobs:
         run: docker buildx create --name conftestbuild --use
 
       - name: Build and push examples image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # ratchet:docker/build-push-action@v6
         with:
           context: .
           push: true
           target: examples
           tags: ${{ env.IMAGE }}:examples
-          platforms: ${{ env.PLATFORMS }}     
+          platforms: ${{ env.PLATFORMS }}
 
   goreleaser:
     runs-on: ubuntu-latest
@@ -98,17 +98,17 @@ jobs:
       - docker-examples
     steps:
       - name: checkout source
-        uses: actions/checkout@v5
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # ratchet:actions/checkout@v5
         with:
           fetch-depth: 0 # Need to fetch the full history for the GoReleaser changelog.
 
       - name: setup go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # ratchet:actions/setup-go@v6
         with:
           go-version: "1.25.x"
 
       - name: release
-        uses: goreleaser/goreleaser-action@v6
+        uses: goreleaser/goreleaser-action@e435ccd777264be153ace6237001ef4d979d3a7a # ratchet:goreleaser/goreleaser-action@v6
         with:
           args: release --clean
           version: "~> v1"

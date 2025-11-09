@@ -10,51 +10,56 @@ env:
   PLATFORMS: linux/amd64,linux/arm64
 
 jobs:
-  style:
+  lint:
     runs-on: ubuntu-latest
     steps:
-    - name: checkout all PR branch and commits
-      uses: actions/checkout@v5
-      with:
-        ref: ${{ github.event.pull_request.head.sha }}
-        fetch-depth: ${{ github.event.pull_request.commits }}
+      - name: checkout all PR branch and commits
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # ratchet:actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: ${{ github.event.pull_request.commits }}
 
-    - name: setup go
-      uses: actions/setup-go@v6
-      with:
-        go-version: "1.25.x"
-        cache: false
+      - name: setup go
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # ratchet:actions/setup-go@v6
+        with:
+          go-version: "1.25.x"
+          cache: false
 
-    - name: validate conventional commit prefix
-      working-directory: scripts
-      run: ./validate-conventional-commit-prefix.sh
+      - name: validate conventional commit prefix
+        working-directory: scripts
+        run: ./validate-conventional-commit-prefix.sh
 
-    - name: golangci-lint
-      uses: golangci/golangci-lint-action@v8
-      with:
-        args: --timeout=5m --color=always --max-same-issues=0 --max-issues-per-linter=0
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@4afd733a84b1f43292c63897423277bb7f4313a9 # ratchet:golangci/golangci-lint-action@v8
+        with:
+          args: --timeout=5m --color=always --max-same-issues=0 --max-issues-per-linter=0
 
-    - name: setup regal
-      uses: StyraInc/setup-regal@v1
-      with:
-        version: v0.30
+      - name: setup regal
+        uses: StyraInc/setup-regal@33a142b1189004e0f14bf42b15972c67eecce776 # ratchet:StyraInc/setup-regal@v1
+        with:
+          version: v0.30
 
-    - name: lint examples - warnings
-      continue-on-error: true # Regal returns non-zero even with fail-level set to warning.
-      run: >-
-        regal lint
-        examples
-        --disable directory-package-mismatch
-        --disable unresolved-import
-        --format github
+      - name: lint examples - warnings
+        continue-on-error: true # Regal returns non-zero even with fail-level set to warning.
+        run: >-
+          regal lint
+          examples
+          --disable directory-package-mismatch
+          --disable unresolved-import
+          --format github
 
-    - name: lint examples - blocking
-      run: >-
-        regal lint
-        examples
-        --disable-all
-        --enable-category bugs
-        --format github
+      - name: lint examples - blocking
+        run: >-
+          regal lint
+          examples
+          --disable-all
+          --enable-category bugs
+          --format github
+
+      - name: ratchet
+        uses: sethvargo/ratchet@8b4ca256dbed184350608a3023620f267f0a5253 # ratchet:sethvargo/ratchet@main
+        with:
+          files: .github/workflows/*.yaml
 
   validate:
     strategy:
@@ -66,10 +71,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: checkout source
-        uses: actions/checkout@v5
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # ratchet:actions/checkout@v5
 
       - name: setup go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # ratchet:actions/setup-go@v6
         with:
           go-version: "1.25.x"
           cache: false
@@ -83,13 +88,13 @@ jobs:
       # Ensure Actions runner has Python installed
       # This is required for pre-commit tests to work
       - name: setup python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # ratchet:actions/setup-python@v6
         with:
           python-version: '3.13'
           cache: 'pip'
 
       - name: setup bats
-        uses: bats-core/bats-action@3.0.1
+        uses: bats-core/bats-action@42fcc8700f773c075a16a90eb11674c0318ad507 # ratchet:bats-core/bats-action@3.0.1
         with:
           # Pin bats version to fix CI issue: https://github.com/bats-core/bats-action/pull/4
           bats-version: "1.10.0"
@@ -129,13 +134,13 @@ jobs:
       - validate
     steps:
       - name: checkout source
-        uses: actions/checkout@v5
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # ratchet:actions/checkout@v5
 
       - name: setup docker buildx
         run: docker buildx create --name conftestbuild --use
 
       - name: Build Docker image
-        uses: docker/build-push-action@v6 
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # ratchet:docker/build-push-action@v6
         with:
           context: .
           push: false
@@ -152,13 +157,13 @@ jobs:
       - validate
     steps:
       - name: checkout source
-        uses: actions/checkout@v5
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # ratchet:actions/checkout@v5
 
       - name: setup docker buildx
         run: docker buildx create --name conftestbuild --use
 
       - name: Build Docker image
-        uses: docker/build-push-action@v6 
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # ratchet:docker/build-push-action@v6
         with:
           context: .
           target: examples
