@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/open-policy-agent/conftest/internal/version"
 	"github.com/open-policy-agent/conftest/plugin"
 
 	"github.com/spf13/cobra"
@@ -17,11 +18,6 @@ import (
 
 	// Load the custom builtins.
 	_ "github.com/open-policy-agent/conftest/builtins"
-)
-
-// These values are set at build time
-var (
-	version = ""
 )
 
 // NewDefaultCommand creates the default command
@@ -97,7 +93,7 @@ func newCommandFromPlugin(ctx context.Context, p *plugin.Plugin) *cobra.Command 
 }
 
 func createVersionString() string {
-	return fmt.Sprintf("Conftest: %s\nOPA: %s\n", version, opaversion.Version)
+	return fmt.Sprintf("Conftest: %s\nOPA: %s\n", version.Version, opaversion.Version)
 }
 
 func readInConfig() error {

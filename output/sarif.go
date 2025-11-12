@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/open-policy-agent/conftest/internal/version"
 	"github.com/open-policy-agent/opa/v1/tester"
 	"github.com/owenrumney/go-sarif/v2/sarif"
 )
@@ -117,7 +118,10 @@ func (s *SARIF) Output(results CheckResults) error {
 		return fmt.Errorf("create sarif report: %w", err)
 	}
 
-	run := sarif.NewRunWithInformationURI(toolName, toolURI)
+	// SARIF versions must start with a number, so we remove the "v" prefix.
+	toolVersion := strings.TrimPrefix(version.Version, "v")
+	driver := sarif.NewVersionedDriver(toolName, toolVersion).WithInformationURI(toolURI)
+	run := sarif.NewRun(sarif.Tool{Driver: driver})
 	indices := make(map[string]int)
 
 	for _, result := range results {
@@ -164,23 +168,17 @@ func (s *SARIF) Output(results CheckResults) error {
 		}
 	}
 
-	// Add run metadata
-	exitCode := 0
 	exitDesc := exitNoViolations
 	if results.HasFailure() {
-		exitCode = 1
 		exitDesc = exitViolations
 	} else if results.HasWarning() {
 		exitDesc = exitWarnings
 	}
 
-	successful := true
-	invocation := sarif.NewInvocation()
-	invocation.ExecutionSuccessful = &successful
-	invocation.ExitCode = &exitCode
-	invocation.ExitCodeDescription = &exitDesc
-
-	run.Invocations = []*sarif.Invocation{invocation}
+	run.AddInvocations(sarif.NewInvocation().
+		WithExecutionSuccess(true).
+		WithExitCode(results.ExitCode()).
+		WithExitCodeDescription(exitDesc))
 
 	// Add the run to the report
 	report.AddRun(run)
