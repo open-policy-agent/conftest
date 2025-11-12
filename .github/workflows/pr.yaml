@@ -30,7 +30,7 @@ jobs:
       run: ./validate-conventional-commit-prefix.sh
 
     - name: golangci-lint
-      uses: golangci/golangci-lint-action@v8
+      uses: golangci/golangci-lint-action@v9
       with:
         args: --timeout=5m --color=always --max-same-issues=0 --max-issues-per-linter=0
 
