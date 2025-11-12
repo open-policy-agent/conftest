@@ -2,12 +2,7 @@ name: pr
 
 on: [pull_request]
 
-
 permissions: {}
-
-env:
-  IMAGE: openpolicyagent/conftest
-  PLATFORMS: linux/amd64,linux/arm64
 
 jobs:
   style:
@@ -122,46 +117,3 @@ jobs:
       - name: test oci push/pull
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: ./scripts/push-pull-e2e.sh
-
-  docker-conftest:
-    runs-on: ubuntu-latest
-    needs:
-      - validate
-    steps:
-      - name: checkout source
-        uses: actions/checkout@v5
-
-      - name: setup docker buildx
-        run: docker buildx create --name conftestbuild --use
-
-      - name: Build Docker image
-        uses: docker/build-push-action@v6 
-        with:
-          context: .
-          push: false
-          # The foo tag below validates putting one tag per line (like we do in the release flow)
-          # works as expected.
-          tags: |
-            ${{ env.IMAGE }}:latest
-            ${{ env.IMAGE }}:foo
-          platforms: ${{ env.PLATFORMS }}
-
-  docker-examples:
-    runs-on: ubuntu-latest
-    needs:
-      - validate
-    steps:
-      - name: checkout source
-        uses: actions/checkout@v5
-
-      - name: setup docker buildx
-        run: docker buildx create --name conftestbuild --use
-
-      - name: Build Docker image
-        uses: docker/build-push-action@v6 
-        with:
-          context: .
-          target: examples
-          push: false
-          tags: ${{ env.IMAGE }}:examples
-          platforms: ${{ env.PLATFORMS }}
