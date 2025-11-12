@@ -22,6 +22,7 @@
             golangci-lint
             gnumake
             pre-commit
+            ratchet
             regal
           ];
         };
