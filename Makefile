@@ -56,6 +56,10 @@ test-oci: ## Runs the OCI integration test for push and pull.
 lint: ## Lints Conftest.
 	@golangci-lint run --fix
 
+.PHONY: format-docs
+format-docs:
+	@mdformat --wrap 80 docs
+
 .PHONY: all
 all: lint build test test-examples test-acceptance ## Runs all linting and tests.
 
