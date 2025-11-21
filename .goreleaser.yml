@@ -20,7 +20,7 @@ builds:
   ldflags:
   - "-s"
   - "-w"
-  - "-X github.com/open-policy-agent/conftest/internal/commands.version={{.Version}}"
+  - "-X github.com/open-policy-agent/conftest/internal/version.Version={{.Version}}"
 
 archives:
 - name_template: >-
