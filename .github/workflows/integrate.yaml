@@ -8,52 +8,80 @@ on:
       - 'master'
 
 jobs:
-  goreleaser:
+  # goreleaser:
+  #   runs-on: 'ubuntu-latest'
+  #   permissions:
+  #     contents: 'write' # Needs write access for upload-artifact.
+  #   outputs:
+  #     hashes: '${{ steps.outputs.outputs.hashes }}'
+  #   steps:
+  #     - name: 'checkout'
+  #       uses: 'actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8' # ratchet:actions/checkout@v5
+  #       with:
+  #         fetch-depth: 0 # So that goreleaser can determine the base version.
+  #     - name: 'build'
+  #       id: 'goreleaser'
+  #       uses: 'goreleaser/goreleaser-action@e435ccd777264be153ace6237001ef4d979d3a7a' # ratchet:goreleaser/goreleaser-action@v6
+  #       with:
+  #         args: 'release --snapshot --clean --skip docker --skip publish'
+  #         version: '~> v1'
+  #     - name: 'get version'
+  #       id: 'version'
+  #       shell: 'bash'
+  #       run: |
+  #         echo "version=$(jq -r .version dist/metadata.json)" >> "$GITHUB_OUTPUT"
+  #     - name: 'upload'
+  #       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # ratchet:actions/upload-artifact@v4
+  #       with:
+  #         name: 'conftest_${{ steps.version.outputs.version }}'
+  #         path: 'dist/*.*'
+  #         retention-days: 30
+  #     - name: 'generate outputs'
+  #       id: 'outputs'
+  #       env:
+  #         GORELEASER_ARTIFACTS: '${{ steps.goreleaser.outputs.artifacts }}'
+  #       shell: 'bash'
+  #       run: |
+  #         set -euo pipefail
+
+  #         checksum_file=$(echo "${GORELEASER_ARTIFACTS}" | jq -r '.[] | select (.type == "Checksum") | .path' | tr -d '\n')
+  #         echo "hashes=$(cat ${checksum_file} | base64 -w0)" >> "$GITHUB_OUTPUT"
+
+  # binary-provenance:
+  #   needs: ['goreleaser']
+  #   permissions:
+  #     contents: 'write' # Needs write access for upload-artifact even when upload-assets is false.
+  #     actions: 'read' # To read the workflow path.
+  #     id-token: 'write' # To sign the provenance.
+  #   uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0 # ratchet:exclude
+  #   with:
+  #     base64-subjects: '${{ needs.goreleaser.outputs.hashes }}'
+  #     upload-assets: false
+
+  docker:
     runs-on: 'ubuntu-latest'
     permissions:
-      contents: 'write' # Needs write access for upload-artifact.
+      contents: 'read'
     outputs:
-      hashes: '${{ steps.outputs.outputs.hashes }}'
+      digest: '${{ steps.build.outputs.digest }}'
+    env:
+      CONFTEST_IMAGE: 'openpolicyagent/conftest'
+    strategy:
+      matrix:
+        target:
+          - '' # Conftest
+          # - 'examples' # Examples
+        platform:
+          - 'linux/amd64'
+          # - 'linux/arm64'
     steps:
-      - name: 'checkout'
-        uses: 'actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8' # ratchet:actions/checkout@v5
-        with:
-          fetch-depth: 0 # So that goreleaser can determine the base version.
+      - name: 'setup docker buildx'
+        run: 'docker buildx create --name conftestbuild --use'
       - name: 'build'
-        id: 'goreleaser'
-        uses: 'goreleaser/goreleaser-action@e435ccd777264be153ace6237001ef4d979d3a7a' # ratchet:goreleaser/goreleaser-action@v6
+        id: 'build'
+        uses: 'docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83' # ratchet:docker/build-push-action@v6
         with:
-          args: 'release --snapshot --clean --skip docker --skip publish'
-          version: '~> v1'
-      - name: 'get version'
-        id: 'version'
-        shell: 'bash'
-        run: |
-          echo "version=$(jq -r .version dist/metadata.json)" >> "$GITHUB_OUTPUT"
-      - name: 'upload'
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # ratchet:actions/upload-artifact@v4
-        with:
-          name: 'conftest_${{ steps.version.outputs.version }}'
-          path: 'dist/*.*'
-          retention-days: 30
-      - name: 'generate outputs'
-        id: 'outputs'
-        env:
-          GORELEASER_ARTIFACTS: '${{ steps.goreleaser.outputs.artifacts }}'
-        shell: 'bash'
-        run: |
-          set -euo pipefail
-
-          checksum_file=$(echo "${GORELEASER_ARTIFACTS}" | jq -r '.[] | select (.type == "Checksum") | .path' | tr -d '\n')
-          echo "hashes=$(cat ${checksum_file} | base64 -w0)" >> "$GITHUB_OUTPUT"
-
-  provenance:
-    needs: ['goreleaser']
-    permissions:
-      contents: 'write' # Needs write access for upload-artifact even when upload-assets is false.
-      actions: 'read' # To read the workflow path.
-      id-token: 'write' # To sign the provenance.
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0 # ratchet:exclude
-    with:
-      base64-subjects: '${{ needs.goreleaser.outputs.hashes }}'
-      upload-assets: false
+          push: false
+          # target: '${{ matrix.target }}'
+          tags: '${{ env.CONFTEST_IMAGE }}:latest'
+          # platforms: '${{ matrix.platform }}'
