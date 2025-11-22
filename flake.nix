@@ -20,6 +20,7 @@
             docker
             go
             golangci-lint
+            goreleaser
             gnumake
             pre-commit
             ratchet
