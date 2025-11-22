@@ -14,7 +14,7 @@ COPY . .
 
 ## BUILDER STAGE ##
 FROM base AS builder
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build -o conftest -ldflags="-w -s -X github.com/open-policy-agent/conftest/internal/commands.version=${VERSION}" main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build -o conftest -ldflags="-w -s -X github.com/open-policy-agent/conftest/internal/version.Version=${VERSION}" main.go
 
 ## TEST STAGE ##
 FROM base AS test
