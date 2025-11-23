@@ -8,80 +8,94 @@ on:
       - 'master'
 
 jobs:
-  # goreleaser:
-  #   runs-on: 'ubuntu-latest'
-  #   permissions:
-  #     contents: 'write' # Needs write access for upload-artifact.
-  #   outputs:
-  #     hashes: '${{ steps.outputs.outputs.hashes }}'
-  #   steps:
-  #     - name: 'checkout'
-  #       uses: 'actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8' # ratchet:actions/checkout@v5
-  #       with:
-  #         fetch-depth: 0 # So that goreleaser can determine the base version.
-  #     - name: 'build'
-  #       id: 'goreleaser'
-  #       uses: 'goreleaser/goreleaser-action@e435ccd777264be153ace6237001ef4d979d3a7a' # ratchet:goreleaser/goreleaser-action@v6
-  #       with:
-  #         args: 'release --snapshot --clean --skip docker --skip publish'
-  #         version: '~> v1'
-  #     - name: 'get version'
-  #       id: 'version'
-  #       shell: 'bash'
-  #       run: |
-  #         echo "version=$(jq -r .version dist/metadata.json)" >> "$GITHUB_OUTPUT"
-  #     - name: 'upload'
-  #       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # ratchet:actions/upload-artifact@v4
-  #       with:
-  #         name: 'conftest_${{ steps.version.outputs.version }}'
-  #         path: 'dist/*.*'
-  #         retention-days: 30
-  #     - name: 'generate outputs'
-  #       id: 'outputs'
-  #       env:
-  #         GORELEASER_ARTIFACTS: '${{ steps.goreleaser.outputs.artifacts }}'
-  #       shell: 'bash'
-  #       run: |
-  #         set -euo pipefail
-
-  #         checksum_file=$(echo "${GORELEASER_ARTIFACTS}" | jq -r '.[] | select (.type == "Checksum") | .path' | tr -d '\n')
-  #         echo "hashes=$(cat ${checksum_file} | base64 -w0)" >> "$GITHUB_OUTPUT"
-
-  # binary-provenance:
-  #   needs: ['goreleaser']
-  #   permissions:
-  #     contents: 'write' # Needs write access for upload-artifact even when upload-assets is false.
-  #     actions: 'read' # To read the workflow path.
-  #     id-token: 'write' # To sign the provenance.
-  #   uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0 # ratchet:exclude
-  #   with:
-  #     base64-subjects: '${{ needs.goreleaser.outputs.hashes }}'
-  #     upload-assets: false
-
-  docker:
+  goreleaser:
     runs-on: 'ubuntu-latest'
     permissions:
-      contents: 'read'
+      contents: 'write' # Needs write access for upload-artifact.
     outputs:
-      digest: '${{ steps.build.outputs.digest }}'
+      checksums-handle: '${{ steps.checksum-handle.outputs.handle }}'
     env:
-      CONFTEST_IMAGE: 'openpolicyagent/conftest'
-    strategy:
-      matrix:
-        target:
-          - '' # Conftest
-          # - 'examples' # Examples
-        platform:
-          - 'linux/amd64'
-          # - 'linux/arm64'
+      CGO_ENABLED: '0'
+      CHECKSUMS_FILE_NAME: 'checksums.txt'
     steps:
-      - name: 'setup docker buildx'
-        run: 'docker buildx create --name conftestbuild --use'
-      - name: 'build'
-        id: 'build'
-        uses: 'docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83' # ratchet:docker/build-push-action@v6
+      - name: 'checkout'
+        uses: 'actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8' # ratchet:actions/checkout@v5
         with:
-          push: false
-          # target: '${{ matrix.target }}'
-          tags: '${{ env.CONFTEST_IMAGE }}:latest'
-          # platforms: '${{ matrix.platform }}'
+          fetch-depth: 0 # So that goreleaser can determine the base version.
+      - name: setup go
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # ratchet:actions/setup-go@v6
+        with:
+          go-version: "1.25.x"
+      - name: 'setup cyclonedx-gomod'
+        uses: 'CycloneDX/gh-gomod-generate-sbom@efc74245d6802c8cefd925620515442756c70d8f' # ratchet:CycloneDX/gh-gomod-generate-sbom@v2
+        with:
+          version: 'v1'
+      - name: 'build'
+        id: 'goreleaser'
+        uses: 'goreleaser/goreleaser-action@e435ccd777264be153ace6237001ef4d979d3a7a' # ratchet:goreleaser/goreleaser-action@v6
+        with:
+          version: '~> v1'
+          args: >-
+            release
+            --snapshot
+            --clean
+            --skip docker
+            --skip publish
+      - name: 'get version'
+        id: 'version'
+        shell: 'bash'
+        run: |
+          echo "version=$(jq -r .version dist/metadata.json)" >> "$GITHUB_OUTPUT"
+      - name: 'upload build'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # ratchet:actions/upload-artifact@v4
+        with:
+          name: 'conftest_${{ steps.version.outputs.version }}'
+          path: 'dist/*.*'
+          retention-days: 30
+      - name: 'base64 checksum for provenance input'
+        shell: 'bash'
+        run: 'base64 -w0 "dist/${CHECKSUMS_FILE_NAME}" > "${CHECKSUMS_FILE_NAME}"'
+      - name: 'get checksums handle'
+        id: 'checksum-handle'
+        uses: 'slsa-framework/slsa-github-generator/actions/generator/generic/create-base64-subjects-from-file@v2.1.0' # ratchet:exclude
+        with:
+          path: '${{ env.CHECKSUMS_FILE_NAME }}'
+
+  binary-provenance:
+    needs: ['goreleaser']
+    permissions:
+      contents: 'write' # Needs write access for upload-artifact even when upload-assets is false.
+      actions: 'read' # To read the workflow path.
+      id-token: 'write' # To sign the provenance.
+    uses: 'slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0' # ratchet:exclude
+    with:
+      base64-subjects-as-file: '${{ needs.goreleaser.outputs.checksums-handle }}'
+      upload-assets: false
+
+  # docker:
+  #   runs-on: 'ubuntu-latest'
+  #   permissions:
+  #     contents: 'read'
+  #   outputs:
+  #     digest: '${{ steps.build.outputs.digest }}'
+  #   env:
+  #     CONFTEST_IMAGE: 'openpolicyagent/conftest'
+  #   strategy:
+  #     matrix:
+  #       target:
+  #         - '' # Conftest
+  #         # - 'examples' # Examples
+  #       platform:
+  #         - 'linux/amd64'
+  #         # - 'linux/arm64'
+  #   steps:
+  #     - name: 'setup docker buildx'
+  #       run: 'docker buildx create --name conftestbuild --use'
+  #     - name: 'build'
+  #       id: 'build'
+  #       uses: 'docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83' # ratchet:docker/build-push-action@v6
+  #       with:
+  #         push: false
+  #         # target: '${{ matrix.target }}'
+  #         tags: '${{ env.CONFTEST_IMAGE }}:latest'
+  #         # platforms: '${{ matrix.platform }}'
