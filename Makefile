@@ -27,7 +27,7 @@ TEST_DIRS := $(patsubst tests/%/, tests/%, $(dir $(wildcard tests/**/.)))
 
 .PHONY: build
 build: ## Builds Conftest.
-	@go build -ldflags="-X github.com/open-policy-agent/conftest/internal/commands.version=${GIT_VERSION}"
+	@go build -ldflags="-X github.com/open-policy-agent/conftest/internal/version.Version=${GIT_VERSION}"
 
 .PHONY: test
 test: ## Tests Conftest.
