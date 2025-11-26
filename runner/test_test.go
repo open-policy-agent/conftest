@@ -1,7 +1,6 @@
 package runner
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -72,14 +71,12 @@ deny contains msg if {
 		"name": "test"
 	}
 }`
-			go func() {
-				defer w.Close()
-				w.Write([]byte(testInput))
-			}()
+			w.Write([]byte(testInput))
+			w.Close()
 			defer func() { os.Stdin = oldStdin }()
 
 			// Run the test
-			ctx := context.Background()
+			ctx := t.Context()
 			results, err := runner.Run(ctx, fileList)
 			if err != nil {
 				t.Fatalf("Run failed: %v", err)
@@ -140,7 +137,7 @@ metadata:
 	}
 
 	// Run with a regular file (not stdin)
-	ctx := context.Background()
+	ctx := t.Context()
 	results, err := runner.Run(ctx, []string{configFile})
 	if err != nil {
 		t.Fatalf("Run failed: %v", err)
