@@ -1,0 +1,53 @@
+name: 'post_merge'
+on:
+  push:
+    branches:
+      - 'master'
+
+permissions: {}
+
+jobs:
+  docker-conftest:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: openpolicyagent/conftest
+      PLATFORMS: linux/amd64,linux/arm64
+    steps:
+      - name: checkout source
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
+
+      - name: setup docker buildx
+        run: docker buildx create --name conftestbuild --use
+
+      - name: Build Docker image
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # ratchet:docker/build-push-action@v6
+        with:
+          context: '.'
+          push: false
+          # The foo tag below validates putting one tag per line (like we do in the release flow)
+          # works as expected.
+          tags: |
+            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:foo
+          platforms: ${{ env.PLATFORMS }}
+
+  docker-examples:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: openpolicyagent/conftest
+      PLATFORMS: linux/amd64,linux/arm64
+    steps:
+      - name: checkout source
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
+
+      - name: setup docker buildx
+        run: docker buildx create --name conftestbuild --use
+
+      - name: Build Docker image
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # ratchet:docker/build-push-action@v6
+        with:
+          context: '.'
+          target: examples
+          push: false
+          tags: ${{ env.IMAGE }}:examples
+          platforms: ${{ env.PLATFORMS }}
