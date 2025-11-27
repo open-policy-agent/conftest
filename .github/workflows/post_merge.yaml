@@ -14,7 +14,7 @@ jobs:
       PLATFORMS: linux/amd64,linux/arm64
     steps:
       - name: checkout source
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # ratchet:actions/checkout@v5
 
       - name: setup docker buildx
         run: docker buildx create --name conftestbuild --use
@@ -38,7 +38,7 @@ jobs:
       PLATFORMS: linux/amd64,linux/arm64
     steps:
       - name: checkout source
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # ratchet:actions/checkout@v5
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # ratchet:actions/checkout@v5
 
       - name: setup docker buildx
         run: docker buildx create --name conftestbuild --use
