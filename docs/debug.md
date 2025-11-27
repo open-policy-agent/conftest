@@ -1,6 +1,8 @@
 # Debugging policies
 
-When working on more complex queries (or when learning Rego), it's useful to see exactly how the policy is applied. For this purpose you can use the `--trace` flag. This will output a large trace from Open Policy Agent like the following:
+When working on more complex queries (or when learning Rego), it's useful to see
+exactly how the policy is applied. For this purpose you can use the `--trace`
+flag. This will output a large trace from Open Policy Agent like the following:
 
 ```console
 $ conftest test --trace deployment.yaml
@@ -111,7 +113,11 @@ TRAC | Redo data.main.deny = _
 
 ## Using trace with other output formats
 
-You can use the `--trace` flag together with any output format. When using `--trace` with formats like `--output=table` or `--output=json`, the trace information will be written to stderr while the formatted output will be written to stdout. This allows you to capture trace information for debugging while still using your preferred output format.
+You can use the `--trace` flag together with any output format. When using
+`--trace` with formats like `--output=table` or `--output=json`, the trace
+information will be written to stderr while the formatted output will be written
+to stdout. This allows you to capture trace information for debugging while
+still using your preferred output format.
 
 For example:
 

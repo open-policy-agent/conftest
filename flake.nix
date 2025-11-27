@@ -22,6 +22,8 @@
             golangci-lint
             goreleaser
             gnumake
+            mdformat
+            pipenv
             pre-commit
             ratchet
             regal

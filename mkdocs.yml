@@ -7,10 +7,12 @@ nav:
     - "Options": "options.md"
     - "Installation": "install.md"
     - "Examples": "examples.md"
+    - "Output": "output.md"
     - "Exceptions": "exceptions.md"
     - "Sharing policies": "sharing.md"
     - "Debugging policies": "debug.md"
     - "Documenting policies": "documentation.md"
+    - "Pre-commit": "pre_commit.md"
     - "Plugins": "plugins.md"
 markdown_extensions:
     - codehilite
