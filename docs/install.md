@@ -30,6 +30,15 @@ You can also install using [Scoop](https://scoop.sh/) on Windows:
 scoop install conftest
 ```
 
+## Mise
+
+You can also install using [Mise](https://github.com/jdx/mise) on Linux/MacOS/Windows:
+
+```console
+mise use -g conftest@latest
+```
+
+
 ## Docker
 
 Conftest Docker images are also available. Simply mount your configuration and
