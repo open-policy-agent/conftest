@@ -10,10 +10,8 @@ setup_file() {
 	# On Windows (MSYS2/Git Bash), paths need to be converted for native executables.
 	if command -v cygpath >/dev/null 2>&1; then
 		export TEMP_DIR_WIN=$(cygpath -m "${TEMP_DIR}")
-		export IS_WINDOWS=true
 	else
 		export TEMP_DIR_WIN="${TEMP_DIR}"
-		export IS_WINDOWS=false
 	fi
 
 	# Create a git repository for the remote-policy to enable git:// URL downloads
