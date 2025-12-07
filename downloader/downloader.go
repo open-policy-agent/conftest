@@ -21,7 +21,9 @@ var detectors = []getter.Detector{
 }
 
 var getters = map[string]getter.Getter{
-	"file":  new(getter.FileGetter),
+	// Use Copy mode for FileGetter to avoid symlink issues on Windows
+	// (symlinks require administrator privileges on Windows)
+	"file":  &getter.FileGetter{Copy: true},
 	"git":   new(getter.GitGetter),
 	"gcs":   new(getter.GCSGetter),
 	"hg":    new(getter.HgGetter),

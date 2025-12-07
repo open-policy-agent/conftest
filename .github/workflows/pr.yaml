@@ -112,12 +112,11 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: make test-acceptance
 
-      # TODO: Uncomment as a part of https://github.com/open-policy-agent/conftest/issues/1203
-      # - name: acceptance (windows)
-      #   if: ${{ matrix.os == 'windows-latest' }}
-      #   run: |
-      #     $env:Path += ";C:\Users\runneradmin\.local\share\bats\bin"
-      #     make test-acceptance
+      - name: acceptance (windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          $env:Path += ";C:\Users\runneradmin\.local\share\bats\bin"
+          make test-acceptance
 
       - name: test oci push/pull
         if: ${{ matrix.os == 'ubuntu-latest' }}

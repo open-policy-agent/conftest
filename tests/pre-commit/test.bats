@@ -3,6 +3,13 @@
 DIR="$( cd "$( dirname "${BATS_TEST_FILENAME}" )" >/dev/null 2>&1 && pwd )"
 PROJECT_ROOT="$( cd "$DIR/../.." >/dev/null 2>&1 && pwd )"
 
+# On Windows, convert to mixed-style path for pre-commit compatibility
+if command -v cygpath >/dev/null 2>&1; then
+    PROJECT_ROOT_WIN=$(cygpath -m "$PROJECT_ROOT")
+else
+    PROJECT_ROOT_WIN="$PROJECT_ROOT"
+fi
+
 # Git configuration for temporary repo
 GIT_AUTHOR_NAME="Conftest Test User"
 GIT_AUTHOR_EMAIL="conftest@example.tld"
@@ -20,6 +27,9 @@ setup_file() {
     git config tag.gpgsign false
     git config user.name "$GIT_AUTHOR_NAME"
     git config user.email "$GIT_AUTHOR_EMAIL"
+    # Override global core.hooksPath with empty local value to allow pre-commit to install hooks
+    # pre-commit refuses to install when core.hooksPath is set globally
+    git config --local core.hooksPath ""
 
     # Copy necessary files from the main repo
     mkdir -p examples

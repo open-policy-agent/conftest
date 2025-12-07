@@ -13,5 +13,8 @@
 
   [ "$status" -eq 1 ]
   echo $output
-  [[ "$output" =~ "file_does_not_exist.yaml: no such file or directory" ]]
+  # Check that the file name is in the error message
+  [[ "$output" =~ "file_does_not_exist.yaml" ]]
+  # Check for file not found error (Unix or Windows message)
+  [[ "$output" =~ "no such file or directory" ]] || [[ "$output" =~ "cannot find the file" ]]
 }

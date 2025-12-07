@@ -7,12 +7,24 @@ setup() {
     export ABS_POLICY_DIR="${TEMP_DIR}/conftest-policies"
     mkdir -p "${ABS_POLICY_DIR}"
     mkdir -p "${REL_TEMP_DIR}"
+
+    # On Windows (MSYS2/Git Bash), paths are translated when passed to Windows executables.
+    # We need to know the Windows-translated path for assertions.
+    if command -v cygpath >/dev/null 2>&1; then
+        export ABS_POLICY_DIR_WIN=$(cygpath -w "${ABS_POLICY_DIR}" 2>/dev/null | sed 's|\\|/|g' | sed 's|^[A-Za-z]:||')
+    else
+        export ABS_POLICY_DIR_WIN="${ABS_POLICY_DIR}"
+    fi
 }
 
 teardown() {
     # Clean up temporary directories
     rm -rf "${TEMP_DIR}"
     rm -rf "${REL_TEMP_DIR}"
+    # Also clean up any Windows-translated paths created as relative directories
+    if [ -n "${ABS_POLICY_DIR_WIN}" ] && [ "${ABS_POLICY_DIR_WIN}" != "${ABS_POLICY_DIR}" ]; then
+        rm -rf ".${ABS_POLICY_DIR_WIN}"
+    fi
 }
 
 @test "Pull command works with relative paths (default behavior)" {
@@ -27,7 +39,8 @@ teardown() {
     [ "$status" -eq 0 ]
     # The policy should be downloaded to ./ABS_POLICY_DIR instead of the absolute path
     [ ! -d "${ABS_POLICY_DIR}/deny.rego" ]
-    [ -f "./${ABS_POLICY_DIR}/deny.rego" ]
+    # Check using the Windows-translated path on Windows, or the original path on Unix
+    [ -f ".${ABS_POLICY_DIR_WIN}/deny.rego" ] || [ -f "./${ABS_POLICY_DIR}/deny.rego" ]
 }
 
 @test "Pull command works with absolute path when --absolute-paths is set" {
