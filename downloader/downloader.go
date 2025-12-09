@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	getter "github.com/hashicorp/go-getter"
@@ -21,9 +22,9 @@ var detectors = []getter.Detector{
 }
 
 var getters = map[string]getter.Getter{
-	// Use Copy mode for FileGetter to avoid symlink issues on Windows
+	// Use Copy mode for FileGetter on Windows to avoid symlink issues
 	// (symlinks require administrator privileges on Windows)
-	"file":  &getter.FileGetter{Copy: true},
+	"file":  &getter.FileGetter{Copy: runtime.GOOS == "windows"},
 	"git":   new(getter.GitGetter),
 	"gcs":   new(getter.GCSGetter),
 	"hg":    new(getter.HgGetter),

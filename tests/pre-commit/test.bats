@@ -5,9 +5,7 @@ PROJECT_ROOT="$( cd "$DIR/../.." >/dev/null 2>&1 && pwd )"
 
 # On Windows, convert to mixed-style path for pre-commit compatibility
 if command -v cygpath >/dev/null 2>&1; then
-    PROJECT_ROOT_WIN=$(cygpath -m "$PROJECT_ROOT")
-else
-    PROJECT_ROOT_WIN="$PROJECT_ROOT"
+    PROJECT_ROOT=$(cygpath -m "$PROJECT_ROOT")
 fi
 
 # Git configuration for temporary repo
