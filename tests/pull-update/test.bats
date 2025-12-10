@@ -11,16 +11,6 @@ setup_file() {
 	if command -v cygpath >/dev/null 2>&1; then
 		TEMP_DIR=$(cygpath -m "${TEMP_DIR}")
 	fi
-
-	# Create a git repository for the remote-policy to enable git:// URL downloads
-	# This avoids the file:// symlink issues on Windows
-	cd "${TEMP_DIR}/remote-policy"
-	git init --quiet
-	git config user.email "test@test.com"
-	git config user.name "Test"
-	git add .
-	git commit --quiet -m "initial"
-	cd - >/dev/null
 }
 
 teardown_file() {
@@ -35,8 +25,7 @@ teardown_file() {
 }
 
 @test "Pull and update first version policy" {
-	# Use git:: prefix for local git repository to avoid file:// symlink issues on Windows
-	run $CONFTEST test --policy "${TEMP_DIR}/policy" --update "git::file://${TEMP_DIR}/remote-policy//a" "${TEMP_DIR}/file.json"
+	run $CONFTEST test --policy "${TEMP_DIR}/policy" --update "file://${TEMP_DIR}/remote-policy/a" "${TEMP_DIR}/file.json"
 
 	[ "$status" -eq 1 ]
 	[[ "$output" =~ "a should not be present" ]]
@@ -50,8 +39,7 @@ teardown_file() {
 }
 
 @test "Pull and update second version policy" {
-	# Use git:: prefix for local git repository to avoid file:// symlink issues on Windows
-	run $CONFTEST test --policy "${TEMP_DIR}/policy" --update "git::file://${TEMP_DIR}/remote-policy//b" "${TEMP_DIR}/file.json"
+	run $CONFTEST test --policy "${TEMP_DIR}/policy" --update "file://${TEMP_DIR}/remote-policy/b" "${TEMP_DIR}/file.json"
 
 	[ "$status" -eq 1 ]
 	[[ "$output" =~ "a should not be present" ]]

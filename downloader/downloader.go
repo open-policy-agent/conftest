@@ -22,9 +22,10 @@ var detectors = []getter.Detector{
 }
 
 var getters = map[string]getter.Getter{
-	// Use Copy mode for FileGetter on Windows to avoid symlink issues
-	// (symlinks require administrator privileges on Windows)
-	"file":  &getter.FileGetter{Copy: runtime.GOOS == "windows"},
+	// Use CopyFileGetter on Windows to copy directories instead of creating
+	// symlinks/junctions (which require administrator privileges on Windows).
+	// The embedded FileGetter.Copy is set to true for file mode operations.
+	"file":  newFileGetter(),
 	"git":   new(getter.GitGetter),
 	"gcs":   new(getter.GCSGetter),
 	"hg":    new(getter.HgGetter),
@@ -32,6 +33,18 @@ var getters = map[string]getter.Getter{
 	"oci":   new(OCIGetter),
 	"http":  new(getter.HttpGetter),
 	"https": new(getter.HttpGetter),
+}
+
+// newFileGetter returns a file getter appropriate for the current OS.
+// On Windows, it returns a CopyFileGetter that copies directories instead of
+// creating symlinks/junctions. On other systems, it returns the standard FileGetter.
+func newFileGetter() getter.Getter {
+	if runtime.GOOS == "windows" {
+		return &CopyFileGetter{
+			FileGetter: getter.FileGetter{Copy: true},
+		}
+	}
+	return new(getter.FileGetter)
 }
 
 // Download downloads the given policies into the given destination.

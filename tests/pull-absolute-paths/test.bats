@@ -4,14 +4,15 @@ setup() {
     # Create temporary directories for testing
     export TEMP_DIR=$(mktemp -d)
     export REL_TEMP_DIR="examples/tmp-conftest-test-$$"
-    export ABS_POLICY_DIR="${TEMP_DIR}/conftest-policies"
-    mkdir -p "${ABS_POLICY_DIR}"
-    mkdir -p "${REL_TEMP_DIR}"
 
     # On Windows (MSYS2/Git Bash), convert to mixed-style path for conftest compatibility
     if command -v cygpath >/dev/null 2>&1; then
-        ABS_POLICY_DIR=$(cygpath -m "${ABS_POLICY_DIR}")
+        TEMP_DIR=$(cygpath -m "${TEMP_DIR}")
     fi
+
+    export ABS_POLICY_DIR="${TEMP_DIR}/conftest-policies"
+    mkdir -p "${ABS_POLICY_DIR}"
+    mkdir -p "${REL_TEMP_DIR}"
 }
 
 teardown() {
