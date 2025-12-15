@@ -40,6 +40,13 @@ linters:
       - third_party$
       - builtin$
       - examples$
+    rules:
+      # Allow parser packages to use names that match standard library (json, xml, etc.)
+      # This is a common Go pattern for parser packages
+      - path: "parser/(json|xml)/"
+        linters:
+          - revive
+        text: "var-naming: avoid package names"
 formatters:
   enable:
     - gofmt
