@@ -23,6 +23,16 @@ linters:
         - nilness
     misspell:
       locale: US
+    revive:
+      rules:
+        - name: var-naming
+          # Arguments accepts an allow list, a deny list, and a map of other options.
+          # https://github.com/mgechev/revive/blob/HEAD/RULES_DESCRIPTIONS.md#var-naming
+          arguments:
+            - [] # Allow list. Do not remove because ordering matters.
+            - [] # Deny list. Do not remove because ordering matters.
+            - 
+              - skip-package-name-collision-with-go-std: true
     staticcheck:
       checks:
         # These are processed in order. It is important that the inclusion
