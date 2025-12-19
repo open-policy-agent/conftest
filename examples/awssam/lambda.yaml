@@ -10,7 +10,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: main.handler
-      Runtime: python2.7
+      Runtime: python3.9
       Environment:
         Variables:
           - dbhost:mydb
