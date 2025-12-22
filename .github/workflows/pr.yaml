@@ -108,8 +108,8 @@ jobs:
           $env:Path += ";C:\Users\runneradmin\.local\share\bats\bin"
           make test-examples
 
-      - name: acceptance (ubuntu)
-        if: ${{ matrix.os == 'ubuntu-latest' }}
+      - name: acceptance (*nix)
+        if: ${{ matrix.os != 'windows-latest' }}
         run: make test-acceptance
 
       # TODO: Uncomment as a part of https://github.com/open-policy-agent/conftest/issues/1203
