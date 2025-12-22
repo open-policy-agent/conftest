@@ -1,33 +1,79 @@
 package plugin
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"sigs.k8s.io/yaml"
 )
 
 func TestParseCommand(t *testing.T) {
-	executable, arguments, err := parseCommand("plugin.sh arg1", []string{"arg2"})
-	if err != nil {
-		t.Fatal("parse command:", err)
+	t.Parallel()
+
+	testCases := []struct {
+		desc     string
+		cmd      string
+		args     []string
+		wantExec string
+		wantArgs []string
+	}{
+		{
+			desc:     "base no args",
+			cmd:      "plugin.sh",
+			wantExec: "plugin.sh",
+		},
+		{
+			desc:     "base with args",
+			cmd:      "plugin.sh arg1",
+			args:     []string{"arg2"},
+			wantExec: "plugin.sh",
+			wantArgs: []string{"arg1", "arg2"},
+		},
+		{
+			desc:     "absolute path with space in command",
+			cmd:      absPathPrefix(t) + filepath.Clean("Users/user/Library/Application Support/.conftest/plugins/kubectl/kubectl.sh some-resource"),
+			wantExec: absPathPrefix(t) + filepath.Clean("Users/user/Library/Application Support/.conftest/plugins/kubectl/kubectl.sh"),
+			wantArgs: []string{"some-resource"},
+		},
+		{
+			desc:     "relative path with space in command",
+			cmd:      relPathPrefix(t) + filepath.Clean("Users/user/Library/Application Support/.conftest/plugins/kubectl/kubectl.sh some-resource"),
+			wantExec: relPathPrefix(t) + filepath.Clean("Users/user/Library/Application Support/.conftest/plugins/kubectl/kubectl.sh"),
+			wantArgs: []string{"some-resource"},
+		},
+		{
+			desc:     "touch with full path",
+			cmd:      "touch /var/folders/z1/nbh65m250ksd02b31gwzj4p40000gn/T/nix-shell.xmlkqd/TestPluginExecbasic_command545725104/001/output.txt",
+			wantExec: "touch",
+			wantArgs: []string{"/var/folders/z1/nbh65m250ksd02b31gwzj4p40000gn/T/nix-shell.xmlkqd/TestPluginExecbasic_command545725104/001/output.txt"},
+		},
 	}
 
-	if executable != "plugin.sh" {
-		t.Errorf("Unexpected executable. expected %v, actual %v", "plugin.sh", executable)
-	}
-	if arguments[0] != "arg1" {
-		t.Errorf("Unexpected argument. expected %v, actual %v", "arg1", arguments[0])
-	}
-	if arguments[1] != "arg2" {
-		t.Errorf("Unexpected argument. expected %v, actual %v", "arg2", arguments[1])
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			t.Parallel()
+
+			exec, args, err := parseCommand(tc.cmd, tc.args)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if exec != tc.wantExec {
+				t.Errorf("executable = %s, want %s", exec, tc.wantExec)
+			}
+			if diff := cmp.Diff(args, tc.wantArgs); diff != "" {
+				t.Errorf("unexpected argument list. diff:\n%s", diff)
+			}
+		})
 	}
 }
 
 func TestParseCommand_WindowsShell(t *testing.T) {
+	t.Parallel()
+
 	executable, arguments, err := parseWindowsCommand("plugin.sh arg1", []string{"arg2"})
 	if err != nil {
 		t.Fatal("parse command:", err)
@@ -145,7 +191,7 @@ func TestPluginExec(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if err := plugin.Exec(context.Background(), nil); err != nil {
+		if err := plugin.Exec(t.Context(), nil); err != nil {
 			t.Fatal(err)
 		}
 
@@ -184,11 +230,14 @@ func TestPluginExec(t *testing.T) {
 		os.Stdout = f
 		defer f.Close()
 
-		if err := plugin.Exec(context.Background(), []string{"arg1", "arg2"}); err != nil {
+		if err := plugin.Exec(t.Context(), []string{"arg1", "arg2"}); err != nil {
 			t.Fatal(err)
 		}
 
-		content, _ := os.ReadFile(testFile)
+		content, err := os.ReadFile(testFile)
+		if err != nil {
+			t.Fatal(err)
+		}
 		expected := "arg1 arg2\n"
 		if string(content) != expected {
 			t.Errorf("expected %q, got %q", expected, string(content))
@@ -207,7 +256,7 @@ func TestPluginExec(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		err = plugin.Exec(context.Background(), nil)
+		err = plugin.Exec(t.Context(), nil)
 		if err == nil {
 			t.Fatal("expected error but got none")
 		}
@@ -246,4 +295,17 @@ func createTestPlugin(t *testing.T, plugin *Plugin) string {
 	}
 
 	return resolveDir
+}
+
+func absPathPrefix(t *testing.T) string {
+	t.Helper()
+	if runtime.GOOS == "windows" {
+		return "C:\\"
+	}
+	return "/"
+}
+
+func relPathPrefix(t *testing.T) string {
+	t.Helper()
+	return ".." + string(os.PathSeparator)
 }
