@@ -25,7 +25,7 @@ require (
 	github.com/opencontainers/image-spec v1.1.1
 	github.com/owenrumney/go-sarif/v2 v2.3.3
 	github.com/shteou/go-ignore v0.3.1
-	github.com/spdx/tools-golang v0.5.5
+	github.com/spdx/tools-golang v0.5.6
 	github.com/spf13/cobra v1.10.1
 	github.com/spf13/viper v1.21.0
 	github.com/subosito/gotenv v1.6.0
@@ -52,7 +52,7 @@ require (
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.48.1 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/agnivade/levenshtein v1.2.1 // indirect
-	github.com/anchore/go-struct-converter v0.0.0-20221118182256-c68fdcfa2092 // indirect
+	github.com/anchore/go-struct-converter v0.1.0 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.38.1 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.0 // indirect
