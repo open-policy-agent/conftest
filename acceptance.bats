@@ -84,7 +84,7 @@
   [ "${lines[1]}" = "1 test, 0 passed, 0 warnings, 1 failure, 0 exceptions" ]
 }
 
-@test "Test command with namespace wildcard pattern" {
+@test "Test command with namespace exact match" {
   run ./conftest test -p examples/docker/policy examples/docker/Dockerfile --namespace 'main'
   [ "$status" -eq 1 ]
   [[ "$output" =~ "unallowed image found" ]]
