@@ -86,9 +86,11 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) (output.CheckRe
 		engine.ShowBuiltinErrors()
 	}
 
-	namespaces := t.Namespace
+	var namespaces []string
 	if t.AllNamespaces {
 		namespaces = engine.Namespaces()
+	} else {
+		namespaces = filterNamespaces(engine.Namespaces(), t.Namespace)
 	}
 
 	var results output.CheckResults
@@ -210,4 +212,28 @@ func getFilesFromDirectory(directory string, ignoreRegex string) ([]string, erro
 	}
 
 	return files, nil
+}
+
+// filterNamespaces filters the available namespaces based on the given patterns.
+// Patterns can be exact namespace names or glob patterns (e.g., "group*", "main.*").
+func filterNamespaces(available []string, patterns []string) []string {
+	var result []string
+	seen := make(map[string]bool)
+
+	for _, ns := range available {
+		for _, pattern := range patterns {
+			matched, err := filepath.Match(pattern, ns)
+			if err != nil {
+				// If pattern is invalid, fall back to exact match
+				matched = (pattern == ns)
+			}
+			if matched && !seen[ns] {
+				result = append(result, ns)
+				seen[ns] = true
+				break
+			}
+		}
+	}
+
+	return result
 }
