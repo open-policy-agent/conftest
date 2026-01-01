@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/open-policy-agent/conftest/downloader"
 	"github.com/open-policy-agent/conftest/output"
@@ -89,6 +91,8 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) (output.CheckRe
 	namespaces := t.Namespace
 	if t.AllNamespaces {
 		namespaces = engine.Namespaces()
+	} else if hasWildcard(t.Namespace) {
+		namespaces = filterNamespaces(engine.Namespaces(), t.Namespace)
 	}
 
 	var results output.CheckResults
@@ -210,4 +214,37 @@ func getFilesFromDirectory(directory string, ignoreRegex string) ([]string, erro
 	}
 
 	return files, nil
+}
+
+// hasWildcard checks if any of the given patterns contain wildcard characters.
+func hasWildcard(patterns []string) bool {
+	for _, pattern := range patterns {
+		if strings.ContainsAny(pattern, "*?[") {
+			return true
+		}
+	}
+	return false
+}
+
+// filterNamespaces filters the available namespaces using the given patterns.
+// Patterns support glob-style matching with *, ?, and [...] syntax.
+func filterNamespaces(available []string, patterns []string) []string {
+	seen := make(map[string]bool)
+	var result []string
+	for _, pattern := range patterns {
+		for _, ns := range available {
+			if seen[ns] {
+				continue
+			}
+			matched, err := path.Match(pattern, ns)
+			if err != nil {
+				continue
+			}
+			if matched {
+				seen[ns] = true
+				result = append(result, ns)
+			}
+		}
+	}
+	return result
 }
