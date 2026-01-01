@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/open-policy-agent/conftest/output"
@@ -36,6 +37,13 @@ const (
 
 // Run executes the Rego tests for the given policies.
 func (r *VerifyRunner) Run(ctx context.Context) (output.CheckResults, []*tester.Result, error) {
+	// Apply default data path if no data paths are specified and the default directory exists
+	if len(r.Data) == 0 {
+		if info, err := os.Stat("data"); err == nil && info.IsDir() {
+			r.Data = []string{"data"}
+		}
+	}
+
 	capabilities, err := policy.LoadCapabilities(r.Capabilities)
 	if err != nil {
 		return nil, nil, fmt.Errorf("load capabilities: %w", err)

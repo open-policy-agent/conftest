@@ -40,6 +40,13 @@ type TestRunner struct {
 // Run executes the TestRunner, verifying all Rego policies against the given
 // list of configuration files.
 func (t *TestRunner) Run(ctx context.Context, fileList []string) (output.CheckResults, error) {
+	// Apply default data path if no data paths are specified and the default directory exists
+	if len(t.Data) == 0 {
+		if info, err := os.Stat("data"); err == nil && info.IsDir() {
+			t.Data = []string{"data"}
+		}
+	}
+
 	files, err := parseFileList(fileList, t.Ignore)
 	if err != nil {
 		return nil, fmt.Errorf("parse files: %w", err)
