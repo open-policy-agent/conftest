@@ -31,6 +31,13 @@ func (g *CopyFileGetter) Get(dst string, u *url.URL) error {
 		path = u.RawPath
 	}
 
+	// Handle Windows file:// URLs per RFC 8089
+	// When using file:///C:/path format, u.Path is "/C:/path"
+	// We need to strip the leading "/" to get the actual Windows path
+	if len(path) > 2 && path[0] == '/' && filepath.VolumeName(path[1:]) != "" {
+		path = path[1:]
+	}
+
 	// The source path must exist and be a directory
 	fi, err := os.Stat(path)
 	if err != nil {
