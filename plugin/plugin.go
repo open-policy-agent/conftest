@@ -173,12 +173,22 @@ func FromDirectory(directory string) (*Plugin, error) {
 }
 
 func parseCommand(command string, extraArgs []string) (string, []string, error) {
-	args := strings.Split(command, " ")
-	if len(args) == 0 || args[0] == "" {
+	var executable string
+	var args []string
+
+	// If the command has a path, there is a chance it contains spaces which are
+	// not a part of the args. In this case, filepath.Base() will include the command
+	// and the rest of the args.
+	if commandHasPath(command) {
+		args = strings.Split(filepath.Base(command), " ")
+		executable = filepath.Join(filepath.Dir(command), args[0])
+	} else {
+		args = strings.Split(command, " ")
+		executable = args[0]
+	}
+	if executable == "" {
 		return "", nil, fmt.Errorf("prepare plugin command: no command found")
 	}
-
-	executable := args[0]
 
 	var configArguments []string
 	if len(args) > 1 {
@@ -190,6 +200,12 @@ func parseCommand(command string, extraArgs []string) (string, []string, error) 
 	}
 
 	return executable, configArguments, nil
+}
+
+func commandHasPath(command string) bool {
+	return filepath.IsAbs(command) ||
+		strings.HasPrefix(command, ".."+string(os.PathSeparator)) ||
+		strings.HasPrefix(command, "."+string(os.PathSeparator))
 }
 
 func parseWindowsCommand(command string, extraArgs []string) (string, []string, error) {
