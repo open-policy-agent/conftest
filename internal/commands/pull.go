@@ -78,7 +78,10 @@ func NewPullCommand(ctx context.Context) *cobra.Command {
 			if viper.GetBool("absolute-paths") && filepath.IsAbs(policyPath) {
 				policyDir = policyPath
 			} else {
-				policyDir = filepath.Join(".", policyPath)
+				// Strip volume name (e.g., "C:") on Windows to avoid invalid paths
+				// like ".\C:\..." when treating absolute paths as relative
+				pathWithoutVolume := policyPath[len(filepath.VolumeName(policyPath)):]
+				policyDir = filepath.Join(".", pathWithoutVolume)
 			}
 
 			if err := downloader.Download(ctx, policyDir, args); err != nil {
