@@ -34,9 +34,15 @@ Some policies are dependant on external data. This data is loaded in separately
 from policies. The location of any data directory or file can be specified with
 the '--data' flag. If a directory is specified, it will be recursively searched for
 any data files. Right now any '.json' or '.yaml' file will be loaded in
-and made available in the Rego policies. Data will be made available in Rego based on
-the file path where the data was found. For example, if data is stored
-under 'policy/exceptions/my_data.yaml', and we execute the following command:
+and made available in the Rego policies.
+
+If no '--data' flag is specified and a 'data' directory exists in the current
+working directory, it will be used as the default data directory. This allows
+for convenient consumption of bundles that include both policies and data.
+
+Data will be made available in Rego based on the file path where the data was
+found. For example, if data is stored under 'policy/exceptions/my_data.yaml',
+and we execute the following command:
 
 	$ conftest test --data policy <input-file>
 
@@ -192,7 +198,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().StringSliceP("policy", "p", []string{"policy"}, "Path to the Rego policy files directory")
 	cmd.Flags().StringSliceP("update", "u", []string{}, "A list of URLs can be provided to the update flag, which will download before the tests run")
 	cmd.Flags().StringSliceP("namespace", "n", []string{"main"}, "Test policies in a specific namespace")
-	cmd.Flags().StringSliceP("data", "d", []string{}, "A list of paths from which data for the rego policies will be recursively loaded")
+	cmd.Flags().StringSliceP("data", "d", []string{}, "A list of paths from which data for the rego policies will be recursively loaded (default [data] if the directory exists)")
 
 	cmd.Flags().StringSlice("proto-file-dirs", []string{}, "A list of directories containing Protocol Buffer definitions")
 	cmd.Flags().Bool("tls", true, "Use TLS to access the registry")
