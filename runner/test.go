@@ -92,7 +92,11 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) (output.CheckRe
 	if t.AllNamespaces {
 		namespaces = engine.Namespaces()
 	} else if hasWildcard(t.Namespace) {
-		namespaces = filterNamespaces(engine.Namespaces(), t.Namespace)
+		var err error
+		namespaces, err = filterNamespaces(engine.Namespaces(), t.Namespace)
+		if err != nil {
+			return nil, fmt.Errorf("filter namespaces: %w", err)
+		}
 	}
 
 	var results output.CheckResults
@@ -217,6 +221,7 @@ func getFilesFromDirectory(directory string, ignoreRegex string) ([]string, erro
 }
 
 // hasWildcard checks if any of the given patterns contain wildcard characters.
+// It checks for *, ?, and [ which are supported by path.Match.
 func hasWildcard(patterns []string) bool {
 	for _, pattern := range patterns {
 		if strings.ContainsAny(pattern, "*?[") {
@@ -227,24 +232,21 @@ func hasWildcard(patterns []string) bool {
 }
 
 // filterNamespaces filters the available namespaces using the given patterns.
-// Patterns support glob-style matching with *, ?, and [...] syntax.
-func filterNamespaces(available []string, patterns []string) []string {
-	seen := make(map[string]bool)
+// Patterns support glob-style matching with *, ?, and [...] syntax as supported by path.Match.
+func filterNamespaces(namespaces []string, patterns []string) ([]string, error) {
 	var result []string
-	for _, pattern := range patterns {
-		for _, ns := range available {
-			if seen[ns] {
-				continue
-			}
+	for _, ns := range namespaces {
+		for _, pattern := range patterns {
 			matched, err := path.Match(pattern, ns)
 			if err != nil {
-				continue
+				return nil, fmt.Errorf("match pattern %q: %w", pattern, err)
 			}
 			if matched {
-				seen[ns] = true
 				result = append(result, ns)
+				break
 			}
 		}
 	}
-	return result
+
+	return result, nil
 }
