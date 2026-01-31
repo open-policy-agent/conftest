@@ -40,8 +40,9 @@
 
 - id: conftest-doc
   name: Conftest Doc Policy Documentation
-  description: Generate policy documentation, fails if docs are out of date. Requires args with policy directory path.
+  description: Generate policy documentation, fails if docs are out of date. Defaults to policy directory. Supports -o for output directory and --template for custom template.
   entry: conftest doc
+  args: [policy]
   language: golang
   pass_filenames: false
   require_serial: true

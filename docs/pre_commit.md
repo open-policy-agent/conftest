@@ -28,8 +28,8 @@ your Rego policies. It runs `conftest doc` and if the generated documentation
 differs from what's committed, pre-commit will fail. The updated documentation
 files are written, so you can simply stage them and re-commit.
 
-**Important:** You must specify the policy directory via `args` - this hook
-requires at least one directory path argument.
+By default, the hook documents the `policy` directory. Specifying `args`
+replaces the default, so you must include the policy directory path.
 
 ```yaml
 repos:
@@ -37,9 +37,16 @@ repos:
     rev: v0.64.0
     hooks:
       - id: conftest-doc
-        args: [path/to/your/policies]  # Required: policy directory to document
+        # Uses 'policy' directory by default, or specify your own:
+        # args: [path/to/your/policies]
         # To specify an output directory, use -o:
         # args: [-o, docs/, path/to/your/policies]
+        # To use a custom template, use --template:
+        # args: [--template, path/to/template.md, path/to/your/policies]
+        # Combined example:
+        # args: [-o, docs/, --template, path/to/template.md, path/to/your/policies]
+        # To only run when .rego files in a specific directory change:
+        # files: ^path/to/your/policies/.*\.rego$
 ```
 
 ## Additional Hooks
