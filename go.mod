@@ -2,6 +2,8 @@ module github.com/open-policy-agent/conftest
 
 go 1.25.3
 
+toolchain go1.25.6
+
 require (
 	cuelang.org/go v0.15.4
 	github.com/BurntSushi/toml v1.6.0

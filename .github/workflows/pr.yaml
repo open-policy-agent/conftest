@@ -17,8 +17,7 @@ jobs:
       - name: setup go
         uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # ratchet:actions/setup-go@v6
         with:
-          go-version: "1.25.x"
-          cache: false
+          go-version-file: 'go.mod'
 
       - name: validate conventional commit prefix
         working-directory: scripts
@@ -71,8 +70,7 @@ jobs:
       - name: setup go
         uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # ratchet:actions/setup-go@v6
         with:
-          go-version: "1.25.x"
-          cache: false
+          go-version-file: 'go.mod'
 
       - name: build
         run: make build
