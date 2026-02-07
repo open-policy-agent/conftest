@@ -25,7 +25,7 @@ require (
 	github.com/opencontainers/image-spec v1.1.1
 	github.com/owenrumney/go-sarif/v2 v2.3.3
 	github.com/shteou/go-ignore v0.3.1
-	github.com/spdx/tools-golang v0.5.6
+	github.com/spdx/tools-golang v0.5.7
 	github.com/spf13/cobra v1.10.1
 	github.com/spf13/viper v1.21.0
 	github.com/subosito/gotenv v1.6.0
