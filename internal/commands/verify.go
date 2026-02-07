@@ -34,6 +34,9 @@ If a directory is specified, it will be recursively searched for
 any data files. Data will be made available in Rego based on
 the structure of the data that was loaded.
 
+If no '--data' flag is specified and a 'data' directory exists in the current
+working directory, it will be used as the default data directory.
+
 For example, if a yaml file was loaded that had the structure:
 
 people:
@@ -146,7 +149,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 
 	cmd.Flags().String("capabilities", "", "Path to JSON file that can restrict opa functionality against a given policy. Default: all operations allowed")
 	cmd.Flags().String("rego-version", "v1", "Which version of Rego syntax to use. Options: v0, v1")
-	cmd.Flags().StringSliceP("data", "d", []string{}, "A list of paths from which data for the rego policies will be recursively loaded")
+	cmd.Flags().StringSliceP("data", "d", []string{}, "A list of paths from which data for the rego policies will be recursively loaded (default [data] if the directory exists)")
 	cmd.Flags().StringSliceP("policy", "p", []string{"policy"}, "Path to the Rego policy files directory")
 
 	cmd.Flags().StringSlice("proto-file-dirs", []string{}, "A list of directories containing Protocol Buffer definitions")
