@@ -82,6 +82,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 				"strict",
 				"proto-file-dirs",
 				"show-builtin-errors",
+				"namespace",
 			}
 			for _, name := range flagNames {
 				if err := viper.BindPFlag(name, cmd.Flags().Lookup(name)); err != nil {
@@ -148,6 +149,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().String("rego-version", "v1", "Which version of Rego syntax to use. Options: v0, v1")
 	cmd.Flags().StringSliceP("data", "d", []string{}, "A list of paths from which data for the rego policies will be recursively loaded")
 	cmd.Flags().StringSliceP("policy", "p", []string{"policy"}, "Path to the Rego policy files directory")
+	cmd.Flags().StringSliceP("namespace", "n", []string{}, "Test policies in a specific namespace")
 
 	cmd.Flags().StringSlice("proto-file-dirs", []string{}, "A list of directories containing Protocol Buffer definitions")
 

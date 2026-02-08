@@ -84,6 +84,27 @@
   [ "${lines[1]}" = "1 test, 0 passed, 0 warnings, 1 failure, 0 exceptions" ]
 }
 
+@test "Test command with namespace exact match" {
+  run ./conftest test -p examples/docker/policy examples/docker/Dockerfile --namespace 'main'
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "unallowed image found" ]]
+  [[ ! "$output" =~ "unallowed commands found" ]]
+}
+
+@test "Test command with namespace wildcard matching all" {
+  run ./conftest test -p examples/docker/policy examples/docker/Dockerfile --namespace '*'
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "unallowed image found" ]]
+  [[ "$output" =~ "unallowed commands found" ]]
+}
+
+@test "Test command with namespace wildcard prefix pattern" {
+  run ./conftest test -p examples/docker/policy examples/docker/Dockerfile --namespace 'c*'
+  [ "$status" -eq 1 ]
+  [[ ! "$output" =~ "unallowed image found" ]]
+  [[ "$output" =~ "unallowed commands found" ]]
+}
+
 @test "Verify command has trace flag" {
   run ./conftest verify --policy ./examples/kubernetes/policy --trace
   [ "$status" -eq 0 ]
@@ -526,4 +547,22 @@ EOF"
   rm -rf ${TMPDIR}
   [ "$status" -eq 1 ]
   [[ "$output" =~ "10 tests, 3 passed, 0 warnings, 7 failures, 0 exceptions" ]]
+}
+
+@test "Verify command with namespace wildcard matching" {
+  run ./conftest verify --policy ./examples/kubernetes/policy --namespace 'ma*'
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "4 tests, 4 passed" ]]
+}
+
+@test "Verify command with namespace exact match" {
+  run ./conftest verify --policy ./examples/kubernetes/policy --namespace 'main'
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "4 tests, 4 passed" ]]
+}
+
+@test "Verify command with namespace filtering (exclude)" {
+  run ./conftest verify --policy ./examples/kubernetes/policy --namespace 'other'
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "0 tests, 0 passed" ]]
 }
