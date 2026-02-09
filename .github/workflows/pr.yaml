@@ -89,7 +89,7 @@ jobs:
           cache: 'pip'
 
       - name: setup bats
-        uses: bats-core/bats-action@42fcc8700f773c075a16a90eb11674c0318ad507 # ratchet:bats-core/bats-action@3.0.1
+        uses: bats-core/bats-action@77d6fb60505b4d0d1d73e48bd035b55074bbfb43 # ratchet:bats-core/bats-action@4.0.0
         with:
           # Pin bats version to fix CI issue: https://github.com/bats-core/bats-action/pull/4
           bats-version: "1.10.0"
