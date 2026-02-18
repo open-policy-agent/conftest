@@ -2,7 +2,13 @@ version: 1
 
 before:
   hooks:
-  - go mod download
+  - 'go mod download'
+  - >-
+    cyclonedx-gomod app
+    -main .
+    -licenses
+    -json
+    -output cyclonedx_bom.json
 
 builds:
 - main: ./main.go
@@ -40,6 +46,7 @@ archives:
   files:
       - LICENSE
       - README.md
+      - cyclonedx_bom.json
       - plugin/*.sh
 
 checksum:
