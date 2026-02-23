@@ -8,30 +8,64 @@ updates:
     allow:
       # OPA
       - dependency-name: "github.com/open-policy-agent/opa"
-      # Upstream Parsers
-      - dependency-name: "cuelang.org/go"
-      - dependency-name: "github.com/BurntSushi/toml"
-      - dependency-name: "github.com/CycloneDX/cyclonedx-go"
-      - dependency-name: "github.com/cpuguy83/dockercfg"
-      - dependency-name: "github.com/go-ini/ini"
-      - dependency-name: "github.com/google/go-jsonnet"
-      - dependency-name: "github.com/hashicorp/hcl"
-      - dependency-name: "github.com/magiconair/properties"
-      - dependency-name: "github.com/moby/buildkit"
-      - dependency-name: "github.com/spdx/tools-golang"
-      - dependency-name: "github.com/subosito/gotenv"
       # go-getter is used to fetch remote policies from various sources which occasionally has security fixes
       - dependency-name: "github.com/hashicorp/go-getter"
+      # Upstream Parsers
+      ## /parsers/cue
+      - dependency-name: "cuelang.org/go"
+      ## /parsers/cyclonedx
+      - dependency-name: "github.com/CycloneDX/cyclonedx-go"
+      ## /parsers/docker
+      - dependency-name: "github.com/cpuguy83/dockercfg"
+      - dependency-name: "github.com/moby/buildkit"
+      ## /parsers/edn
+      - dependency-name: "olympos.io/encoding/edn"
+      ## /parsers/env
+      - dependency-name: "github.com/subosito/gotenv"
+      ## /parsers/hcl{1,2}
+      - dependency-name: "github.com/hashicorp/hcl"
+      ## /parsers/hocon
+      - dependency-name: "github.com/go-akka/configuration"
+      ## /parsers/ignore
+      - dependency-name: "github.com/shteou/go-ignore"
+      ## /paarsers/ini
+      - dependency-name: "github.com/go-ini/ini"
+      ## /parsers/jsonc
+      - dependency-name: "github.com/muhammadmuzzammil1998/jsonc"
+      ## /parsers/jsonnet
+      - dependency-name: "github.com/google/go-jsonnet"
+      ## /parsers/properties
+      - dependency-name: "github.com/magiconair/properties"
+      ## /parsers/spdx
+      - dependency-name: "github.com/spdx/tools-golang"
+      ## /parsers/textproto
+      - dependency-name: "github.com/bufbuild/protocompile"
+      ## /parsers/toml
+      - dependency-name: "github.com/BurntSushi/toml"
+      ## /parsers/vcl
+      - dependency-name: "github.com/KeisukeYamashita/go-vcl"
+      ## /parsers/xml
+      - dependency-name: "github.com/basgys/goxml2json"
+      ## /parsers/yaml
+      - dependency-name: "sigs.k8s.io/yaml"
     schedule:
       interval: "daily"
+    cooldown:
+      default-days: 15
+      semver-major-days: 65
+      semver-minor-days: 35
+      semver-patch-days: 15
+      exclude:
+        - "github.com/open-policy-agent/opa"
+        - "github.com/hashicorp/go-getter"
 
-  # Automatically open PRs to update the base images in the Dockerfile weekly
+  # Automatically open PRs to update the base images in the Dockerfile.
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
-      interval: "weekly"
-
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
+      interval: "daily"
+    cooldown:
+      default-days: 15
+      semver-major-days: 65
+      semver-minor-days: 35
+      semver-patch-days: 15
