@@ -21,7 +21,7 @@ jobs:
       # Dockerhub to avoid having mismatches between what is in Dockerhub
       # and GitHub releases.
       - name: check releaser config
-        uses: goreleaser/goreleaser-action@e435ccd777264be153ace6237001ef4d979d3a7a # ratchet:goreleaser/goreleaser-action@v6
+        uses: goreleaser/goreleaser-action@ec59f474b9834571250b370d4735c50f8e2d1e29 # ratchet:goreleaser/goreleaser-action@v7.0.0
         with:
           args: check
           version: "~> v1"
@@ -108,7 +108,7 @@ jobs:
           go-version-file: 'go.mod'
 
       - name: release
-        uses: goreleaser/goreleaser-action@e435ccd777264be153ace6237001ef4d979d3a7a # ratchet:goreleaser/goreleaser-action@v6
+        uses: goreleaser/goreleaser-action@ec59f474b9834571250b370d4735c50f8e2d1e29 # ratchet:goreleaser/goreleaser-action@v7.0.0
         with:
           args: release --clean
           version: "~> v1"
