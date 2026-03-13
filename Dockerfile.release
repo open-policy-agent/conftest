@@ -3,7 +3,7 @@ FROM alpine:3.23.3
 # Install git for protocols that depend on it when using conftest pull
 RUN apk add --no-cache git
 
-COPY conftest /usr/local/bin/conftest
+COPY ./conftest /usr/local/bin/conftest
 
-ENTRYPOINT ["/conftest"]
+ENTRYPOINT ["/usr/local/bin/conftest"]
 CMD ["--help"]

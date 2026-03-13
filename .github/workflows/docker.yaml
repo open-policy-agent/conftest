@@ -5,8 +5,11 @@ on:
 env:
   BUILD_ARITFACTS_NAME: 'conftest_build'
 
+permissions:
+  contents: 'read'
+
 jobs:
-  build:
+  build-go:
     runs-on: 'ubuntu-latest'
     strategy:
       matrix:
@@ -26,8 +29,14 @@ jobs:
           GOOS: 'linux'
           GOARCH: '${{ matrix.goarch }}'
         run: make build
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v6
+      - run: |
+          ls -l conftest
+          ./conftest --version
+      - name: Build image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # ratchet:docker/build-push-action@v6
         with:
-          name: '${{ env.BUILD_ARITFACTS_NAME }}-${{ matrix.goarch }}'
-          path: conftest
+          context: '.'
+          file: 'Dockerfile.release'
+          push: false
+          tags: 'conftest'
+          platforms: 'linux/${{ matrix.goarch }}'
