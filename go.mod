@@ -18,7 +18,7 @@ require (
 	github.com/jstemmer/go-junit-report v1.0.0
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/magiconair/properties v1.8.10
-	github.com/moby/buildkit v0.27.1
+	github.com/moby/buildkit v0.28.0
 	github.com/muhammadmuzzammil1998/jsonc v1.0.0
 	github.com/olekukonko/tablewriter v1.1.0
 	github.com/open-policy-agent/opa v1.14.1
