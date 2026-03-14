@@ -10,11 +10,11 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/open-policy-agent/conftest/parser/cyclonedx"
 	"github.com/spf13/viper"
 	"golang.org/x/exp/slices"
 
 	"github.com/open-policy-agent/conftest/parser/cue"
+	"github.com/open-policy-agent/conftest/parser/cyclonedx"
 	"github.com/open-policy-agent/conftest/parser/docker"
 	dotenv "github.com/open-policy-agent/conftest/parser/dotenv"
 	"github.com/open-policy-agent/conftest/parser/edn"
@@ -26,6 +26,7 @@ import (
 	"github.com/open-policy-agent/conftest/parser/json"
 	"github.com/open-policy-agent/conftest/parser/jsonc"
 	"github.com/open-policy-agent/conftest/parser/jsonnet"
+	"github.com/open-policy-agent/conftest/parser/nginx"
 	"github.com/open-policy-agent/conftest/parser/properties"
 	"github.com/open-policy-agent/conftest/parser/spdx"
 	"github.com/open-policy-agent/conftest/parser/textproto"
@@ -50,6 +51,7 @@ const (
 	JSON       = "json"
 	JSONC      = "jsonc"
 	JSONNET    = "jsonnet"
+	NGINX      = "nginx"
 	PROPERTIES = "properties"
 	SPDX       = "spdx"
 	TEXTPROTO  = "textproto"
@@ -98,6 +100,8 @@ func New(parser string) (Parser, error) {
 		return &jsonc.Parser{}, nil
 	case JSONNET:
 		return &jsonnet.Parser{}, nil
+	case NGINX:
+		return &nginx.Parser{}, nil
 	case EDN:
 		return &edn.Parser{}, nil
 	case VCL:
@@ -199,6 +203,10 @@ func NewFromPath(path string) (Parser, error) {
 		return New(DOTENV)
 	}
 
+	if fileName == "nginx.conf" {
+		return New(NGINX)
+	}
+
 	if slices.Contains(textproto.TextProtoFileExtensions, fileExtension) {
 		return New(TEXTPROTO)
 	}
@@ -224,6 +232,7 @@ func Parsers() []string {
 		INI,
 		JSON,
 		JSONNET,
+		NGINX,
 		PROPERTIES,
 		SPDX,
 		TEXTPROTO,
