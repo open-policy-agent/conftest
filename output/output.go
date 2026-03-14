@@ -23,6 +23,7 @@ type Options struct {
 	ShowSkipped        bool
 	JUnitHideMessage   bool
 	File               *os.File
+	VarValues          bool
 }
 
 // The defined output formats represent all of the supported formats
@@ -71,6 +72,7 @@ func newOutputter(format string, options Options) Outputter {
 			SuppressExceptions: options.SuppressExceptions,
 			Tracing:            options.Tracing,
 			ShowSkipped:        options.ShowSkipped,
+			VarValues:          options.VarValues,
 		}
 	case OutputJSON:
 		return NewJSON(options.File)
