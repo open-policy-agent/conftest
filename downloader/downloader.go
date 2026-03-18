@@ -40,11 +40,15 @@ func Download(ctx context.Context, dst string, urls []string) error {
 			return fmt.Errorf("detecting url: %w", err)
 		}
 
-		// Check if file already exists
+		// Remove any existing policy at the target path so that repeated
+		// calls to Download (e.g. via --update) overwrite stale content
+		// instead of failing with a "file already exists" error.
 		filename := filepath.Base(detectedURL)
 		targetPath := filepath.Join(dst, filename)
 		if _, err := os.Stat(targetPath); err == nil {
-			return fmt.Errorf("policy file already exists at %s, refusing to overwrite", targetPath)
+			if err := os.RemoveAll(targetPath); err != nil {
+				return fmt.Errorf("removing existing policy at %s: %w", targetPath, err)
+			}
 		}
 
 		client := &getter.Client{
