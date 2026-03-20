@@ -120,3 +120,20 @@ jobs:
       - name: test oci push/pull
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: ./scripts/push-pull-e2e.sh
+
+  nix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout source
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # ratchet:actions/checkout@v5
+
+      - name: install nix
+        uses: cachix/install-nix-action@1ca7d21a94afc7c957383a2d217460d980de4934 # ratchet:cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: check flake
+        run: nix flake check
+
+      - name: verify dev shell tools
+        run: nix develop --command go version
