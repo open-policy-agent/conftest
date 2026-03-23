@@ -1,11 +1,12 @@
-version: 1
+version: 2
 
 before:
   hooks:
   - go mod download
 
 builds:
-- main: ./main.go
+- id: conftest
+  main: ./main.go
   env:
   - CGO_ENABLED=0
   goos:
@@ -23,7 +24,8 @@ builds:
   - "-X github.com/open-policy-agent/conftest/internal/version.Version={{.Version}}"
 
 archives:
-- name_template: >-
+- ids: [conftest]
+  name_template: >-
     {{ .ProjectName }}_
     {{- .Version }}_
     {{- if eq .Os "linux" }}Linux
@@ -33,10 +35,10 @@ archives:
     {{- if eq .Arch "386" }}i386
     {{- else if eq .Arch "amd64" }}x86_64
     {{- else }}{{ .Arch }}{{ end }}
-  format: tar.gz
+  formats: [tar.gz]
   format_overrides:
   - goos: windows
-    format: zip
+    formats: [zip]
   files:
       - LICENSE
       - README.md
@@ -57,12 +59,14 @@ changelog:
   - title: OPA Changes
     regexp: '(?i)bump (opa|github.com/open-policy-agent/opa)'
     order: 5
+  - title: Documentation Updates
+    regexp: '^.*?(docs|documentation)(\([[:word:]]+\))??!?:.+$'
+    order: 10
   - title: Other Changes
     order: 999
   sort: asc
   filters:
     exclude:
-    - '^.*?docs(\([[:word:]]+\))??!?:.+$'
     - '^.*?test(\([[:word:]]+\))??!?:.+$'
     - '^.*?misc(\([[:word:]]+\))??!?:.+$'
     - '^.*?typo(\([[:word:]]+\))??!?:.+$'
@@ -70,7 +74,18 @@ changelog:
 
 # Publishes the deb and rpm files to the GitHub releases page.
 nfpms:
-  - bindir: /usr/bin
+  - ids: [conftest]
+    file_name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- if eq .Os "linux" }}Linux
+      {{- else if eq .Os "windows" }}Windows
+      {{- else if eq .Os "darwin" }}Darwin
+      {{- else }}{{ .Os }}{{ end }}_
+      {{- if eq .Arch "386" }}i386
+      {{- else if eq .Arch "amd64" }}x86_64
+      {{- else }}{{ .Arch }}{{ end }}
+    bindir: /usr/bin
     description: "Test your configuration using Open Policy Agent"
     formats:
       - deb
