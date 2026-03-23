@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -12,6 +13,26 @@ import (
 
 	"sigs.k8s.io/yaml"
 )
+
+// ExitCodeError is returned by Exec when the plugin exits with a non-zero
+// status code. It carries the plugin's exit code so callers can propagate it.
+type ExitCodeError struct {
+	Code int
+}
+
+func (e *ExitCodeError) Error() string {
+	return fmt.Sprintf("plugin exited with status %d", e.Code)
+}
+
+// AsExitCodeError unwraps err to find an ExitCodeError and, if found,
+// returns it along with true. Otherwise it returns nil and false.
+func AsExitCodeError(err error) (*ExitCodeError, bool) {
+	var e *ExitCodeError
+	if errors.As(err, &e) {
+		return e, true
+	}
+	return nil, false
+}
 
 const (
 	cacheDir       = ".conftest"
@@ -121,13 +142,9 @@ func (p *Plugin) Exec(ctx context.Context, args []string) error {
 			return fmt.Errorf("status: %w", err)
 		}
 
-		// Conftest can either return 1 or 2 for an error. If Conftest
-		// returns an error, let it handle its own error.
-		if status.ExitStatus() == 1 || status.ExitStatus() == 2 {
-			return nil
-		}
-
-		return fmt.Errorf("plugin exec: %w", err)
+		// Return the plugin's exit code so callers can propagate it
+		// rather than collapsing all failures to a generic error.
+		return &ExitCodeError{Code: status.ExitStatus()}
 	}
 
 	return nil
