@@ -95,6 +95,7 @@ As of today Conftest supports:
 - INI
 - JSON
 - Jsonnet
+- nginx
 - Property files (.properties)
 - SPDX
 - TextProto (Protocol Buffers)
