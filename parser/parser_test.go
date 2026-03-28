@@ -92,8 +92,13 @@ func TestNewFromPath(t *testing.T) {
 		},
 		{
 			"noextension",
-			&yaml.Parser{},
-			false,
+			nil,
+			true,
+		},
+		{
+			"LICENSE",
+			nil,
+			true,
 		},
 		{
 			".gitignore",

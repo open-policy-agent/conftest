@@ -170,7 +170,7 @@ func NewFromPath(path string) (Parser, error) {
 
 	fileName := strings.ToLower(filepath.Base(path))
 
-	fileExtension := "yml"
+	fileExtension := ""
 	if len(filepath.Ext(path)) > 0 {
 		fileExtension = strings.ToLower(filepath.Ext(path)[1:])
 	}
@@ -209,6 +209,10 @@ func NewFromPath(path string) (Parser, error) {
 
 	if slices.Contains(textproto.TextProtoFileExtensions, fileExtension) {
 		return New(TEXTPROTO)
+	}
+
+	if fileExtension == "" {
+		return nil, fmt.Errorf("unsupported file type: file %q has no extension", filepath.Base(path))
 	}
 
 	parser, err := New(fileExtension)
