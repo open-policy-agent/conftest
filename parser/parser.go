@@ -170,7 +170,7 @@ func NewFromPath(path string) (Parser, error) {
 
 	fileName := strings.ToLower(filepath.Base(path))
 
-	fileExtension := "yml"
+	fileExtension := ""
 	if len(filepath.Ext(path)) > 0 {
 		fileExtension = strings.ToLower(filepath.Ext(path)[1:])
 	}
