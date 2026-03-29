@@ -211,10 +211,6 @@ func NewFromPath(path string) (Parser, error) {
 		return New(TEXTPROTO)
 	}
 
-	if fileExtension == "" {
-		return nil, fmt.Errorf("unsupported file type: file %q has no extension", filepath.Base(path))
-	}
-
 	parser, err := New(fileExtension)
 	if err != nil {
 		return nil, fmt.Errorf("new: %w", err)
