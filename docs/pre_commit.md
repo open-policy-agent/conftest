@@ -21,6 +21,36 @@ repos:
 The `conftest-test` hook validates your configuration files against policies,
 while the `conftest-verify` hook runs unit tests for your policies.
 
+## Documentation Check
+
+The `conftest-doc` hook ensures your policy documentation stays in sync with
+your Rego policies. It runs `conftest doc` and if the generated documentation
+differs from what's committed, pre-commit will fail. The updated documentation
+files are written, so you can simply stage them and re-commit.
+
+By default, the hook documents the `policy` directory. Specifying `args`
+replaces the default, so you must include the policy directory path.
+
+```yaml
+repos:
+  - repo: https://github.com/open-policy-agent/conftest
+    rev: v0.64.0
+    hooks:
+      - id: conftest-doc
+        # Uses 'policy' directory by default, or specify your own:
+        # args: [path/to/your/policies]
+        # To specify an output directory, use -o:
+        # args: [-o, docs/, path/to/your/policies]
+        # To use a custom template, use --template:
+        # args: [--template, path/to/template.md, path/to/your/policies]
+        # Combined example:
+        # args: [-o, docs/, --template, path/to/template.md, path/to/your/policies]
+        # To only run when .rego files in a specific directory change:
+        # files: ^path/to/your/policies/.*\.rego$
+```
+
+## Additional Hooks
+
 Additional hooks are available including `conftest-pull` for downloading
 policies and `conftest-fmt` for formatting Rego files. See the
 [.pre-commit-hooks.yaml](https://github.com/open-policy-agent/conftest/blob/main/.pre-commit-hooks.yaml)
