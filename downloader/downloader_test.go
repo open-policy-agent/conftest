@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func TestDownloadFailsWhenFileExists(t *testing.T) {
+func TestDownloadOverwritesExistingFile(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Create a file that would conflict with the download
@@ -39,24 +39,19 @@ func TestDownloadFailsWhenFileExists(t *testing.T) {
 	}()
 	defer server.Close()
 
-	// Try to download a policy file with the same name
+	// Download should succeed even when the policy file already exists,
+	// overwriting the previous content (e.g. when using --update repeatedly).
 	urls := []string{fmt.Sprintf("http://%s/policy.rego", listener.Addr().String())}
-	downloadErr := Download(context.Background(), tmpDir, urls)
-
-	// Verify that download fails with the expected error
-	if downloadErr == nil {
-		t.Error("Expected download to fail when file exists, but it succeeded")
-	}
-	if downloadErr != nil && !filepath.IsAbs(existingFile) {
-		t.Errorf("Expected error message to contain absolute path, got: %v", downloadErr)
+	if err := Download(context.Background(), tmpDir, urls); err != nil {
+		t.Fatalf("Expected download to succeed when file exists, got error: %v", err)
 	}
 
-	// Verify the original file is unchanged
+	// Verify the file was overwritten with new content
 	content, err := os.ReadFile(existingFile)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if string(content) != "existing content" {
-		t.Error("Existing file was modified")
+	if string(content) != "new content" {
+		t.Errorf("Expected file to contain 'new content', got: %s", string(content))
 	}
 }
