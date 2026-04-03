@@ -1,0 +1,42 @@
+name: 'docker-test'
+on:
+  pull_request:
+
+env:
+  BUILD_ARITFACTS_NAME: 'conftest_build'
+
+permissions:
+  contents: 'read'
+
+jobs:
+  build-go:
+    runs-on: 'ubuntu-latest'
+    strategy:
+      matrix:
+        goarch: ['amd64', 'arm64']
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: 'go.mod'
+      - name: get version
+        id: get-version
+        run: echo "VERSION=$(git describe --abbrev=4 --dirty --always --tags)" >> $GITHUB_OUTPUT
+      - name: Build
+        env:
+          GOOS: 'linux'
+          GOARCH: '${{ matrix.goarch }}'
+        run: make build
+      - run: |
+          ls -l conftest
+          ./conftest --version
+      - name: Build image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # ratchet:docker/build-push-action@v6
+        with:
+          context: '.'
+          file: 'Dockerfile.release'
+          push: false
+          tags: 'conftest'
+          platforms: 'linux/${{ matrix.goarch }}'
