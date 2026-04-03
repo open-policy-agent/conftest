@@ -82,6 +82,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 				"strict",
 				"proto-file-dirs",
 				"show-builtin-errors",
+				"var-values",
 			}
 			for _, name := range flagNames {
 				if err := viper.BindPFlag(name, cmd.Flags().Lookup(name)); err != nil {
@@ -97,6 +98,10 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("unmarshal parameters: %w", err)
 			}
 
+			if runner.VarValues && !runner.IsReportOptionOn() {
+				runner.Report = "fails"
+			}
+
 			results, raw, err := runner.Run(ctx)
 			if err != nil {
 				return fmt.Errorf("running verification: %w", err)
@@ -109,6 +114,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 					Tracing:          runner.Trace,
 					ShowSkipped:      true,
 					JUnitHideMessage: viper.GetBool("junit-hide-message"),
+					VarValues:        runner.VarValues,
 				})
 				if runner.IsReportOptionOn() {
 					// report currently available with stdout only
@@ -150,6 +156,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().StringSliceP("policy", "p", []string{"policy"}, "Path to the Rego policy files directory")
 
 	cmd.Flags().StringSlice("proto-file-dirs", []string{}, "A list of directories containing Protocol Buffer definitions")
+	cmd.Flags().Bool("var-values", false, "Show variables and values in failing test expressions")
 
 	return &cmd
 }

@@ -26,6 +26,7 @@ type VerifyRunner struct {
 	Report            string
 	Quiet             bool
 	ShowBuiltinErrors bool `mapstructure:"show-builtin-errors"`
+	VarValues         bool `mapstructure:"var-values"`
 }
 
 const (
@@ -51,7 +52,7 @@ func (r *VerifyRunner) Run(ctx context.Context) (output.CheckResults, []*tester.
 	}
 
 	// Traces should be enabled when Trace or Report options are on
-	enableTracing := r.Trace || r.IsReportOptionOn()
+	enableTracing := r.Trace || r.IsReportOptionOn() || r.VarValues
 	if enableTracing {
 		engine.EnableTracing()
 	}

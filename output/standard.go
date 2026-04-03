@@ -30,6 +30,9 @@ type Standard struct {
 	// ShowSkipped whether to show skipped tests
 	// in the output.
 	ShowSkipped bool
+
+	// VarValues enables showing variable values in failing test expressions.
+	VarValues bool
 }
 
 // NewStandard creates a new Standard with the given writer.
@@ -192,7 +195,9 @@ func (s *Standard) Report(results []*tester.Result, flag string) error {
 	reporter := tester.PrettyReporter{
 		Verbose:     true,
 		Output:      os.Stdout,
-		FailureLine: true}
+		FailureLine: true,
+		LocalVars:   s.VarValues,
+	}
 
 	dup := make(chan *tester.Result)
 
