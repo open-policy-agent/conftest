@@ -261,6 +261,49 @@ func TestPluginExec(t *testing.T) {
 			t.Fatal("expected error but got none")
 		}
 	})
+
+	t.Run("exit code propagation", func(t *testing.T) {
+		if runtime.GOOS == "windows" {
+			t.Skip("shell scripts require sh on Windows")
+		}
+
+		for _, wantCode := range []int{1, 2, 3, 42} {
+			wantCode := wantCode
+			t.Run(fmt.Sprintf("exit code %d", wantCode), func(t *testing.T) {
+				// Write a small shell script that exits with the desired code.
+				tmpDir := t.TempDir()
+				scriptPath := filepath.Join(tmpDir, "exit.sh")
+				if err := os.WriteFile(scriptPath, []byte(fmt.Sprintf("#!/bin/sh\nexit %d\n", wantCode)), 0o755); err != nil {
+					t.Fatal(err)
+				}
+
+				p := &Plugin{
+					Name:    fmt.Sprintf("exit-code-%d-test", wantCode),
+					Command: scriptPath,
+				}
+				createTestPlugin(t, p)
+
+				plugin, err := Load(p.Name)
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				err = plugin.Exec(t.Context(), nil)
+				if err == nil {
+					t.Fatalf("exit code %d: expected ExitCodeError, got nil", wantCode)
+				}
+
+				exitErr, ok := AsExitCodeError(err)
+				if !ok {
+					t.Fatalf("exit code %d: expected *ExitCodeError, got %T: %v", wantCode, err, err)
+				}
+
+				if exitErr.Code != wantCode {
+					t.Errorf("exit code %d: ExitCodeError.Code = %d, want %d", wantCode, exitErr.Code, wantCode)
+				}
+			})
+		}
+	})
 }
 
 // Helper to create a test plugin in the cache directory
