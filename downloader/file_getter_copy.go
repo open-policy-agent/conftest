@@ -26,10 +26,9 @@ func (g *CopyFileGetter) Get(dst string, u *url.URL) error {
 		return g.FileGetter.Get(dst, u)
 	}
 
+	// Use the decoded URL path for filesystem operations.
+	// u.RawPath is percent-encoded and would break paths containing spaces.
 	path := u.Path
-	if u.RawPath != "" {
-		path = u.RawPath
-	}
 
 	// Handle Windows file:// URLs per RFC 8089
 	// When using file:///C:/path format, u.Path is "/C:/path"
@@ -41,7 +40,7 @@ func (g *CopyFileGetter) Get(dst string, u *url.URL) error {
 	// The source path must exist and be a directory
 	fi, err := os.Stat(path)
 	if err != nil {
-		return fmt.Errorf("source path error: %s", err)
+		return fmt.Errorf("source path error: %w", err)
 	}
 	if !fi.IsDir() {
 		return fmt.Errorf("source path must be a directory")

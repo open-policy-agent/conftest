@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/open-policy-agent/conftest/downloader"
 
@@ -78,9 +79,11 @@ func NewPullCommand(ctx context.Context) *cobra.Command {
 			if viper.GetBool("absolute-paths") && filepath.IsAbs(policyPath) {
 				policyDir = policyPath
 			} else {
-				// Strip volume name (e.g., "C:") on Windows to avoid invalid paths
-				// like ".\C:\..." when treating absolute paths as relative
+				// Strip volume name (e.g., "C:") and leading separators on Windows
+				// to produce a relative path like ".\Users\..." instead of an
+				// absolute rooted path like "\Users\..."
 				pathWithoutVolume := policyPath[len(filepath.VolumeName(policyPath)):]
+				pathWithoutVolume = strings.TrimLeft(pathWithoutVolume, `/\`)
 				policyDir = filepath.Join(".", pathWithoutVolume)
 			}
 
