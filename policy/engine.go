@@ -75,7 +75,7 @@ func sanitizeWindowsPaths(paths []string) []string {
 	}
 	result := make([]string, len(paths))
 	for i, p := range paths {
-		if filepath.VolumeName(p) != "" {
+		if filepath.IsAbs(p) && filepath.VolumeName(p) != "" {
 			result[i] = "file:///" + filepath.ToSlash(p)
 		} else {
 			result[i] = p

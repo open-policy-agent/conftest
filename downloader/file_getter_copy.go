@@ -37,13 +37,15 @@ func (g *CopyFileGetter) Get(dst string, u *url.URL) error {
 		path = path[1:]
 	}
 
-	// The source path must exist and be a directory
+	// The source path must exist
 	fi, err := os.Stat(path)
 	if err != nil {
 		return fmt.Errorf("source path error: %w", err)
 	}
+
+	// For single files, delegate to the embedded FileGetter (with Copy=true)
 	if !fi.IsDir() {
-		return fmt.Errorf("source path must be a directory")
+		return g.FileGetter.Get(dst, u)
 	}
 
 	// Remove destination if it exists

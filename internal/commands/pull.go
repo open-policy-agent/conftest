@@ -79,11 +79,16 @@ func NewPullCommand(ctx context.Context) *cobra.Command {
 			if viper.GetBool("absolute-paths") && filepath.IsAbs(policyPath) {
 				policyDir = policyPath
 			} else {
-				// Strip volume name (e.g., "C:") and leading separators on Windows
-				// to produce a relative path like ".\Users\..." instead of an
-				// absolute rooted path like "\Users\..."
-				pathWithoutVolume := policyPath[len(filepath.VolumeName(policyPath)):]
-				pathWithoutVolume = strings.TrimLeft(pathWithoutVolume, `/\`)
+				// Strip drive letter (e.g., "C:") and leading separators on
+				// Windows to produce a relative path like ".\Users\..." instead
+				// of an absolute rooted path like "\Users\...".
+				// UNC paths (\\server\share) are left intact since stripping the
+				// volume would lose the server/share information.
+				vol := filepath.VolumeName(policyPath)
+				pathWithoutVolume := policyPath[len(vol):]
+				if len(vol) == 2 && vol[1] == ':' {
+					pathWithoutVolume = strings.TrimLeft(pathWithoutVolume, `/\`)
+				}
 				policyDir = filepath.Join(".", pathWithoutVolume)
 			}
 
