@@ -2,7 +2,13 @@ version: 2
 
 before:
   hooks:
-  - go mod download
+  - 'go mod download'
+  - >-
+    cyclonedx-gomod app
+    -main .
+    -licenses
+    -json
+    -output cyclonedx_bom.json
 
 builds:
 - id: conftest
@@ -42,6 +48,7 @@ archives:
   files:
       - LICENSE
       - README.md
+      - cyclonedx_bom.json
       - plugin/*.sh
 
 checksum:
