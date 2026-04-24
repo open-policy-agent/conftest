@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/open-policy-agent/conftest/downloader"
 
@@ -78,7 +79,30 @@ func NewPullCommand(ctx context.Context) *cobra.Command {
 			if viper.GetBool("absolute-paths") && filepath.IsAbs(policyPath) {
 				policyDir = policyPath
 			} else {
-				policyDir = filepath.Join(".", policyPath)
+				// Convert absolute policy paths into relative destinations:
+				//   Unix absolute:    "/tmp/x"                -> "./tmp/x"
+				//   Windows drive:    "C:\tmp\x"              -> ".\tmp\x"
+				//   Windows UNC:      "\\server\share\policies" ->
+				//                     ".\server\share\policies"
+				vol := filepath.VolumeName(policyPath)
+				isDriveVolume := len(vol) == 2 && vol[1] == ':'
+
+				pathWithoutVolume := policyPath
+				if isDriveVolume {
+					pathWithoutVolume = policyPath[len(vol):]
+				}
+				pathWithoutVolume = strings.TrimLeft(pathWithoutVolume, `/\`)
+
+				if vol != "" && !isDriveVolume {
+					uncVolume := strings.TrimLeft(vol, `/\`)
+					if pathWithoutVolume == "" {
+						pathWithoutVolume = uncVolume
+					} else {
+						pathWithoutVolume = filepath.Join(uncVolume, pathWithoutVolume)
+					}
+				}
+
+				policyDir = filepath.Join(".", pathWithoutVolume)
 			}
 
 			if err := downloader.Download(ctx, policyDir, args); err != nil {

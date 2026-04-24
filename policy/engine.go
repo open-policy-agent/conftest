@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 
 	"github.com/open-policy-agent/conftest/output"
@@ -64,6 +65,27 @@ func LoadCapabilities(path string) (*ast.Capabilities, error) {
 	return ast.LoadCapabilitiesFile(path)
 }
 
+// sanitizeWindowsPaths converts Windows absolute paths with drive letters to
+// file:// URLs. This works around an issue in OPA's loader.SplitPrefix which
+// misinterprets drive letters (e.g., "C:") as Rego data prefixes, stripping
+// them from the path and causing file-not-found errors.
+func sanitizeWindowsPaths(paths []string) []string {
+	if runtime.GOOS != "windows" || len(paths) == 0 {
+		return paths
+	}
+	result := make([]string, len(paths))
+	for i, p := range paths {
+		vol := filepath.VolumeName(p)
+		isDriveLetter := len(vol) == 2 && vol[1] == ':'
+		if isDriveLetter && filepath.IsAbs(p) {
+			result[i] = "file:///" + filepath.ToSlash(p)
+		} else {
+			result[i] = p
+		}
+	}
+	return result
+}
+
 // Load returns an Engine after loading all of the specified policies.
 func Load(policyPaths []string, opts CompilerOptions) (*Engine, error) {
 	var regoVer ast.RegoVersion
@@ -77,7 +99,7 @@ func Load(policyPaths []string, opts CompilerOptions) (*Engine, error) {
 	}
 
 	l := loader.NewFileLoader().WithProcessAnnotation(true).WithRegoVersion(regoVer)
-	policies, err := l.Filtered(policyPaths, func(_ string, info os.FileInfo, _ int) bool {
+	policies, err := l.Filtered(sanitizeWindowsPaths(policyPaths), func(_ string, info os.FileInfo, _ int) bool {
 		return !info.IsDir() && !strings.HasSuffix(info.Name(), bundle.RegoExt)
 	})
 
@@ -132,7 +154,7 @@ func LoadWithData(policyPaths []string, dataPaths []string, opts CompilerOptions
 		return !contains([]string{".yaml", ".yml", ".json"}, filepath.Ext(info.Name()))
 	}
 
-	documents, err := loader.NewFileLoader().Filtered(dataPaths, filter)
+	documents, err := loader.NewFileLoader().Filtered(sanitizeWindowsPaths(dataPaths), filter)
 	if err != nil {
 		return nil, fmt.Errorf("load documents: %w", err)
 	}
@@ -143,7 +165,7 @@ func LoadWithData(policyPaths []string, dataPaths []string, opts CompilerOptions
 
 	// FilteredPaths will recursively find all file paths that contain a valid document
 	// extension from the given list of data paths.
-	allDocumentPaths, err := loader.FilteredPaths(dataPaths, filter)
+	allDocumentPaths, err := loader.FilteredPaths(sanitizeWindowsPaths(dataPaths), filter)
 	if err != nil {
 		return nil, fmt.Errorf("filter data paths: %w", err)
 	}
