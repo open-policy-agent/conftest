@@ -1,0 +1,7 @@
+name: "echo"
+version: "0.1.0"
+usage: conftest echo [args...]
+description: |-
+  A simple test plugin that echoes its arguments and exits with the first
+  argument as the exit code if it is an integer, otherwise exits 0.
+command: $CONFTEST_PLUGIN_DIR/echo.sh
