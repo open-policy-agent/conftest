@@ -45,7 +45,12 @@ func (r *VerifyRunner) Run(ctx context.Context) (output.CheckResults, []*tester.
 		RegoVersion:  r.RegoVersion,
 		Capabilities: capabilities,
 	}
-	engine, err := policy.LoadWithData(r.Policy, r.Data, opts)
+	dataPaths := r.Data
+	if len(dataPaths) == 0 {
+		dataPaths = defaultDataPaths(r.Policy)
+	}
+
+	engine, err := policy.LoadWithData(r.Policy, dataPaths, opts)
 	if err != nil {
 		return nil, nil, fmt.Errorf("load: %w", err)
 	}
