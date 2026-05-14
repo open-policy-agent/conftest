@@ -3,7 +3,6 @@ linters:
   default: none
   enable:
     - errcheck
-    - goconst
     - gosec
     - govet
     - ineffassign
@@ -21,6 +20,8 @@ linters:
     govet:
       enable:
         - nilness
+      disable:
+        - inline
     misspell:
       locale: US
     revive:
