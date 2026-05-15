@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 
 set -o errexit
 set -o pipefail
@@ -155,7 +155,6 @@ fi
 
 if ! $CONFTEST pull --tls oci://registry.127.0.0.1.nip.io:5000/testdataonly -p "${WORKDIR}"/tlstest; then
     echo "PULLING FROM REGISTRY VIA TLS AND WITH AUTHENTICATION FAILED"
-    sleep infinity
     exit 1
 fi
 
