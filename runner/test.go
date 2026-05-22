@@ -35,6 +35,7 @@ type TestRunner struct {
 	Combine            bool
 	Quiet              bool
 	Output             string
+	FileNameOverride   string `mapstructure:"file-name-override"`
 }
 
 // Run executes the TestRunner, verifying all Rego policies against the given
@@ -107,6 +108,15 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) (output.CheckRe
 			}
 
 			results = append(results, result...)
+		}
+	}
+
+	// Override file name for stdin input if --file-name-override flag is provided
+	if t.FileNameOverride != "" {
+		for i := range results {
+			if results[i].FileName == "-" {
+				results[i].FileName = t.FileNameOverride
+			}
 		}
 	}
 
