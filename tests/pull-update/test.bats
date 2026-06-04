@@ -11,6 +11,11 @@ setup_file() {
 	if command -v cygpath >/dev/null 2>&1; then
 		# Convert and explicitly re-export the converted path
 		export TEMP_DIR=$(cygpath -m "${TEMP_DIR}")
+		# Windows drive path (C:/...) needs file:/// for a valid RFC 8089 file URL
+		export FILE_URL="file:///${TEMP_DIR}"
+	else
+		# Unix absolute path already starts with '/', so file:// yields file:///... (3 slashes)
+		export FILE_URL="file://${TEMP_DIR}"
 	fi
 }
 
@@ -26,7 +31,7 @@ teardown_file() {
 }
 
 @test "Pull and update first version policy" {
-	run $CONFTEST test --policy "${TEMP_DIR}/policy" --update "file:///${TEMP_DIR}/remote-policy/a" "${TEMP_DIR}/file.json"
+	run $CONFTEST test --policy "${TEMP_DIR}/policy" --update "${FILE_URL}/remote-policy/a" "${TEMP_DIR}/file.json"
 
 	[ "$status" -eq 1 ]
 	[[ "$output" =~ "a should not be present" ]]
@@ -40,7 +45,7 @@ teardown_file() {
 }
 
 @test "Pull and update second version policy" {
-	run $CONFTEST test --policy "${TEMP_DIR}/policy" --update "file:///${TEMP_DIR}/remote-policy/b" "${TEMP_DIR}/file.json"
+	run $CONFTEST test --policy "${TEMP_DIR}/policy" --update "${FILE_URL}/remote-policy/b" "${TEMP_DIR}/file.json"
 
 	[ "$status" -eq 1 ]
 	[[ "$output" =~ "a should not be present" ]]
