@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -17,6 +18,27 @@ const (
 	cacheDir       = ".conftest"
 	cacheDirectory = xdgPath(cacheDir)
 )
+
+// ExitCodeError is returned by Exec when a plugin exits with a non-zero status
+// code. It carries the plugin's actual exit code so callers can propagate it to
+// conftest's own process exit code rather than collapsing every failure to 1.
+type ExitCodeError struct {
+	Code int
+}
+
+func (e *ExitCodeError) Error() string {
+	return fmt.Sprintf("plugin exited with status %d", e.Code)
+}
+
+// AsExitCodeError unwraps err looking for an ExitCodeError. If one is found it
+// is returned along with true, otherwise it returns nil and false.
+func AsExitCodeError(err error) (*ExitCodeError, bool) {
+	var e *ExitCodeError
+	if errors.As(err, &e) {
+		return e, true
+	}
+	return nil, false
+}
 
 // Plugin represents a plugin.
 type Plugin struct {
@@ -121,13 +143,11 @@ func (p *Plugin) Exec(ctx context.Context, args []string) error {
 			return fmt.Errorf("status: %w", err)
 		}
 
-		// Conftest can either return 1 or 2 for an error. If Conftest
-		// returns an error, let it handle its own error.
-		if status.ExitStatus() == 1 || status.ExitStatus() == 2 {
-			return nil
-		}
-
-		return fmt.Errorf("plugin exec: %w", err)
+		// Return the plugin's actual exit code so callers can propagate it to
+		// conftest's own exit code. Previously codes 1 and 2 were swallowed as
+		// success and other codes were collapsed to a generic error, which made
+		// it impossible to rely on a plugin's exit code from scripts or CI (#741).
+		return &ExitCodeError{Code: status.ExitStatus()}
 	}
 
 	return nil
