@@ -24,8 +24,10 @@ jobs:
         run: ./validate-conventional-commit-prefix.sh
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # ratchet:golangci/golangci-lint-action@v8
+        uses: golangci/golangci-lint-action@82606bf257cbaff209d206a39f5134f0cfbfd2ee # ratchet:golangci/golangci-lint-action@v9
         with:
+          version: v2.12.2
+          only-new-issues: true
           args: --timeout=5m --color=always --max-same-issues=0 --max-issues-per-linter=0
 
       - name: setup regal
