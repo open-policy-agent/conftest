@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/open-policy-agent/conftest/downloader"
 	"github.com/open-policy-agent/conftest/output"
@@ -89,6 +91,11 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) (output.CheckRe
 	namespaces := t.Namespace
 	if t.AllNamespaces {
 		namespaces = engine.Namespaces()
+	} else if hasGlob(namespaces) {
+		namespaces, err = expandNamespaceGlobs(namespaces, engine.Namespaces())
+		if err != nil {
+			return nil, fmt.Errorf("expand namespace globs: %w", err)
+		}
 	}
 
 	var results output.CheckResults
@@ -111,6 +118,59 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) (output.CheckRe
 	}
 
 	return results, nil
+}
+
+// hasGlob reports whether any namespace pattern contains a glob meta-character.
+func hasGlob(patterns []string) bool {
+	for _, p := range patterns {
+		if strings.ContainsAny(p, "*?[") {
+			return true
+		}
+	}
+	return false
+}
+
+// expandNamespaceGlobs expands any glob patterns in patterns against the set
+// of namespaces actually loaded into the engine. Non-glob patterns are passed
+// through unchanged so users can mix literals and globs (e.g.
+// --namespace main --namespace k8s.simple.*). Patterns are matched with
+// path.Match semantics after substituting "." for "/" so that "*" matches a
+// single dotted segment.
+func expandNamespaceGlobs(patterns, available []string) ([]string, error) {
+	seen := make(map[string]struct{})
+	var result []string
+	add := func(ns string) {
+		if _, ok := seen[ns]; ok {
+			return
+		}
+		seen[ns] = struct{}{}
+		result = append(result, ns)
+	}
+
+	for _, pattern := range patterns {
+		if !strings.ContainsAny(pattern, "*?[") {
+			add(pattern)
+			continue
+		}
+
+		slashed := strings.ReplaceAll(pattern, ".", "/")
+		matched := false
+		for _, ns := range available {
+			ok, err := path.Match(slashed, strings.ReplaceAll(ns, ".", "/"))
+			if err != nil {
+				return nil, fmt.Errorf("invalid namespace pattern %q: %w", pattern, err)
+			}
+			if ok {
+				add(ns)
+				matched = true
+			}
+		}
+		if !matched {
+			return nil, fmt.Errorf("no namespaces matched pattern %q", pattern)
+		}
+	}
+
+	return result, nil
 }
 
 func parseFileList(fileList []string, ignoreRegex string) ([]string, error) {
