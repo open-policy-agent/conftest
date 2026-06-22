@@ -37,3 +37,14 @@
   require_serial: false
   minimum_pre_commit_version: "2.9.0"
   stages: [pre-commit, pre-merge-commit, pre-push, manual]
+
+- id: conftest-doc
+  name: Conftest Doc Policy Documentation
+  description: Generate policy documentation, fails if docs are out of date. Defaults to policy directory. Supports -o for output directory and --template for custom template.
+  entry: conftest doc
+  args: [policy]
+  language: golang
+  pass_filenames: false
+  require_serial: true
+  minimum_pre_commit_version: "2.9.0"
+  stages: [pre-commit, pre-merge-commit, pre-push, manual]
