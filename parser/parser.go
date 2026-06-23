@@ -223,6 +223,7 @@ func NewFromPath(path string) (Parser, error) {
 func Parsers() []string {
 	parsers := []string{
 		CUE,
+		CYCLONEDX,
 		Dockerfile,
 		EDN,
 		HCL1,
