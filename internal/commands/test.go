@@ -113,6 +113,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				"show-builtin-errors",
 				"update",
 				"junit-hide-message",
+				"github-hide-passed",
 				"quiet",
 				"tls",
 			}
@@ -152,6 +153,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 					SuppressExceptions: runner.SuppressExceptions,
 					Tracing:            runner.Trace,
 					JUnitHideMessage:   viper.GetBool("junit-hide-message"),
+					GitHubHidePassed:   viper.GetBool("github-hide-passed"),
 				})
 				if err := outputter.Output(results); err != nil {
 					return fmt.Errorf("output results: %w", err)
@@ -188,6 +190,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 
 	cmd.Flags().StringP("output", "o", output.OutputStandard, fmt.Sprintf("Output format for conftest results - valid options are: %s", output.Outputs()))
 	cmd.Flags().Bool("junit-hide-message", false, "Do not include the violation message in the JUnit test name")
+	cmd.Flags().Bool("github-hide-passed", false, "In the GitHub output, skip input files whose checks all passed")
 
 	cmd.Flags().StringSliceP("policy", "p", []string{"policy"}, "Path to the Rego policy files directory")
 	cmd.Flags().StringSliceP("update", "u", []string{}, "A list of URLs can be provided to the update flag, which will download before the tests run")

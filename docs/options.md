@@ -305,6 +305,21 @@ success file=examples/kubernetes/deployment.yaml 1
 5 tests, 1 passed, 0 warnings, 4 failures, 0 exceptions
 ```
 
+By default every input file is annotated, including files where all checks
+passed. Pass `--github-hide-passed` to skip the annotation group for input
+files whose checks all passed, keeping the output focused on actionable
+failures, warnings, exceptions, and skipped tests. The summary line still
+counts every test.
+
+```console
+$ conftest test -o github --github-hide-passed -p examples/kubernetes/policy examples/kubernetes/deployment.yaml
+::group::Testing 'examples/kubernetes/deployment.yaml' against 5 policies in namespace 'main'
+::error file=examples/kubernetes/deployment.yaml,line=1::Containers must not run as root in Deployment hello-kubernetes
+...
+::endgroup::
+5 tests, 1 passed, 0 warnings, 4 failures, 0 exceptions
+```
+
 Use Conftest directly to check incoming Pull Requests in GitHub:
 
 ```yaml

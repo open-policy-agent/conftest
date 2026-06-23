@@ -11,9 +11,10 @@ import (
 
 func TestGitHub(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    CheckResults
-		expected []string
+		name       string
+		input      CheckResults
+		hidePassed bool
+		expected   []string
 	}{
 		{
 			name: "no warnings or errors",
@@ -139,6 +140,65 @@ func TestGitHub(t *testing.T) {
 				"",
 			},
 		},
+		{
+			name:       "hide-passed skips a file with only successes",
+			hidePassed: true,
+			input: CheckResults{
+				{
+					FileName:  "examples/kubernetes/service.yaml",
+					Namespace: "namespace",
+					Successes: 5,
+				},
+			},
+			expected: []string{
+				"5 tests, 5 passed, 0 warnings, 0 failures, 0 exceptions",
+				"",
+			},
+		},
+		{
+			name:       "hide-passed keeps files with failures and counts every test",
+			hidePassed: true,
+			input: CheckResults{
+				{
+					FileName:  "passing.yaml",
+					Namespace: "namespace",
+					Successes: 3,
+				},
+				{
+					FileName:  "failing.yaml",
+					Namespace: "namespace",
+					Failures:  []Result{{Message: "first failure"}},
+					Successes: 2,
+				},
+			},
+			expected: []string{
+				"::group::Testing \"failing.yaml\" against 3 policies in namespace \"namespace\"",
+				"::error file=failing.yaml,line=1::first failure",
+				"::notice file=failing.yaml,line=1::Number of successful checks: 2",
+				"::endgroup::",
+				"6 tests, 5 passed, 0 warnings, 1 failure, 0 exceptions",
+				"",
+			},
+		},
+		{
+			name:       "hide-passed keeps a file that only has skipped checks",
+			hidePassed: true,
+			input: CheckResults{
+				{
+					FileName:  "skipped.yaml",
+					Namespace: "namespace",
+					Skipped:   []Result{{Message: "first skipped"}},
+				},
+			},
+			expected: []string{
+				"::group::Testing \"skipped.yaml\" against 1 policies in namespace \"namespace\"",
+				"::notice file=skipped.yaml,line=1::Test was skipped: first skipped",
+				"::notice file=skipped.yaml,line=1::Number of successful checks: 0",
+				"::endgroup::",
+				"1 test, 0 passed, 0 warnings, 0 failures, 0 exceptions",
+				"",
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -146,7 +206,7 @@ func TestGitHub(t *testing.T) {
 			expected := strings.Join(tt.expected, "\n")
 
 			buf := new(bytes.Buffer)
-			if err := NewGitHub(buf).Output(tt.input); err != nil {
+			if err := NewGitHub(buf, tt.hidePassed).Output(tt.input); err != nil {
 				t.Fatal("output GitHub:", err)
 			}
 			if diff := cmp.Diff(buf.String(), expected); diff != "" {
