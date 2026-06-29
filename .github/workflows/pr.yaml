@@ -24,7 +24,7 @@ jobs:
         run: ./validate-conventional-commit-prefix.sh
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@82606bf257cbaff209d206a39f5134f0cfbfd2ee # ratchet:golangci/golangci-lint-action@v9
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # ratchet:golangci/golangci-lint-action@v9
         with:
           version: v2.12.2
           only-new-issues: true
