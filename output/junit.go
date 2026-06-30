@@ -63,13 +63,28 @@ func (j *JUnit) Output(results CheckResults) error {
 			namespaceTests[ns] = append(namespaceTests[ns], &skippedTest)
 		}
 
-		for s := 0; s < result.Successes; s++ {
-			successfulTest := parser.Test{
-				Name:   j.formatTestName(result.FileName, ""),
-				Result: parser.PASS,
-			}
+		// When named success results are available (the verify command emits one
+		// per test rule), report each with its rule name so consumers such as
+		// GitLab can tell successful test cases apart. Otherwise fall back to the
+		// aggregate count, which produces an unnamed test case per success.
+		if len(result.SuccessResults) > 0 {
+			for _, success := range result.SuccessResults {
+				successfulTest := parser.Test{
+					Name:   j.formatTestName(result.FileName, success.Message),
+					Result: parser.PASS,
+				}
 
-			namespaceTests[ns] = append(namespaceTests[ns], &successfulTest)
+				namespaceTests[ns] = append(namespaceTests[ns], &successfulTest)
+			}
+		} else {
+			for s := 0; s < result.Successes; s++ {
+				successfulTest := parser.Test{
+					Name:   j.formatTestName(result.FileName, ""),
+					Result: parser.PASS,
+				}
+
+				namespaceTests[ns] = append(namespaceTests[ns], &successfulTest)
+			}
 		}
 	}
 

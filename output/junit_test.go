@@ -114,6 +114,56 @@ This is the rest of the description of the failed test`}},
 				``,
 			},
 		},
+		{
+			name: "Named successes report per-test names (verify command)",
+			input: CheckResults{
+				{
+					FileName:  "examples/kubernetes/service_test.rego",
+					Namespace: "namespace",
+					Successes: 2,
+					SuccessResults: []Result{
+						{Message: "data.main.test_deny_alb_https"},
+						{Message: "data.main.test_deny_alb_protocol_unspecified"},
+					},
+				},
+			},
+			expected: []string{
+				`<?xml version="1.0" encoding="UTF-8"?>`,
+				`<testsuites>`,
+				`	<testsuite tests="2" failures="0" time="0.000" name="conftest.namespace">`,
+				`		<properties>`,
+				`			<property name="go.version" value="%s"></property>`,
+				`		</properties>`,
+				`		<testcase classname="conftest.namespace" name="examples/kubernetes/service_test.rego - data.main.test_deny_alb_https" time="0.000"></testcase>`,
+				`		<testcase classname="conftest.namespace" name="examples/kubernetes/service_test.rego - data.main.test_deny_alb_protocol_unspecified" time="0.000"></testcase>`,
+				`	</testsuite>`,
+				`</testsuites>`,
+				``,
+			},
+		},
+		{
+			name: "Successes without named results fall back to the count (test command)",
+			input: CheckResults{
+				{
+					FileName:  "examples/kubernetes/service.yaml",
+					Namespace: "namespace",
+					Successes: 2,
+				},
+			},
+			expected: []string{
+				`<?xml version="1.0" encoding="UTF-8"?>`,
+				`<testsuites>`,
+				`	<testsuite tests="2" failures="0" time="0.000" name="conftest.namespace">`,
+				`		<properties>`,
+				`			<property name="go.version" value="%s"></property>`,
+				`		</properties>`,
+				`		<testcase classname="conftest.namespace" name="examples/kubernetes/service.yaml" time="0.000"></testcase>`,
+				`		<testcase classname="conftest.namespace" name="examples/kubernetes/service.yaml" time="0.000"></testcase>`,
+				`	</testsuite>`,
+				`</testsuites>`,
+				``,
+			},
+		},
 	}
 
 	for _, tt := range tests {
