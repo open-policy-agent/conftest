@@ -27,6 +27,7 @@ type VerifyRunner struct {
 	Quiet             bool
 	ShowBuiltinErrors bool `mapstructure:"show-builtin-errors"`
 	VarValues         bool `mapstructure:"var-values"`
+	Namespace         []string
 }
 
 const (
@@ -69,9 +70,32 @@ func (r *VerifyRunner) Run(ctx context.Context) (output.CheckResults, []*tester.
 		return nil, nil, fmt.Errorf("running tests: %w", err)
 	}
 
+	// When namespaces are requested, restrict the reported results to the
+	// matching namespaces. Patterns may be literal or contain glob wildcards
+	// (see filterNamespaces); an empty list keeps every namespace.
+	var allowedNamespaces map[string]bool
+	if len(r.Namespace) > 0 {
+		matched, err := filterNamespaces(engine.Namespaces(), r.Namespace)
+		if err != nil {
+			return nil, nil, fmt.Errorf("filter namespaces: %w", err)
+		}
+
+		allowedNamespaces = make(map[string]bool, len(matched))
+		for _, namespace := range matched {
+			allowedNamespaces[namespace] = true
+		}
+	}
+
 	var results output.CheckResults
 	var rawResults []*tester.Result
 	for result := range ch {
+		if allowedNamespaces != nil {
+			namespace := strings.TrimPrefix(result.Package, "data.")
+			if !allowedNamespaces[namespace] {
+				continue
+			}
+		}
+
 		if result.Error != nil {
 			return nil, nil, fmt.Errorf("run test: %w", result.Error)
 		}
