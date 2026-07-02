@@ -80,7 +80,9 @@ func newCommandFromPlugin(ctx context.Context, p *plugin.Plugin) *cobra.Command 
 		Long:  p.Description,
 		RunE: func(_ *cobra.Command, args []string) error {
 			if err := p.Exec(ctx, args); err != nil {
-				return fmt.Errorf("execute plugin: %v", err)
+				// Wrap with %w so an ExitCodeError survives unwrapping and main
+				// can exit with the plugin's original exit code (#741).
+				return fmt.Errorf("execute plugin: %w", err)
 			}
 
 			return nil
