@@ -31,7 +31,7 @@ jobs:
           args: --timeout=5m --color=always --max-same-issues=0 --max-issues-per-linter=0
 
       - name: setup regal
-        uses: StyraInc/setup-regal@33a142b1189004e0f14bf42b15972c67eecce776 # ratchet:StyraInc/setup-regal@v1
+        uses: open-policy-agent/setup-regal@761188c3b435761fa254beca508a44875619648f # ratchet:open-policy-agent/setup-regal@v2.0.0
         with:
           version: v0.30
 
