@@ -169,7 +169,9 @@ The `--fail-on-warn` flag changes this behavior to the following:
 When a directory is given as an input, Conftest will recursively find, and test
 all files that it supports. To ignore certain directories or files, the
 `--ignore` flag takes a regexp pattern that will ignore directories and files
-that match the pattern.
+that match the pattern. The pattern is also applied to files that are passed
+explicitly as arguments, so the same flag works regardless of whether the
+inputs are discovered by Conftest or expanded by your shell.
 
 Here are some examples:
 
