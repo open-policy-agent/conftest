@@ -158,7 +158,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 
 	cmd.Flags().StringSlice("proto-file-dirs", []string{}, "A list of directories containing Protocol Buffer definitions")
 	cmd.Flags().Bool("var-values", false, "Show variables and values in failing test expressions")
-	cmd.Flags().StringSliceP("namespace", "n", []string{}, "Verify policies in specific namespaces. Supports glob wildcards (e.g. 'main.*'). When empty, all namespaces are verified")
+	cmd.Flags().StringSliceP("namespace", "n", []string{}, "Verify policies in specific namespaces. Supports glob wildcards (*, ?, [...]) where * matches any sequence of characters including dots (e.g. 'main.*'). When empty, all namespaces are verified")
 
 	return &cmd
 }
