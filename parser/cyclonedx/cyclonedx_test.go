@@ -1,6 +1,7 @@
 package cyclonedx
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -115,5 +116,23 @@ func TestCycloneDXParserInValid(t *testing.T) {
 
 	if expectedSHA256 == currentSHA256 {
 		t.Error("current SHA256 and expected SHA256 should not be equal")
+	}
+}
+
+func TestCycloneDXParserReturnsDecodeErrors(t *testing.T) {
+	t.Parallel()
+
+	sbom := `{"bomFormat":"CycloneDX","specVersion":"not-a-version"}`
+
+	parser := &Parser{}
+
+	var input any
+	err := parser.Unmarshal([]byte(sbom), &input)
+	if err == nil {
+		t.Fatal("parser should have returned an error")
+	}
+
+	if !strings.Contains(err.Error(), "decode CycloneDX BOM") {
+		t.Fatalf("expected decode error, got %v", err)
 	}
 }
