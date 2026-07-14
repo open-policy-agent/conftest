@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"sort"
 	"testing"
 	"testing/fstest"
@@ -536,6 +537,132 @@ deny contains msg if { msg := "denied" }`),
 				t.Errorf("Namespaces() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestSanitizeWindowsPaths(t *testing.T) {
+	tests := []struct {
+		name  string
+		paths []string
+		want  []string
+	}{
+		{
+			name:  "relative paths unchanged",
+			paths: []string{"policy", "./policy"},
+			want:  []string{"policy", "./policy"},
+		},
+		{
+			name:  "unix absolute paths unchanged",
+			paths: []string{"/tmp/policy", "/home/user/policy"},
+			want:  []string{"/tmp/policy", "/home/user/policy"},
+		},
+		{
+			name:  "empty paths",
+			paths: []string{},
+			want:  []string{},
+		},
+		{
+			name:  "nil input returns nil",
+			paths: nil,
+			want:  nil,
+		},
+	}
+
+	if runtime.GOOS == "windows" { //nolint:goconst // standard runtime value
+		tests = append(tests, []struct {
+			name  string
+			paths []string
+			want  []string
+		}{
+			{
+				name:  "windows drive letter paths converted to file URLs",
+				paths: []string{"C:/Users/test/policy", "D:\\temp\\policy"},
+				want:  []string{"file:///C:/Users/test/policy", "file:///D:/temp/policy"},
+			},
+			{
+				name:  "mixed relative and absolute windows paths",
+				paths: []string{"policy", "C:/Users/test/policy"},
+				want:  []string{"policy", "file:///C:/Users/test/policy"},
+			},
+			{
+				name:  "paths with spaces",
+				paths: []string{"C:\\Program Files\\policy"},
+				want:  []string{"file:///C:/Program Files/policy"},
+			},
+		}...)
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := sanitizeWindowsPaths(tt.paths)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("sanitizeWindowsPaths(%v) = %v, want %v", tt.paths, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestLoadWithAbsolutePath(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("Windows-specific test")
+	}
+
+	// Get absolute path to the examples directory
+	absPath, err := filepath.Abs("../examples/kubernetes/policy")
+	if err != nil {
+		t.Fatalf("getting absolute path: %v", err)
+	}
+
+	// Verify the path has a volume name (drive letter)
+	if filepath.VolumeName(absPath) == "" {
+		t.Fatalf("expected absolute path with drive letter, got: %s", absPath)
+	}
+
+	// This would fail without sanitizeWindowsPaths because OPA's
+	// SplitPrefix treats the drive letter (e.g., "C:") as a data prefix
+	_, err = Load([]string{absPath}, CompilerOptions{
+		Capabilities: ast.CapabilitiesForThisVersion(),
+		RegoVersion:  "v1",
+	})
+	if err != nil {
+		t.Fatalf("Load with absolute Windows path failed: %v", err)
+	}
+}
+
+func TestLoadWithDataAbsolutePath(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("Windows-specific test")
+	}
+
+	absPolicyPath, err := filepath.Abs("../examples/kubernetes/policy")
+	if err != nil {
+		t.Fatalf("getting absolute policy path: %v", err)
+	}
+
+	absDataPath, err := filepath.Abs("../examples/data")
+	if err != nil {
+		t.Fatalf("getting absolute data path: %v", err)
+	}
+
+	// Only run the data path test if the directory exists
+	if _, err := os.Stat(absDataPath); os.IsNotExist(err) {
+		// Fall back: test with empty data paths (still exercises the policy path)
+		_, err = LoadWithData([]string{absPolicyPath}, nil, CompilerOptions{
+			Capabilities: ast.CapabilitiesForThisVersion(),
+			RegoVersion:  "v1",
+		})
+		if err != nil {
+			t.Fatalf("LoadWithData with absolute Windows policy path failed: %v", err)
+		}
+		return
+	}
+
+	_, err = LoadWithData([]string{absPolicyPath}, []string{absDataPath}, CompilerOptions{
+		Capabilities: ast.CapabilitiesForThisVersion(),
+		RegoVersion:  "v1",
+	})
+	if err != nil {
+		t.Fatalf("LoadWithData with absolute Windows paths failed: %v", err)
 	}
 }
 
