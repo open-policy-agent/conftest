@@ -3,7 +3,7 @@ module github.com/open-policy-agent/conftest
 go 1.25.8
 
 require (
-	cuelang.org/go v0.17.0
+	cuelang.org/go v0.17.1
 	github.com/BurntSushi/toml v1.6.0
 	github.com/CycloneDX/cyclonedx-go v0.11.0
 	github.com/KeisukeYamashita/go-vcl v0.4.0
