@@ -52,7 +52,7 @@ func TestGetOutputter(t *testing.T) {
 		},
 		{
 			input:    OutputGitHub,
-			expected: NewGitHub(os.Stdout),
+			expected: NewGitHub(os.Stdout, false),
 			tracing:  false,
 		},
 		{

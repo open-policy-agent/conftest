@@ -77,6 +77,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 				"report",
 				"quiet",
 				"junit-hide-message",
+				"github-hide-passed",
 				"capabilities",
 				"rego-version",
 				"strict",
@@ -115,6 +116,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 					Tracing:          runner.Trace,
 					ShowSkipped:      true,
 					JUnitHideMessage: viper.GetBool("junit-hide-message"),
+					GitHubHidePassed: viper.GetBool("github-hide-passed"),
 					VarValues:        runner.VarValues,
 				})
 				if runner.IsReportOptionOn() {
@@ -150,6 +152,7 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 
 	cmd.Flags().StringP("output", "o", output.OutputStandard, fmt.Sprintf("Output format for conftest results - valid options are: %s", output.Outputs()))
 	cmd.Flags().Bool("junit-hide-message", false, "Do not include the violation message in the JUnit test name")
+	cmd.Flags().Bool("github-hide-passed", false, "In the GitHub output, skip input files whose checks all passed")
 
 	cmd.Flags().String("capabilities", "", "Path to JSON file that can restrict opa functionality against a given policy. Default: all operations allowed")
 	cmd.Flags().String("rego-version", "v1", "Which version of Rego syntax to use. Options: v0, v1")
