@@ -13,3 +13,15 @@
   run $CONFTEST kubectl
   [ "$status" -eq 0 ]
 }
+
+@test "Plugin exit code is propagated" {
+  run $CONFTEST plugin install ../../contrib/plugins/echo
+  [ "$status" -eq 0 ]
+
+  run $CONFTEST echo hello
+  [ "$status" -eq 0 ]
+  [ "$output" = "hello" ]
+
+  run $CONFTEST echo 42 some message
+  [ "$status" -eq 42 ]
+}
