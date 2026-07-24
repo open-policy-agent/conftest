@@ -382,6 +382,13 @@ EOF"
   [[ "$output" =~ "success" ]]
 }
 
+@test "Names successful test cases in verify junit output" {
+  run ./conftest verify -p examples/kubernetes/policy/ -o junit
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "data.main.test_deployment_without_security_context" ]]
+  [[ "$output" =~ "data.main.test_services_not_denied" ]]
+}
+
 @test "Multi-file tests correctly fail when last file is fine" {
   run ./conftest test -p examples/kubernetes/policy examples/kubernetes/deployment.yaml examples/kubernetes/service.yaml
   [ "$status" -eq 1 ]

@@ -138,14 +138,19 @@ func (q QueryResult) Passed() bool {
 // Errors produced by rego should be considered separate
 // from other classes of exceptions.
 type CheckResult struct {
-	FileName   string        `json:"filename"`
-	Namespace  string        `json:"namespace"`
-	Successes  int           `json:"successes"`
-	Skipped    []Result      `json:"skipped,omitempty"`
-	Warnings   []Result      `json:"warnings,omitempty"`
-	Failures   []Result      `json:"failures,omitempty"`
-	Exceptions []Result      `json:"exceptions,omitempty"`
-	Queries    []QueryResult `json:"queries,omitempty"`
+	FileName  string `json:"filename"`
+	Namespace string `json:"namespace"`
+	Successes int    `json:"successes"`
+	// SuccessResults carries the named results of successful tests, one entry
+	// per test rule. When non-empty it lets the JUnit outputter emit per-test
+	// names; the aggregate Successes count remains the source of truth for all
+	// other outputters. Excluded from JSON to keep existing output byte-stable.
+	SuccessResults []Result      `json:"-"`
+	Skipped        []Result      `json:"skipped,omitempty"`
+	Warnings       []Result      `json:"warnings,omitempty"`
+	Failures       []Result      `json:"failures,omitempty"`
+	Exceptions     []Result      `json:"exceptions,omitempty"`
+	Queries        []QueryResult `json:"queries,omitempty"`
 }
 
 // HasFailure returns true if any failures were encountered.

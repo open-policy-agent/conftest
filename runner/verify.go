@@ -131,6 +131,9 @@ func (r *VerifyRunner) Run(ctx context.Context) (output.CheckResults, []*tester.
 			checkResult.Skipped = []output.Result{outputResult}
 		} else {
 			checkResult.Successes++
+			// Each iteration maps to exactly one test rule, so this is a single
+			// named success rather than an accumulated slice.
+			checkResult.SuccessResults = []output.Result{{Message: result.Package + "." + result.Name}}
 		}
 
 		results = append(results, checkResult)
