@@ -53,7 +53,7 @@ jobs:
           --format github
 
       - name: ratchet
-        uses: sethvargo/ratchet@8b4ca256dbed184350608a3023620f267f0a5253 # ratchet:sethvargo/ratchet@main
+        uses: sethvargo/ratchet@9ca118155b0f79464185703a50da367e111107cd # ratchet:sethvargo/ratchet@main
         with:
           files: .github/workflows/*.yaml
 
