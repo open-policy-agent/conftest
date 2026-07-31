@@ -35,6 +35,13 @@ conftest pull git::https://<PersonalAccessToken>@github.com/<Organization>/<Repo
 conftest pull oci://opa.azurecr.io/test
 ```
 
+Local OCI registries are also supported. When testing against a local registry,
+include the registry host and port in the repository name:
+
+```console
+conftest pull localhost:5000/testpolicy
+```
+
 See the [go-getter](https://github.com/hashicorp/go-getter) repository for more
 examples.
 
@@ -49,6 +56,12 @@ bundle like so:
 
 ```console
 conftest push opa.azurecr.io/test
+```
+
+For a local registry, use the same `host:port/repository` form:
+
+```console
+conftest push localhost:5000/testpolicy
 ```
 
 ## `--update` flag
