@@ -405,6 +405,54 @@ $ conftest test -p examples/hcl1/policy examples/hcl1/gke.tf --parser hcl2
 2 tests, 2 passed, 0 warnings, 0 failures, 0 exceptions
 ```
 
+### Jenkins Pipeline and Groovy 2.4
+
+The `groovy` parser targets the Groovy 2.4 syntax used by Jenkins Pipeline CPS.
+It is intended for Jenkinsfiles and Groovy source loaded by Jenkins, rather
+than as a general-purpose parser for newer Groovy language versions.
+
+Files with a `.groovy` extension and files named `Jenkinsfile` or
+`Jenkinsfile.*` are detected automatically. Use `--parser groovy` when reading
+Groovy source from standard input.
+
+The parser exposes a concrete syntax tree to Rego. Interior nodes contain a
+syntax `kind`, a one-based source location, and their `children`. Token nodes
+contain their raw source `text` instead of children. For example:
+
+```json
+{
+  "kind": "FileNode",
+  "line": 1,
+  "column": 1,
+  "children": [
+    {
+      "kind": "ExpressionStmt",
+      "line": 1,
+      "column": 1,
+      "children": [
+        {
+          "kind": "IdentExpr",
+          "line": 1,
+          "column": 1,
+          "children": [
+            {
+              "kind": "Identifier",
+              "text": "pipeline",
+              "line": 1,
+              "column": 1
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+Comments, whitespace, end-of-file markers, and synthetic zero-width tokens are
+not included in the Rego input. Policies can use `walk()` to find syntax nodes
+without depending on their absolute depth in the tree.
+
 ## `--policy`
 
 Conftest will, by default, look for policies in the `policy` folder. This can be

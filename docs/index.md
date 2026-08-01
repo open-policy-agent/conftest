@@ -93,6 +93,7 @@ As of today Conftest supports:
 - HOCON
 - Ignore files (.gitignore, .dockerignore)
 - INI
+- Jenkins Pipeline and Groovy 2.4
 - JSON
 - Jsonnet
 - nginx
