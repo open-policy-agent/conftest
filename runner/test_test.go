@@ -5,6 +5,47 @@ import (
 	"testing"
 )
 
+func TestRenameStdinConfiguration(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		configs       map[string]any
+		stdinFilename string
+		want          map[string]any
+	}{
+		{
+			name:          "renames stdin configuration",
+			configs:       map[string]any{"-": map[string]any{"kind": "ConfigMap"}},
+			stdinFilename: "components/api",
+			want:          map[string]any{"components/api": map[string]any{"kind": "ConfigMap"}},
+		},
+		{
+			name:          "empty stdin filename leaves stdin key",
+			configs:       map[string]any{"-": map[string]any{"kind": "ConfigMap"}},
+			stdinFilename: "",
+			want:          map[string]any{"-": map[string]any{"kind": "ConfigMap"}},
+		},
+		{
+			name:          "non-stdin configuration is unchanged",
+			configs:       map[string]any{"deployment.yaml": map[string]any{"kind": "Deployment"}},
+			stdinFilename: "components/api",
+			want:          map[string]any{"deployment.yaml": map[string]any{"kind": "Deployment"}},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			renameStdinConfiguration(tt.configs, tt.stdinFilename)
+			if !reflect.DeepEqual(tt.configs, tt.want) {
+				t.Errorf("renameStdinConfiguration() = %v, want %v", tt.configs, tt.want)
+			}
+		})
+	}
+}
+
 func TestHasWildcard(t *testing.T) {
 	t.Parallel()
 
