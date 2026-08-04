@@ -14,13 +14,13 @@ jobs:
       PLATFORMS: linux/amd64,linux/arm64
     steps:
       - name: checkout source
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # ratchet:actions/checkout@v5
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # ratchet:actions/checkout@v5
 
       - name: setup docker buildx
         run: docker buildx create --name conftestbuild --use
 
       - name: Build Docker image
-        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # ratchet:docker/build-push-action@v7.1.0
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # ratchet:docker/build-push-action@v7.2.0
         with:
           context: '.'
           push: false
@@ -38,13 +38,13 @@ jobs:
       PLATFORMS: linux/amd64,linux/arm64
     steps:
       - name: checkout source
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # ratchet:actions/checkout@v5
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # ratchet:actions/checkout@v5
 
       - name: setup docker buildx
         run: docker buildx create --name conftestbuild --use
 
       - name: Build Docker image
-        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # ratchet:docker/build-push-action@v7.1.0
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # ratchet:docker/build-push-action@v7.2.0
         with:
           context: '.'
           target: examples

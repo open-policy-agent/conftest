@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 @test "Parsing error without show-builtin-errors flag returns test failed" {
-  run $CONFTEST verify --show-builtin-errors=false
+  run $CONFTEST verify
 
   [ "$status" -eq 1 ]
   echo $output

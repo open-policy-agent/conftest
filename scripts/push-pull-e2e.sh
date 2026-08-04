@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 
 set -o errexit
 set -o pipefail
@@ -143,8 +143,8 @@ done
 
 export SSL_CERT_FILE="${PWD}/${WORKDIR}"/certs/domain.crt
 
-if ! echo supersecret | docker login --username=test --password-stdin registry.127.0.0.1.nip.io:5000 >/dev/null 2>&1; then
-    echo "LOGGING TO TEST REGISTRY"
+if ! echo supersecret | docker login --username=test --password-stdin registry.127.0.0.1.nip.io:5000; then
+    echo "ERROR: Failed to login to test registry"
     exit 1
 fi
 
@@ -155,7 +155,6 @@ fi
 
 if ! $CONFTEST pull --tls oci://registry.127.0.0.1.nip.io:5000/testdataonly -p "${WORKDIR}"/tlstest; then
     echo "PULLING FROM REGISTRY VIA TLS AND WITH AUTHENTICATION FAILED"
-    sleep infinity
     exit 1
 fi
 

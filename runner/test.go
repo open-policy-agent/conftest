@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/open-policy-agent/conftest/downloader"
 	"github.com/open-policy-agent/conftest/output"
@@ -89,6 +91,11 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) (output.CheckRe
 	namespaces := t.Namespace
 	if t.AllNamespaces {
 		namespaces = engine.Namespaces()
+	} else if hasWildcard(t.Namespace) {
+		namespaces, err = filterNamespaces(engine.Namespaces(), t.Namespace)
+		if err != nil {
+			return nil, fmt.Errorf("filter namespaces: %w", err)
+		}
 	}
 
 	var results output.CheckResults
@@ -210,4 +217,42 @@ func getFilesFromDirectory(directory string, ignoreRegex string) ([]string, erro
 	}
 
 	return files, nil
+}
+
+// hasWildcard reports whether any of the given namespace patterns contains a
+// glob metacharacter (*, ?, or [). When none do, namespaces are matched
+// literally and the previous behaviour is preserved.
+func hasWildcard(patterns []string) bool {
+	for _, pattern := range patterns {
+		if strings.ContainsAny(pattern, "*?[") {
+			return true
+		}
+	}
+
+	return false
+}
+
+// filterNamespaces returns the subset of the available namespaces that match at
+// least one of the given patterns. Patterns are matched with path.Match, which
+// supports *, ?, and [...] glob syntax. The "." separator in a namespace is
+// treated as an ordinary character, so "main.*" matches "main.gke" and "*"
+// matches every namespace. The result preserves the order of the available
+// namespaces and contains no duplicates.
+func filterNamespaces(namespaces []string, patterns []string) ([]string, error) {
+	var result []string
+	for _, namespace := range namespaces {
+		for _, pattern := range patterns {
+			matched, err := path.Match(pattern, namespace)
+			if err != nil {
+				return nil, fmt.Errorf("match pattern %q: %w", pattern, err)
+			}
+
+			if matched {
+				result = append(result, namespace)
+				break
+			}
+		}
+	}
+
+	return result, nil
 }
