@@ -103,7 +103,7 @@ jobs:
           fetch-depth: 0 # Need to fetch the full history for the GoReleaser changelog.
 
       - name: setup go
-        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # ratchet:actions/setup-go@v6
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # ratchet:actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
           cache: false
