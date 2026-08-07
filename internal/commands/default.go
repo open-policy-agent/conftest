@@ -78,8 +78,16 @@ func newCommandFromPlugin(ctx context.Context, p *plugin.Plugin) *cobra.Command 
 		Use:   p.Name,
 		Short: p.Usage,
 		Long:  p.Description,
-		RunE: func(_ *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := p.Exec(ctx, args); err != nil {
+				var exitErr plugin.ExitError
+				if errors.As(err, &exitErr) {
+					// The plugin has already reported whatever went wrong;
+					// only its exit status still has to reach the caller.
+					cmd.SilenceErrors = true
+					return err
+				}
+
 				return fmt.Errorf("execute plugin: %v", err)
 			}
 
