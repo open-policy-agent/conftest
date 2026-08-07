@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -243,6 +244,43 @@ func TestPluginExec(t *testing.T) {
 			t.Errorf("expected %q, got %q", expected, string(content))
 		}
 	})
+
+	// A plugin that fails a test exits 1 or 2. Conftest prints nothing more --
+	// the plugin has already reported -- but the status has to survive, or a
+	// failing plugin is indistinguishable from a passing one.
+	for _, code := range []int{1, 2} {
+		t.Run(fmt.Sprintf("test failure exit code %d", code), func(t *testing.T) {
+			if runtime.GOOS == "windows" {
+				t.Skip("the test plugin is a shell script")
+			}
+
+			script := filepath.Join(t.TempDir(), "exit.sh")
+			body := fmt.Sprintf("#!/bin/sh\nexit %d\n", code)
+			if err := os.WriteFile(script, []byte(body), 0o755); err != nil {
+				t.Fatal(err)
+			}
+
+			p := &Plugin{
+				Name:    fmt.Sprintf("exit-%d-test", code),
+				Command: script,
+			}
+			createTestPlugin(t, p)
+
+			loaded, err := Load(p.Name)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			var exitErr ExitError
+			err = loaded.Exec(t.Context(), nil)
+			if !errors.As(err, &exitErr) {
+				t.Fatalf("expected an ExitError, got %v", err)
+			}
+			if exitErr.Code != code {
+				t.Errorf("expected exit code %d, got %d", code, exitErr.Code)
+			}
+		})
+	}
 
 	t.Run("command error handling", func(t *testing.T) {
 		p := &Plugin{

@@ -18,6 +18,19 @@ const (
 	cacheDirectory = xdgPath(cacheDir)
 )
 
+// ExitError reports that the plugin ran and chose to fail.
+//
+// Code is the status the plugin exited with. Conftest exits with the same
+// one, and prints nothing further: the plugin has already said what went
+// wrong on its own stdout and stderr.
+type ExitError struct {
+	Code int
+}
+
+func (e ExitError) Error() string {
+	return fmt.Sprintf("plugin exited with status %d", e.Code)
+}
+
 // Plugin represents a plugin.
 type Plugin struct {
 	Name        string `yaml:"name"`
@@ -122,9 +135,11 @@ func (p *Plugin) Exec(ctx context.Context, args []string) error {
 		}
 
 		// Conftest can either return 1 or 2 for an error. If Conftest
-		// returns an error, let it handle its own error.
+		// returns an error, let it handle its own error -- but carry the
+		// status, or a plugin that failed a test is indistinguishable from
+		// one that passed.
 		if status.ExitStatus() == 1 || status.ExitStatus() == 2 {
-			return nil
+			return ExitError{Code: status.ExitStatus()}
 		}
 
 		return fmt.Errorf("plugin exec: %w", err)
