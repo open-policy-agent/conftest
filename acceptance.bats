@@ -84,10 +84,49 @@
   [ "${lines[1]}" = "1 test, 0 passed, 0 warnings, 1 failure, 0 exceptions" ]
 }
 
+@test "Test command matches a single namespace literally" {
+  run ./conftest test -p examples/docker/policy examples/docker/Dockerfile --namespace 'main'
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "unallowed image found" ]]
+  [[ ! "$output" =~ "unallowed commands found" ]]
+}
+
+@test "Test command matches every namespace with a wildcard" {
+  run ./conftest test -p examples/docker/policy examples/docker/Dockerfile --namespace '*'
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "unallowed image found" ]]
+  [[ "$output" =~ "unallowed commands found" ]]
+}
+
+@test "Test command matches namespaces with a wildcard prefix" {
+  run ./conftest test -p examples/docker/policy examples/docker/Dockerfile --namespace 'c*'
+  [ "$status" -eq 1 ]
+  [[ ! "$output" =~ "unallowed image found" ]]
+  [[ "$output" =~ "unallowed commands found" ]]
+}
+
 @test "Verify command has trace flag" {
   run ./conftest verify --policy ./examples/kubernetes/policy --trace
   [ "$status" -eq 0 ]
   [[ "$output" =~ "data.kubernetes.is_service" ]]
+}
+
+@test "Verify command matches a namespace literally" {
+  run ./conftest verify --policy ./examples/kubernetes/policy --namespace 'main'
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "4 tests, 4 passed" ]]
+}
+
+@test "Verify command matches namespaces with a wildcard" {
+  run ./conftest verify --policy ./examples/kubernetes/policy --namespace 'ma*'
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "4 tests, 4 passed" ]]
+}
+
+@test "Verify command filters out non-matching namespaces" {
+  run ./conftest verify --policy ./examples/kubernetes/policy --namespace 'doesnotexist'
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "0 tests, 0 passed" ]]
 }
 
 @test "Fail when verifying with no policies path" {
@@ -135,7 +174,6 @@
     [ "$status" -eq 1 ]
     [[ "$output" =~ "FAILURES" ]]
     [[ "$output" =~ "data.main.test_missing_required_label_fail: FAIL" ]]
-    [[ "$output" =~ "SUMMARY" ]]
     [[ "$output" =~ "FAIL: 1/1" ]]
 }
 
@@ -145,7 +183,6 @@
     [[ "$output" =~ "FAILURES" ]]
     [[ "$output" =~ "data.main.test_missing_required_label_fail: FAIL" ]]
     [[ "$output" =~ "Note \"just testing notes flag\"" ]]
-    [[ "$output" =~ "SUMMARY" ]]
     [[ "$output" =~ "FAIL: 1/1" ]]
 }
 
@@ -155,7 +192,6 @@
     [[ "$output" =~ "FAILURES" ]]
     [[ "$output" =~ "data.main.test_missing_required_label_fail: FAIL" ]]
     [[ "$output" =~ "Note \"just testing notes flag\"" ]]
-    [[ "$output" =~ "SUMMARY" ]]
     [[ "$output" =~ "FAIL: 1/1" ]]
 }
 

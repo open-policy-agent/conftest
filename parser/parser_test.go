@@ -2,6 +2,7 @@ package parser
 
 import (
 	"reflect"
+	"slices"
 	"testing"
 
 	"github.com/open-policy-agent/conftest/parser/docker"
@@ -147,5 +148,11 @@ func TestNewFromPath(t *testing.T) {
 				t.Errorf("Unexpected parser. expected %v actual %v", expectedType, actualType)
 			}
 		})
+	}
+}
+
+func TestParsersIncludesCycloneDX(t *testing.T) {
+	if !slices.Contains(Parsers(), CYCLONEDX) {
+		t.Fatalf("Parsers() should include %q", CYCLONEDX)
 	}
 }

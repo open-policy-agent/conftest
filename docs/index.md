@@ -280,8 +280,7 @@ in a unit test.
 
 > **TIP:** It is recommended to use the `--show-builtin-errors` flag when using
 > the `parse_config`, `parse_config_file`, and `parse_combined_config_files`
-> functions. This way errors encountered during parsing will be raised. This
-> flag will be enabled by default in a future release.
+> functions. This way errors encountered during parsing will be raised.
 
 **deny.rego**
 

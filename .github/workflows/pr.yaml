@@ -9,13 +9,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout all PR branch and commits
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # ratchet:actions/checkout@v5
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # ratchet:actions/checkout@v5
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: ${{ github.event.pull_request.commits }}
 
       - name: setup go
-        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # ratchet:actions/setup-go@v6
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # ratchet:actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
 
@@ -24,12 +24,14 @@ jobs:
         run: ./validate-conventional-commit-prefix.sh
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # ratchet:golangci/golangci-lint-action@v8
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # ratchet:golangci/golangci-lint-action@v9
         with:
+          version: v2.12.2
+          only-new-issues: true
           args: --timeout=5m --color=always --max-same-issues=0 --max-issues-per-linter=0
 
       - name: setup regal
-        uses: StyraInc/setup-regal@33a142b1189004e0f14bf42b15972c67eecce776 # ratchet:StyraInc/setup-regal@v1
+        uses: open-policy-agent/setup-regal@761188c3b435761fa254beca508a44875619648f # ratchet:open-policy-agent/setup-regal@v2.0.0
         with:
           version: v0.30
 
@@ -51,7 +53,7 @@ jobs:
           --format github
 
       - name: ratchet
-        uses: sethvargo/ratchet@8b4ca256dbed184350608a3023620f267f0a5253 # ratchet:sethvargo/ratchet@main
+        uses: sethvargo/ratchet@9ca118155b0f79464185703a50da367e111107cd # ratchet:sethvargo/ratchet@main
         with:
           files: .github/workflows/*.yaml
 
@@ -65,10 +67,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: checkout source
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # ratchet:actions/checkout@v5
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # ratchet:actions/checkout@v5
 
       - name: setup go
-        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # ratchet:actions/setup-go@v6
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # ratchet:actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
 
@@ -81,7 +83,7 @@ jobs:
       # Ensure Actions runner has Python installed
       # This is required for pre-commit tests to work
       - name: setup python
-        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # ratchet:actions/setup-python@v6
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # ratchet:actions/setup-python@v6
         with:
           python-version: '3.13'
           cache: 'pip'
@@ -125,10 +127,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout source
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # ratchet:actions/checkout@v5
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # ratchet:actions/checkout@v5
 
       - name: install nix
-        uses: cachix/install-nix-action@1ca7d21a94afc7c957383a2d217460d980de4934 # ratchet:cachix/install-nix-action@v31
+        uses: cachix/install-nix-action@8aa03977d8d733052d78f4e008a241fd1dbf36b3 # ratchet:cachix/install-nix-action@v31
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
 

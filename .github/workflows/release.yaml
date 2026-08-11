@@ -15,13 +15,13 @@ jobs:
       contents: read
     steps:
       - name: checkout source
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # ratchet:actions/checkout@v5
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # ratchet:actions/checkout@v5
 
       # It is important to check the GoReleaser config before pushing to
       # Dockerhub to avoid having mismatches between what is in Dockerhub
       # and GitHub releases.
       - name: check releaser config
-        uses: goreleaser/goreleaser-action@ec59f474b9834571250b370d4735c50f8e2d1e29 # ratchet:goreleaser/goreleaser-action@v7.0.0
+        uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # ratchet:goreleaser/goreleaser-action@v7.2.3
         with:
           args: check
           version: "~> v2"
@@ -34,10 +34,10 @@ jobs:
       - check
     steps:
       - name: checkout source
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # ratchet:actions/checkout@v5
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # ratchet:actions/checkout@v5
 
       - name: login to docker hub
-        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # ratchet:docker/login-action@v3
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # ratchet:docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_LOGIN }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -50,7 +50,7 @@ jobs:
         run: docker buildx create --name conftestbuild --use
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # ratchet:docker/build-push-action@v7.0.0
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # ratchet:docker/build-push-action@v7.3.0
         with:
           context: .
           push: true
@@ -69,10 +69,10 @@ jobs:
       - check
     steps:
       - name: checkout source
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # ratchet:actions/checkout@v5
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # ratchet:actions/checkout@v5
 
       - name: login to docker hub
-        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # ratchet:docker/login-action@v3
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # ratchet:docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_LOGIN }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -81,7 +81,7 @@ jobs:
         run: docker buildx create --name conftestbuild --use
 
       - name: Build and push examples image
-        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # ratchet:docker/build-push-action@v7.0.0
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # ratchet:docker/build-push-action@v7.3.0
         with:
           context: .
           push: true
@@ -98,18 +98,18 @@ jobs:
       - docker-examples
     steps:
       - name: checkout source
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # ratchet:actions/checkout@v5
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # ratchet:actions/checkout@v5
         with:
           fetch-depth: 0 # Need to fetch the full history for the GoReleaser changelog.
 
       - name: setup go
-        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # ratchet:actions/setup-go@v6
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # ratchet:actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
           cache: false
 
       - name: release
-        uses: goreleaser/goreleaser-action@ec59f474b9834571250b370d4735c50f8e2d1e29 # ratchet:goreleaser/goreleaser-action@v7.0.0
+        uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # ratchet:goreleaser/goreleaser-action@v7.2.3
         with:
           args: release --clean
           version: "~> v2"

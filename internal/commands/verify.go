@@ -77,11 +77,14 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 				"report",
 				"quiet",
 				"junit-hide-message",
+				"github-hide-passed",
 				"capabilities",
 				"rego-version",
 				"strict",
 				"proto-file-dirs",
 				"show-builtin-errors",
+				"var-values",
+				"namespace",
 			}
 			for _, name := range flagNames {
 				if err := viper.BindPFlag(name, cmd.Flags().Lookup(name)); err != nil {
@@ -97,6 +100,10 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("unmarshal parameters: %w", err)
 			}
 
+			if runner.VarValues && !runner.IsReportOptionOn() {
+				runner.Report = "fails"
+			}
+
 			results, raw, err := runner.Run(ctx)
 			if err != nil {
 				return fmt.Errorf("running verification: %w", err)
@@ -109,6 +116,8 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 					Tracing:          runner.Trace,
 					ShowSkipped:      true,
 					JUnitHideMessage: viper.GetBool("junit-hide-message"),
+					GitHubHidePassed: viper.GetBool("github-hide-passed"),
+					VarValues:        runner.VarValues,
 				})
 				if runner.IsReportOptionOn() {
 					// report currently available with stdout only
@@ -139,10 +148,11 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().Bool("trace", false, "Enable more verbose trace output for Rego queries")
 	cmd.Flags().Bool("strict", false, "Enable strict mode for Rego policies")
 	cmd.Flags().String("report", "", "Shows output for Rego queries as a report with summary. Available options are {full|notes|fails}.")
-	cmd.Flags().Bool("show-builtin-errors", true, "Collect and return all encountered built-in errors")
+	cmd.Flags().Bool("show-builtin-errors", false, "Collect and return all encountered built-in errors")
 
 	cmd.Flags().StringP("output", "o", output.OutputStandard, fmt.Sprintf("Output format for conftest results - valid options are: %s", output.Outputs()))
 	cmd.Flags().Bool("junit-hide-message", false, "Do not include the violation message in the JUnit test name")
+	cmd.Flags().Bool("github-hide-passed", false, "In the GitHub output, skip input files whose checks all passed")
 
 	cmd.Flags().String("capabilities", "", "Path to JSON file that can restrict opa functionality against a given policy. Default: all operations allowed")
 	cmd.Flags().String("rego-version", "v1", "Which version of Rego syntax to use. Options: v0, v1")
@@ -150,6 +160,8 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 	cmd.Flags().StringSliceP("policy", "p", []string{"policy"}, "Path to the Rego policy files directory")
 
 	cmd.Flags().StringSlice("proto-file-dirs", []string{}, "A list of directories containing Protocol Buffer definitions")
+	cmd.Flags().Bool("var-values", false, "Show variables and values in failing test expressions")
+	cmd.Flags().StringSliceP("namespace", "n", []string{}, "Verify policies in specific namespaces. Supports glob wildcards (*, ?, [...]) where * matches any sequence of characters including dots (e.g. 'main.*'). When empty, all namespaces are verified")
 
 	return &cmd
 }

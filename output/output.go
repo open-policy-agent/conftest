@@ -22,7 +22,9 @@ type Options struct {
 	SuppressExceptions bool
 	ShowSkipped        bool
 	JUnitHideMessage   bool
+	GitHubHidePassed   bool
 	File               *os.File
+	VarValues          bool
 }
 
 // The defined output formats represent all of the supported formats
@@ -71,6 +73,7 @@ func newOutputter(format string, options Options) Outputter {
 			SuppressExceptions: options.SuppressExceptions,
 			Tracing:            options.Tracing,
 			ShowSkipped:        options.ShowSkipped,
+			VarValues:          options.VarValues,
 		}
 	case OutputJSON:
 		return NewJSON(options.File)
@@ -81,7 +84,7 @@ func newOutputter(format string, options Options) Outputter {
 	case OutputJUnit:
 		return NewJUnit(options.File, options.JUnitHideMessage)
 	case OutputGitHub:
-		return NewGitHub(options.File)
+		return NewGitHub(options.File, options.GitHubHidePassed)
 	case OutputAzureDevOps:
 		return NewAzureDevOps(options.File)
 	case OutputSARIF:

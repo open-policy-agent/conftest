@@ -124,7 +124,7 @@ func NewPushCommand(ctx context.Context, logger *log.Logger) *cobra.Command {
 	cmd.Flags().StringP("policy", "p", "policy", "Directory to push as a bundle")
 	cmd.Flags().StringP("data", "d", "", "Directory containing data to include in the bundle, defaults to the value of the policy flag")
 	cmd.Flags().BoolP("tls", "s", true, "Use TLS to access the registry")
-	cmd.Flags().String("rego-version", "v0", "Which version of Rego syntax to use. Options: v0, v1")
+	cmd.Flags().String("rego-version", "v1", "Which version of Rego syntax to use. Options: v0, v1")
 
 	return &cmd
 }
