@@ -21,12 +21,19 @@ const (
 // https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions
 type GitHub struct {
 	writer io.Writer
+
+	// hidePassed skips the per-file annotation group for input files that
+	// only have successful checks. The summary line still counts every test.
+	hidePassed bool
 }
 
-// NewGitHub creates a new GitHub with the given writer.
-func NewGitHub(w io.Writer) *GitHub {
+// NewGitHub creates a new GitHub with the given writer. When hidePassed is
+// true, input files whose checks all passed are omitted from the annotation
+// output to reduce noise.
+func NewGitHub(w io.Writer, hidePassed bool) *GitHub {
 	github := GitHub{
-		writer: w,
+		writer:     w,
+		hidePassed: hidePassed,
 	}
 
 	return &github
@@ -45,6 +52,12 @@ func (g *GitHub) Output(checkResults CheckResults) error {
 		totalWarnings += len(result.Warnings)
 		totalSkipped += len(result.Skipped)
 		totalSuccesses += result.Successes
+
+		// When hidePassed is set, skip files that only have successful checks.
+		// Their tests still count toward the summary line tallied above.
+		if g.hidePassed && len(result.Failures) == 0 && len(result.Warnings) == 0 && len(result.Exceptions) == 0 && len(result.Skipped) == 0 {
+			continue
+		}
 
 		numPolicies := result.Successes + len(result.Failures) + len(result.Warnings) + len(result.Exceptions) + len(result.Skipped)
 
