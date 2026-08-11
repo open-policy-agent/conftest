@@ -21,7 +21,7 @@ func (*Parser) Unmarshal(p []byte, v any) error {
 	bom := new(cyclonedx.BOM)
 	decoder := cyclonedx.NewBOMDecoder(bytes.NewBuffer(p), bomFileFormat)
 	if err := decoder.Decode(bom); err != nil {
-		panic(err)
+		return fmt.Errorf("decode CycloneDX BOM: %w", err)
 	}
 
 	temp := p
