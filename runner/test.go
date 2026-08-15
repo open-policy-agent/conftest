@@ -27,6 +27,7 @@ type TestRunner struct {
 	Update             []string
 	Ignore             string
 	Parser             string
+	StdinFilename      string `mapstructure:"stdin-filename"`
 	Namespace          []string
 	AllNamespaces      bool `mapstructure:"all-namespaces"`
 	FailOnWarn         bool `mapstructure:"fail-on-warn"`
@@ -56,6 +57,7 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) (output.CheckRe
 	if err != nil {
 		return nil, fmt.Errorf("parse configurations: %w", err)
 	}
+	renameStdinConfiguration(configurations, t.StdinFilename)
 
 	// When there are policies to download, they are currently placed in the first
 	// directory that appears in the list of policies.
@@ -118,6 +120,20 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) (output.CheckRe
 	}
 
 	return results, nil
+}
+
+func renameStdinConfiguration(configurations map[string]any, stdinFilename string) {
+	if stdinFilename == "" {
+		return
+	}
+
+	configuration, ok := configurations["-"]
+	if !ok {
+		return
+	}
+
+	delete(configurations, "-")
+	configurations[stdinFilename] = configuration
 }
 
 func parseFileList(fileList []string, ignoreRegex string) ([]string, error) {

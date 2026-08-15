@@ -106,6 +106,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 				"parser",
 				"policy",
 				"proto-file-dirs",
+				"stdin-filename",
 				"capabilities",
 				"rego-version",
 				"trace",
@@ -185,6 +186,7 @@ func NewTestCommand(ctx context.Context) *cobra.Command {
 
 	cmd.Flags().String("ignore", "", "A regex pattern which can be used for ignoring paths")
 	cmd.Flags().String("parser", "", fmt.Sprintf("Parser to use to parse the configurations. Valid parsers: %s", parser.Parsers()))
+	cmd.Flags().String("stdin-filename", "", "Filename to use in output when testing configuration from stdin")
 	cmd.Flags().String("capabilities", "", "Path to JSON file that can restrict opa functionality against a given policy. Default: all operations allowed")
 	cmd.Flags().String("rego-version", "v1", "Which version of Rego syntax to use. Options: v0, v1")
 
