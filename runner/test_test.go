@@ -39,6 +39,28 @@ func TestParseFileList(t *testing.T) {
 			fileList:    []string{"-"},
 			ignoreRegex: ".*",
 			expected:    []string{"-"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actual, err := parseFileList(tt.fileList, tt.ignoreRegex)
+			if err != nil {
+				t.Fatalf("parse file list: %v", err)
+			}
+			if !reflect.DeepEqual(actual, tt.expected) {
+				t.Errorf("expected %v, got %v", tt.expected, actual)
+			}
+		})
+	}
+}
+
+func TestParseFileListInvalidIgnoreRegex(t *testing.T) {
+	if _, err := parseFileList([]string{"-"}, "("); err == nil {
+		t.Error("expected an error for an invalid ignore regexp, but none occurred")
+	}
+}
+
 func TestHasWildcard(t *testing.T) {
 	t.Parallel()
 
@@ -85,21 +107,6 @@ func TestHasWildcard(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			actual, err := parseFileList(tt.fileList, tt.ignoreRegex)
-			if err != nil {
-				t.Fatalf("parse file list: %v", err)
-			}
-			if !reflect.DeepEqual(actual, tt.expected) {
-				t.Errorf("expected %v, got %v", tt.expected, actual)
-			}
-		})
-	}
-}
-
-func TestParseFileListInvalidIgnoreRegex(t *testing.T) {
-	if _, err := parseFileList([]string{"-"}, "("); err == nil {
-		t.Error("expected an error for an invalid ignore regexp, but none occurred")
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
