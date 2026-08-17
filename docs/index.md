@@ -84,6 +84,7 @@ tests for any configuration files.
 
 As of today Conftest supports:
 
+- CODEOWNERS
 - CUE
 - CycloneDX
 - Dockerfile
