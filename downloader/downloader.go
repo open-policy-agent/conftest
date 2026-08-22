@@ -58,25 +58,39 @@ func Download(ctx context.Context, dst string, urls []string, opts ...DownloadOp
 			return fmt.Errorf("detecting url: %w", err)
 		}
 
-		// Check if file already exists
+		// Check if the download target already exists. Git sources clone
+		// directly into dst (see the get() call below), so the target to
+		// check is dst itself; other sources are downloaded as a single
+		// file named filename inside dst.
 		filename := filepath.Base(detectedURL)
+		isGitSource := strings.HasPrefix(detectedURL, "git::")
 		targetPath := filepath.Join(dst, filename)
+		if isGitSource {
+			targetPath = dst
+		}
+
 		targetInfo, err := os.Stat(targetPath)
 		if err == nil {
-			if !config.overwrite {
+			switch {
+			case isGitSource && targetInfo.IsDir():
+				// Git sources intentionally skip the "refuse to overwrite"
+				// guard below: a pre-existing, non-empty directory is
+				// expected to already be a checkout that go-getter will
+				// update in place using git's own semantics. Only an empty
+				// directory needs to be removed so go-getter clones into it
+				// fresh instead of mistaking it for an existing checkout.
+				if config.overwrite {
+					if err := removeEmptyDestination(dst); err != nil {
+						return err
+					}
+				}
+			case !config.overwrite:
 				return fmt.Errorf("policy file already exists at %s, refusing to overwrite", targetPath)
-			}
-			if !targetInfo.IsDir() {
+			case !targetInfo.IsDir():
 				if err := overwriteFile(ctx, detectedURL, dst, filename); err != nil {
 					return err
 				}
 				continue
-			}
-		}
-
-		if config.overwrite && strings.HasPrefix(detectedURL, "git::") {
-			if err := removeEmptyDestination(dst); err != nil {
-				return err
 			}
 		}
 
