@@ -62,7 +62,7 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) (output.CheckRe
 	// When there are policies to download, they are currently placed in the first
 	// directory that appears in the list of policies.
 	if len(t.Update) > 0 {
-		if err := downloader.Download(ctx, t.Policy[0], t.Update); err != nil {
+		if err := downloader.Download(ctx, t.Policy[0], t.Update, downloader.WithOverwrite()); err != nil {
 			return nil, fmt.Errorf("update policies: %w", err)
 		}
 	}

@@ -31,9 +31,27 @@ var getters = map[string]getter.Getter{
 	"https": new(getter.HttpGetter),
 }
 
+type downloadConfig struct {
+	overwrite bool
+}
+
+// DownloadOption configures a policy download.
+type DownloadOption func(*downloadConfig)
+
+// WithOverwrite replaces an existing policy file after its update downloads successfully.
+func WithOverwrite() DownloadOption {
+	return func(config *downloadConfig) {
+		config.overwrite = true
+	}
+}
+
 // Download downloads the given policies into the given destination.
-func Download(ctx context.Context, dst string, urls []string) error {
-	opts := []getter.ClientOption{}
+func Download(ctx context.Context, dst string, urls []string, opts ...DownloadOption) error {
+	config := downloadConfig{}
+	for _, opt := range opts {
+		opt(&config)
+	}
+
 	for _, url := range urls {
 		detectedURL, err := Detect(url, dst)
 		if err != nil {
@@ -43,24 +61,74 @@ func Download(ctx context.Context, dst string, urls []string) error {
 		// Check if file already exists
 		filename := filepath.Base(detectedURL)
 		targetPath := filepath.Join(dst, filename)
-		if _, err := os.Stat(targetPath); err == nil {
-			return fmt.Errorf("policy file already exists at %s, refusing to overwrite", targetPath)
+		targetInfo, err := os.Stat(targetPath)
+		if err == nil {
+			if !config.overwrite {
+				return fmt.Errorf("policy file already exists at %s, refusing to overwrite", targetPath)
+			}
+			if !targetInfo.IsDir() {
+				if err := overwriteFile(ctx, detectedURL, dst, filename); err != nil {
+					return err
+				}
+				continue
+			}
 		}
 
-		client := &getter.Client{
-			Ctx:       ctx,
-			Src:       detectedURL,
-			Dst:       dst,
-			Pwd:       dst,
-			Mode:      getter.ClientModeAny,
-			Detectors: detectors,
-			Getters:   getters,
-			Options:   opts,
+		if err := get(ctx, detectedURL, dst, dst); err != nil {
+			return err
 		}
+	}
 
-		if err := client.Get(); err != nil {
-			return fmt.Errorf("client get: %w", err)
-		}
+	return nil
+}
+
+func get(ctx context.Context, src string, dst string, pwd string) error {
+	opts := []getter.ClientOption{}
+	client := &getter.Client{
+		Ctx:       ctx,
+		Src:       src,
+		Dst:       dst,
+		Pwd:       pwd,
+		Mode:      getter.ClientModeAny,
+		Detectors: detectors,
+		Getters:   getters,
+		Options:   opts,
+	}
+
+	if err := client.Get(); err != nil {
+		return fmt.Errorf("client get: %w", err)
+	}
+
+	return nil
+}
+
+func overwriteFile(ctx context.Context, src string, dst string, filename string) error {
+	stagingDir, err := os.MkdirTemp("", ".conftest-update-*")
+	if err != nil {
+		return fmt.Errorf("create update staging directory: %w", err)
+	}
+	defer os.RemoveAll(stagingDir)
+
+	if err := get(ctx, src, stagingDir, dst); err != nil {
+		return err
+	}
+
+	stagedPath := filepath.Join(stagingDir, filename)
+	targetPath := filepath.Join(dst, filename)
+	if err := replaceFile(stagedPath, targetPath); err != nil {
+		return fmt.Errorf("replace policy file: %w", err)
+	}
+
+	return nil
+}
+
+func replaceFile(src string, dst string) error {
+	if err := os.Remove(dst); err != nil {
+		return fmt.Errorf("remove existing file: %w", err)
+	}
+
+	if err := os.Rename(src, dst); err != nil {
+		return fmt.Errorf("install updated file: %w", err)
 	}
 
 	return nil
