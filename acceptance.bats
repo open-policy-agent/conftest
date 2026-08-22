@@ -353,6 +353,23 @@ EOF"
   [[ "$output" = "\"Deployment\"" ]]
 }
 
+@test "Can test a Jenkinsfile with the Groovy parser" {
+  run ./conftest test -p examples/jenkins/policy examples/jenkins/Jenkinsfile --output json
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "Pipeline downloads a script and pipes it directly to an interpreter" ]]
+  [[ "$output" =~ '"line": 6' ]]
+}
+
+@test "Can test a safe Jenkinsfile" {
+  run ./conftest test -p examples/jenkins/policy examples/jenkins/Jenkinsfile.safe
+  [ "$status" -eq 0 ]
+}
+
+@test "Can parse Groovy from stdin" {
+  run bash -c "./conftest parse --parser groovy - < examples/jenkins/Jenkinsfile.safe | jq -e '.kind == \"FileNode\"'"
+  [ "$status" -eq 0 ]
+}
+
 @test "Can parse multiple files with 'conftest parse'" {
   run bash -c "./conftest parse examples/kubernetes/deployment.yaml examples/kubernetes/deployment+service.yaml | jq 'keys'"
   [ "$status" -eq 0 ]

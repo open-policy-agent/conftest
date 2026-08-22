@@ -21,6 +21,7 @@ including:
 - [HOCON](https://github.com/open-policy-agent/conftest/tree/master/examples/hocon)
 - [Ignore](https://github.com/open-policy-agent/conftest/tree/master/examples/ignore)
 - [INI](https://github.com/open-policy-agent/conftest/tree/master/examples/ini)
+- [Jenkins Pipeline](https://github.com/open-policy-agent/conftest/tree/master/examples/jenkins)
 - [Jsonnet](https://github.com/open-policy-agent/conftest/tree/master/examples/jsonnet)
 - [Kubernetes](https://github.com/open-policy-agent/conftest/tree/master/examples/kubernetes)
 - [Kustomize](https://github.com/open-policy-agent/conftest/tree/master/examples/kustomize)

@@ -7,6 +7,7 @@ require (
 	github.com/BurntSushi/toml v1.6.0
 	github.com/CycloneDX/cyclonedx-go v0.11.0
 	github.com/KeisukeYamashita/go-vcl v0.4.0
+	github.com/albertocavalcante/groovy-parser-go v0.0.0-20260218103838-adf14fa75938
 	github.com/basgys/goxml2json v1.1.0
 	github.com/bufbuild/protocompile v0.6.0
 	github.com/go-akka/configuration v0.0.0-20200606091224-a002c0330665

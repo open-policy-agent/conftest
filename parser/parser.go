@@ -18,6 +18,7 @@ import (
 	"github.com/open-policy-agent/conftest/parser/docker"
 	dotenv "github.com/open-policy-agent/conftest/parser/dotenv"
 	"github.com/open-policy-agent/conftest/parser/edn"
+	"github.com/open-policy-agent/conftest/parser/groovy"
 	"github.com/open-policy-agent/conftest/parser/hcl1"
 	"github.com/open-policy-agent/conftest/parser/hcl2"
 	"github.com/open-policy-agent/conftest/parser/hocon"
@@ -43,6 +44,7 @@ const (
 	CYCLONEDX  = "cyclonedx"
 	Dockerfile = "dockerfile"
 	EDN        = "edn"
+	GROOVY     = "groovy"
 	HCL1       = "hcl1"
 	HCL2       = "hcl2"
 	HOCON      = "hocon"
@@ -104,6 +106,8 @@ func New(parser string) (Parser, error) {
 		return &nginx.Parser{}, nil
 	case EDN:
 		return &edn.Parser{}, nil
+	case GROOVY:
+		return &groovy.Parser{}, nil
 	case VCL:
 		return &vcl.Parser{}, nil
 	case XML:
@@ -207,6 +211,12 @@ func NewFromPath(path string) (Parser, error) {
 		return New(NGINX)
 	}
 
+	// A Jenkinsfile can either be named Jenkinsfile or be prefixed with
+	// Jenkinsfile. For example: Jenkinsfile, Jenkinsfile.prod.
+	if fileName == "jenkinsfile" || strings.HasPrefix(fileName, "jenkinsfile.") {
+		return New(GROOVY)
+	}
+
 	if slices.Contains(textproto.TextProtoFileExtensions, fileExtension) {
 		return New(TEXTPROTO)
 	}
@@ -226,6 +236,7 @@ func Parsers() []string {
 		CYCLONEDX,
 		Dockerfile,
 		EDN,
+		GROOVY,
 		HCL1,
 		HCL2,
 		HOCON,
