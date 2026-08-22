@@ -74,8 +74,31 @@ func Download(ctx context.Context, dst string, urls []string, opts ...DownloadOp
 			}
 		}
 
+		if config.overwrite && strings.HasPrefix(detectedURL, "git::") {
+			if err := removeEmptyDestination(dst); err != nil {
+				return err
+			}
+		}
+
 		if err := get(ctx, detectedURL, dst, dst); err != nil {
 			return err
+		}
+	}
+
+	return nil
+}
+
+// removeEmptyDestination removes dst if it exists but is empty. go-getter's
+// git getter decides whether to clone or update a destination based solely
+// on whether it already exists, so a pre-existing, empty directory (created
+// ahead of time, e.g. by Atlantis, but not yet cloned into) is mistaken for
+// an existing checkout, and the update fails because it isn't actually a git
+// repository. Removing the empty directory lets go-getter clone into it
+// fresh, as it would if the directory never existed.
+func removeEmptyDestination(dst string) error {
+	if entries, err := os.ReadDir(dst); err == nil && len(entries) == 0 {
+		if err := os.Remove(dst); err != nil {
+			return fmt.Errorf("remove empty policy directory: %w", err)
 		}
 	}
 
