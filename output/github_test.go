@@ -199,6 +199,26 @@ func TestGitHub(t *testing.T) {
 				"",
 			},
 		},
+		{
+			// ',' and ':' end the property block, so an unescaped file name
+			// truncates the annotation and the runner mis-parses the rest.
+			name: "escapes property delimiters in the file name",
+			input: CheckResults{
+				{
+					FileName:  "a,b:c.yaml",
+					Namespace: "namespace",
+					Failures:  []Result{{Message: "first failure"}},
+				},
+			},
+			expected: []string{
+				"::group::Testing \"a,b:c.yaml\" against 1 policies in namespace \"namespace\"",
+				"::error file=a%2Cb%3Ac.yaml,line=1::first failure",
+				"::notice file=a%2Cb%3Ac.yaml,line=1::Number of successful checks: 0",
+				"::endgroup::",
+				"1 test, 0 passed, 0 warnings, 1 failure, 0 exceptions",
+				"",
+			},
+		},
 	}
 
 	for _, tt := range tests {

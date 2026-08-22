@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/open-policy-agent/opa/v1/tester"
 )
@@ -97,9 +98,24 @@ func (g *GitHub) writeLn(msg string, args ...any) {
 	fmt.Fprintf(g.writer, msg+"\n", args...)
 }
 
+// escapeProperty escapes a workflow command property value. ':' and ',' delimit
+// the property block, so a file name containing either would end it early.
+// https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands
+func escapeProperty(v string) string {
+	return strings.NewReplacer(
+		"%", "%25",
+		"\r", "%0D",
+		"\n", "%0A",
+		":", "%3A",
+		",", "%2C",
+	).Replace(v)
+}
+
 func (g *GitHub) writeLoc(level githubLevel, loc *Location, msg string, args ...any) {
-	msg = fmt.Sprintf("::%s file=%s,line=%s::%s", level, loc.File, loc.Line, msg)
-	g.writeLn(msg, args...)
+	// Format the message first: the escaped file name contains '%' sequences
+	// that must not be read as verbs by the final Fprintf.
+	msg = fmt.Sprintf(msg, args...)
+	g.writeLn("%s", fmt.Sprintf("::%s file=%s,line=%s::%s", level, escapeProperty(loc.File), loc.Line, msg))
 }
 
 func (g *GitHub) writeLocs(level githubLevel, fileLoc, ogLoc *Location, msg string, args ...any) {
