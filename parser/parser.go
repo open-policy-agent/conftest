@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/exp/slices"
 
+	"github.com/open-policy-agent/conftest/parser/codeowners"
 	"github.com/open-policy-agent/conftest/parser/cue"
 	"github.com/open-policy-agent/conftest/parser/cyclonedx"
 	"github.com/open-policy-agent/conftest/parser/docker"
@@ -39,6 +40,7 @@ import (
 // The defined parsers are the parsers that are valid for
 // parsing files.
 const (
+	CODEOWNERS = "codeowners"
 	CUE        = "cue"
 	CYCLONEDX  = "cyclonedx"
 	Dockerfile = "dockerfile"
@@ -131,6 +133,8 @@ func New(parser string) (Parser, error) {
 		}
 
 		return parser, nil
+	case CODEOWNERS:
+		return &codeowners.Parser{}, nil
 	default:
 		return nil, fmt.Errorf("unknown parser: %v", parser)
 	}
@@ -211,6 +215,10 @@ func NewFromPath(path string) (Parser, error) {
 		return New(TEXTPROTO)
 	}
 
+	if fileName == "codeowners" {
+		return New(CODEOWNERS)
+	}
+
 	parser, err := New(fileExtension)
 	if err != nil {
 		return nil, fmt.Errorf("new: %w", err)
@@ -222,6 +230,7 @@ func NewFromPath(path string) (Parser, error) {
 // Parsers returns a list of the supported Parsers.
 func Parsers() []string {
 	parsers := []string{
+		CODEOWNERS,
 		CUE,
 		CYCLONEDX,
 		Dockerfile,

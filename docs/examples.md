@@ -6,6 +6,7 @@ including:
 - [AWS SAM Framework](https://github.com/open-policy-agent/conftest/tree/master/examples/awssam)
 - [Builtin-Errors](https://github.com/open-policy-agent/conftest/tree/master/examples/builtin-errors)
 - [Capabilities](https://github.com/open-policy-agent/conftest/tree/master/examples/capabilities)
+- [CODEOWNERS](https://github.com/open-policy-agent/conftest/tree/master/examples/codeowners)
 - [Combine](https://github.com/open-policy-agent/conftest/tree/master/examples/combine)
 - [Configfile](https://github.com/open-policy-agent/conftest/tree/master/examples/configfile)
 - [CUE](https://github.com/open-policy-agent/conftest/tree/master/examples/cue)
