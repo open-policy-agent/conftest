@@ -286,6 +286,12 @@
   [ "$status" -eq 0 ]
 }
 
+@test "Can parse CODEOWNERS files" {
+  run ./conftest test -p examples/codeowners/policy examples/codeowners/CODEOWNERS
+  [ "$status" -eq 0 ]
+  [[ "$output" =~ "4 tests, 4 passed" ]]
+}
+
 @test "Can parse stdin with parser flag" {
   run bash -c "cat examples/ini/grafana.ini | ./conftest test -p examples/ini/policy --parser ini -"
   [ "$status" -eq 1 ]
