@@ -5,6 +5,13 @@ import (
 	"testing"
 )
 
+const (
+	appsGitHubPath = "/apps/github"
+	developersTeam = "@my-org/developers"
+	doctocatUser   = "@doctocat"
+	octocatUser    = "@octocat"
+)
+
 func TestParser(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -19,7 +26,7 @@ func TestParser(t *testing.T) {
 			want: codeowners{
 				Entries: []entry{
 					{
-						Pattern: "/apps/github",
+						Pattern: appsGitHubPath,
 						Owners:  []string{},
 					},
 				},
@@ -63,7 +70,7 @@ func TestParser(t *testing.T) {
 				Entries: []entry{
 					{
 						Pattern: "*.txt",
-						Owners:  []string{"@my-org/developers"},
+						Owners:  []string{developersTeam},
 					},
 				},
 			},
@@ -111,7 +118,7 @@ func TestParser(t *testing.T) {
 				Entries: []entry{
 					{
 						Pattern: "b?in/",
-						Owners:  []string{"@my-org/developers"},
+						Owners:  []string{developersTeam},
 					},
 				},
 			},
@@ -123,7 +130,7 @@ func TestParser(t *testing.T) {
 				Entries: []entry{
 					{
 						Pattern: "b?in/",
-						Owners:  []string{"@my-org/developers"},
+						Owners:  []string{developersTeam},
 					},
 				},
 			},
@@ -135,7 +142,7 @@ func TestParser(t *testing.T) {
 				Entries: []entry{
 					{
 						Pattern: "a\\*b",
-						Owners:  []string{"@my-org/developers"},
+						Owners:  []string{developersTeam},
 					},
 				},
 			},
@@ -147,7 +154,7 @@ func TestParser(t *testing.T) {
 				Entries: []entry{
 					{
 						Pattern: "a\\?b",
-						Owners:  []string{"@my-org/developers"},
+						Owners:  []string{developersTeam},
 					},
 				},
 			},
@@ -160,7 +167,7 @@ func TestParser(t *testing.T) {
 				Entries: []entry{
 					{
 						Pattern: "**/test",
-						Owners:  []string{"@my-org/developers"},
+						Owners:  []string{developersTeam},
 					},
 				},
 			},
@@ -224,7 +231,7 @@ apps/ @octocat
 **/logs @octocat
 
 # In this example, @octocat owns any file in the "/apps"
-# directory in the root of your repository except for the "/apps/github"
+# directory in the root of your repository except for the appsGitHubPath
 # subdirectory, as its owners are left empty. Without an owner, changes
 # to "apps/github" can be made with the approval of any user who has
 # write access to the repository.
@@ -232,7 +239,7 @@ apps/ @octocat
 /apps/github
 
 # In this example, @octocat owns any file in the "/apps"
-# directory in the root of your repository except for the "/apps/github"
+# directory in the root of your repository except for the appsGitHubPath
 # subdirectory, as this subdirectory has its own owner @doctocat
 /apps/ @octocat
 /apps/github @doctocat
@@ -257,7 +264,7 @@ apps/ @octocat
 					},
 					{
 						Pattern: "/build/logs/",
-						Owners:  []string{"@doctocat"},
+						Owners:  []string{doctocatUser},
 					},
 					{
 						Pattern: "docs/*",
@@ -265,35 +272,35 @@ apps/ @octocat
 					},
 					{
 						Pattern: "apps/",
-						Owners:  []string{"@octocat"},
+						Owners:  []string{octocatUser},
 					},
 					{
 						Pattern: "/docs/",
-						Owners:  []string{"@doctocat"},
+						Owners:  []string{doctocatUser},
 					},
 					{
 						Pattern: "/scripts/",
-						Owners:  []string{"@doctocat", "@octocat"},
+						Owners:  []string{doctocatUser, octocatUser},
 					},
 					{
 						Pattern: "**/logs",
-						Owners:  []string{"@octocat"},
+						Owners:  []string{octocatUser},
 					},
 					{
 						Pattern: "/apps/",
-						Owners:  []string{"@octocat"},
+						Owners:  []string{octocatUser},
 					},
 					{
-						Pattern: "/apps/github",
+						Pattern: appsGitHubPath,
 						Owners:  []string{},
 					},
 					{
 						Pattern: "/apps/",
-						Owners:  []string{"@octocat"},
+						Owners:  []string{octocatUser},
 					},
 					{
-						Pattern: "/apps/github",
-						Owners:  []string{"@doctocat"},
+						Pattern: appsGitHubPath,
+						Owners:  []string{doctocatUser},
 					},
 				},
 			},
@@ -305,7 +312,7 @@ apps/ @octocat
 				Entries: []entry{
 					{
 						Pattern: "*",
-						Owners:  []string{"@my-org/developers"},
+						Owners:  []string{developersTeam},
 					},
 					{
 						Pattern: "docs/",
