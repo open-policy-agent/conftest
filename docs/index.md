@@ -96,6 +96,7 @@ As of today Conftest supports:
 - Jenkins Pipeline and Groovy 2.4
 - JSON
 - Jsonnet
+- MikroTik RouterOS
 - nginx
 - Property files (.properties)
 - SPDX
