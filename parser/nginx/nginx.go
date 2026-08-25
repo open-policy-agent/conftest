@@ -1,11 +1,12 @@
 package nginx
 
 import (
-	"encoding/json"
 	"fmt"
 
 	gonginxconfig "github.com/tufanbarisyildirim/gonginx/config"
 	gonginxparser "github.com/tufanbarisyildirim/gonginx/parser"
+
+	"github.com/open-policy-agent/conftest/parser/internal/convert"
 )
 
 // Config represents a parsed nginx configuration.
@@ -37,16 +38,7 @@ func (p *Parser) Unmarshal(b []byte, v any) error {
 	}
 
 	config := Config{Directives: convertDirectives(cfg.GetDirectives())}
-	j, err := json.Marshal(config)
-	if err != nil {
-		return fmt.Errorf("marshal nginx to json: %w", err)
-	}
-
-	if err := json.Unmarshal(j, v); err != nil {
-		return fmt.Errorf("unmarshal nginx json: %w", err)
-	}
-
-	return nil
+	return convert.Remarshal("nginx", config, v)
 }
 
 func convertDirectives(directives []gonginxconfig.IDirective) []Directive {

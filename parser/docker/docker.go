@@ -2,12 +2,13 @@ package docker
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"strings"
 
 	"github.com/moby/buildkit/frontend/dockerfile/instructions"
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
+
+	"github.com/open-policy-agent/conftest/parser/internal/convert"
 )
 
 // Parser is a Dockerfile parser.
@@ -96,16 +97,7 @@ func (dp *Parser) Unmarshal(p []byte, v any) error {
 	var dockerFile [][]Command
 	dockerFile = append(dockerFile, commands)
 
-	j, err := json.Marshal(dockerFile)
-	if err != nil {
-		return fmt.Errorf("marshal dockerfile to json: %w", err)
-	}
-
-	if err := json.Unmarshal(j, v); err != nil {
-		return fmt.Errorf("unmarshal dockerfile json: %w", err)
-	}
-
-	return nil
+	return convert.Remarshal("dockerfile", dockerFile, v)
 }
 
 // Return the index of the stages. If no stages are present,

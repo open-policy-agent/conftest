@@ -1,10 +1,11 @@
 package properties
 
 import (
-	"encoding/json"
 	"fmt"
 
 	prop "github.com/magiconair/properties"
+
+	"github.com/open-policy-agent/conftest/parser/internal/convert"
 )
 
 // Parser is a properties parser.
@@ -18,14 +19,5 @@ func (pp *Parser) Unmarshal(p []byte, v any) error {
 
 	result := rawProps.Map()
 
-	j, err := json.Marshal(result)
-	if err != nil {
-		return fmt.Errorf("marshal properties to json: %w", err)
-	}
-
-	if err := json.Unmarshal(j, v); err != nil {
-		return fmt.Errorf("unmarshal properties json: %w", err)
-	}
-
-	return nil
+	return convert.Remarshal("properties", result, v)
 }

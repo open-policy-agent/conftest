@@ -2,10 +2,11 @@ package ini
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 
 	"github.com/subosito/gotenv"
+
+	"github.com/open-policy-agent/conftest/parser/internal/convert"
 )
 
 // Parser is an dotenv parser.
@@ -19,14 +20,5 @@ func (i *Parser) Unmarshal(p []byte, v any) error {
 		return fmt.Errorf("read .env file: %w", err)
 	}
 
-	j, err := json.Marshal(cfg)
-	if err != nil {
-		return fmt.Errorf("marshal dotenv to json: %w", err)
-	}
-
-	if err := json.Unmarshal(j, v); err != nil {
-		return fmt.Errorf("unmarshal dotenv json: %w", err)
-	}
-
-	return nil
+	return convert.Remarshal("dotenv", cfg, v)
 }

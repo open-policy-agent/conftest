@@ -2,10 +2,11 @@ package spdx
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 
 	"github.com/spdx/tools-golang/tagvalue"
+
+	"github.com/open-policy-agent/conftest/parser/internal/convert"
 )
 
 // Parser is a SPDX parser.
@@ -18,14 +19,5 @@ func (*Parser) Unmarshal(p []byte, v any) error {
 		return fmt.Errorf("error while parsing %v: %v", p, err)
 	}
 
-	out, err := json.Marshal(doc)
-	if err != nil {
-		return fmt.Errorf("error while marshaling %v: %v", p, err)
-	}
-
-	if err := json.Unmarshal(out, v); err != nil {
-		return fmt.Errorf("unmarshal SPDX json: %w", err)
-	}
-
-	return nil
+	return convert.Remarshal("spdx", doc, v)
 }
