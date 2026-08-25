@@ -15,6 +15,7 @@ require (
 	github.com/google/go-jsonnet v0.22.0
 	github.com/hashicorp/go-getter v1.8.6
 	github.com/hashicorp/hcl v1.0.0
+	github.com/hmarr/codeowners v1.2.1
 	github.com/jstemmer/go-junit-report v1.0.0
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/magiconair/properties v1.18.11

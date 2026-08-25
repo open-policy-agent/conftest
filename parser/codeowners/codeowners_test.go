@@ -2,32 +2,43 @@ package codeowners
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 )
 
-const (
-	appsGitHubPath = "/apps/github"
-	developersTeam = "@my-org/developers"
-	doctocatUser   = "@doctocat"
-	octocatUser    = "@octocat"
+const appsGitHubPath = "/apps/github"
+
+var (
+	bobEmail       = ownerFromEmail("bob@example.test")
+	bobUser        = ownerFromUsername("bob")
+	carolUser      = ownerFromUsername("carol")
+	docsEmail      = ownerFromEmail("docs@example.com")
+	doctocatUser   = ownerFromUsername("doctocat")
+	octocatUser    = ownerFromUsername("octocat")
+	developersTeam = ownerFromTeam("my-org/developers")
+	librariansTeam = ownerFromTeam("my-org/librarians")
+	octocatTeam    = ownerFromTeam("octo-org/octocats")
+	globalOwner1   = ownerFromUsername("global-owner1")
+	globalOwner2   = ownerFromUsername("global-owner2")
+	jsOwner        = ownerFromUsername("js-owner")
 )
 
 func TestParser(t *testing.T) {
 	tests := []struct {
 		name    string
 		input   []byte
-		want    codeowners
+		want    owners
 		wantErr bool
 	}{
 		{
 			name: "anyone with write access",
 			// A lone pattern requires a review from anyone with write access
 			input: []byte(`/apps/github`),
-			want: codeowners{
-				Entries: []entry{
+			want: owners{
+				Rules: []rule{
 					{
 						Pattern: appsGitHubPath,
-						Owners:  []string{},
+						Owners:  []owner{},
 					},
 				},
 			},
@@ -35,18 +46,18 @@ func TestParser(t *testing.T) {
 		{
 			name:  "comment",
 			input: []byte(`# Just a comment`),
-			want: codeowners{
-				Entries: []entry{},
+			want: owners{
+				Rules: []rule{},
 			},
 		},
 		{
 			name:  "user owner",
 			input: []byte(`* @bob`),
-			want: codeowners{
-				Entries: []entry{
+			want: owners{
+				Rules: []rule{
 					{
 						Pattern: "*",
-						Owners:  []string{"@bob"},
+						Owners:  []owner{bobUser},
 					},
 				},
 			},
@@ -54,11 +65,11 @@ func TestParser(t *testing.T) {
 		{
 			name:  "email owner",
 			input: []byte(`*.go bob@example.test`),
-			want: codeowners{
-				Entries: []entry{
+			want: owners{
+				Rules: []rule{
 					{
 						Pattern: "*.go",
-						Owners:  []string{"bob@example.test"},
+						Owners:  []owner{bobEmail},
 					},
 				},
 			},
@@ -66,11 +77,11 @@ func TestParser(t *testing.T) {
 		{
 			name:  "team owner",
 			input: []byte(`*.txt @my-org/developers`),
-			want: codeowners{
-				Entries: []entry{
+			want: owners{
+				Rules: []rule{
 					{
 						Pattern: "*.txt",
-						Owners:  []string{developersTeam},
+						Owners:  []owner{developersTeam},
 					},
 				},
 			},
@@ -78,11 +89,11 @@ func TestParser(t *testing.T) {
 		{
 			name:  "two owners",
 			input: []byte(`* @bob @carol`),
-			want: codeowners{
-				Entries: []entry{
+			want: owners{
+				Rules: []rule{
 					{
 						Pattern: "*",
-						Owners:  []string{"@bob", "@carol"},
+						Owners:  []owner{bobUser, carolUser},
 					},
 				},
 			},
@@ -90,11 +101,11 @@ func TestParser(t *testing.T) {
 		{
 			name:  "inline comment",
 			input: []byte(`*.js    @carol #This is an inline comment.`),
-			want: codeowners{
-				Entries: []entry{
+			want: owners{
+				Rules: []rule{
 					{
 						Pattern: "*.js",
-						Owners:  []string{"@carol"},
+						Owners:  []owner{carolUser},
 					},
 				},
 			},
@@ -102,11 +113,11 @@ func TestParser(t *testing.T) {
 		{
 			name:  "folder path",
 			input: []byte(`/build/logs/ @my-org/librarians`),
-			want: codeowners{
-				Entries: []entry{
+			want: owners{
+				Rules: []rule{
 					{
 						Pattern: "/build/logs/",
-						Owners:  []string{"@my-org/librarians"},
+						Owners:  []owner{librariansTeam},
 					},
 				},
 			},
@@ -114,11 +125,11 @@ func TestParser(t *testing.T) {
 		{
 			name:  "one character wildcard",
 			input: []byte(`b?in/ @my-org/developers`),
-			want: codeowners{
-				Entries: []entry{
+			want: owners{
+				Rules: []rule{
 					{
 						Pattern: "b?in/",
-						Owners:  []string{developersTeam},
+						Owners:  []owner{developersTeam},
 					},
 				},
 			},
@@ -126,11 +137,11 @@ func TestParser(t *testing.T) {
 		{
 			name:  "one character wildcard",
 			input: []byte(`b?in/ @my-org/developers`),
-			want: codeowners{
-				Entries: []entry{
+			want: owners{
+				Rules: []rule{
 					{
 						Pattern: "b?in/",
-						Owners:  []string{developersTeam},
+						Owners:  []owner{developersTeam},
 					},
 				},
 			},
@@ -138,11 +149,11 @@ func TestParser(t *testing.T) {
 		{
 			name:  "literal asterisk",
 			input: []byte(`a\*b @my-org/developers`),
-			want: codeowners{
-				Entries: []entry{
+			want: owners{
+				Rules: []rule{
 					{
 						Pattern: "a\\*b",
-						Owners:  []string{developersTeam},
+						Owners:  []owner{developersTeam},
 					},
 				},
 			},
@@ -150,11 +161,11 @@ func TestParser(t *testing.T) {
 		{
 			name:  "literal question mark",
 			input: []byte(`a\?b @my-org/developers`),
-			want: codeowners{
-				Entries: []entry{
+			want: owners{
+				Rules: []rule{
 					{
 						Pattern: "a\\?b",
-						Owners:  []string{developersTeam},
+						Owners:  []owner{developersTeam},
 					},
 				},
 			},
@@ -163,11 +174,11 @@ func TestParser(t *testing.T) {
 		{
 			name:  "recursive match",
 			input: []byte(`**/test @my-org/developers`),
-			want: codeowners{
-				Entries: []entry{
+			want: owners{
+				Rules: []rule{
 					{
 						Pattern: "**/test",
-						Owners:  []string{developersTeam},
+						Owners:  []owner{developersTeam},
 					},
 				},
 			},
@@ -244,63 +255,63 @@ apps/ @octocat
 /apps/ @octocat
 /apps/github @doctocat
 `),
-			want: codeowners{
-				Entries: []entry{
+			want: owners{
+				Rules: []rule{
 					{
 						Pattern: "*",
-						Owners:  []string{"@global-owner1", "@global-owner2"},
+						Owners:  []owner{globalOwner1, globalOwner2},
 					},
 					{
 						Pattern: "*.js",
-						Owners:  []string{"@js-owner"},
+						Owners:  []owner{jsOwner},
 					},
 					{
 						Pattern: "*.go",
-						Owners:  []string{"docs@example.com"},
+						Owners:  []owner{docsEmail},
 					},
 					{
 						Pattern: "*.txt",
-						Owners:  []string{"@octo-org/octocats"},
+						Owners:  []owner{octocatTeam},
 					},
 					{
 						Pattern: "/build/logs/",
-						Owners:  []string{doctocatUser},
+						Owners:  []owner{doctocatUser},
 					},
 					{
 						Pattern: "docs/*",
-						Owners:  []string{"docs@example.com"},
+						Owners:  []owner{docsEmail},
 					},
 					{
 						Pattern: "apps/",
-						Owners:  []string{octocatUser},
+						Owners:  []owner{octocatUser},
 					},
 					{
 						Pattern: "/docs/",
-						Owners:  []string{doctocatUser},
+						Owners:  []owner{doctocatUser},
 					},
 					{
 						Pattern: "/scripts/",
-						Owners:  []string{doctocatUser, octocatUser},
+						Owners:  []owner{doctocatUser, octocatUser},
 					},
 					{
 						Pattern: "**/logs",
-						Owners:  []string{octocatUser},
+						Owners:  []owner{octocatUser},
 					},
 					{
 						Pattern: "/apps/",
-						Owners:  []string{octocatUser},
+						Owners:  []owner{octocatUser},
 					},
 					{
 						Pattern: appsGitHubPath,
-						Owners:  []string{},
+						Owners:  []owner{},
 					},
 					{
 						Pattern: "/apps/",
-						Owners:  []string{octocatUser},
+						Owners:  []owner{octocatUser},
 					},
 					{
 						Pattern: appsGitHubPath,
-						Owners:  []string{doctocatUser},
+						Owners:  []owner{doctocatUser},
 					},
 				},
 			},
@@ -308,15 +319,15 @@ apps/ @octocat
 		{
 			name:  "windows line endings",
 			input: []byte("# developers by default\r\n* @my-org/developers\r\n# librarians for docs\r\ndocs/\t@my-org/librarians\r\n"),
-			want: codeowners{
-				Entries: []entry{
+			want: owners{
+				Rules: []rule{
 					{
 						Pattern: "*",
-						Owners:  []string{developersTeam},
+						Owners:  []owner{developersTeam},
 					},
 					{
 						Pattern: "docs/",
-						Owners:  []string{"@my-org/librarians"},
+						Owners:  []owner{librariansTeam},
 					},
 				},
 			},
@@ -345,43 +356,52 @@ apps/ @octocat
 	}
 }
 
-func roundTrip(t *testing.T, parsed any) codeowners {
+func roundTrip(t *testing.T, parsed any) owners {
 	t.Helper()
-	codeownersJSON, err := json.Marshal(parsed)
+	ownersJSON, err := json.Marshal(parsed)
 	if err != nil {
 		t.Fatalf("marshal CODEOWNERS to JSON: %v", err)
 	}
-	var output codeowners
-	if err := json.Unmarshal(codeownersJSON, &output); err != nil {
+	var output owners
+	if err := json.Unmarshal(ownersJSON, &output); err != nil {
 		t.Fatalf("unmarshal CODEOWNERS JSON: %v", err)
 	}
 	return output
 }
 
-func expectCodeowners(t *testing.T, got, want codeowners) {
+func expectCodeowners(t *testing.T, got, want owners) {
 	t.Helper()
-	if len(got.Entries) != len(want.Entries) {
-		t.Errorf("expected %d entries, got %d entries", len(want.Entries), len(got.Entries))
+	if len(got.Rules) != len(want.Rules) {
+		t.Errorf("expected %d rules, got %d rules", len(want.Rules), len(got.Rules))
 		return
 	}
-	for i, wantEntry := range want.Entries {
-		gotEntry := got.Entries[i]
-		expectEntry(t, i, gotEntry, wantEntry)
+	for i, wantRule := range want.Rules {
+		gotRule := got.Rules[i]
+		expectRule(t, gotRule, wantRule)
 	}
 }
 
-func expectEntry(t *testing.T, entryNumber int, got, want entry) {
+func expectRule(t *testing.T, got, want rule) {
+	t.Helper()
 	if got.Pattern != want.Pattern {
-		t.Errorf("entry %d: expected '%s' pattern, got '%s'", entryNumber, want.Pattern, got.Pattern)
+		t.Errorf("line %d: expected '%s' pattern, got '%s'", got.LineNumber, want.Pattern, got.Pattern)
 	}
 	if len(got.Owners) != len(want.Owners) {
-		t.Errorf("entry %d: expected %d owners, got %d owners", entryNumber, len(want.Owners), len(got.Owners))
+		t.Errorf("line %d: expected %d owners, got %d owners", got.LineNumber, len(want.Owners), len(got.Owners))
 		return
 	}
 	for i, wantOwner := range want.Owners {
 		gotOwner := got.Owners[i]
-		if gotOwner != wantOwner {
-			t.Errorf("entry %d: owner %d: expected '%s', got '%s'", entryNumber, i, wantOwner, gotOwner)
+		err := expectOwner(gotOwner, wantOwner)
+		if err != nil {
+			t.Errorf("line %d: owner %d: %v", got.LineNumber, i, err)
 		}
 	}
+}
+
+func expectOwner(got, want owner) error {
+	if got.Type != want.Type || got.Value != want.Value {
+		return fmt.Errorf("expected: %s %s, got %s %s", want.Type, want.Value, got.Type, got.Value)
+	}
+	return nil
 }
