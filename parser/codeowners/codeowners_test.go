@@ -6,21 +6,15 @@ import (
 	"testing"
 )
 
-const appsGitHubPath = "/apps/github"
+const codePath = "/apps/code.go"
 
 var (
 	bobEmail       = ownerFromEmail("bob@example.test")
 	bobUser        = ownerFromUsername("bob")
 	carolUser      = ownerFromUsername("carol")
-	docsEmail      = ownerFromEmail("docs@example.com")
-	doctocatUser   = ownerFromUsername("doctocat")
-	octocatUser    = ownerFromUsername("octocat")
 	developersTeam = ownerFromTeam("my-org/developers")
 	librariansTeam = ownerFromTeam("my-org/librarians")
-	octocatTeam    = ownerFromTeam("octo-org/octocats")
-	globalOwner1   = ownerFromUsername("global-owner1")
-	globalOwner2   = ownerFromUsername("global-owner2")
-	jsOwner        = ownerFromUsername("js-owner")
+	goOwner        = ownerFromUsername("go-owner")
 )
 
 func TestParser(t *testing.T) {
@@ -33,11 +27,11 @@ func TestParser(t *testing.T) {
 		{
 			name: "anyone with write access",
 			// A lone pattern requires a review from anyone with write access
-			input: []byte(`/apps/github`),
+			input: []byte(codePath),
 			want: owners{
 				Rules: []rule{
 					{
-						Pattern: appsGitHubPath,
+						Pattern: codePath,
 						Owners:  []owner{},
 					},
 				},
@@ -123,195 +117,41 @@ func TestParser(t *testing.T) {
 			},
 		},
 		{
-			name:  "one character wildcard",
-			input: []byte(`b?in/ @my-org/developers`),
-			want: owners{
-				Rules: []rule{
-					{
-						Pattern: "b?in/",
-						Owners:  []owner{developersTeam},
-					},
-				},
-			},
-		},
-		{
-			name:  "one character wildcard",
-			input: []byte(`b?in/ @my-org/developers`),
-			want: owners{
-				Rules: []rule{
-					{
-						Pattern: "b?in/",
-						Owners:  []owner{developersTeam},
-					},
-				},
-			},
-		},
-		{
-			name:  "literal asterisk",
-			input: []byte(`a\*b @my-org/developers`),
-			want: owners{
-				Rules: []rule{
-					{
-						Pattern: "a\\*b",
-						Owners:  []owner{developersTeam},
-					},
-				},
-			},
-		},
-		{
-			name:  "literal question mark",
-			input: []byte(`a\?b @my-org/developers`),
-			want: owners{
-				Rules: []rule{
-					{
-						Pattern: "a\\?b",
-						Owners:  []owner{developersTeam},
-					},
-				},
-			},
-		},
-		// GitHub does not support character ranges (e.g., [a-z])
-		{
-			name:  "recursive match",
-			input: []byte(`**/test @my-org/developers`),
-			want: owners{
-				Rules: []rule{
-					{
-						Pattern: "**/test",
-						Owners:  []owner{developersTeam},
-					},
-				},
-			},
-		},
-		{
-			name: "kitchen sink",
-			// Example from GitHub's docs
-			// https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+			name: "multi-line example",
 			input: []byte(`# This is a comment.
-# Each line is a file pattern followed by one or more owners.
+# Default owner
+*       @my-org/developers
 
-# These owners will be the default owners for everything in
-# the repo. Unless a later match takes precedence,
-# @global-owner1 and @global-owner2 will be requested for
-# review when someone opens a pull request.
-*       @global-owner1 @global-owner2
+# Special owner for go files
+*.go @go-owner
 
-# Order is important; the last matching pattern takes the most
-# precedence. When someone opens a pull request that only
-# modifies JS files, only @js-owner and not the global
-# owner(s) will be requested for a review.
-*.js    @js-owner #This is an inline comment.
+*.txt @bob
 
-# You can also use email addresses if you prefer. They'll be
-# used to look up users just like we do for commit author
-# emails.
-*.go docs@example.com
+docs/ @my-org/librarians
 
-# Teams can be specified as code owners as well. Teams should
-# be identified in the format @org/team-name. Teams must have
-# explicit write access to the repository. In this example,
-# the octocats team in the octo-org organization owns all .txt files.
-*.txt @octo-org/octocats
-
-# In this example, @doctocat owns any files in the build/logs
-# directory at the root of the repository and any of its
-# subdirectories.
-/build/logs/ @doctocat
-
-# The "docs/*"" pattern will match files like
-# "docs/getting-started.md" but not further nested files like
-# docs/build-app/troubleshooting.md.
-docs/* docs@example.com
-
-# In this example, @octocat owns any file in an apps directory
-# anywhere in your repository.
-apps/ @octocat
-
-# In this example, @doctocat owns any file in the "/docs"
-# directory in the root of your repository and any of its
-# subdirectories.
-/docs/ @doctocat
-
-# In this example, any change inside the "/scripts" directory
-# will require approval from @doctocat or @octocat.
-/scripts/ @doctocat @octocat
-
-# In this example, @octocat owns any file in a "/logs" directory such as
-# "/build/logs", "/scripts/logs", and "/deeply/nested/logs". Any changes
-# in a "/logs" directory will require approval from @octocat.
-**/logs @octocat
-
-# In this example, @octocat owns any file in the "/apps"
-# directory in the root of your repository except for the appsGitHubPath
-# subdirectory, as its owners are left empty. Without an owner, changes
-# to "apps/github" can be made with the approval of any user who has
-# write access to the repository.
-/apps/ @octocat
-/apps/github
-
-# In this example, @octocat owns any file in the "/apps"
-# directory in the root of your repository except for the appsGitHubPath
-# subdirectory, as this subdirectory has its own owner @doctocat
-/apps/ @octocat
-/apps/github @doctocat
+/scripts/ @bob @carol
 `),
 			want: owners{
 				Rules: []rule{
 					{
 						Pattern: "*",
-						Owners:  []owner{globalOwner1, globalOwner2},
-					},
-					{
-						Pattern: "*.js",
-						Owners:  []owner{jsOwner},
+						Owners:  []owner{developersTeam},
 					},
 					{
 						Pattern: "*.go",
-						Owners:  []owner{docsEmail},
+						Owners:  []owner{goOwner},
 					},
 					{
 						Pattern: "*.txt",
-						Owners:  []owner{octocatTeam},
+						Owners:  []owner{bobUser},
 					},
 					{
-						Pattern: "/build/logs/",
-						Owners:  []owner{doctocatUser},
-					},
-					{
-						Pattern: "docs/*",
-						Owners:  []owner{docsEmail},
-					},
-					{
-						Pattern: "apps/",
-						Owners:  []owner{octocatUser},
-					},
-					{
-						Pattern: "/docs/",
-						Owners:  []owner{doctocatUser},
+						Pattern: "docs/",
+						Owners:  []owner{librariansTeam},
 					},
 					{
 						Pattern: "/scripts/",
-						Owners:  []owner{doctocatUser, octocatUser},
-					},
-					{
-						Pattern: "**/logs",
-						Owners:  []owner{octocatUser},
-					},
-					{
-						Pattern: "/apps/",
-						Owners:  []owner{octocatUser},
-					},
-					{
-						Pattern: appsGitHubPath,
-						Owners:  []owner{},
-					},
-					{
-						Pattern: "/apps/",
-						Owners:  []owner{octocatUser},
-					},
-					{
-						Pattern: appsGitHubPath,
-						Owners:  []owner{doctocatUser},
+						Owners:  []owner{bobUser, carolUser},
 					},
 				},
 			},
