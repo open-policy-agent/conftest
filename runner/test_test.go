@@ -1,9 +1,35 @@
 package runner
 
 import (
+	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 )
+
+func TestParseFileListIgnoresExplicitFiles(t *testing.T) {
+	t.Parallel()
+
+	tempDir := t.TempDir()
+	ignoredFile := filepath.Join(tempDir, "provider.tf")
+	includedFile := filepath.Join(tempDir, "main.tf")
+
+	for _, file := range []string{ignoredFile, includedFile} {
+		if err := os.WriteFile(file, nil, 0o600); err != nil {
+			t.Fatalf("write test file %q: %v", file, err)
+		}
+	}
+
+	got, err := parseFileList([]string{ignoredFile, includedFile}, `provider\.tf$`)
+	if err != nil {
+		t.Fatalf("parseFileList() error = %v", err)
+	}
+
+	want := []string{includedFile}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("parseFileList() = %v, want %v", got, want)
+	}
+}
 
 func TestRenameStdinConfiguration(t *testing.T) {
 	t.Parallel()

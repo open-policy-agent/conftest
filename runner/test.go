@@ -137,6 +137,15 @@ func renameStdinConfiguration(configurations map[string]any, stdinFilename strin
 }
 
 func parseFileList(fileList []string, ignoreRegex string) ([]string, error) {
+	var ignoreRegexp *regexp.Regexp
+	if ignoreRegex != "" {
+		var err error
+		ignoreRegexp, err = regexp.Compile(ignoreRegex)
+		if err != nil {
+			return nil, fmt.Errorf("given regexp couldn't be parsed :%w", err)
+		}
+	}
+
 	var files []string
 	for _, file := range fileList {
 		if file == "" {
@@ -154,13 +163,13 @@ func parseFileList(fileList []string, ignoreRegex string) ([]string, error) {
 		}
 
 		if fileInfo.IsDir() {
-			directoryFiles, err := getFilesFromDirectory(file, ignoreRegex)
+			directoryFiles, err := getFilesFromDirectory(file, ignoreRegexp)
 			if err != nil {
 				return nil, fmt.Errorf("get files from directory: %w", err)
 			}
 
 			files = append(files, directoryFiles...)
-		} else {
+		} else if ignoreRegexp == nil || !ignoreRegexp.MatchString(file) {
 			files = append(files, file)
 		}
 	}
@@ -172,7 +181,7 @@ func parseFileList(fileList []string, ignoreRegex string) ([]string, error) {
 	return files, nil
 }
 
-func getWalkFn(visitedDirs map[string]bool, files *[]string, ignoreRegex string, regexp *regexp.Regexp) filepath.WalkFunc {
+func getWalkFn(visitedDirs map[string]bool, files *[]string, ignoreRegexp *regexp.Regexp) filepath.WalkFunc {
 	return func(currentPath string, info os.FileInfo, err error) error {
 		if err != nil {
 			return fmt.Errorf("walk path: %w", err)
@@ -186,7 +195,7 @@ func getWalkFn(visitedDirs map[string]bool, files *[]string, ignoreRegex string,
 			return nil
 		}
 
-		if ignoreRegex != "" && regexp.MatchString(currentPath) {
+		if ignoreRegexp != nil && ignoreRegexp.MatchString(currentPath) {
 			return nil
 		}
 
@@ -208,7 +217,7 @@ func getWalkFn(visitedDirs map[string]bool, files *[]string, ignoreRegex string,
 		}
 
 		if ri.IsDir() {
-			return filepath.Walk(realPath, getWalkFn(visitedDirs, files, ignoreRegex, regexp))
+			return filepath.Walk(realPath, getWalkFn(visitedDirs, files, ignoreRegexp))
 		}
 
 		if parser.FileSupported(realPath) {
@@ -219,15 +228,10 @@ func getWalkFn(visitedDirs map[string]bool, files *[]string, ignoreRegex string,
 	}
 }
 
-func getFilesFromDirectory(directory string, ignoreRegex string) ([]string, error) {
-	regexp, err := regexp.Compile(ignoreRegex)
-	if err != nil {
-		return nil, fmt.Errorf("given regexp couldn't be parsed :%w", err)
-	}
-
+func getFilesFromDirectory(directory string, ignoreRegexp *regexp.Regexp) ([]string, error) {
 	var files []string
 	visitedDirs := make(map[string]bool)
-	err = filepath.Walk(directory, getWalkFn(visitedDirs, &files, ignoreRegex, regexp))
+	err := filepath.Walk(directory, getWalkFn(visitedDirs, &files, ignoreRegexp))
 	if err != nil {
 		return nil, err
 	}
