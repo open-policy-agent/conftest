@@ -5,7 +5,7 @@ go 1.26.3
 require (
 	cuelang.org/go v0.17.1
 	github.com/BurntSushi/toml v1.6.0
-	github.com/CycloneDX/cyclonedx-go v0.11.0
+	github.com/CycloneDX/cyclonedx-go v0.12.0
 	github.com/KeisukeYamashita/go-vcl v0.4.0
 	github.com/albertocavalcante/groovy-parser-go v0.0.0-20260218103838-adf14fa75938
 	github.com/basgys/goxml2json v1.1.0
@@ -155,7 +155,7 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.44.0 // indirect
 	go.opentelemetry.io/otel/trace v1.44.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.4 // indirect
-	go.yaml.in/yaml/v3 v3.0.4 // indirect
+	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/crypto v0.54.0 // indirect
 	golang.org/x/mod v0.38.0 // indirect
 	golang.org/x/net v0.57.0 // indirect
