@@ -1,12 +1,12 @@
 package hocon
 
 import (
-	"encoding/json"
-	"fmt"
 	"strconv"
 
 	"github.com/go-akka/configuration"
 	"github.com/go-akka/configuration/hocon"
+
+	"github.com/open-policy-agent/conftest/parser/internal/convert"
 )
 
 // Parser is a HOCON parser.
@@ -22,16 +22,7 @@ func (i *Parser) Unmarshal(p []byte, v any) error {
 		result[key] = getConfig(rootCfg, cfg, key)
 	}
 
-	j, err := json.Marshal(result)
-	if err != nil {
-		return fmt.Errorf("marshal hocon to json: %w", err)
-	}
-
-	if err := json.Unmarshal(j, v); err != nil {
-		return fmt.Errorf("unmarshal hocon json: %w", err)
-	}
-
-	return nil
+	return convert.Remarshal("hocon", result, v)
 }
 
 func getConfig(rootCfg, cfg *configuration.Config, path string) map[string]any {

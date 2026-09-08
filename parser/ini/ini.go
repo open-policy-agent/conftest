@@ -1,11 +1,12 @@
 package ini
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 
 	"github.com/go-ini/ini"
+
+	"github.com/open-policy-agent/conftest/parser/internal/convert"
 )
 
 // Parser is an INI parser.
@@ -30,16 +31,7 @@ func (i *Parser) Unmarshal(p []byte, v any) error {
 		result[sectionName] = convertKeyTypes(keysHash)
 	}
 
-	j, err := json.Marshal(result)
-	if err != nil {
-		return fmt.Errorf("marshal ini to json: %w", err)
-	}
-
-	if err := json.Unmarshal(j, v); err != nil {
-		return fmt.Errorf("unmarshal ini json: %w", err)
-	}
-
-	return nil
+	return convert.Remarshal("ini", result, v)
 }
 
 func convertKeyTypes(keysHash map[string]string) map[string]any {
