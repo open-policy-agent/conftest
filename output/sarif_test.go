@@ -3,11 +3,67 @@ package output
 import (
 	"bytes"
 	"encoding/json"
+	"net/url"
+	"path/filepath"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/open-policy-agent/conftest/internal/version"
+	"github.com/owenrumney/go-sarif/v2/sarif"
 )
+
+func TestSARIF_OutputArtifactPaths(t *testing.T) {
+	tests := []struct {
+		file string
+		uri  string
+	}{
+		{"config.yaml", "config.yaml"},
+		{filepath.Join("configs", "service #1%.yaml"), "configs/service%20%231%25.yaml"},
+		{"configs/already%20named.yaml", "configs/already%2520named.yaml"},
+		{"configs/caf\u00e9.yaml", "configs/caf%C3%A9.yaml"},
+	}
+	for _, tt := range tests {
+		for _, explicitLocation := range []bool{false, true} {
+			name := "filename/" + tt.file
+			if explicitLocation {
+				name = "location/" + tt.file
+			}
+			t.Run(name, func(t *testing.T) {
+				failure := Result{Message: "policy failed"}
+				filename := tt.file
+				if explicitLocation {
+					filename = "other.yaml"
+					failure.Location = &Location{File: tt.file, Line: json.Number("7")}
+				}
+				var buf bytes.Buffer
+				if err := NewSARIF(&buf).Output(CheckResults{{
+					FileName: filename, Namespace: "main", Failures: []Result{failure},
+				}}); err != nil {
+					t.Fatal(err)
+				}
+				var report sarif.Report
+				if err := json.Unmarshal(buf.Bytes(), &report); err != nil {
+					t.Fatal(err)
+				}
+				location := report.Runs[0].Results[0].Locations[0].PhysicalLocation
+				got := *location.ArtifactLocation.URI
+				if got != tt.uri {
+					t.Errorf("artifact URI = %q, want %q", got, tt.uri)
+				}
+				parsed, err := url.Parse(got)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if parsed.Path != filepath.ToSlash(tt.file) || parsed.Fragment != "" || parsed.RawQuery != "" {
+					t.Errorf("URI does not preserve the filename: %+v", parsed)
+				}
+				if explicitLocation && *location.Region.StartLine != 7 {
+					t.Errorf("start line = %d, want 7", *location.Region.StartLine)
+				}
+			})
+		}
+	}
+}
 
 func TestSARIF_Output(t *testing.T) {
 	tests := []struct {
