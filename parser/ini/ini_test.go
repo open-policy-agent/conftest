@@ -57,3 +57,17 @@ func TestConvertTypes(t *testing.T) {
 		})
 	}
 }
+
+func TestNonFiniteLiterals(t *testing.T) {
+	for _, value := range []string{"NaN", "nan", "Inf", "+Inf", "-Inf", "Infinity", "-Infinity"} {
+		t.Run(value, func(t *testing.T) {
+			var input map[string]map[string]any
+			if err := (&Parser{}).Unmarshal([]byte("[settings]\nvalue="+value), &input); err != nil {
+				t.Fatal(err)
+			}
+			if got := input["settings"]["value"]; got != value {
+				t.Fatalf("got %v, want string %q", got, value)
+			}
+		})
+	}
+}
