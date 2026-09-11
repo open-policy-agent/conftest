@@ -7,6 +7,32 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
+func TestUnmarshalNamesWithUnderscores(t *testing.T) {
+	for _, tc := range []struct {
+		name, pkg, message string
+	}{
+		{"package", "conftest.under_score", "PackageTest"},
+		{"message", "conftest.underscore", "Message_Test"},
+		{"both", "conftest.both_names", "Both_Test"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			definition := `syntax = "proto3"; package ` + tc.pkg + `;
+message ` + tc.message + ` { string value = 1; }`
+			if err := load(tc.name+"_underscores.proto", strings.NewReader(definition)); err != nil {
+				t.Fatal(err)
+			}
+			input := "# proto-message: " + tc.pkg + "." + tc.message + "\nvalue: \"hello\""
+			var got map[string]any
+			if err := (&Parser{}).Unmarshal([]byte(input), &got); err != nil {
+				t.Fatal(err)
+			}
+			if diff := cmp.Diff(map[string]any{"value": "hello"}, got); diff != "" {
+				t.Errorf("unexpected result (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
 func TestUnmarshal(t *testing.T) {
 	t.Parallel()
 

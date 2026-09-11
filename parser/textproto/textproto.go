@@ -28,7 +28,7 @@ import (
 var TextProtoFileExtensions = []string{"textproto", "textpb"}
 
 var (
-	msgTypeRegexp = regexp.MustCompile(`#\s+proto-message:\s+([a-zA-Z0-9\.]+)`)
+	msgTypeRegexp = regexp.MustCompile(`#\s+proto-message:\s+([a-zA-Z0-9_\.]+)`)
 	marshaller    = protojson.MarshalOptions{
 		UseProtoNames: true, // Keep field names 1-to-1 with proto field definitions.
 	}
