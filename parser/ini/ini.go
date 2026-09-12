@@ -2,6 +2,7 @@ package ini
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 
 	"github.com/go-ini/ini"
@@ -54,8 +55,8 @@ func convertKeyTypes(keysHash map[string]string) map[string]any {
 }
 
 func isNumberLiteral(f string) bool {
-	_, err := strconv.ParseFloat(f, 64)
-	return err == nil
+	n, err := strconv.ParseFloat(f, 64)
+	return err == nil && !math.IsNaN(n) && !math.IsInf(n, 0)
 }
 
 func isBooleanLiteral(b string) bool {
