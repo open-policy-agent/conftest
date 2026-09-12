@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 	"time"
@@ -113,5 +114,61 @@ func TestDownloadWithOverwritePreservesExistingFileOnFailure(t *testing.T) {
 	}
 	if string(content) != "existing content" {
 		t.Errorf("Expected existing content to be preserved, got: %s", content)
+	}
+}
+
+// TestDownloadWithOverwriteSucceedsWithPreexistingEmptyDestination is a
+// regression test for https://github.com/open-policy-agent/conftest/issues/807,
+// where `conftest test --update --policy <dir>` failed whenever <dir> already
+// existed (e.g. was created ahead of time, as Atlantis does). go-getter's git
+// getter decides whether to clone or update purely based on whether the
+// destination directory exists, so a pre-existing but empty directory was
+// mistaken for an existing checkout and the "update" path failed because it
+// isn't actually a git repository.
+func TestDownloadWithOverwriteSucceedsWithPreexistingEmptyDestination(t *testing.T) {
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git is not available")
+	}
+
+	repoDir := t.TempDir()
+	runGit(t, repoDir, "init", "-q")
+	runGit(t, repoDir, "-c", "user.email=test@example.com", "-c", "user.name=test", "commit", "--allow-empty", "-q", "-m", "init")
+
+	dst := t.TempDir()
+	urls := []string{fmt.Sprintf("git::file://%s", repoDir)}
+	if err := Download(context.Background(), dst, urls, WithOverwrite()); err != nil {
+		t.Fatalf("expected download to succeed with a pre-existing empty destination, got: %v", err)
+	}
+
+	if _, err := os.Stat(filepath.Join(dst, ".git")); err != nil {
+		t.Fatalf("expected repository to be cloned into destination: %v", err)
+	}
+}
+
+// TestDownloadFailsWithPreexistingEmptyGitDestination confirms that without
+// WithOverwrite() (used by `pull` and `plugin install`), a pre-existing empty
+// destination directory is still not tolerated.
+func TestDownloadFailsWithPreexistingEmptyGitDestination(t *testing.T) {
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git is not available")
+	}
+
+	repoDir := t.TempDir()
+	runGit(t, repoDir, "init", "-q")
+	runGit(t, repoDir, "-c", "user.email=test@example.com", "-c", "user.name=test", "commit", "--allow-empty", "-q", "-m", "init")
+
+	dst := t.TempDir()
+	urls := []string{fmt.Sprintf("git::file://%s", repoDir)}
+	if err := Download(context.Background(), dst, urls); err == nil {
+		t.Fatal("expected download to fail with a pre-existing empty destination, but it succeeded")
+	}
+}
+
+func runGit(t *testing.T, dir string, args ...string) {
+	t.Helper()
+	cmd := exec.Command("git", args...)
+	cmd.Dir = dir
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("git %v: %v: %s", args, err, out)
 	}
 }
