@@ -107,6 +107,6 @@ func parseRegoVersion(regoVersionStr string) (ast.RegoVersion, error) {
 	case "v1", "V1":
 		return ast.RegoV1, nil
 	default:
-		return -1, fmt.Errorf("invalid Rego version: %s", regoVersionStr)
+		return ast.RegoUndefined, fmt.Errorf("invalid Rego version: %s", regoVersionStr)
 	}
 }
