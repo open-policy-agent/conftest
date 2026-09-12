@@ -29,6 +29,7 @@ import (
 	"github.com/open-policy-agent/conftest/parser/jsonnet"
 	"github.com/open-policy-agent/conftest/parser/nginx"
 	"github.com/open-policy-agent/conftest/parser/properties"
+	"github.com/open-policy-agent/conftest/parser/routeros"
 	"github.com/open-policy-agent/conftest/parser/spdx"
 	"github.com/open-policy-agent/conftest/parser/textproto"
 	"github.com/open-policy-agent/conftest/parser/toml"
@@ -55,6 +56,7 @@ const (
 	JSONNET    = "jsonnet"
 	NGINX      = "nginx"
 	PROPERTIES = "properties"
+	ROUTEROS   = "routeros"
 	SPDX       = "spdx"
 	TEXTPROTO  = "textproto"
 	TOML       = "toml"
@@ -104,6 +106,8 @@ func New(parser string) (Parser, error) {
 		return &jsonnet.Parser{}, nil
 	case NGINX:
 		return &nginx.Parser{}, nil
+	case ROUTEROS:
+		return &routeros.Parser{}, nil
 	case EDN:
 		return &edn.Parser{}, nil
 	case GROOVY:
@@ -211,6 +215,12 @@ func NewFromPath(path string) (Parser, error) {
 		return New(NGINX)
 	}
 
+	// RouterOS configuration exports produced by "/export file=" use the .rsc
+	// extension.
+	if fileExtension == "rsc" {
+		return New(ROUTEROS)
+	}
+
 	// A Jenkinsfile can either be named Jenkinsfile or be prefixed with
 	// Jenkinsfile. For example: Jenkinsfile, Jenkinsfile.prod.
 	if fileName == "jenkinsfile" || strings.HasPrefix(fileName, "jenkinsfile.") {
@@ -246,6 +256,7 @@ func Parsers() []string {
 		JSONNET,
 		NGINX,
 		PROPERTIES,
+		ROUTEROS,
 		SPDX,
 		TEXTPROTO,
 		TOML,
