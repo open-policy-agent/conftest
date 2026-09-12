@@ -26,7 +26,7 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # ratchet:golangci/golangci-lint-action@v9
         with:
-          version: v2.12.2
+          version: v2.13.2
           only-new-issues: true
           args: --timeout=5m --color=always --max-same-issues=0 --max-issues-per-linter=0
 
