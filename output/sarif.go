@@ -3,6 +3,7 @@ package output
 import (
 	"fmt"
 	"io"
+	"net/url"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -92,11 +93,11 @@ func addResult(run *sarif.Run, result Result, namespace, ruleType, level, fileNa
 	location := sarif.NewPhysicalLocation()
 	if loc := result.Location; loc != nil {
 		line, _ := strconv.Atoi(loc.Line.String())
-		location.ArtifactLocation = sarif.NewSimpleArtifactLocation(filepath.ToSlash(loc.File))
+		fileName = loc.File
 		location.Region = sarif.NewRegion().WithStartLine(line).WithEndLine(line)
-	} else {
-		location.ArtifactLocation = sarif.NewSimpleArtifactLocation(filepath.ToSlash(fileName))
 	}
+	uri := url.URL{Path: filepath.ToSlash(fileName)}
+	location.ArtifactLocation = sarif.NewSimpleArtifactLocation(uri.EscapedPath())
 
 	run.CreateResultForRule(ruleID).
 		WithRuleIndex(idx).
