@@ -1,11 +1,14 @@
 package policy
 
 import (
-	"context"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"reflect"
 	"sort"
+	"sync/atomic"
 	"testing"
 	"testing/fstest"
 
@@ -23,7 +26,7 @@ func testOptions(t *testing.T) CompilerOptions {
 }
 
 func TestException(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	policies := []string{"../examples/exceptions/policy"}
 	engine, err := Load(policies, testOptions(t))
@@ -63,7 +66,7 @@ func TestException(t *testing.T) {
 
 func TestTracing(t *testing.T) {
 	t.Run("with tracing ", func(t *testing.T) {
-		ctx := context.Background()
+		ctx := t.Context()
 
 		policies := []string{"../examples/kubernetes/policy"}
 		engine, err := Load(policies, testOptions(t))
@@ -92,7 +95,7 @@ func TestTracing(t *testing.T) {
 	})
 
 	t.Run("without tracing", func(t *testing.T) {
-		ctx := context.Background()
+		ctx := t.Context()
 
 		policies := []string{"../examples/kubernetes/policy"}
 		engine, err := Load(policies, testOptions(t))
@@ -121,7 +124,7 @@ func TestTracing(t *testing.T) {
 }
 
 func TestMultifileYaml(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	policies := []string{"../examples/kubernetes/policy"}
 	engine, err := Load(policies, testOptions(t))
@@ -167,7 +170,7 @@ func TestMultifileYaml(t *testing.T) {
 }
 
 func TestDockerfile(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	policies := []string{"../examples/docker/policy"}
 	engine, err := Load(policies, testOptions(t))
@@ -295,7 +298,7 @@ deny contains {"msg": msg} if {
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
 			var e Engine
-			ctx := context.Background()
+			ctx := t.Context()
 			if err := e.addFileInfo(ctx, tt.input); err != nil {
 				t.Error(err)
 			}
@@ -622,7 +625,7 @@ violation contains result if {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := context.Background()
+			ctx := t.Context()
 
 			files := fstest.MapFS{
 				"policy.rego": &fstest.MapFile{
@@ -667,4 +670,83 @@ violation contains result if {
 			}
 		})
 	}
+}
+
+func TestInterQueryCache(t *testing.T) {
+	newServer := func(t *testing.T) (*httptest.Server, *atomic.Int64) {
+		t.Helper()
+		var hits atomic.Int64
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			hits.Add(1)
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"message": "ok"}`))
+		}))
+		t.Cleanup(srv.Close)
+		return srv, &hits
+	}
+
+	newEngine := func(t *testing.T, url string) *Engine {
+		t.Helper()
+		policy := fmt.Sprintf(`package main
+
+teams := http.send({
+	"url": %q,
+	"method": "get",
+	"raise_error": false,
+	"cache": true,
+	"force_cache": true,
+	"force_cache_duration_seconds": 60,
+})
+
+deny_is_twohundred contains msg if {
+	teams.status_code == 200
+	msg := "Statuscode is 200!"
+}
+
+deny_not_twohundred contains msg if {
+	teams.status_code != 200
+	msg := "Statuscode is NOT 200!"
+}
+`, url)
+		dir := t.TempDir()
+		if err := os.WriteFile(filepath.Join(dir, "policy.rego"), []byte(policy), 0o600); err != nil {
+			t.Fatalf("write policy: %v", err)
+		}
+		opts := testOptions(t)
+		opts.RegoVersion = "v1"
+		engine, err := Load([]string{dir}, opts)
+		if err != nil {
+			t.Fatalf("load policies: %v", err)
+		}
+		return engine
+	}
+
+	configs := map[string]any{
+		"a.yaml": map[string]any{"kind": "a"},
+		"b.yaml": map[string]any{"kind": "b"},
+	}
+
+	t.Run("disabled", func(t *testing.T) {
+		srv, hits := newServer(t)
+		engine := newEngine(t, srv.URL)
+		if _, err := engine.Check(t.Context(), configs, "main"); err != nil {
+			t.Fatalf("check: %v", err)
+		}
+		// Two deny rules evaluated against two inputs, with no cache shared between queries.
+		if got, want := hits.Load(), int64(4); got != want {
+			t.Errorf("expected %d requests without the cache, got %d", want, got)
+		}
+	})
+
+	t.Run("enabled", func(t *testing.T) {
+		srv, hits := newServer(t)
+		engine := newEngine(t, srv.URL)
+		engine.EnableInterQueryCache()
+		if _, err := engine.Check(t.Context(), configs, "main"); err != nil {
+			t.Fatalf("check: %v", err)
+		}
+		if got, want := hits.Load(), int64(1); got != want {
+			t.Errorf("expected %d request with the cache enabled, got %d", want, got)
+		}
+	})
 }

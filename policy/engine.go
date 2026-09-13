@@ -26,14 +26,14 @@ import (
 
 // Engine represents the policy engine.
 type Engine struct {
-	trace                 bool
-	builtinErrors         bool
-	modules               map[string]*ast.Module
-	compiler              *ast.Compiler
-	store                 storage.Store
-	policies              map[string]string
-	docs                  map[string]string
-	enableInterQueryCache bool
+	trace           bool
+	builtinErrors   bool
+	modules         map[string]*ast.Module
+	compiler        *ast.Compiler
+	store           storage.Store
+	policies        map[string]string
+	docs            map[string]string
+	interQueryCache cache.InterQueryCache
 }
 
 // CompilerOptions defines the options for the Rego compiler.
@@ -173,8 +173,11 @@ func (e *Engine) ShowBuiltinErrors() {
 	e.builtinErrors = true
 }
 
+// EnableInterQueryCache enables OPA's inter-query builtin cache (used by http.send) for the
+// lifetime of the Engine. The cache must outlive a single query so that results are shared
+// across every rule and input evaluated by this Engine.
 func (e *Engine) EnableInterQueryCache() {
-	e.enableInterQueryCache = true
+	e.interQueryCache = cache.NewInterQueryCache(nil)
 }
 
 // Check executes all of the loaded policies against the input and returns the results.
@@ -465,8 +468,8 @@ func (e *Engine) query(ctx context.Context, input ast.Value, query string) (outp
 		rego.PrintHook(ph),
 		rego.BuiltinErrorList(builtInErrors),
 	}
-	if e.enableInterQueryCache {
-		options = append(options, rego.InterQueryBuiltinCache(cache.NewInterQueryCacheWithContext(ctx, nil)))
+	if e.interQueryCache != nil {
+		options = append(options, rego.InterQueryBuiltinCache(e.interQueryCache))
 	}
 
 	regoInstance := rego.New(options...)
