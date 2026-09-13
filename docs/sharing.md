@@ -35,6 +35,14 @@ conftest pull git::https://<PersonalAccessToken>@github.com/<Organization>/<Repo
 conftest pull oci://opa.azurecr.io/test
 ```
 
+Always include the `oci://` scheme for private or on-premises registries. This
+explicitly tells Conftest to use its OCI downloader instead of trying to infer
+the source type from the registry hostname:
+
+```console
+conftest pull oci://registry.example.com/team/policies:latest
+```
+
 See the [go-getter](https://github.com/hashicorp/go-getter) repository for more
 examples.
 
@@ -58,4 +66,11 @@ do so with the `--update` flag:
 
 ```console
 conftest test --update <url(s)> <file-to-test>
+```
+
+For example, to update policies from a private OCI registry before testing a
+Kubernetes manifest:
+
+```console
+conftest test --update oci://registry.example.com/team/policies:latest deployment.yaml
 ```
