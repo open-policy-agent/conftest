@@ -44,21 +44,50 @@ func NewSARIF(w io.Writer) *SARIF {
 	}
 }
 
-// getRuleID generates a stable rule ID based on namespace and rule type
-func getRuleID(namespace string, ruleType string) string {
+// getRuleID generates a stable rule ID based on namespace and rule type.
+//
+// When the result carries the specific rule name via Metadata["query"]
+// (e.g. "data.main.deny_add_usage"), the ID is derived from that name so that
+// each named Rego rule gets a unique ID (e.g. "main/deny_add_usage"). This
+// lets SARIF consumers group, filter, and suppress by individual rule instead
+// of collapsing every deny/warn into "main/deny"/"main/warn". If no specific
+// rule name is available, it falls back to the generic namespace/ruleType ID.
+func getRuleID(namespace string, ruleType string, result Result) string {
+	if id := ruleIDFromQuery(namespace, result); id != "" {
+		return id
+	}
 	return fmt.Sprintf("%s/%s", namespace, ruleType)
 }
 
+// ruleIDFromQuery derives a rule ID from Metadata["query"], converting a fully
+// qualified query like "data.main.deny_add_usage" into "main/deny_add_usage"
+// (strip the leading "data." and replace "." with "/"). It returns "" when no
+// usable query is present.
+func ruleIDFromQuery(namespace string, result Result) string {
+	query, ok := result.Metadata["query"].(string)
+	if !ok || query == "" {
+		return ""
+	}
+	name := strings.TrimPrefix(query, "data.")
+	name = strings.ReplaceAll(name, ".", "/")
+	// A bare query like "data.main" (no specific rule) offers no additional
+	// specificity over the generic ID, so ignore it.
+	if name == "" || name == namespace {
+		return ""
+	}
+	return name
+}
+
 // getRuleDescription returns the appropriate description based on the rule type
-func getRuleDescription(ruleID string) string {
-	switch {
-	case strings.HasSuffix(ruleID, "/success"):
+func getRuleDescription(ruleType string) string {
+	switch ruleType {
+	case "success":
 		return successDesc
-	case strings.HasSuffix(ruleID, "/skip"):
+	case "skip":
 		return skippedDesc
-	case strings.HasSuffix(ruleID, "/allow"):
+	case "allow":
 		return exceptionDesc
-	case strings.HasSuffix(ruleID, "/warn"):
+	case "warn":
 		return warningDesc
 	default:
 		return failureDesc
@@ -66,16 +95,16 @@ func getRuleDescription(ruleID string) string {
 }
 
 // addRuleIndex adds a new rule to the SARIF run and returns its index.
-func addRuleIndex(run *sarif.Run, ruleID string, result Result, indices map[string]int) int {
-	addRule(run, ruleID, result)
+func addRuleIndex(run *sarif.Run, ruleID, ruleType string, result Result, indices map[string]int) int {
+	addRule(run, ruleID, ruleType, result)
 	idx := len(run.Tool.Driver.Rules) - 1
 	indices[ruleID] = idx
 	return idx
 }
 
 // addRule adds a new rule to the SARIF run with the given ID and result metadata.
-func addRule(run *sarif.Run, ruleID string, result Result) {
-	desc := getRuleDescription(ruleID)
+func addRule(run *sarif.Run, ruleID, ruleType string, result Result) {
+	desc := getRuleDescription(ruleType)
 	run.AddRule(ruleID).
 		WithDescription(desc).
 		WithProperties(result.Metadata).
@@ -84,10 +113,10 @@ func addRule(run *sarif.Run, ruleID string, result Result) {
 
 // addResult adds a result to the SARIF run
 func addResult(run *sarif.Run, result Result, namespace, ruleType, level, fileName string, indices map[string]int) {
-	ruleID := getRuleID(namespace, ruleType)
+	ruleID := getRuleID(namespace, ruleType, result)
 	idx, ok := indices[ruleID]
 	if !ok {
-		idx = addRuleIndex(run, ruleID, result, indices)
+		idx = addRuleIndex(run, ruleID, ruleType, result, indices)
 	}
 
 	location := sarif.NewPhysicalLocation()
