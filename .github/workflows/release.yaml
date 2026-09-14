@@ -93,6 +93,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write # GoReleaser creates the GitHub release
+      id-token: write # actions/attest-build-provenance signs attestations with Sigstore via OIDC
+      attestations: write # actions/attest-build-provenance stores the attestations
     needs:
       - docker-conftest
       - docker-examples
@@ -115,3 +117,11 @@ jobs:
           version: "~> v2"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Generate build provenance attestations for the release artifacts, so
+      # consumers can verify that a downloaded binary was built by this
+      # workflow from this repository (gh attestation verify, aqua, mise, ...).
+      - name: attest release artifacts
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # ratchet:actions/attest-build-provenance@v4.2.2
+        with:
+          subject-checksums: dist/checksums.txt

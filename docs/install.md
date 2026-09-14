@@ -14,6 +14,16 @@ tar xzf conftest_${LATEST_VERSION}_${SYSTEM}_${ARCH}.tar.gz
 sudo mv conftest /usr/local/bin
 ```
 
+### Verifying releases
+
+Release artifacts are attested with [GitHub artifact attestations](https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations/using-artifact-attestations-to-establish-provenance-for-builds).
+You can verify that an archive was built from this repository by its release
+workflow with the [GitHub CLI](https://cli.github.com/):
+
+```console
+gh attestation verify "conftest_${LATEST_VERSION}_${SYSTEM}_${ARCH}.tar.gz" --repo open-policy-agent/conftest
+```
+
 ## Brew
 
 Install with Homebrew on macOS or Linux:
