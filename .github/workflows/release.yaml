@@ -26,9 +26,8 @@ jobs:
         with:
           persist-credentials: false
 
-      # It is important to check the GoReleaser config before pushing to
-      # Dockerhub to avoid having mismatches between what is in Dockerhub
-      # and GitHub releases.
+      # Validate the GoReleaser config before building anything so a bad
+      # config fails fast rather than after images have been pushed.
       - name: check releaser config
         uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # ratchet:goreleaser/goreleaser-action@v7.2.3
         with:
@@ -143,8 +142,7 @@ jobs:
     permissions:
       contents: write # GoReleaser creates the GitHub release.
     needs:
-      - docker-conftest
-      - docker-examples
+      - check
     steps:
       - name: checkout source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v5
