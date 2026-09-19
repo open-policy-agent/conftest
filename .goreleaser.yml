@@ -47,6 +47,11 @@ archives:
 checksum:
   name_template: 'checksums.txt'
 
+# The release is published by the workflow once all attestations succeed.
+release:
+  draft: true
+  replace_existing_draft: true
+
 changelog:
   use: github
   groups:
