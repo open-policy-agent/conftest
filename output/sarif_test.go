@@ -501,6 +501,107 @@ func TestSARIF_Output(t *testing.T) {
 			}),
 		},
 		{
+			name: "distinct named rules get distinct rule IDs",
+			results: []CheckResult{
+				{
+					FileName:  "Dockerfile",
+					Namespace: "main",
+					Failures: []Result{
+						{
+							Message: "Use COPY instead of ADD",
+							Metadata: map[string]any{
+								"query": "data.main.deny_add_usage",
+							},
+						},
+						{
+							Message: "curl/wget detected",
+							Metadata: map[string]any{
+								"query": "data.main.deny_curl_wget",
+							},
+						},
+					},
+				},
+			},
+			wantJSON: mustJSON(t, map[string]any{
+				"version": "2.1.0",
+				"$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json",
+				"runs": []map[string]any{
+					{
+						"tool": map[string]any{
+							"driver": map[string]any{
+								"informationUri": toolURI,
+								"name":           toolName,
+								"version":        version.Version,
+								"rules": []map[string]any{
+									{
+										"id": "main/deny_add_usage",
+										"shortDescription": map[string]any{
+											"text": "Policy violation",
+										},
+										"properties": map[string]any{
+											"query": "data.main.deny_add_usage",
+										},
+									},
+									{
+										"id": "main/deny_curl_wget",
+										"shortDescription": map[string]any{
+											"text": "Policy violation",
+										},
+										"properties": map[string]any{
+											"query": "data.main.deny_curl_wget",
+										},
+									},
+								},
+							},
+						},
+						"invocations": []map[string]any{
+							{
+								"executionSuccessful": true,
+								"exitCode":            1,
+								"exitCodeDescription": "Policy violations found",
+							},
+						},
+						"results": []map[string]any{
+							{
+								"ruleId":    "main/deny_add_usage",
+								"ruleIndex": 0,
+								"level":     "error",
+								"message": map[string]any{
+									"text": "Use COPY instead of ADD",
+								},
+								"locations": []map[string]any{
+									{
+										"physicalLocation": map[string]any{
+											"artifactLocation": map[string]any{
+												"uri": "Dockerfile",
+											},
+										},
+									},
+								},
+							},
+							{
+								"ruleId":    "main/deny_curl_wget",
+								"ruleIndex": 1,
+								"level":     "error",
+								"message": map[string]any{
+									"text": "curl/wget detected",
+								},
+								"locations": []map[string]any{
+									{
+										"physicalLocation": map[string]any{
+											"artifactLocation": map[string]any{
+												"uri": "Dockerfile",
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}),
+		},
+		{
 			name: "successful policy check",
 			results: []CheckResult{
 				{
@@ -587,6 +688,7 @@ func TestGetRuleID(t *testing.T) {
 		name      string
 		namespace string
 		ruleType  string
+		result    Result
 		want      string
 	}{
 		{
@@ -619,11 +721,46 @@ func TestGetRuleID(t *testing.T) {
 			ruleType:  "deny",
 			want:      "kubernetes/deny",
 		},
+		{
+			name:      "specific rule name from query",
+			namespace: "main",
+			ruleType:  "deny",
+			result:    Result{Metadata: map[string]any{"query": "data.main.deny_add_usage"}},
+			want:      "main/deny_add_usage",
+		},
+		{
+			name:      "specific warn rule name from query",
+			namespace: "main",
+			ruleType:  "warn",
+			result:    Result{Metadata: map[string]any{"query": "data.main.warn_base_image_host"}},
+			want:      "main/warn_base_image_host",
+		},
+		{
+			name:      "nested namespace query",
+			namespace: "docker",
+			ruleType:  "deny",
+			result:    Result{Metadata: map[string]any{"query": "data.docker.security.deny_root"}},
+			want:      "docker/security/deny_root",
+		},
+		{
+			name:      "generic query falls back to rule type",
+			namespace: "main",
+			ruleType:  "deny",
+			result:    Result{Metadata: map[string]any{"query": "data.main"}},
+			want:      "main/deny",
+		},
+		{
+			name:      "empty query falls back to rule type",
+			namespace: "main",
+			ruleType:  "deny",
+			result:    Result{Metadata: map[string]any{"query": ""}},
+			want:      "main/deny",
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := getRuleID(tt.namespace, tt.ruleType); got != tt.want {
+			if got := getRuleID(tt.namespace, tt.ruleType, tt.result); got != tt.want {
 				t.Errorf("getRuleID() = %v, want %v", got, tt.want)
 			}
 		})
