@@ -212,3 +212,60 @@ func (cr CheckResults) ExitCodeFailOnWarn() int {
 	}
 	return 0
 }
+
+// Totals holds the number of results of each type.
+type Totals struct {
+	Successes  int
+	Failures   int
+	Warnings   int
+	Exceptions int
+	Skipped    int
+}
+
+// Totals returns the number of results of each type in the check.
+func (cr CheckResult) Totals() Totals {
+	return Totals{
+		Successes:  cr.Successes,
+		Failures:   len(cr.Failures),
+		Warnings:   len(cr.Warnings),
+		Exceptions: len(cr.Exceptions),
+		Skipped:    len(cr.Skipped),
+	}
+}
+
+// Totals returns the number of results of each type across all of the checks.
+func (cr CheckResults) Totals() Totals {
+	var totals Totals
+	for _, result := range cr {
+		totals = totals.Add(result.Totals())
+	}
+	return totals
+}
+
+// Add returns the sum of the two totals.
+func (t Totals) Add(o Totals) Totals {
+	return Totals{
+		Successes:  t.Successes + o.Successes,
+		Failures:   t.Failures + o.Failures,
+		Warnings:   t.Warnings + o.Warnings,
+		Exceptions: t.Exceptions + o.Exceptions,
+		Skipped:    t.Skipped + o.Skipped,
+	}
+}
+
+// Tests returns the total number of tests.
+func (t Totals) Tests() int {
+	return t.Successes + t.Failures + t.Warnings + t.Exceptions + t.Skipped
+}
+
+// String returns the summary line for the totals. Skipped
+// results are counted as tests, but are not listed.
+func (t Totals) String() string {
+	return fmt.Sprintf("%d %s, %d passed, %d %s, %d %s, %d %s",
+		t.Tests(), plural("test", t.Tests()),
+		t.Successes,
+		t.Warnings, plural("warning", t.Warnings),
+		t.Failures, plural("failure", t.Failures),
+		t.Exceptions, plural("exception", t.Exceptions),
+	)
+}

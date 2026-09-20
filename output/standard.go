@@ -58,11 +58,6 @@ func (s *Standard) Output(results CheckResults) error {
 
 	s.outputPrints(results, colorizer)
 
-	var totalFailures int
-	var totalExceptions int
-	var totalWarnings int
-	var totalSuccesses int
-	var totalSkipped int
 	for _, result := range results {
 		var indicator string
 		var namespace string
@@ -91,54 +86,21 @@ func (s *Standard) Output(results CheckResults) error {
 				fmt.Fprintln(s.Writer, colorizer.Colorize("EXCP", aurora.CyanFg), indicator, namespace, exception.Message)
 			}
 		}
-
-		totalFailures += len(result.Failures)
-		totalExceptions += len(result.Exceptions)
-		totalWarnings += len(result.Warnings)
-		totalSkipped += len(result.Skipped)
-		totalSuccesses += result.Successes
 	}
 
-	totalTests := totalFailures + totalExceptions + totalWarnings + totalSuccesses + totalSkipped
+	totals := results.Totals()
 
-	var pluralSuffixTests string
-	if totalTests != 1 {
-		pluralSuffixTests = "s"
-	}
-
-	var pluralSuffixWarnings string
-	if totalWarnings != 1 {
-		pluralSuffixWarnings = "s"
-	}
-
-	var pluralSuffixFailures string
-	if totalFailures != 1 {
-		pluralSuffixFailures = "s"
-	}
-
-	var pluralSuffixExceptions string
-	if totalExceptions != 1 {
-		pluralSuffixExceptions = "s"
-	}
-
-	outputText := fmt.Sprintf("%v test%s, %v passed, %v warning%s, %v failure%s, %v exception%s",
-		totalTests, pluralSuffixTests,
-		totalSuccesses,
-		totalWarnings, pluralSuffixWarnings,
-		totalFailures, pluralSuffixFailures,
-		totalExceptions, pluralSuffixExceptions,
-	)
-
+	outputText := totals.String()
 	if s.ShowSkipped {
-		outputText += fmt.Sprintf(", %v skipped", totalSkipped)
+		outputText += fmt.Sprintf(", %d skipped", totals.Skipped)
 	}
 
 	var outputColor aurora.Color
-	if totalFailures > 0 {
+	if totals.Failures > 0 {
 		outputColor = aurora.RedFg
-	} else if totalWarnings > 0 {
+	} else if totals.Warnings > 0 {
 		outputColor = aurora.YellowFg
-	} else if totalExceptions > 0 {
+	} else if totals.Exceptions > 0 {
 		outputColor = aurora.CyanFg
 	} else {
 		outputColor = aurora.GreenFg

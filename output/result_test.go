@@ -234,3 +234,66 @@ func TestExitCodeFailOnWarn(t *testing.T) {
 		})
 	}
 }
+
+func TestTotals(t *testing.T) {
+	t.Parallel()
+
+	mixed := CheckResult{
+		Successes:  3,
+		Failures:   []Result{{}, {}},
+		Warnings:   []Result{{}},
+		Exceptions: []Result{{}},
+		Skipped:    []Result{{}},
+	}
+
+	failure := CheckResult{
+		Failures: []Result{{}},
+	}
+
+	testCases := []struct {
+		results       CheckResults
+		expected      Totals
+		expectedTests int
+		expectedText  string
+	}{
+		{
+			results:      CheckResults{},
+			expectedText: "0 tests, 0 passed, 0 warnings, 0 failures, 0 exceptions",
+		},
+		{
+			results:       CheckResults{failure},
+			expected:      Totals{Failures: 1},
+			expectedTests: 1,
+			expectedText:  "1 test, 0 passed, 0 warnings, 1 failure, 0 exceptions",
+		},
+		{
+			results:       CheckResults{mixed},
+			expected:      Totals{Successes: 3, Failures: 2, Warnings: 1, Exceptions: 1, Skipped: 1},
+			expectedTests: 8,
+			expectedText:  "8 tests, 3 passed, 1 warning, 2 failures, 1 exception",
+		},
+		{
+			results:       CheckResults{mixed, failure, mixed},
+			expected:      Totals{Successes: 6, Failures: 5, Warnings: 2, Exceptions: 2, Skipped: 2},
+			expectedTests: 17,
+			expectedText:  "17 tests, 6 passed, 2 warnings, 5 failures, 2 exceptions",
+		},
+	}
+
+	for i, testCase := range testCases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			t.Parallel()
+
+			actual := testCase.results.Totals()
+			if actual != testCase.expected {
+				t.Errorf("Unexpected totals. expected %+v, actual %+v", testCase.expected, actual)
+			}
+			if actual.Tests() != testCase.expectedTests {
+				t.Errorf("Unexpected number of tests. expected %v, actual %v", testCase.expectedTests, actual.Tests())
+			}
+			if actual.String() != testCase.expectedText {
+				t.Errorf("Unexpected summary. expected %q, actual %q", testCase.expectedText, actual.String())
+			}
+		})
+	}
+}
