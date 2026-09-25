@@ -42,25 +42,14 @@ func NewGitHub(w io.Writer, hidePassed bool) *GitHub {
 
 // Output outputs the results.
 func (g *GitHub) Output(checkResults CheckResults) error {
-	var totalFailures int
-	var totalExceptions int
-	var totalWarnings int
-	var totalSuccesses int
-	var totalSkipped int
 	for _, result := range checkResults {
-		totalFailures += len(result.Failures)
-		totalExceptions += len(result.Exceptions)
-		totalWarnings += len(result.Warnings)
-		totalSkipped += len(result.Skipped)
-		totalSuccesses += result.Successes
-
 		// When hidePassed is set, skip files that only have successful checks.
-		// Their tests still count toward the summary line tallied above.
+		// Their tests still count toward the summary line.
 		if g.hidePassed && len(result.Failures) == 0 && len(result.Warnings) == 0 && len(result.Exceptions) == 0 && len(result.Skipped) == 0 {
 			continue
 		}
 
-		numPolicies := result.Successes + len(result.Failures) + len(result.Warnings) + len(result.Exceptions) + len(result.Skipped)
+		numPolicies := result.Totals().Tests()
 
 		fileLoc := &Location{File: result.FileName, Line: json.Number("1")}
 
@@ -81,15 +70,7 @@ func (g *GitHub) Output(checkResults CheckResults) error {
 		g.writeLn("::endgroup::")
 	}
 
-	totalTests := totalFailures + totalExceptions + totalWarnings + totalSuccesses + totalSkipped
-
-	g.writeLn("%d %s, %d passed, %d %s, %d %s, %d %s",
-		totalTests, plural("test", totalTests),
-		totalSuccesses,
-		totalWarnings, plural("warning", totalWarnings),
-		totalFailures, plural("failure", totalFailures),
-		totalExceptions, plural("exception", totalExceptions),
-	)
+	g.writeLn("%s", checkResults.Totals())
 
 	return nil
 }
