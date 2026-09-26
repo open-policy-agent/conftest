@@ -12,6 +12,7 @@ import (
 	"github.com/open-policy-agent/conftest/parser/ignore"
 	"github.com/open-policy-agent/conftest/parser/json"
 	"github.com/open-policy-agent/conftest/parser/jsonc"
+	"github.com/open-policy-agent/conftest/parser/routeros"
 	"github.com/open-policy-agent/conftest/parser/textproto"
 	"github.com/open-policy-agent/conftest/parser/yaml"
 )
@@ -152,6 +153,11 @@ func TestNewFromPath(t *testing.T) {
 			&textproto.Parser{},
 			false,
 		},
+		{
+			"config.rsc",
+			&routeros.Parser{},
+			false,
+		},
 	}
 
 	for _, testCase := range testCases {
@@ -175,6 +181,21 @@ func TestNewFromPath(t *testing.T) {
 func TestParsersIncludesCycloneDX(t *testing.T) {
 	if !slices.Contains(Parsers(), CYCLONEDX) {
 		t.Fatalf("Parsers() should include %q", CYCLONEDX)
+	}
+}
+
+func TestRouterOSParserRegistered(t *testing.T) {
+	actual, err := New(ROUTEROS)
+	if err != nil {
+		t.Fatal("new routeros parser:", err)
+	}
+
+	if _, ok := actual.(*routeros.Parser); !ok {
+		t.Fatalf("unexpected parser type %T", actual)
+	}
+
+	if !slices.Contains(Parsers(), ROUTEROS) {
+		t.Errorf("expected %q in registered parsers", ROUTEROS)
 	}
 }
 

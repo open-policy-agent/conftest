@@ -453,6 +453,33 @@ Comments, whitespace, end-of-file markers, and synthetic zero-width tokens are
 not included in the Rego input. Policies can use `walk()` to find syntax nodes
 without depending on their absolute depth in the tree.
 
+### MikroTik RouterOS
+
+The `routeros` parser reads the configuration exports produced by the RouterOS
+`/export` command. Files with a `.rsc` extension are detected automatically, so
+use `--parser routeros` only when reading an export from standard input or from
+a file with a different extension.
+
+The parsed input is keyed by section path (for example `/ip firewall filter`).
+Each section holds the list of commands declared under it, in order. Every
+command exposes its verb under `command`, its key=value settings as fields, and
+any remaining tokens (selectors such as `[ find ]`, positional ids, and
+`!`-prefixed flags) under `arguments`. For example:
+
+```json
+{
+  "/ip firewall filter": [
+    {
+      "command": "add",
+      "action": "accept",
+      "chain": "input",
+      "protocol": "tcp",
+      "dst-port": "443"
+    }
+  ]
+}
+```
+
 ## `--policy`
 
 Conftest will, by default, look for policies in the `policy` folder. This can be
