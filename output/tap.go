@@ -25,6 +25,16 @@ func NewTAP(w io.Writer) *TAP {
 
 // Output outputs the results.
 func (t *TAP) Output(checkResults CheckResults) error {
+	// TAP expects a single plan for the whole stream, with test numbers
+	// continuing across all of the checks.
+	totalTests := checkResults.Totals().Tests()
+	if totalTests == 0 {
+		return nil
+	}
+
+	fmt.Fprintf(t.Writer, "1..%d\n", totalTests)
+
+	counter := 1
 	for _, result := range checkResults {
 		var indicator string
 		var namespace string
@@ -40,13 +50,6 @@ func (t *TAP) Output(checkResults CheckResults) error {
 			namespace = fmt.Sprintf("- %s -", result.Namespace)
 		}
 
-		totalTests := result.Totals().Tests()
-		if totalTests == 0 {
-			return nil
-		}
-
-		fmt.Fprintf(t.Writer, "1..%d\n", totalTests)
-
 		sections := []struct {
 			header  string
 			status  string
@@ -59,7 +62,6 @@ func (t *TAP) Output(checkResults CheckResults) error {
 			{header: "successes", status: "ok", results: slices.Repeat([]Result{{Message: "SUCCESS"}}, result.Successes)},
 		}
 
-		counter := 1
 		for _, section := range sections {
 			if section.header != "" && len(section.results) > 0 {
 				fmt.Fprintln(t.Writer, "#", section.header)
