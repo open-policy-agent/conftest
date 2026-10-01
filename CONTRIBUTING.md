@@ -26,6 +26,16 @@ Before submitting large changes, please open an issue on GitHub outlining:
 
 Use your judgment about what constitutes a large change. If you aren't sure, send a message to the `#conftest` channel in the OPA slack or submit an issue on GitHub.
 
+## v1 Migration
+
+`master` is the development branch for v1. While the migration is in progress:
+
+- New code must meet the v1 APIs. Changes that only build against the 0.x APIs
+  will be sent back for rework.
+- Changes are not backported for you. If you want your feature to apply to the
+  0.x release train as well, open a separate Pull Request against the
+  `releases/0.x` branch.
+
 ## Code Contributions
 
 If you are contributing code, please consider the following:
