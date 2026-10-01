@@ -1,0 +1,58 @@
+name: 'create_release_branch'
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version segment of the branch name, e.g. 0.x or 1.2.0'
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+  create-branch:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    environment: default-branch
+    env:
+      REPO: ${{ github.repository }}
+      VERSION: ${{ inputs.version }}
+    steps:
+      - name: validate version
+        run: |
+          if ! [[ "$VERSION" =~ ^[0-9]+(\.([0-9]+|x))*$ ]]; then
+            echo "::error::invalid version '$VERSION': expected digits and dots, e.g. 0.x or 1.2"
+            exit 1
+          fi
+
+      - name: mint app token
+        id: app-token
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # ratchet:actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.CONFTEST_BOT_APP_ID }}
+          private-key: ${{ secrets.CONFTEST_BOT_PRIVATE_KEY }}
+          permission-contents: write
+          permission-metadata: read
+
+      - name: check actor is an admin
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          ACTOR: ${{ github.triggering_actor }}
+        run: |
+          set -euo pipefail
+          role="$(gh api "repos/$REPO/collaborators/$ACTOR/permission" --jq '.permission')"
+          if [[ "$role" != 'admin' ]]; then
+            echo "::error::$ACTOR has '$role' access; only repository admins may run this workflow"
+            exit 1
+          fi
+
+      - name: create branch from master
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          set -euo pipefail
+          sha="$(gh api "repos/$REPO/git/ref/heads/master" --jq .object.sha)"
+          gh api -X POST "repos/$REPO/git/refs" \
+            -f ref="refs/heads/releases/$VERSION" \
+            -f sha="$sha"
+          echo "created releases/$VERSION at $sha"
