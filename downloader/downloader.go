@@ -3,6 +3,7 @@ package downloader
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -94,12 +95,57 @@ func Download(ctx context.Context, dst string, urls []string, opts ...DownloadOp
 			}
 		}
 
+		if isGitSource {
+			detectedURL, err = withDefaultGitRefForUpdate(detectedURL, dst)
+			if err != nil {
+				return err
+			}
+		}
+
 		if err := get(ctx, detectedURL, dst, dst); err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+// withDefaultGitRefForUpdate sets ref=HEAD on a git source URL that has no
+// ref when dst already holds a git checkout (e.g. on a repeated pull).
+// go-getter's git getter updates an existing destination by fetching and
+// checking out the requested ref, and fails with an empty ref instead of
+// falling back to the remote's default branch as it does when cloning.
+// Fetching the remote's HEAD keeps the same "default branch" behavior.
+func withDefaultGitRefForUpdate(src string, dst string) (string, error) {
+	if !isGitCheckout(dst) {
+		return src, nil
+	}
+
+	// Subdirectory sources ("repo//dir") are cloned into a temporary
+	// directory by go-getter, so they never take the update path.
+	repo, subDir := getter.SourceDirSubdir(strings.TrimPrefix(src, "git::"))
+	if subDir != "" {
+		return src, nil
+	}
+
+	u, err := url.Parse(repo)
+	if err != nil {
+		return "", fmt.Errorf("parse git url: %w", err)
+	}
+
+	query := u.Query()
+	if query.Get("ref") != "" {
+		return src, nil
+	}
+	query.Set("ref", "HEAD")
+	u.RawQuery = query.Encode()
+
+	return "git::" + u.String(), nil
+}
+
+func isGitCheckout(dir string) bool {
+	_, err := os.Stat(filepath.Join(dir, ".git"))
+	return err == nil
 }
 
 // removeEmptyDestination removes dst if it exists but is empty. go-getter's
