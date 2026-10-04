@@ -11,6 +11,11 @@ import (
 // be recorded and reported to the end user.
 type Outputter interface {
 	Output(CheckResults) error
+}
+
+// Reporter is implemented by outputters that can render raw Rego test
+// results as a report, filtered by the given trace flag.
+type Reporter interface {
 	Report([]*tester.Result, string) error
 }
 
@@ -100,12 +105,23 @@ type traceOutputter struct {
 	mainOutputter Outputter
 }
 
-// newTraceOutputter creates a new traceOutputter with the given trace handler and main outputter
-func newTraceOutputter(traceHandler *Standard, mainOutputter Outputter) *traceOutputter {
-	return &traceOutputter{
+// traceReporter is a traceOutputter whose main outputter is also a Reporter
+type traceReporter struct {
+	*traceOutputter
+	reporter Reporter
+}
+
+// newTraceOutputter creates a new traceOutputter with the given trace handler and main outputter.
+// The result implements Reporter only when the main outputter does.
+func newTraceOutputter(traceHandler *Standard, mainOutputter Outputter) Outputter {
+	t := &traceOutputter{
 		traceHandler:  traceHandler,
 		mainOutputter: mainOutputter,
 	}
+	if reporter, ok := mainOutputter.(Reporter); ok {
+		return &traceReporter{traceOutputter: t, reporter: reporter}
+	}
+	return t
 }
 
 // Output outputs the results, handling trace separately
@@ -120,8 +136,8 @@ func (t *traceOutputter) Output(results CheckResults) error {
 }
 
 // Report passes through to the main outputter
-func (t *traceOutputter) Report(results []*tester.Result, flag string) error {
-	return t.mainOutputter.Report(results, flag)
+func (t *traceReporter) Report(results []*tester.Result, flag string) error {
+	return t.reporter.Report(results, flag)
 }
 
 // Outputs returns the available output formats.

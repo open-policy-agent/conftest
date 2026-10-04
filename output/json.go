@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-
-	"github.com/open-policy-agent/opa/v1/tester"
 )
 
 // JSON represents an Outputter that outputs
@@ -46,8 +44,4 @@ func (j *JSON) Output(results CheckResults) error {
 
 	fmt.Fprintln(j.Writer, out.String())
 	return nil
-}
-
-func (j *JSON) Report(_ []*tester.Result, _ string) error {
-	return fmt.Errorf("report is not supported in JSON output")
 }

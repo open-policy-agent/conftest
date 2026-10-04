@@ -3,7 +3,6 @@ package output
 import (
 	"fmt"
 	"io"
-	"os"
 
 	"github.com/logrusorgru/aurora"
 	"github.com/open-policy-agent/opa/v1/tester"
@@ -156,7 +155,7 @@ func (s *Standard) outputTraceOnly(results CheckResults) error {
 func (s *Standard) Report(results []*tester.Result, flag string) error {
 	reporter := tester.PrettyReporter{
 		Verbose:     true,
-		Output:      os.Stdout,
+		Output:      s.Writer,
 		FailureLine: true,
 		LocalVars:   s.VarValues,
 	}
