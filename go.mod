@@ -1,6 +1,6 @@
 module github.com/open-policy-agent/conftest
 
-go 1.26.3
+go 1.26.8
 
 toolchain go1.27.1
 
@@ -22,7 +22,7 @@ require (
 	github.com/jstemmer/go-junit-report v1.0.0
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/magiconair/properties v1.18.12
-	github.com/moby/buildkit v0.33.0
+	github.com/moby/buildkit v0.33.1
 	github.com/muhammadmuzzammil1998/jsonc v1.0.0
 	github.com/olekukonko/tablewriter v1.1.5
 	github.com/open-policy-agent/opa v1.21.0
