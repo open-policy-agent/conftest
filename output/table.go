@@ -1,11 +1,9 @@
 package output
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/olekukonko/tablewriter"
-	"github.com/open-policy-agent/opa/v1/tester"
 )
 
 // Table represents an Outputter that outputs
@@ -58,8 +56,4 @@ func (t *Table) Output(checkResults CheckResults) error {
 		return err
 	}
 	return table.Render()
-}
-
-func (t *Table) Report(_ []*tester.Result, _ string) error {
-	return fmt.Errorf("report is not supported in table output")
 }

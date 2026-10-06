@@ -151,22 +151,34 @@
 
 @test "Verify command does not support report flag with table output" {
     run ./conftest verify --policy ./examples/report/policy -o table --report fails
-    [[ "$output" =~ "Error: report flag is supported with stdout only" ]]
+    [[ "$output" =~ "Error: report flag is not supported with table output" ]]
 }
 
 @test "Verify command does not support report flag with tap output" {
     run ./conftest verify --policy ./examples/report/policy -o tap --report fails
-    [[ "$output" =~ "Error: report flag is supported with stdout only" ]]
+    [[ "$output" =~ "Error: report flag is not supported with tap output" ]]
 }
 
 @test "Verify command does not support report flag with junit output" {
     run ./conftest verify --policy ./examples/report/policy -o junit --report fails
-    [[ "$output" =~ "Error: report flag is supported with stdout only" ]]
+    [[ "$output" =~ "Error: report flag is not supported with junit output" ]]
 }
 
 @test "Verify command does not support report flag with json output" {
     run ./conftest verify --policy ./examples/report/policy -o json --report fails
-    [[ "$output" =~ "Error: report flag is supported with stdout only" ]]
+    [[ "$output" =~ "Error: report flag is not supported with json output" ]]
+}
+
+@test "Verify command does not support var-values flag with json output" {
+    run ./conftest verify --policy ./examples/report/policy -o json --var-values
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "Error: var-values flag is not supported with json output" ]]
+}
+
+@test "Verify command has report flag - report with trace flag" {
+    run ./conftest verify --policy ./examples/report/policy --policy ./examples/report/success --report fails --trace
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "PASS: 1/1" ]]
 }
 
 @test "Verify command has report flag - failure with report fails" {
