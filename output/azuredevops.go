@@ -3,6 +3,8 @@ package output
 import (
 	"fmt"
 	"io"
+
+	"github.com/open-policy-agent/opa/v1/tester"
 )
 
 // AzureDevOps represents an Outputter that outputs
@@ -54,4 +56,8 @@ func (t *AzureDevOps) Output(checkResults CheckResults) error {
 	fmt.Fprintln(t.writer, checkResults.Totals())
 
 	return nil
+}
+
+func (t *AzureDevOps) Report(_ []*tester.Result, _ string) error {
+	return fmt.Errorf("report is not supported in AzureDevOps output")
 }

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/open-policy-agent/conftest/internal/version"
+	"github.com/open-policy-agent/opa/v1/tester"
 	"github.com/owenrumney/go-sarif/v2/sarif"
 )
 
@@ -179,4 +180,9 @@ func (s *SARIF) Output(results CheckResults) error {
 
 	// Write the report
 	return report.Write(s.writer)
+}
+
+// Report is not supported in SARIF output
+func (s *SARIF) Report(_ []*tester.Result, _ string) error {
+	return fmt.Errorf("report is not supported in SARIF output")
 }

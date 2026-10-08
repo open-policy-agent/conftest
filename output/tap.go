@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"slices"
+
+	"github.com/open-policy-agent/opa/v1/tester"
 )
 
 // TAP represents an Outputter that outputs
@@ -72,4 +74,8 @@ func (t *TAP) Output(checkResults CheckResults) error {
 	}
 
 	return nil
+}
+
+func (t *TAP) Report(_ []*tester.Result, _ string) error {
+	return fmt.Errorf("report is not supported in TAP output")
 }

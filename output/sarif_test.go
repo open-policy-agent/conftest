@@ -630,6 +630,19 @@ func TestGetRuleID(t *testing.T) {
 	}
 }
 
+func TestSARIF_Report(t *testing.T) {
+	var buf bytes.Buffer
+	s := NewSARIF(&buf)
+	err := s.Report(nil, "test")
+	if err == nil {
+		t.Error("SARIF.Report() should return error")
+	}
+	const expectedErr = "report is not supported in SARIF output"
+	if err.Error() != expectedErr {
+		t.Errorf("expected '%v', got: '%v'", expectedErr, err)
+	}
+}
+
 // compareJSON normalizes and compares two JSON strings.
 // JSON strings are normalised to their canonical form without whitespace.
 func compareJSON(t *testing.T, got, want string) {

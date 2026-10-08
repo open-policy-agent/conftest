@@ -2,14 +2,11 @@ package output
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"os"
 	"reflect"
 	"strings"
 	"testing"
-
-	"github.com/open-policy-agent/opa/v1/tester"
 )
 
 func TestGetOutputter(t *testing.T) {
@@ -79,13 +76,10 @@ func TestGetOutputter(t *testing.T) {
 		t.Run(testCase.input, func(t *testing.T) {
 			actual := Get(testCase.input, Options{NoColor: true, Tracing: testCase.tracing})
 
-			// If tracing is enabled, we expect a traceOutputter, or a
-			// traceReporter when the main outputter is a Reporter
+			// If tracing is enabled, we expect a traceOutputter
 			if testCase.tracing {
-				switch actual.(type) {
-				case *traceOutputter, *traceReporter:
-				default:
-					t.Errorf("Expected traceOutputter or traceReporter but got %T", actual)
+				if _, ok := actual.(*traceOutputter); !ok {
+					t.Errorf("Expected traceOutputter but got %T", actual)
 				}
 				return
 			}
@@ -96,46 +90,6 @@ func TestGetOutputter(t *testing.T) {
 				t.Errorf("Unexpected outputter. expected %v actual %v", expectedType, actualType)
 			}
 		})
-	}
-}
-
-func TestGetReporter(t *testing.T) {
-	for _, format := range Outputs() {
-		for _, tracing := range []bool{false, true} {
-			t.Run(fmt.Sprintf("%s/tracing=%t", format, tracing), func(t *testing.T) {
-				outputter := Get(format, Options{NoColor: true, Tracing: tracing})
-
-				_, isReporter := outputter.(Reporter)
-				if want := format == OutputStandard; isReporter != want {
-					t.Errorf("%T implements Reporter = %t, want %t", outputter, isReporter, want)
-				}
-			})
-		}
-	}
-}
-
-func TestTraceReporter(t *testing.T) {
-	stdoutBuf := new(bytes.Buffer)
-	stderrBuf := new(bytes.Buffer)
-
-	traceHandler := &Standard{Writer: stderrBuf, NoColor: true, Tracing: true}
-	traceOut := newTraceOutputter(traceHandler, NewStandard(stdoutBuf))
-
-	reporter, ok := traceOut.(Reporter)
-	if !ok {
-		t.Fatalf("expected %T to implement Reporter", traceOut)
-	}
-
-	results := []*tester.Result{{Package: "data.main", Name: "test_ok"}}
-	if err := reporter.Report(results, "fails"); err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if !strings.Contains(stdoutBuf.String(), "PASS: 1/1") {
-		t.Errorf("stdout missing report summary, got: %q", stdoutBuf.String())
-	}
-	if stderrBuf.Len() != 0 {
-		t.Errorf("expected no trace output for a report, got: %q", stderrBuf.String())
 	}
 }
 
