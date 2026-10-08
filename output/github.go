@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
+	"github.com/open-policy-agent/opa/v1/tester"
 )
 
 type githubLevel string
@@ -118,4 +120,8 @@ func (g *GitHub) writeLocs(level githubLevel, fileLoc, ogLoc *Location, msg stri
 	}
 	g.writeLoc(level, og, msg, args...)
 	g.writeLoc(level, fileLoc, fmt.Sprintf("(ORIGINATING FROM %s) %s", og, msg), args...)
+}
+
+func (g *GitHub) Report(_ []*tester.Result, _ string) error {
+	return fmt.Errorf("report is not supported in GitHub output")
 }

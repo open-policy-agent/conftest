@@ -100,27 +100,8 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("unmarshal parameters: %w", err)
 			}
 
-			reportFlag := "report"
 			if runner.VarValues && !runner.IsReportOptionOn() {
 				runner.Report = "fails"
-				reportFlag = "var-values"
-			}
-
-			outputter := output.Get(runner.Output, output.Options{
-				NoColor:          runner.NoColor,
-				Tracing:          runner.Trace,
-				ShowSkipped:      true,
-				JUnitHideMessage: viper.GetBool("junit-hide-message"),
-				GitHubHidePassed: viper.GetBool("github-hide-passed"),
-				VarValues:        runner.VarValues,
-			})
-
-			var reporter output.Reporter
-			if runner.IsReportOptionOn() {
-				var ok bool
-				if reporter, ok = outputter.(output.Reporter); !ok {
-					return fmt.Errorf("%s flag is not supported with %s output", reportFlag, runner.Output)
-				}
 			}
 
 			results, raw, err := runner.Run(ctx)
@@ -130,12 +111,27 @@ func NewVerifyCommand(ctx context.Context) *cobra.Command {
 
 			exitCode := results.ExitCode()
 			if !runner.Quiet || exitCode != 0 {
-				if reporter != nil {
-					if err := reporter.Report(raw, runner.Report); err != nil {
+				outputter := output.Get(runner.Output, output.Options{
+					NoColor:          runner.NoColor,
+					Tracing:          runner.Trace,
+					ShowSkipped:      true,
+					JUnitHideMessage: viper.GetBool("junit-hide-message"),
+					GitHubHidePassed: viper.GetBool("github-hide-passed"),
+					VarValues:        runner.VarValues,
+				})
+				if runner.IsReportOptionOn() {
+					// report currently available with stdout only
+					if runner.Output != output.OutputStandard {
+						return fmt.Errorf("report flag is supported with stdout only")
+					}
+
+					if err := outputter.Report(raw, runner.Report); err != nil {
 						return fmt.Errorf("report results: %w", err)
 					}
-				} else if err := outputter.Output(results); err != nil {
-					return fmt.Errorf("output results: %w", err)
+				} else {
+					if err := outputter.Output(results); err != nil {
+						return fmt.Errorf("output results: %w", err)
+					}
 				}
 			}
 
