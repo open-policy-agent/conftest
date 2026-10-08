@@ -164,6 +164,50 @@ func TestDownloadFailsWithPreexistingEmptyGitDestination(t *testing.T) {
 	}
 }
 
+// TestDownloadGitUpdatesExistingCheckoutWithoutRef is a regression test for
+// https://github.com/open-policy-agent/conftest/issues/1022, where running
+// `conftest pull git::<repo>` a second time failed because the destination
+// already contained a checkout and go-getter's update path ran
+// `git fetch origin -- ""` when the URL had no ref.
+func TestDownloadGitUpdatesExistingCheckoutWithoutRef(t *testing.T) {
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git is not available")
+	}
+
+	repoDir := t.TempDir()
+	runGit(t, repoDir, "init", "-q")
+	writeAndCommit(t, repoDir, "policy.rego", "package main\n", "first")
+
+	dst := filepath.Join(t.TempDir(), "policy")
+	urls := []string{fmt.Sprintf("git::file://%s", repoDir)}
+	if err := Download(context.Background(), dst, urls); err != nil {
+		t.Fatalf("first download: %v", err)
+	}
+
+	writeAndCommit(t, repoDir, "policy.rego", "package updated\n", "second")
+
+	if err := Download(context.Background(), dst, urls); err != nil {
+		t.Fatalf("expected download into an existing checkout to succeed, got: %v", err)
+	}
+
+	contents, err := os.ReadFile(filepath.Join(dst, "policy.rego"))
+	if err != nil {
+		t.Fatalf("read policy: %v", err)
+	}
+	if got, want := string(contents), "package updated\n"; got != want {
+		t.Errorf("expected existing checkout to be updated, got %q, want %q", got, want)
+	}
+}
+
+func writeAndCommit(t *testing.T, dir, name, contents, message string) {
+	t.Helper()
+	if err := os.WriteFile(filepath.Join(dir, name), []byte(contents), 0o600); err != nil {
+		t.Fatalf("write %s: %v", name, err)
+	}
+	runGit(t, dir, "add", name)
+	runGit(t, dir, "-c", "user.email=test@example.com", "-c", "user.name=test", "commit", "-q", "-m", message)
+}
+
 func runGit(t *testing.T, dir string, args ...string) {
 	t.Helper()
 	cmd := exec.Command("git", args...)
