@@ -136,6 +136,13 @@ conftest test -p examples/data/policy -d examples/data/exclusions examples/data/
 The paths at the flag are recursively searched for JSON and YAML files. Data can
 be imported as follows:
 
+If `--data` is not set, conftest looks for a `data` subdirectory inside each
+policy directory and loads it automatically. This makes it possible to ship a
+self-contained bundle with policies under `policy/` and data under
+`policy/data/` without requiring callers to add a `-d` flag.
+
+
+
 Given the following yaml file:
 
 ```yaml
