@@ -489,6 +489,14 @@ EOF"
   [[ "$output" =~ "2 tests, 1 passed, 0 warnings, 1 failure" ]]
 }
 
+@test "Can name the combined result with test-id" {
+  run ./conftest test -p examples/combine/policy examples/combine/team.yaml examples/combine/user1.yaml examples/combine/user2.yaml --combine --test-id prod1
+
+  [ "$status" -eq 1 ]
+  [[ "$output" =~ "FAIL - prod1 -" ]]
+  [[ ! "$output" =~ "Combined" ]]
+}
+
 @test "Combining multi-document yaml file has same result" {
   run ./conftest test -p examples/combine/policy examples/combine/team.yaml examples/combine/users.yaml --combine
 
