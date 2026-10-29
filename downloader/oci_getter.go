@@ -60,9 +60,13 @@ func (g *OCIGetter) Get(path string, u *url.URL) error {
 	}
 	defer fileStore.Close()
 
-	_, err = oras.Copy(ctx, src, repository, fileStore, "", oras.DefaultCopyOptions)
+	root, err := oras.Copy(ctx, src, repository, fileStore, "", oras.DefaultCopyOptions)
 	if err != nil {
 		return fmt.Errorf("pulling policy: %w", err)
+	}
+
+	if err := extractBundleLayers(ctx, fileStore, root, path); err != nil {
+		return fmt.Errorf("unpacking policy bundle: %w", err)
 	}
 
 	return nil
