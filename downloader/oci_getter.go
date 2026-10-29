@@ -78,7 +78,7 @@ func (g *OCIGetter) GetFile(_ string, _ *url.URL) error {
 // the base getter is not exported
 func (g *OCIGetter) SetClient(c *getter.Client) { g.client = c }
 
-// Context tries to returns the Contex from the getter's
+// Context tries to return the Context from the getter's
 // client. otherwise context.Background() is returned.
 func (g *OCIGetter) Context() context.Context {
 	if g == nil || g.client == nil {

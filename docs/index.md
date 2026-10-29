@@ -48,7 +48,7 @@ returning structured data errors instead of just strings. See
 [this issue](https://github.com/open-policy-agent/conftest/pull/243).
 
 By default, Conftest looks for these rules in the `main` namespace, but this can
-be overriden with the `--namespace` flag or provided in the configuration file.
+be overridden with the `--namespace` flag or provided in the configuration file.
 To look in all namespaces, use the `--all-namespaces` flag.
 
 Assuming you have a Kubernetes deployment in `deployment.yaml` you can run

@@ -362,7 +362,7 @@ func (e *Engine) check(ctx context.Context, path string, config any, namespace s
 
 			// When an exception is found, set the message of the exception
 			// to the query that triggered the exception so that it is known
-			// which exception was trigged.
+			// which exception was triggered.
 			if exceptionResult.Passed() {
 				exceptionResult.Message = exceptionQuery
 				exceptions = append(exceptions, exceptionResult)
