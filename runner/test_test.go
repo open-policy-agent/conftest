@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -236,6 +237,47 @@ func TestFilterNamespaces(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("filterNamespaces(%v, %v) = %v, want %v", tt.namespaces, tt.patterns, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRunCombinedTestID(t *testing.T) {
+	files := []string{
+		"../examples/combine/team.yaml",
+		"../examples/combine/user1.yaml",
+		"../examples/combine/user2.yaml",
+	}
+
+	tests := []struct {
+		name     string
+		testID   string
+		wantName string
+	}{
+		{name: "default name", wantName: "Combined"},
+		{name: "custom name", testID: "prod1", wantName: "prod1"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			runner := TestRunner{
+				Policy:      []string{"../examples/combine/policy"},
+				Namespace:   []string{"main"},
+				Combine:     true,
+				RegoVersion: "v1",
+				TestID:      tt.testID,
+			}
+
+			results, err := runner.Run(context.Background(), files)
+			if err != nil {
+				t.Fatalf("run: %v", err)
+			}
+
+			if len(results) != 1 {
+				t.Fatalf("expected 1 result, got %d", len(results))
+			}
+			if results[0].FileName != tt.wantName {
+				t.Errorf("expected file name %q, got %q", tt.wantName, results[0].FileName)
 			}
 		})
 	}
