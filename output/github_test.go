@@ -219,6 +219,75 @@ func TestGitHub(t *testing.T) {
 				"",
 			},
 		},
+		{
+			// A policy message is data, not a format string: a
+			// percent sign in it used to be read as a verb, so the
+			// annotation reached the runner corrupted.
+			name: "percent sign in the message is kept verbatim",
+			input: CheckResults{{
+				FileName:  "foo.json",
+				Namespace: "main",
+				Failures:  []Result{{Message: "replicas must be above 50% of capacity"}},
+			}},
+			expected: []string{
+				"::group::Testing \"foo.json\" against 1 policies in namespace \"main\"",
+				"::error file=foo.json,line=1::replicas must be above 50% of capacity",
+				"::notice file=foo.json,line=1::Number of successful checks: 0",
+				"::endgroup::",
+				"1 test, 0 passed, 0 warnings, 1 failure, 0 exceptions",
+				"",
+			},
+		},
+		{
+			// The same message reported against another file takes
+			// the ORIGINATING FROM path, which formatted the message
+			// a second time.
+			name: "percent sign survives an external location",
+			input: CheckResults{{
+				FileName:  "foo.json",
+				Namespace: "main",
+				Failures: []Result{{
+					Message: "replicas must be above 50% of capacity",
+					Location: &Location{
+						File: "../other_file.json",
+						Line: json.Number("10"),
+					},
+				}},
+			}},
+			expected: []string{
+				"::group::Testing \"foo.json\" against 1 policies in namespace \"main\"",
+				"::error file=../other_file.json,line=10::replicas must be above 50% of capacity",
+				"::error file=foo.json,line=1::(ORIGINATING FROM ../other_file.json L10) replicas must be above 50% of capacity",
+				"::notice file=foo.json,line=1::Number of successful checks: 0",
+				"::endgroup::",
+				"1 test, 0 passed, 0 warnings, 1 failure, 0 exceptions",
+				"",
+			},
+		},
+		{
+			// Arguments still format the message they belong to.
+			name: "percent sign survives a formatted message",
+			input: CheckResults{{
+				FileName:  "foo.json",
+				Namespace: "main",
+				Skipped: []Result{{
+					Message: "replicas must be above 50% of capacity",
+					Location: &Location{
+						File: "../other_file.json",
+						Line: json.Number("10"),
+					},
+				}},
+			}},
+			expected: []string{
+				"::group::Testing \"foo.json\" against 1 policies in namespace \"main\"",
+				"::notice file=../other_file.json,line=10::Test was skipped: replicas must be above 50% of capacity",
+				"::notice file=foo.json,line=1::(ORIGINATING FROM ../other_file.json L10) Test was skipped: replicas must be above 50% of capacity",
+				"::notice file=foo.json,line=1::Number of successful checks: 0",
+				"::endgroup::",
+				"1 test, 0 passed, 0 warnings, 0 failures, 0 exceptions",
+				"",
+			},
+		},
 	}
 
 	for _, tt := range tests {

@@ -91,22 +91,35 @@ func escapeProperty(v string) string {
 }
 
 func (g *GitHub) writeLoc(level githubLevel, loc *Location, msg string, args ...any) {
+	// Only a message that arrives with arguments is a template. A policy
+	// message is data, so formatting it unconditionally read the '%' in
+	// "above 50% of capacity" as an octal verb and printed
+	// "above 50%!o(MISSING)f capacity".
+	if len(args) > 0 {
+		msg = fmt.Sprintf(msg, args...)
+	}
+
 	// Format the message first: the escaped file name contains '%' sequences
 	// that must not be read as verbs by the final Fprintf.
-	msg = fmt.Sprintf(msg, args...)
 	g.writeLn("%s", fmt.Sprintf("::%s file=%s,line=%s::%s", level, escapeProperty(loc.File), loc.Line, msg))
 }
 
 func (g *GitHub) writeLocs(level githubLevel, fileLoc, ogLoc *Location, msg string, args ...any) {
+	// Resolve the message here so that the writes below never format an
+	// already formatted policy message a second time.
+	if len(args) > 0 {
+		msg = fmt.Sprintf(msg, args...)
+	}
+
 	// If no location was specified by the policy, default to the file location.
 	if ogLoc == nil {
-		g.writeLoc(level, fileLoc, msg, args...)
+		g.writeLoc(level, fileLoc, msg)
 		return
 	}
 
 	// If in the same file, prefer the location produced by the Rego policy.
 	if ogLoc.File == fileLoc.File {
-		g.writeLoc(level, ogLoc, msg, args...)
+		g.writeLoc(level, ogLoc, msg)
 		return
 	}
 
@@ -116,6 +129,6 @@ func (g *GitHub) writeLocs(level githubLevel, fileLoc, ogLoc *Location, msg stri
 		File: relPath(ogLoc.File),
 		Line: ogLoc.Line,
 	}
-	g.writeLoc(level, og, msg, args...)
-	g.writeLoc(level, fileLoc, fmt.Sprintf("(ORIGINATING FROM %s) %s", og, msg), args...)
+	g.writeLoc(level, og, msg)
+	g.writeLoc(level, fileLoc, fmt.Sprintf("(ORIGINATING FROM %s) %s", og, msg))
 }
