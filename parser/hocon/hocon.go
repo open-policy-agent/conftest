@@ -18,24 +18,27 @@ func (i *Parser) Unmarshal(p []byte, v any) error {
 	result := make(map[string]any)
 
 	for _, key := range rootCfg.Root().GetObject().GetKeys() {
-		cfg := rootCfg.GetConfig(key)
-		result[key] = getConfig(rootCfg, cfg, key)
+		result[key] = getValue(rootCfg, key)
 	}
 
 	return convert.Remarshal("hocon", result, v)
+}
+
+// getValue returns the value bound at the given path. Only paths that hold an
+// object are traversed, so the object of a scalar is never asked for its keys.
+func getValue(rootCfg *configuration.Config, path string) any {
+	if rootCfg.IsObject(path) {
+		return getConfig(rootCfg, rootCfg.GetConfig(path), path)
+	}
+
+	return convertType(rootCfg.GetValue(path))
 }
 
 func getConfig(rootCfg, cfg *configuration.Config, path string) map[string]any {
 	result := make(map[string]any)
 
 	for _, key := range cfg.Root().GetObject().GetKeys() {
-		tmpKey := path + "." + key
-		if rootCfg.IsObject(tmpKey) {
-			result[key] = getConfig(rootCfg, rootCfg.GetConfig(tmpKey), tmpKey)
-		} else {
-			value := rootCfg.GetValue(tmpKey)
-			result[key] = convertType(value)
-		}
+		result[key] = getValue(rootCfg, path+"."+key)
 	}
 
 	return result
