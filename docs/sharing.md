@@ -3,7 +3,7 @@
 Policies are often reusable between different projects, and Conftest supports a
 mechanism to specify dependent policies as well as download them. The format
 reuses the
-[Bundle defined by Open Policy Agent](https://www.openpolicyagent.org/docs/latest/bundles).
+[Bundle defined by Open Policy Agent](https://www.openpolicyagent.org/docs/management-bundles).
 
 ## Pulling
 
