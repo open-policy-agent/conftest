@@ -148,7 +148,7 @@ func pushBundle(ctx context.Context, repository, policyPath, dataPath, regoVersi
 	configDesc := content.NewDescriptorFromBytes(oras.MediaTypeUnknownConfig, configBytes)
 
 	if err := dest.Push(ctx, configDesc, bytes.NewReader(configBytes)); err != nil && !errors.Is(err, errdef.ErrAlreadyExists) {
-		return nil, fmt.Errorf("pushing manifest conifg: %w", err)
+		return nil, fmt.Errorf("pushing manifest config: %w", err)
 	}
 
 	manifest := ocispec.Manifest{
@@ -163,7 +163,7 @@ func pushBundle(ctx context.Context, repository, policyPath, dataPath, regoVersi
 
 	manifestDesc := content.NewDescriptorFromBytes(ocispec.MediaTypeImageManifest, manifestBytes)
 	if err := dest.Push(ctx, manifestDesc, bytes.NewReader(manifestBytes)); err != nil && !errors.Is(err, errdef.ErrAlreadyExists) {
-		return nil, fmt.Errorf("pushing manifest conifg: %w", err)
+		return nil, fmt.Errorf("pushing manifest: %w", err)
 	}
 
 	afterLastSlash := repository[strings.LastIndex(repository, "/")+1:]
