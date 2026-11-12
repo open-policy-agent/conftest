@@ -13,6 +13,7 @@ func TestJUnit(t *testing.T) {
 		name        string
 		input       CheckResults
 		hideMessage bool
+		showRule    bool
 		expected    []string
 	}{
 		{
@@ -114,6 +115,31 @@ This is the rest of the description of the failed test`}},
 				``,
 			},
 		},
+		{
+			name: "successes include the rule name",
+			input: CheckResults{
+				{
+					FileName:     "examples/kubernetes/service.yaml",
+					Namespace:    "namespace",
+					Successes:    2,
+					SuccessRules: []string{"deny_no_root"},
+				},
+			},
+			showRule: true,
+			expected: []string{
+				`<?xml version="1.0" encoding="UTF-8"?>`,
+				`<testsuites>`,
+				`	<testsuite tests="2" failures="0" time="0.000" name="conftest.namespace">`,
+				`		<properties>`,
+				`			<property name="go.version" value="%s"></property>`,
+				`		</properties>`,
+				`		<testcase classname="conftest.namespace" name="examples/kubernetes/service.yaml - deny_no_root" time="0.000"></testcase>`,
+				`		<testcase classname="conftest.namespace" name="examples/kubernetes/service.yaml" time="0.000"></testcase>`,
+				`	</testsuite>`,
+				`</testsuites>`,
+				``,
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -124,7 +150,7 @@ This is the rest of the description of the failed test`}},
 			}
 
 			buf := new(bytes.Buffer)
-			if err := NewJUnit(buf, tt.hideMessage).Output(tt.input); err != nil {
+			if err := NewJUnit(buf, tt.hideMessage, tt.showRule).Output(tt.input); err != nil {
 				t.Fatal("output junit:", err)
 			}
 			actual := buf.String()

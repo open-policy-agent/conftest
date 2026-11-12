@@ -291,6 +291,17 @@ $ conftest test -p examples/kubernetes/policy examples/kubernetes/service.yaml -
         </testsu
 ```
 
+Successful checks are named after the input file only. Pass
+`--junit-show-rule` to append the name of the rule that passed:
+
+```xml
+<testcase classname="conftest.main" name="examples/kubernetes/service.yaml - deny_no_root" time="0.000"></testcase>
+```
+
+Only the rule name is known for a success, so this is most useful with
+descriptively named rules (`deny_no_root`, `warn_missing_labels`) rather than
+bare `deny` or `warn`.
+
 ### GitHub
 
 ```console

@@ -50,7 +50,7 @@ func TestGetOutputter(t *testing.T) {
 		},
 		{
 			input:    OutputJUnit,
-			expected: NewJUnit(os.Stdout, false),
+			expected: NewJUnit(os.Stdout, false, false),
 			tracing:  false,
 		},
 		{
