@@ -125,6 +125,15 @@ func LoadWithData(policyPaths []string, dataPaths []string, opts CompilerOptions
 			return nil, fmt.Errorf("loading policies: %w", err)
 		}
 	}
+
+	// Fall back to the default data directory when none is provided.
+	if len(dataPaths) == 0 {
+		const defaultDataPath = "policy/data"
+		if _, err := os.Stat(defaultDataPath); err == nil {
+			dataPaths = []string{defaultDataPath}
+		}
+	}
+
 	filter := func(_ string, info os.FileInfo, _ int) bool {
 		if info.IsDir() {
 			return false
