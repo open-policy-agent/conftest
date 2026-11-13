@@ -36,6 +36,7 @@ type TestRunner struct {
 	SuppressExceptions bool `mapstructure:"suppress-exceptions"`
 	ShowBuiltinErrors  bool `mapstructure:"show-builtin-errors"`
 	Combine            bool
+	TestID             string `mapstructure:"test-id"`
 	Quiet              bool
 	Output             string
 }
@@ -106,6 +107,10 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) (output.CheckRe
 			result, err := engine.CheckCombined(ctx, configurations, namespace)
 			if err != nil {
 				return nil, fmt.Errorf("check combined: %w", err)
+			}
+
+			if t.TestID != "" {
+				result.FileName = t.TestID
 			}
 
 			results = append(results, result)
