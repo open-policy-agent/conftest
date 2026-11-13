@@ -13,15 +13,17 @@ import (
 // JUnit represents an Outputter that outputs
 // results in JUnit format.
 type JUnit struct {
-	Writer      io.Writer
-	hideMessage bool
+	Writer          io.Writer
+	hideMessage     bool
+	showSuccessRule bool
 }
 
 // NewJUnit creates a new JUnit with the given writer.
-func NewJUnit(w io.Writer, hideMessage bool) *JUnit {
+func NewJUnit(w io.Writer, hideMessage, showSuccessRule bool) *JUnit {
 	jUnit := JUnit{
-		Writer:      w,
-		hideMessage: hideMessage,
+		Writer:          w,
+		hideMessage:     hideMessage,
+		showSuccessRule: showSuccessRule,
 	}
 
 	return &jUnit
@@ -63,8 +65,12 @@ func (j *JUnit) Output(results CheckResults) error {
 		}
 
 		for s := 0; s < result.Successes; s++ {
+			name := result.FileName
+			if j.showSuccessRule && s < len(result.SuccessRules) {
+				name = fmt.Sprintf("%s - %s", result.FileName, result.SuccessRules[s])
+			}
 			successfulTest := parser.Test{
-				Name:   j.formatTestName(result.FileName, ""),
+				Name:   name,
 				Result: parser.PASS,
 			}
 

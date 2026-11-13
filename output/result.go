@@ -146,6 +146,9 @@ type CheckResult struct {
 	Failures   []Result      `json:"failures,omitempty"`
 	Exceptions []Result      `json:"exceptions,omitempty"`
 	Queries    []QueryResult `json:"queries,omitempty"`
+
+	// SuccessRules holds the name of the rule behind each success, when known.
+	SuccessRules []string `json:"-"`
 }
 
 // HasFailure returns true if any failures were encountered.
