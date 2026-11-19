@@ -111,6 +111,10 @@ FAIL - Combined - Deployment hello-kubernetes has selector hello-kubernetes that
 This is just the tip of the iceberg. Now you can ensure that duplicate values
 match across the entirety of your configuration files.
 
+By default the combined result is reported under the name `Combined`. When
+conftest is run several times against different sets of files, use the
+[`--test-id`](#--test-id) flag to give each run its own name in the output.
+
 ## `--config-file (-c)`
 
 Sets the location of the Conftest configuration file
@@ -364,6 +368,22 @@ success file=examples/kubernetes/deployment.yaml 1
 $ conftest test --proto-file-dirs examples/textproto/protos -p examples/textproto/policy examples/textproto/fail.textproto -o sarif
 {"version":"2.1.0","$schema":"https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json","runs":[{"tool":{"driver":{"informationUri":"https://github.com/open-policy-agent/conftest","name":"conftest","rules":[{"id":"main/deny","shortDescription":{"text":"Policy violation"}}]}},"invocations":[{"executionSuccessful":true,"exitCode":1,"exitCodeDescription":"Policy violations found"}],"results":[{"ruleId":"main/deny","ruleIndex":0,"level":"error","message":{"text":"fail: Power level must be over 9000"},"locations":[{"physicalLocation":{"artifactLocation":{"uri":"examples/textproto/fail.textproto"}}}]}]}]}
 ```
+
+## `--test-id`
+
+Sets the name that is reported for the result of a `--combine` run, in place of
+`Combined`. This makes it possible to tell the results apart when conftest is
+invoked separately against several collections of files:
+
+```console
+$ conftest test service.yaml deployment.yaml --combine --test-id prod
+
+FAIL - prod - Deployment hello-kubernetes has selector hello-kubernetes that does not match any Services
+
+1 test, 0 passed, 0 warnings, 1 failure, 0 exceptions
+```
+
+The flag has no effect unless `--combine` is also set.
 
 ## `--trace`
 
