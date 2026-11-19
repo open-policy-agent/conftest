@@ -29,7 +29,7 @@ deny contains msg if {
 	# create a set to remove duplicates
 	configured_users = {team | team := configured_users_array[i][_]}
 
-	# sets can be substracted
+	# sets can be subtracted
 	missing_users := configured_users - existing_users
 
 	# missing users are the ones configured in teams but not in Github

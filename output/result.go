@@ -101,7 +101,7 @@ func (r Result) Passed() bool {
 	return r.Message == ""
 }
 
-// QueryResult describes the result of evaluting a query.
+// QueryResult describes the result of evaluating a query.
 type QueryResult struct {
 
 	// Query is the fully qualified query that was used
