@@ -161,6 +161,15 @@ func TestMultifileYaml(t *testing.T) {
 		t.Errorf("Multifile yaml test failure. Got %v successes, expected %v", actualSuccesses, expectedSuccesses)
 	}
 
+	// The deployment only passes warn. The service passes violation and the three
+	// deny bodies, two of which produce no result and are named from the rule's body count.
+	expectedSuccessRules := []string{"deny", "deny", "deny", "violation", "warn"}
+	actualSuccessRules := append([]string(nil), results[0].SuccessRules...)
+	sort.Strings(actualSuccessRules)
+	if !reflect.DeepEqual(actualSuccessRules, expectedSuccessRules) {
+		t.Errorf("Multifile yaml test failure. Got %v success rules, expected %v", actualSuccessRules, expectedSuccessRules)
+	}
+
 	// 10 warnings/failures/successes queries, and 2 dummy exception queries
 	const expectedQueries = 12
 	actualQueries := len(results[0].Queries)
