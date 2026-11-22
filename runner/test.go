@@ -7,6 +7,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/open-policy-agent/conftest/downloader"
@@ -90,13 +91,13 @@ func (t *TestRunner) Run(ctx context.Context, fileList []string) (output.CheckRe
 		engine.ShowBuiltinErrors()
 	}
 
-	namespaces := t.Namespace
+	var namespaces []string
 	if t.AllNamespaces {
 		namespaces = engine.Namespaces()
-	} else if hasWildcard(t.Namespace) {
-		namespaces, err = filterNamespaces(engine.Namespaces(), t.Namespace)
+	} else {
+		namespaces, err = resolveNamespaces(engine.Namespaces(), t.Namespace)
 		if err != nil {
-			return nil, fmt.Errorf("filter namespaces: %w", err)
+			return nil, err
 		}
 	}
 
@@ -250,6 +251,36 @@ func hasWildcard(patterns []string) bool {
 	}
 
 	return false
+}
+
+// resolveNamespaces selects the namespaces to evaluate. A request that matches no loaded policy is
+// an error: Engine.check ignores every module whose package is not the requested namespace, so an
+// unknown namespace produces no results at all and conftest would report
+// "0 tests, 0 passed, 0 warnings, 0 failures" and exit successfully while evaluating nothing.
+func resolveNamespaces(available []string, requested []string) ([]string, error) {
+	if len(requested) == 0 {
+		return nil, fmt.Errorf("no namespaces requested (available namespaces: %s)", strings.Join(available, ", "))
+	}
+
+	if hasWildcard(requested) {
+		namespaces, err := filterNamespaces(available, requested)
+		if err != nil {
+			return nil, fmt.Errorf("filter namespaces: %w", err)
+		}
+		if len(namespaces) == 0 {
+			return nil, fmt.Errorf("no policies found matching namespace pattern(s) %q (available namespaces: %s)", strings.Join(requested, ", "), strings.Join(available, ", "))
+		}
+
+		return namespaces, nil
+	}
+
+	for _, namespace := range requested {
+		if !slices.Contains(available, namespace) {
+			return nil, fmt.Errorf("no policies found in namespace %q (available namespaces: %s)", namespace, strings.Join(available, ", "))
+		}
+	}
+
+	return requested, nil
 }
 
 // filterNamespaces returns the subset of the available namespaces that match at

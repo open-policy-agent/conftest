@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -236,6 +237,81 @@ func TestFilterNamespaces(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("filterNamespaces(%v, %v) = %v, want %v", tt.namespaces, tt.patterns, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestResolveNamespaces(t *testing.T) {
+	t.Parallel()
+
+	available := []string{"main", "main.gke", "prod"}
+
+	tests := []struct {
+		name      string
+		requested []string
+		want      []string
+		wantErr   string
+	}{
+		{
+			name:      "existing namespace is returned as requested",
+			requested: []string{"main"},
+			want:      []string{"main"},
+		},
+		{
+			name:      "multiple existing namespaces are returned as requested",
+			requested: []string{"main", "prod"},
+			want:      []string{"main", "prod"},
+		},
+		{
+			name:      "unknown namespace is an error",
+			requested: []string{"nopepolicy"},
+			wantErr:   `no policies found in namespace "nopepolicy" (available namespaces: main, main.gke, prod)`,
+		},
+		{
+			name:      "one unknown namespace among known ones is an error",
+			requested: []string{"main", "nopepolicy"},
+			wantErr:   `no policies found in namespace "nopepolicy"`,
+		},
+		{
+			name:      "no namespace at all is an error",
+			requested: nil,
+			wantErr:   "no namespaces requested",
+		},
+		{
+			name:      "wildcard pattern selects matching namespaces",
+			requested: []string{"main.*"},
+			want:      []string{"main.gke"},
+		},
+		{
+			name:      "wildcard pattern with no match is an error",
+			requested: []string{"ks8.*"},
+			wantErr:   `no policies found matching namespace pattern(s) "ks8.*"`,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := resolveNamespaces(available, tt.requested)
+			if tt.wantErr != "" {
+				if err == nil {
+					t.Fatalf("resolveNamespaces(%v) = %v, want error %q", tt.requested, got, tt.wantErr)
+				}
+				if !strings.Contains(err.Error(), tt.wantErr) {
+					t.Fatalf("resolveNamespaces(%v) error = %q, want it to contain %q", tt.requested, err, tt.wantErr)
+				}
+
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("resolveNamespaces(%v) unexpected error: %v", tt.requested, err)
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Fatalf("resolveNamespaces(%v) = %v, want %v", tt.requested, got, tt.want)
 			}
 		})
 	}
