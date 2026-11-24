@@ -23,6 +23,9 @@ linters:
         - nilness
     misspell:
       locale: US
+      ignore-rules:
+        # RouterOS is a MikroTik product name, not a misspelling of "routers".
+        - routeros
     revive:
       rules:
         - name: var-naming
