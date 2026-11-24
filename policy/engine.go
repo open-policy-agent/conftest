@@ -203,6 +203,7 @@ func (e *Engine) Check(ctx context.Context, configs map[string]interface{}, name
 				}
 
 				checkResult.Successes = checkResult.Successes + result.Successes
+				checkResult.SuccessRules = append(checkResult.SuccessRules, result.SuccessRules...)
 				checkResult.Failures = append(checkResult.Failures, result.Failures...)
 				checkResult.Warnings = append(checkResult.Warnings, result.Warnings...)
 				checkResult.Exceptions = append(checkResult.Exceptions, result.Exceptions...)
@@ -312,6 +313,7 @@ func (e *Engine) check(ctx context.Context, path string, config any, namespace s
 
 	var rules []string
 	var ruleCount int
+	bodyCounts := make(map[string]int)
 	for _, module := range e.Modules() {
 		currentNamespace := strings.Replace(module.Package.Path.String(), "data.", "", 1)
 		if currentNamespace != namespace {
@@ -334,6 +336,7 @@ func (e *Engine) check(ctx context.Context, path string, config any, namespace s
 			// For example, a policy can have two deny rules that both contain different bodies. In this case the list
 			// of rules will only contain deny, but the rule count would be two.
 			ruleCount++
+			bodyCounts[currentRule]++
 
 			if !contains(rules, currentRule) {
 				rules = append(rules, currentRule)
@@ -345,8 +348,10 @@ func (e *Engine) check(ctx context.Context, path string, config any, namespace s
 		FileName:  path,
 		Namespace: namespace,
 	}
-	var successes int
+	var successRules []string
+	var deficits []string
 	for _, rule := range rules {
+		before := len(successRules)
 
 		// When matching rules for exceptions, only the name of the rule
 		// is queried, so the severity prefix must be removed.
@@ -386,7 +391,7 @@ func (e *Engine) check(ctx context.Context, path string, config any, namespace s
 			}
 
 			if ruleResult.Passed() {
-				successes++
+				successRules = append(successRules, rule)
 				continue
 			}
 
@@ -395,6 +400,12 @@ func (e *Engine) check(ctx context.Context, path string, config any, namespace s
 			} else {
 				warnings = append(warnings, ruleResult)
 			}
+		}
+
+		// Bodies of this rule that produced no result at all are implicit successes.
+		passed := len(successRules) - before
+		for i := len(failures) + len(warnings) + len(exceptions) + passed; i < bodyCounts[rule]; i++ {
+			deficits = append(deficits, rule)
 		}
 
 		checkResult.Failures = append(checkResult.Failures, failures...)
@@ -408,12 +419,14 @@ func (e *Engine) check(ctx context.Context, path string, config any, namespace s
 	//
 	// In the event that the total number of results is less than the total number of rules, we can safely assume
 	// that the difference were successful results.
-	resultCount := len(checkResult.Failures) + len(checkResult.Warnings) + len(checkResult.Exceptions) + successes
+	resultCount := len(checkResult.Failures) + len(checkResult.Warnings) + len(checkResult.Exceptions) + len(successRules)
 	if resultCount < ruleCount {
-		successes += ruleCount - resultCount
+		// The per-rule deficits always cover the global one, so name the missing successes from them.
+		successRules = append(successRules, deficits[:ruleCount-resultCount]...)
 	}
 
-	checkResult.Successes = successes
+	checkResult.Successes = len(successRules)
+	checkResult.SuccessRules = successRules
 	return checkResult, nil
 }
 
