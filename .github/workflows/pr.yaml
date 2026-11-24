@@ -139,3 +139,9 @@ jobs:
 
       - name: verify dev shell tools
         run: nix develop --command go version
+
+      - name: build
+        run: nix build --print-build-logs
+
+      - name: verify build
+        run: ./result/bin/conftest --version

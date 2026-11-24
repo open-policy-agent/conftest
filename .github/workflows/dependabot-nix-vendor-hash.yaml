@@ -1,0 +1,57 @@
+name: dependabot-nix-vendor-hash
+
+on:
+  pull_request:
+    paths:
+      - 'go.mod'
+      - 'go.sum'
+
+permissions: {}
+
+jobs:
+  nix-vendor-hash:
+    if: >-
+      github.actor == 'dependabot[bot]' &&
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout PR branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v5
+        with:
+          ref: ${{ github.head_ref }}
+          persist-credentials: false
+
+      - name: install nix
+        uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # ratchet:cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: update vendorHash
+        run: ./scripts/update-nix-vendor-hash.sh
+
+      - name: check for changes
+        id: diff
+        run: git diff --quiet flake.nix || echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: create app token
+        if: steps.diff.outputs.changed == 'true'
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # ratchet:actions/create-github-app-token@v3.2.0
+        with:
+          client-id: ${{ secrets.CONFTEST_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.CONFTEST_BOT_PRIVATE_KEY }}
+          permission-contents: write
+
+      - name: push vendorHash
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          user_id=$(gh api "/users/${APP_SLUG}%5Bbot%5D" --jq .id)
+          git config user.name "${APP_SLUG}[bot]"
+          git config user.email "${user_id}+${APP_SLUG}[bot]@users.noreply.github.com"
+          git commit --signoff -m 'build(nix): update vendorHash' flake.nix
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:${HEAD_REF}"
