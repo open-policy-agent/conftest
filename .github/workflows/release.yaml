@@ -151,7 +151,7 @@ jobs:
           persist-credentials: false
 
       - name: setup go
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # ratchet:actions/setup-go@v6
+        uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # ratchet:actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
           cache: false
