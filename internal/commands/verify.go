@@ -24,7 +24,7 @@ The location can be overridden with the '--policy' flag, e.g.:
 
 	$ conftest verify --policy <my-directory>
 
-Some policies are dependant on external data. This data is loaded in separately
+Some policies are dependent on external data. This data is loaded in separately
 from policies. The location of any data directory or file can be specified with
 the '--data' flag.
 
